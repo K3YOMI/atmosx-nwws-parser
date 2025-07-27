@@ -1,6 +1,6 @@
 {
   "name": "@k3y0mi/nwws-parser",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "NOAA Weather Wire Parser",
   "main": "index.js",
   "scripts": {

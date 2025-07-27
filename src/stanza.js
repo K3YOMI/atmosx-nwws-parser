@@ -43,7 +43,7 @@ class NoaaWeatherWireServiceStanza {
                     let hasCapArea = message.includes(`<areaDesc>`);
                     let hasVtec = message.match(loader.definitions.expressions.vtec) != null;
                     let getId = this.getAwipsType(attributes)
-                    this.saveCache(message, getId, isCap)
+                    this.saveCache(message, getId, isCap, hasVtec);
                     return { message: message, attributes: attributes, isCap: isCap, hasCapArea: hasCapArea, hasVtec: hasVtec, id: getId, ignore: false }
                 }
             }
@@ -92,9 +92,9 @@ class NoaaWeatherWireServiceStanza {
       * @param {boolean} isCap - Indicates if the message is in CAP format.
       */
 
-    saveCache = function(message, type, isCap) { 
-        if (!loader.settings.cache) return;
-        loader.packages.fs.appendFileSync(`${loader.settings.cache}/nwws-raw-category-${type}s-${isCap ? 'cap' : 'raw'}.bin`, `=================================================\n${new Date().toISOString().replace(/[:.]/g, '-')}\n=================================================\n\n${message}`, `utf8`);
+    saveCache = function(message, type, isCap, isVtec) {
+        if (!loader.settings.cacheSettings.cacheDir) return;
+        loader.packages.fs.appendFileSync(`${loader.settings.cacheSettings.cacheDir}/nwws-raw-category-${type}s-${isCap ? 'cap' : 'raw'}${isVtec ? '-vtec' : ''}.bin`, `=================================================\n${new Date().toISOString().replace(/[:.]/g, '-')}\n=================================================\n\n${message}`, `utf8`);
     }
 }
 

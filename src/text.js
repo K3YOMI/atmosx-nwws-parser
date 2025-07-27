@@ -84,6 +84,13 @@ class NoaaWeatherWireServiceText {
                 let latStart = message.indexOf("&&", nwsStart);
                 message = latStart !== -1 ? message.substring(nwsStart + dateLineMatch[0].length, latStart).trim() : message.substring(nwsStart + dateLineMatch[0].length).trim();
                 if (message.startsWith('/')) message = message.substring(1).trim();
+                if (vtec && vtec.raw && message.includes(vtec.raw)) {
+                    let vtecIndex = message.indexOf(vtec.raw);
+                    if (vtecIndex !== -1) {
+                        message = message.substring(vtecIndex + vtec.raw.length).trim();
+                        if (message.startsWith('/')) message = message.substring(1).trim();
+                    }
+                }
             }
         } else {
             let vtecStart = message.indexOf(vtec.raw);

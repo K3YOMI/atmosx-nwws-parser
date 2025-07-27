@@ -1,81 +1,85 @@
-# AtmosphericX (NOAA Weather Wire Service Parser)
----
-
-This package allows you to easily obtain and parse data from the NOAA Weather Wire Service (NWWS) using Node.js. It provides a simple framework to connect to the NWWS and authenticate and parse messages such as CAP (Common Alerting Protocol) messages and or Raw Text Products.
+# AtmosphericX - NOAA Weather Wire Service Parser
 
 
-## Installation
+This repository contains the primary parser for AtmosphericX's NOAA Weather Wire Service parser. It is designed to handle real time weather alerts and messages from the National Weather Service using XMPP. 
+
+## Installation Guide
+To install this package, you can use **NPM** (Node Package Manager). Open your terminal and run the following command:
+
 ```bash
 npm install atmosx-nwws-parser
-or 
-npm install k3y0mi@nwws-parser
+# Alternatively, you can install it from this repository directly as well.
+npm install @k3y0mi/nwws-parser
 ```
 
 ## Usage
-```javascript
-const nwws = require('atmosx-nwws-parser'); // Alternatively, require(`@k3y0mi/nwws-parser`)
-
-let nwwsObject = new nwws({
-    databaseDir: `myDatabase.db`, // Path to your database file (Default: shapefiles.db)
-    cap: false, // Set to true if you wish to only recieve CAP messages (Default: False)
-    authenication: {
-        username: `USERNAME_HERE`, // Your NWWS username
-        password: `PASSWORD_HERE`, // Your NWWS password
-        display: `DISPLAY_NAME` // Display name for the connection (If left empty, it will default to the username)
-    }
-});
+```js
+const AtmosXWireParser = require(`atmosx-nwws-parser`); // or require(`@k3y0mi/nwws-parser`);
 ```
 
+## Configuration and Initialization
 
-## Listeners
-
-You can listen for various events emitted by the parser. Here are the available events:
+There are several settings you can configure when intializing the parser. Below is the test.js example that shows some of the settings you can use:
 
 ```js
-// Event: onAlert
-// Triggered when a fully parsed alert object is received.
-nwwsObject.onEvent('onAlert', (alert) => {
-    alert.forEach((item) => {
-        console.log(item); // Log each alert object.
-    });
-});
-
-// Event: onMessage
-// Triggered when a raw stanza object is received from NWWS.
-nwwsObject.onEvent('onMessage', (message) => {
-    console.log(message); // Log the raw message object.
-});
-
-// Event: onOccupant
-// Triggered when a room occupant object is received.
-nwwsObject.onEvent('onOccupant', (occupant) => {
-    console.log(occupant); // Log the occupant's nickname and JID.
-});
-
-// Event: onError
-// Triggered when an error occurs.
-nwwsObject.onEvent('onError', (error) => {
-    console.error('Error:', error); // Log the error message or stack trace.
-});
-
-// Event: onDebug
-// Triggered for debug messages, useful for troubleshooting.
-nwwsObject.onEvent('onDebug', (status) => {
-    console.log('Debug:', status); // Log the debug status.
-});
-
-// Event: onServiceInterruption
-// Triggered when a service interruption is detected.
-nwwsObject.onEvent('onServiceInterruption', (service) => {
-    console.warn('Service Interruption:', service); // Log the service interruption details.
-});
-
-// Event: onReconnect
-// Triggered when the parser reconnects to the service.
-nwwsObject.onEvent('onReconnect', (service) => {
-    nwwsObject.setDisplayName(`MyUniqueUsernameHere (x${service.reconnects})`);
-    console.log('Reconnected:', service); // Log the reconnect details.
+let Client = new AtmosXWireParser({
+    alertSettings: { 
+        onlyCap: false, // Set to true to only receive CAP messages only
+        betterEvents: true, // Set to true to receive better event handling
+        ugcPolygons: false, // Set to true to receive UGC Polygons instead of reading from raw products. 
+    },
+    xmpp: {
+        reconnect: true, // Set to true to enable automatic reconnection if you lose connection
+        reconnectInterval: 60, // Interval in seconds to attempt reconnection
+    },
+    cacheSettings: {
+        maxMegabytes: 2, // Maximum cache size in megabytes
+        cacheDir: `./cache`, // Directory for cache files
+    },
+    authentication: {
+        username: `USERNAME_HERE`, // Your XMPP username
+        password: `PASSWORD_HERE`, // Your XMPP password
+        display: `DISPLAY_NAME` // Display name for your XMPP client
+    },
+    database: `./database.db`, // Path to the SQLite database file (It will be created if it doesn't exist and will be used to store UGC counties and zones.)
 });
 ```
 
 
+## Event Handling
+
+You can handle various events emitted by the parser. Here are some examples:
+
+```js
+Client.onEvent(`onAlert`, (alerts: Array) => {});
+Client.onEvent(`onMessage`, (stanza: Object) => {});
+Client.onEvent(`onOccupant`, (occupant: Object) => {});
+Client.onEvent(`onError`, (error: Object) => {});
+Client.onEvent(`onReconnect`, (service: Object) => {});
+```
+
+## Functions and Methods
+You can also use various functions provided by the parser. Here are some examples:
+```js
+// Debugging function to create your own alert manually
+Client.forwardCustomStanza(stanza: String, attributes: Object);
+```
+
+```js
+// Function to set the display name of the XMPP client (Will only set upon reconnect)
+Client.setDisplayName(displayName: String);
+```
+
+## Error Handling
+The parser can emit various errors. Here are some common errors you might encounter:
+
+**not-authorized**: This error occurs when the parser is not authorized to connect to the XMPP server. Ensure that your username and password are correct.
+
+**unreachable-host**: This error indicates that the parser cannot reach the XMPP server. Check your internet connection and ensure that the server address is correct.
+
+**service-error**: This error occurs when there is an issue with the XMPP service. It could be due to server maintenance or other issues. You can try reconnecting after some time.
+
+**no-database-dir**: This error occurs when the database directory does not exist. Ensure that the directory specified in the `database` setting exists or create it before running the parser.
+
+## Credits
+This parser is developed and maintained by [K3YOMI](https://github.com/K3YOMI) and the AtmosphericX Team. It is open-source and available for contributions and improvements. If you find any issues or have suggestions, feel free to open an issue or submit a pull request in the repository.

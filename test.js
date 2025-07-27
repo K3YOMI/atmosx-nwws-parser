@@ -1,22 +1,31 @@
 nwws = require(`./index.js`);
 
 let nwwsObject = new nwws({
-    databaseDir: `myDatabase.db`,
-    cap: false,
-    reconnect: true,
-    interval: 60,
-    authenication: {
-        username: `USERNAME_HERE`,
-        password: `PASSWORD_HERE`, 
-        display: `DISPLAY_NAME`
-    }
+    alertSettings: { 
+        onlyCap: false, // Set to true to only receive CAP messages only
+        betterEvents: true, // Set to true to receive better event handling
+        ugcPolygons: false, // Set to true to receive UGC Polygons instead of reading from raw products. 
+    },
+    xmpp: {
+        reconnect: true, // Set to true to enable automatic reconnection if you lose connection
+        reconnectInterval: 60, // Interval in seconds to attempt reconnection
+    },
+    cacheSettings: {
+        maxMegabytes: 2, // Maximum cache size in megabytes
+        cacheDir: `./cache`, // Directory for cache files
+    },
+    authentication: {
+        username: `USERNAME_HERE`, // Your XMPP username
+        password: `PASSWORD_HERE`, // Your XMPP password
+        display: `DISPLAY_NAME` // Display name for your XMPP client
+    },
+    database: `./database.db`, // Path to the SQLite database file (It will be created if it doesn't exist and will be used to store UGC counties and zones.)
 });
 
-nwwsObject.onEvent(`onAlert`, (alert) => {});
+nwwsObject.onEvent(`onAlert`, (alert) => {console.log(alert)});
 nwwsObject.onEvent(`onMessage`, (message) => {});
 nwwsObject.onEvent(`onOccupant`, (occupant) => {});
 nwwsObject.onEvent(`onError`, (error) => {console.log(error)});
-nwwsObject.onEvent(`onDebug`, (status) => {});
-nwwsObject.onEvent(`onServiceInterruption`, (service) => {});
-nwwsObject.onEvent(`onReconnect`, (service) => { nwwsObject.setDisplayName(`${nwwsObject.authenication.display} (x${service.reconnects})`)})
-
+nwwsObject.onEvent(`onReconnect`, (service) => { 
+    nwwsObject.setDisplayName(`${username} (x${service.reconnects})`)
+})

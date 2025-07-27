@@ -15,6 +15,52 @@ let loader = require(`../bootstrap.js`);
 
 class NoaaWeatherWireServiceEvents { 
 
+    onEnhanced = function(event) {
+        let tags = [`No tags found`];
+        let eventName = event.properties.event
+        let dmgTheat = event.properties.parameters.thunderstormDamageThreat?.[0] || event.properties.parameters.tornadoDamageThreat?.[0] || `N/A`;
+        let description = event.properties.description.toLowerCase() || `No description available.`;
+        if (description.includes(`flash flood emergency`) && eventName == `Flash Flood Warning`) eventName = `Flash Flood Emergency`;
+        if (description.includes(`particularly dangerous situation`) && eventName == `Tornado Warning` && dmgTheat == `CONSIDERABLE`) eventName = `Particularly Dangerous Situation Tornado Warning`;
+        if (description.includes(`particularly dangerous situation`) && eventName == `Tornado Watch`) eventName = `Particularly Dangerous Situation Tornado Watch`;
+        if (description.includes(`tornado emergency`) && eventName == `Tornado Warning` && dmgTheat == `CATASTROPHIC`) eventName = `Tornado Emergency`;
+        if (eventName == `Tornado Warning`) {
+            eventName = `Radar Indicated Tornado Warning`;
+            if (event.properties.parameters.tornadoDetection == `RADAR INDICATED`) eventName = `Radar Indicated Tornado Warning`;
+            if (event.properties.parameters.tornadoDetection == `OBSERVED`) eventName = `Confirmed Tornado Warning`; 
+        }
+        if (eventName == `Severe Thunderstorm Warning`) {
+            if (dmgTheat == `CONSIDERABLE`) eventName = `Considerable Severe Thunderstorm Warning`;
+            if (dmgTheat == `DESTRUCTIVE`) eventName = `Destructive Severe Thunderstorm Warning`;
+        }
+        for (let [key, value] of Object.entries(loader.definitions.tags)) {
+            if (event.properties.description.toLowerCase().includes(key.toLowerCase())) {
+                tags = tags.includes(`No tags found`) ? [] : tags;
+                if (!tags.includes(value)) tags.push(value);
+            }
+        }
+        return { event: eventName, tags: tags };
+    }
+
+
+    /**
+      * @function onFinished
+      * @description onFinishedes the alerts and emits an event with enhanced event details.
+      * @param {Array} alerts - An array of alert objects to be onFinisheded.
+      */ 
+
+    onFinished = function(alerts) {
+        if (loader.settings.alertSettings.betterEvents) { 
+            for (let i = 0; i < alerts.length; i++) { 
+                let {event, tags} = this.onEnhanced(alerts[i]);
+                alerts[i].properties.event = event;
+                alerts[i].properties.tags = tags;
+            }
+        }
+        if (alerts.length === 0) { return; }
+        loader.static.events.emit(`onAlert`, alerts);
+    }
+
     /**
       * @function newCapEvent
       * @description Creates a new CAP event from the provided stanza.
@@ -63,7 +109,7 @@ class NoaaWeatherWireServiceEvents {
         if (result.alert.info[0].area[0].polygon) {
             alert.geometry = { type: "Polygon", coordinates: [result.alert.info[0].area[0].polygon[0].split(" ").map(coord => { let [lat, lon] = coord.split(",").map(parseFloat); return [lon, lat]; })] };
         }
-        loader.static.events.emit(`onAlert`, [alert]);
+        this.onFinished([alert]);
     }
 
     /**
@@ -118,7 +164,7 @@ class NoaaWeatherWireServiceEvents {
                     },
                     geometry: { type: `Polygon`, coordinates: [getCoordinates] }
                 }
-                if (loader.settings.enhancedPolygons) {
+                if (loader.settings.alertSettings.ugcPolygons) {
                     let coordinates = await loader.packages.mUGC.getCoordinates(ugc.zones);
                     if (coordinates.length > 0) {
                         alert.geometry.coordinates = [coordinates];
@@ -127,8 +173,7 @@ class NoaaWeatherWireServiceEvents {
                 alerts.push(alert);
             }
         }
-        if (alerts.length === 0) { return; }
-        loader.static.events.emit(`onAlert`, alerts);
+        this.onFinished(alerts);
     }
 
     /**
@@ -181,7 +226,7 @@ class NoaaWeatherWireServiceEvents {
                     },
                     geometry: { type: `Polygon`, coordinates: [getCoordinates] }
                 }
-                if (loader.settings.enhancedPolygons) {
+                if (loader.settings.alertSettings.ugcPolygons) {
                     let coordinates = await loader.packages.mUGC.getCoordinates(ugc.zones);
                     if (coordinates.length > 0) {
                         alert.geometry.coordinates = [coordinates];
@@ -190,8 +235,7 @@ class NoaaWeatherWireServiceEvents {
                 alerts.push(alert);
             }
         }
-        if (alerts.length === 0) { return; }
-        loader.static.events.emit(`onAlert`, alerts);
+        this.onFinished(alerts);
     }
 }
 

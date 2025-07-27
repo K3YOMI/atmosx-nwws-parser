@@ -28,6 +28,7 @@ class NoaaWeatherWireServiceVtec {
         let splitVTEC = match[0].split(`.`);
 		let vtecDates = splitVTEC[6].split(`-`);
         return {
+            raw: match[0],
             tracking: this.getTrackingIdentifier(splitVTEC),
             event: this.getEventName(splitVTEC),
             status: this.getEventStatus(splitVTEC),
