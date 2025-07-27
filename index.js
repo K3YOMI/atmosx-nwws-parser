@@ -118,7 +118,7 @@ class NoaaWeatherWireServiceCore {
             throw new Error(`unreachable-host`);
         })
         loader.static.session.on(`error`, (error) => {
-            throw new Error(`service-error`);
+            throw new Error(error.message || `service-error`);
         })
         loader.static.session.on(`stanza`, (stanza) => {
             loader.cache.lastStanza = new Date().getTime();
