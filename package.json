@@ -1,0 +1,33 @@
+{
+  "name": "atmosx-nwws-parser",
+  "version": "1.0.1",
+  "description": "NOAA Weather Wire Parser (Used by AtmosphericX)",
+  "main": "test.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/K3YOMI/atmosx-nwws-parser.git"
+  },
+  "keywords": [
+    "NWWS",
+    "NOAA",
+    "Weather",
+    "Wire",
+    "Service",
+    "Parsing"
+  ],
+  "author": "K3YOMI, Starflight",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/K3YOMI/atmosx-nwws-parser/issues"
+  },
+  "homepage": "https://github.com/K3YOMI/atmosx-nwws-parser#readme",
+  "dependencies": {
+    "@xmpp/client": "^0.7.3",
+    "better-sqlite3": "^11.10.0",
+    "xml2js": "^0.6.2",
+    "shapefile": "^0.6.6"
+  }
+}
