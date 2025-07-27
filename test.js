@@ -1,4 +1,4 @@
-nwws = require(`./atmosx-nwws-parser`);
+nwws = require(`index.js`);
 
 let nwwsObject = new nwws({
     databaseDir: `myDatabase.db`,
