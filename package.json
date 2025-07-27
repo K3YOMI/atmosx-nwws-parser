@@ -12,14 +12,10 @@
   },
   "keywords": [
     "NWWS",
-    "NOAA",
-    "Weather",
-    "Wire",
-    "Service",
-    "Parsing"
+    "NOAA Weather Wire Service"
   ],
   "author": "K3YOMI, Starflight",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/K3YOMI/atmosx-nwws-parser/issues"
   },

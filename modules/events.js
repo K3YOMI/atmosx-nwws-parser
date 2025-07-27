@@ -26,7 +26,7 @@ class NoaaWeatherWireServiceRawTextProduct {
                 areaDesc: result.alert.info[0].area[0].areaDesc[0],
                 expires: new Date(result.alert.info[0].expires[0]),
                 sent: new Date(result.alert.sent[0]),
-                messageType: result.alert.msgType[0],
+                messageType: action,
                 event: result.alert.info[0].event[0],
                 sender: result.alert.sender[0],
                 senderName: result.alert.info[0].senderName[0],

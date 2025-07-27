@@ -23,7 +23,7 @@ class NoaaWeatherWireServiceStanza {
                     let hasCapArea = message.includes(`<areaDesc>`);
                     let hasVtec = message.match(loader.definitions.expressions.vtec) != null;
                     let getId = this.getAwipsType(attributes)
-                    this.saveCache(message, getId);
+                    this.saveCache(message, getId, isCap)
                     return { message: message, attributes: attributes, isCap: isCap, hasCapArea: hasCapArea, hasVtec: hasVtec, id: getId, ignore: false }
                 }
             }
@@ -39,9 +39,9 @@ class NoaaWeatherWireServiceStanza {
         return `default`;
     }
 
-    saveCache = function(message, type) { 
+    saveCache = function(message, type, isCap) { 
         if (!loader.settings.cache) return;
-        loader.packages.fs.appendFileSync(`${loader.settings.cache}/nwws-raw-category-${type}s.bin`, `=================================================\n${new Date().toISOString().replace(/[:.]/g, '-')}\n=================================================\n\n${message}`, `utf8`);
+        loader.packages.fs.appendFileSync(`${loader.settings.cache}/nwws-raw-category-${type}s-${isCap ? 'cap' : 'raw'}.bin`, `=================================================\n${new Date().toISOString().replace(/[:.]/g, '-')}\n=================================================\n\n${message}`, `utf8`);
     }
 
 
@@ -49,8 +49,8 @@ class NoaaWeatherWireServiceStanza {
         let type = stanza.id
         let cap = stanza.isCap;
         let vtec = stanza.hasVtec; 
-        if (type == `default` && !cap) { loader.packages.mEvents.alert(stanza); return; }
-        if (type == `default` && cap) { loader.packages.mEvents.cap(stanza); return; }
+        if (type == `default` && vtec && !cap) { loader.packages.mEvents.alert(stanza); return; }
+        if (type == `default` && vtec && cap) { loader.packages.mEvents.cap(stanza); return; }
         if (type == `special-weather-statement`) { loader.packages.mEvents.special(stanza); return; }
 
 
