@@ -23,7 +23,7 @@
   "devDependencies": {
     "@xmpp/client": "^0.7.3",
     "better-sqlite3": "^11.10.0",
-    "xml2js": "^0.6.2",
-    "shapefile": "^0.6.6"
+    "shapefile": "^0.6.6",
+    "xml2js": "^0.6.2"
   }
 }

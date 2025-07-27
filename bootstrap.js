@@ -14,11 +14,11 @@ module.exports.packages = {
     shapefile: require(`shapefile`),
     xml2js: require(`xml2js`),
     sqlite3: require(`better-sqlite3`),
-    mStanza: require(`./modules/stanza.js`),
-    mVtec: require(`./modules/vtec.js`),
-    mUGC: require(`./modules/ugc.js`),
-    mText: require(`./modules/text.js`),
-    mEvents: require(`./modules/events.js`),
+    mStanza: require(`./src/stanza.js`),
+    mVtec: require(`./src/vtec.js`),
+    mUGC: require(`./src/ugc.js`),
+    mText: require(`./src/text.js`),
+    mEvents: require(`./src/events.js`),
 
 }
 
