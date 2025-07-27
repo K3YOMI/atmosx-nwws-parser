@@ -1,9 +1,29 @@
+/*
+                                            _               _     __   __
+         /\  | |                           | |             (_)    \ \ / /
+        /  \ | |_ _ __ ___   ___  ___ _ __ | |__   ___ _ __ _  ___ \ V / 
+       / /\ \| __| '_ ` _ \ / _ \/ __| '_ \| '_ \ / _ \ '__| |/ __| > <  
+      / ____ \ |_| | | | | | (_) \__ \ |_) | | | |  __/ |  | | (__ / . \ 
+     /_/    \_\__|_| |_| |_|\___/|___/ .__/|_| |_|\___|_|  |_|\___/_/ \_\
+                                     | |                                 
+                                     |_|                                                                                                                
+    
+    Written by: k3yomi@GitHub                        
+*/
+
 let loader = require(`../bootstrap.js`);
 
-class NoaaWeatherWireServiceRawTextProduct { 
+class NoaaWeatherWireServiceEvents { 
 
+    /**
+      * @function newCapEvent
+      * @description Creates a new CAP event from the provided stanza.
+      * 
+      * @param {object} stanza - The stanza object containing message and attributes.
+      */
+    
 
-    cap = async function(stanza) { 
+    newCapEvent = async function(stanza) { 
         let message = stanza.message.substring(stanza.message.indexOf(`<?xml version="1.0"`), stanza.message.length);
         let data = loader.packages.xml2js.Parser();
         let result = await data.parseStringPromise(message);
@@ -47,13 +67,20 @@ class NoaaWeatherWireServiceRawTextProduct {
         loader.static.events.emit(`onAlert`, [alert]);
     }
 
-    alert = async function(stanza) { 
+    /**
+      * @function newRawProductEvent
+      * @description Creates a new raw product event from the provided stanza.
+      *
+      * @param {object} stanza - The stanza object containing message and attributes.
+      */
+
+    newRawProductEvent = async function(stanza) { 
         let message = stanza.message.split(/(?=\$\$)/g).map(msg => msg.trim());
         let defaultWMO = stanza.message.match(new RegExp(loader.definitions.expressions.wmo, 'gimu'));
         let alerts = []
         for (let msg of message) {
             let startTime = new Date().getTime();
-            let vtec = await loader.packages.mVtec.getVtec(msg, stanza.attributes);
+            let vtec = await loader.packages.mVtec.getVTEC(msg, stanza.attributes);
             let ugc = await loader.packages.mUGC.getUGC(msg);
             if (vtec && ugc) {
                 if (vtec.wmo) defaultWMO = vtec.wmo;
@@ -102,7 +129,14 @@ class NoaaWeatherWireServiceRawTextProduct {
         loader.static.events.emit(`onAlert`, alerts);
     }
 
-    special = async function(stanza) { 
+    /**
+      * @function newSpecialEvent
+      * @description Creates a new special weather statement event from the provided stanza.
+      * 
+      * @param {object} stanza - The stanza object containing message and attributes.
+      */
+
+    newSpecialEvent = async function(stanza) { 
         let message = stanza.message.split(/(?=\$\$)/g).map(msg => msg.trim());
         let defaultWMO = stanza.message.match(new RegExp(loader.definitions.expressions.wmo, 'gimu'));
         let alerts = [];
@@ -156,4 +190,4 @@ class NoaaWeatherWireServiceRawTextProduct {
     }
 }
 
-module.exports = new NoaaWeatherWireServiceRawTextProduct();
+module.exports = new NoaaWeatherWireServiceEvents();

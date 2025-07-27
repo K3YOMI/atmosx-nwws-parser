@@ -37,10 +37,13 @@ module.exports.definitions = {
     },
     haultingConditions: [
         { error: "not-authorized", message: "You do not have the proper credentials to access this service." },
+        { error: "no-database-dir", message: "Database directory is not set. Please set the databaseDir in the metadata." },
+        { error: "invalid-argument", message: "The argument provided is invalid. Please provide a boolean value." },
+        { error: "unreachable-host", message: "The host could not be reached. Please check your internet connection or the host address." },
+        { error: "service-error", message: "An error occurred while connecting to the NOAA Weather Wire Service. Please try again later." }
     ]
 }
 
 module.exports.cache = { lastStanza: new Date().getTime(), session: null, isConnected: false, attemptingReconnect: false, totalReconnects: 0 };
-module.exports.settings = { databaseDir: module.exports.packages.path.join(process.cwd(), 'shapefiles.db'), cache: false, cap: false };
-
+module.exports.settings = { reconnect: true, reconnectInterval: 60, databaseDir: module.exports.packages.path.join(process.cwd(), 'shapefiles.db'), cache: false, cap: false };
 module.exports.static.events = new module.exports.packages.events.EventEmitter();

@@ -11,9 +11,11 @@ let nwwsObject = new nwws({
 });
 
 
-nwwsObject.onEvent(`onStanza`, (stanza) => { console.log(stanza); }); 
-nwwsObject.onEvent(`onAlert`, (alert) => { console.log(alert);    });
-nwwsObject.onEvent(`onError`, (error) => { console.log(error)     });
-nwwsObject.onEvent(`onDebug`, (debug) => { console.log(debug);    });
+nwwsObject.onEvent(`onAlert`, (alert) => {});
+nwwsObject.onEvent(`onMessage`, (message) => {});
+nwwsObject.onEvent(`onOccupant`, (occupant) => {});
+nwwsObject.onEvent(`onError`, (error) => {});
+nwwsObject.onEvent(`onDebug`, (status) => {});
+nwwsObject.onEvent(`onServiceInterruption`, (service) => {});
 
 

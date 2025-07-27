@@ -1,5 +1,28 @@
+/*
+                                            _               _     __   __
+         /\  | |                           | |             (_)    \ \ / /
+        /  \ | |_ _ __ ___   ___  ___ _ __ | |__   ___ _ __ _  ___ \ V / 
+       / /\ \| __| '_ ` _ \ / _ \/ __| '_ \| '_ \ / _ \ '__| |/ __| > <  
+      / ____ \ |_| | | | | | (_) \__ \ |_) | | | |  __/ |  | | (__ / . \ 
+     /_/    \_\__|_| |_| |_|\___/|___/ .__/|_| |_|\___|_|  |_|\___/_/ \_\
+                                     | |                                 
+                                     |_|                                                                                                                
+    
+    Written by: k3yomi@GitHub                        
+*/
+
+let loader = require(`../bootstrap.js`);
+
 class NoaaWeatherWireServiceText { 
-    constructor() {}
+
+    /**
+      * @function getString
+      * @description Extracts a specific string from a message, removing specified substrings.
+      * 
+      * @param {string} message - The message to search within.
+      * @param {string} string - The string to extract.
+      * @param {Array} removeIfExists - An array of substrings to remove from the result.
+      */
     
     getString = function(message, string, removeIfExists=[]) {
         let lines = message.split('\n');
@@ -13,9 +36,23 @@ class NoaaWeatherWireServiceText {
         return null;
     }
    
+    /**
+      * @function getOffice
+      * @description Extracts the office information from a message.
+      * 
+      * @param {string} message - The message to search within.
+      */
+
     getOffice = function(message) { 
         return this.getString(message, `National Weather Service`) || this.getString(message, `NWS STORM PREDICTION CENTER `) || null;
     }
+
+    /**
+      * @function getPolygonCoordinates
+      * @description Extracts polygon coordinates from a message.
+      * 
+      * @param {string} message - The message containing polygon coordinates.
+      */
 
     getPolygonCoordinates = function(message) {
         let coordinates = [], latLon = message.match(/LAT\.{3}LON\s+([\d\s]+)/i);
@@ -29,6 +66,14 @@ class NoaaWeatherWireServiceText {
         }
         return coordinates;
     }
+
+    /**
+      * @function getCleanDescription
+      * @description Cleans the description of a message by removing unnecessary parts.
+      * 
+      * @param {string} message - The message to clean.
+      * @param {object} vtec - The VTEC object containing raw VTEC information.
+      */
 
     getCleanDescription = function(message, vtec) { 
         let dateLineMatches = [...message.matchAll(/\d{3,4}\s*(AM|PM)?\s*[A-Z]{2,4}\s+[A-Z]{3,}\s+[A-Z]{3,}\s+\d{1,2}\s+\d{4}/gim)];

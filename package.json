@@ -1,6 +1,6 @@
 {
-  "name": "atmosx-nwws-parser",
-  "version": "1.0.1",
+  "name": "@k3y0mi/nwws-parser",
+  "version": "1.0.11",
   "description": "NOAA Weather Wire Parser (Used by AtmosphericX)",
   "main": "index.js",
   "scripts": {
