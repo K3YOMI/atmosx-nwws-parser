@@ -32,40 +32,49 @@ let nwwsObject = new nwws({
 You can listen for various events emitted by the parser. Here are the available events:
 
 ```js
-nwwsObject.onEvent(`onAlert`, (alert) => {
-    for (let i = 0; i < alert.length; i++) {
-        console.log(alert[i]); // Fully parsed alert object.
-    }
+// Event: onAlert
+// Triggered when a fully parsed alert object is received.
+nwwsObject.onEvent('onAlert', (alert) => {
+    alert.forEach((item) => {
+        console.log(item); // Log each alert object.
+    });
 });
-```
 
-```js
-nwwsObject.onEvent(`onMessage`, (message) => {
-    console.log(message); // Raw stanza object received from NWWS (This is a object containing the message and attributes)
+// Event: onMessage
+// Triggered when a raw stanza object is received from NWWS.
+nwwsObject.onEvent('onMessage', (message) => {
+    console.log(message); // Log the raw message object.
 });
-```
 
-```js
-nwwsObject.onEvent(`onOccupant`, (occupant) => {
-    console.log(occupant); // Room occupant object containing the nickname and JID of the occupant.
+// Event: onOccupant
+// Triggered when a room occupant object is received.
+nwwsObject.onEvent('onOccupant', (occupant) => {
+    console.log(occupant); // Log the occupant's nickname and JID.
 });
-```
 
-```js
-nwwsObject.onEvent(`onError`, (error) => {
-    console.log(`Error:`, error); // String containing the stack trace / error message
+// Event: onError
+// Triggered when an error occurs.
+nwwsObject.onEvent('onError', (error) => {
+    console.error('Error:', error); // Log the error message or stack trace.
 });
-```
 
-```js
-nwwsObject.onEvent(`onDebug`, (status) => {
-    console.log(`Debug:`, status); // Debug message, useful for debugging purposes
+// Event: onDebug
+// Triggered for debug messages, useful for troubleshooting.
+nwwsObject.onEvent('onDebug', (status) => {
+    console.log('Debug:', status); // Log the debug status.
 });
-```
 
-```js
-nwwsObject.onEvent(`onServiceInterruption`, (service) => {
-    console.log(`Service Interruption:`, service); // String containing details about the service interruption
+// Event: onServiceInterruption
+// Triggered when a service interruption is detected.
+nwwsObject.onEvent('onServiceInterruption', (service) => {
+    console.warn('Service Interruption:', service); // Log the service interruption details.
+});
+
+// Event: onReconnect
+// Triggered when the parser reconnects to the service.
+nwwsObject.onEvent('onReconnect', (service) => {
+    nwwsObject.setDisplayName(`MyUniqueUsernameHere (x${service.reconnects})`);
+    console.log('Reconnected:', service); // Log the reconnect details.
 });
 ```
 

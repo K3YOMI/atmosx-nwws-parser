@@ -24,7 +24,7 @@ class NoaaWeatherWireServiceCore {
             loader.static.events.emit(`onError`, `An uncaught exception occurred: ${error.stack || error.message}`);
         });
         this.initializeDatabase([{ id: `C`, file: `USCounties` }, { id: `Z`, file: `ForecastZones` }, { id: `Z`, file: `FireZones` }, { id: `Z`, file: `OffShoreZones` }, { id: `Z`, file: `FireCounties` }, { id: `Z`, file: `Marine` }]);
-        setInterval(() => { if (loader.settings.reconnect) { this.isReconnectEligible(loader.settings.reconnectInterval) }}, loader.settings.reconnectInterval * 1000);
+        setInterval(() => { if (loader.settings.reconnect) { this.isReconnectEligible(loader.settings.interval) }}, loader.settings.interval * 1000);
     }
     
     /**
@@ -172,12 +172,24 @@ class NoaaWeatherWireServiceCore {
                     loader.cache.attemptingReconnect = true;
                     loader.cache.isConnected = false;
                     loader.cache.totalReconnects += 1;
+                    loader.static.events.emit(`onReconnect`, { reconnects: loader.cache.totalReconnects, lastStanza: lastStanza / 1000 });
                     await loader.static.session.stop().catch(() => {});
                     await loader.static.session.start().catch(() => {});
                 } 
             }
         }
         return { message: `Session is not connected or session is not available`, isConnected: loader.cache.isConnected, session: loader.static.session };
+    }
+
+    /**
+      * @function setDisplayName
+      * @description Sets the display name for the XMPP session.
+      * 
+      * @param {string} displayName - The display name to set for the XMPP session.
+      */
+
+    setDisplayName = async function(displayName) {
+        this.metadata.authenication.display = displayName;
     }
 
     /**

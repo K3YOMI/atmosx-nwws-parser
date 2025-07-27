@@ -22,7 +22,6 @@ class NoaaWeatherWireServiceEvents {
       * @param {object} stanza - The stanza object containing message and attributes.
       */
     
-
     newCapEvent = async function(stanza) { 
         let message = stanza.message.substring(stanza.message.indexOf(`<?xml version="1.0"`), stanza.message.length);
         let data = loader.packages.xml2js.Parser();
