@@ -45,5 +45,5 @@ module.exports.definitions = {
 }
 
 module.exports.cache = { lastStanza: new Date().getTime(), session: null, isConnected: false, attemptingReconnect: false, totalReconnects: 0 };
-module.exports.settings = { reconnect: true, interval: 60, databaseDir: module.exports.packages.path.join(process.cwd(), 'shapefiles.db'), cache: false, cap: false };
+module.exports.settings = { enhancedPolygons: false, reconnect: true, interval: 60, databaseDir: module.exports.packages.path.join(process.cwd(), 'shapefiles.db'), cache: false, cap: false };
 module.exports.static.events = new module.exports.packages.events.EventEmitter();

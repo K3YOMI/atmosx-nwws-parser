@@ -49,6 +49,7 @@ class NoaaWeatherWireServiceStanza {
             }
             return { message: null, arrtributes: null, isCap: null, hasCapArea: null, hasVtec: null, id: null, ignore: true}
         } catch (error) {
+            console.error(`[!] Error in newStanza: ${error.stack}`);
             return { message: null, arrtributes: null, isCap: null, hasCapArea: null, hasVtec: null, id: null, ignore: true }
         }
     }

@@ -130,9 +130,6 @@ class NoaaWeatherWireServiceCore {
             throw new Error(`unreachable-host`);
         })
         loader.static.session.on(`error`, (error) => {
-            loader.static.session.stop();
-            loader.cache.isConnected = false;
-            loader.cache.attemptingReconnect = false;
             loader.static.events.emit('onServiceInterruption', error.message || error.stack || `An error occurred while connecting to NOAA Weather Wire Service.`);
             throw new Error(`service-error`);
         })
@@ -190,6 +187,20 @@ class NoaaWeatherWireServiceCore {
 
     setDisplayName = async function(displayName) {
         this.metadata.authenication.display = displayName;
+    }
+
+    /**
+      * @function forwardCustomStanza
+      * @description Forwards a custom stanza message to the appropriate event handler.
+      * 
+      * @param {string} message - The custom message to forward.
+      * @param {object} attributes - The attributes of the custom message.
+      */
+
+    forwardCustomStanza = function(stanza, attrs) {
+        let validateStanza = loader.packages.mStanza.newStanza(stanza, { stanza, attrs });
+        loader.packages.mStanza.createNewAlert(validateStanza);
+        this.debug(`New alert received from NOAA Weather Wire Service ${JSON.stringify(validateStanza.attributes)}`);
     }
 
     /**

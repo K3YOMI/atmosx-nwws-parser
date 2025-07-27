@@ -57,7 +57,7 @@ class NoaaWeatherWireServiceUGC {
         for (let i = 0; i < zones.length; i++) {
             let id = zones[i].trim();
             let located = await loader.static.db.prepare(`SELECT location FROM shapefiles WHERE id = ?`).get(id);
-            located.length > 0 ? locations.push(located.location) : locations.push(id);
+            located != undefined ? locations.push(located.location) : locations.push(id);
         }     
         return Array.from(new Set(locations));
     }
@@ -74,8 +74,8 @@ class NoaaWeatherWireServiceUGC {
         for (let i = 0; i < zones.length; i++) {
             let id = zones[i].trim();
             let located = await loader.static.db.prepare(`SELECT geometry FROM shapefiles WHERE id = ?`).get(id);
-            if (located.length > 0) {
-                let geometry = JSON.parse(located[0].geometry);
+            if (located != undefined) {
+                let geometry = JSON.parse(located.geometry);
                 if (geometry?.type == 'Polygon') {
                     coordinates.push(...geometry.coordinates[0].map(coord => [coord[0], coord[1]]));
                     break;

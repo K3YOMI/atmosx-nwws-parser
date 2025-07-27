@@ -85,7 +85,7 @@ class NoaaWeatherWireServiceEvents {
                 if (vtec.wmo) defaultWMO = vtec.wmo;
                 let getTornado = loader.packages.mText.getString(msg, `TORNADO...`) || loader.packages.mText.getString(msg, `WATERSPOUT...`)
                 let getHail = loader.packages.mText.getString(msg, `MAX HAIL SIZE...`, [`IN`]) || loader.packages.mText.getString(msg, `HAIL...`, [`IN`]);
-                let getGusts = loader.packages.mText.getString(msg, `MAX WIND GUST...`, [`KT`, `MPH`]) || loader.packages.mText.getString(msg, `WIND...`);
+                let getGusts = loader.packages.mText.getString(msg, `MAX WIND GUST...`) || loader.packages.mText.getString(msg, `WIND...`);
                 let getThreat = loader.packages.mText.getString(msg, `DAMAGE THREAT...`);
                 let senderOffice = loader.packages.mText.getOffice(msg) || vtec.tracking.split(`-`)[0];
                 let getCoordinates = loader.packages.mText.getPolygonCoordinates(msg);
@@ -97,9 +97,9 @@ class NoaaWeatherWireServiceEvents {
                     action: vtec.status,
                     history: [{description: getDescription, action: vtec.status, issued: new Date(vtec.issued)}],
                     properties: {
-                        areaDesc: ugc.locations,
+                        areaDesc: ugc.locations.join(`; `) || `N/A`,
                         expires: new Date(vtec.expires) == `Invalid Date` ? new Date(new Date().getTime() + 999999 * 60 * 60 * 1000) : new Date(vtec.expires),
-                        send: new Date(vtec.issued),
+                        sent: new Date(vtec.issued),
                         messageType: vtec.status, 
                         event: vtec.event || `Unknown Event`,
                         sender: senderOffice,
@@ -115,10 +115,13 @@ class NoaaWeatherWireServiceEvents {
                             maxWindGust: getGusts || `N/A`,
                             thunderstormDamageThreat: [getThreat || `N/A`],
                         },
-                        geometry: {
-                            type: `Polygon`,
-                            coordinates: [getCoordinates]
-                        }
+                    },
+                    geometry: { type: `Polygon`, coordinates: [getCoordinates] }
+                }
+                if (loader.settings.enhancedPolygons) {
+                    let coordinates = await loader.packages.mUGC.getCoordinates(ugc.zones);
+                    if (coordinates.length > 0) {
+                        alert.geometry.coordinates = [coordinates];
                     }
                 }
                 alerts.push(alert);
@@ -157,9 +160,9 @@ class NoaaWeatherWireServiceEvents {
                     action: `Issued`,
                     history: [{description: getDescription, action: `Issued`, issued: new Date(stanza.attributes.issue)}],
                     properties: {
-                        areaDesc: ugc.locations,
+                        areaDesc: ugc.locations.join(`; `) || `N/A`,
                         expires: new Date(new Date().getTime() + 1 * 60 * 60 * 1000),
-                        send: new Date(stanza.attributes.issue),
+                        sent: new Date(stanza.attributes.issue),
                         messageType: `Issued`,
                         event: `Special Weather Statement`,
                         sender: senderOffice,
@@ -175,10 +178,13 @@ class NoaaWeatherWireServiceEvents {
                             maxWindGust: getGusts || `N/A`,
                             thunderstormDamageThreat: [getThreat || `N/A`],
                         },
-                        geometry: {
-                            type: `Polygon`,
-                            coordinates: [getCoordinates]
-                        }
+                    },
+                    geometry: { type: `Polygon`, coordinates: [getCoordinates] }
+                }
+                if (loader.settings.enhancedPolygons) {
+                    let coordinates = await loader.packages.mUGC.getCoordinates(ugc.zones);
+                    if (coordinates.length > 0) {
+                        alert.geometry.coordinates = [coordinates];
                     }
                 }
                 alerts.push(alert);
