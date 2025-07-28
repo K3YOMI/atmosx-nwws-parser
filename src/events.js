@@ -193,7 +193,7 @@ class NoaaWeatherWireServiceEvents {
             if (ugc) {
                 let getTornado = loader.packages.mText.getString(msg, `TORNADO...`) || loader.packages.mText.getString(msg, `WATERSPOUT...`)
                 let getHail = loader.packages.mText.getString(msg, `MAX HAIL SIZE...`, [`IN`]) || loader.packages.mText.getString(msg, `HAIL...`, [`IN`]);
-                let getGusts = loader.packages.mText.getString(msg, `MAX WIND GUST...`, [`KT`, `MPH`]) || loader.packages.mText.getString(msg, `WIND...`);
+                let getGusts = loader.packages.mText.getString(msg, `MAX WIND GUST...`) || loader.packages.mText.getString(msg, `WIND...`);
                 let getThreat = loader.packages.mText.getString(msg, `DAMAGE THREAT...`);
                 let senderOffice = loader.packages.mText.getOffice(msg) || `NWS`;
                 let getCoordinates = loader.packages.mText.getPolygonCoordinates(msg);
