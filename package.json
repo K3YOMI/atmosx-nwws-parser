@@ -20,7 +20,7 @@
     "url": "https://github.com/K3YOMI/atmosx-nwws-parser/issues"
   },
   "homepage": "https://github.com/K3YOMI/atmosx-nwws-parser#readme",
-  "devDependencies": {
+  "dependencies": {
     "@xmpp/client": "^0.7.3",
     "better-sqlite3": "^11.10.0",
     "shapefile": "^0.6.6",
