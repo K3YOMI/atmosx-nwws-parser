@@ -16,6 +16,7 @@ let loader = require(`./bootstrap.js`);
 class NoaaWeatherWireServiceCore { 
 
     constructor(metadata={}) {
+        this.packages = loader.packages;
         this.metadata = metadata;
         loader.settings = { ...loader.settings, ...metadata };
         process.on('uncaughtException', (error) => {

@@ -52,10 +52,13 @@ You can handle various events emitted by the parser. Here are some examples:
 
 ```js
 Client.onEvent(`onAlert`, (alerts: Array) => {});
+Client.onEvent(`onStormReport`, (report: Object) => {});
+Client.onEvent(`onMesoscaleDiscussion`, (discussion: Object) => {});
 Client.onEvent(`onMessage`, (stanza: Object) => {});
 Client.onEvent(`onOccupant`, (occupant: Object) => {});
 Client.onEvent(`onError`, (error: Object) => {});
 Client.onEvent(`onReconnect`, (service: Object) => {});
+
 ```
 
 ## Functions and Methods

@@ -1,6 +1,6 @@
-nwws = require(`./index.js`);
+AtmosXWireParser = require(`./index.js`);
 
-let nwwsObject = new nwws({
+let Client = new AtmosXWireParser({
     alertSettings: { 
         onlyCap: false, // Set to true to only receive CAP messages only
         betterEvents: true, // Set to true to receive better event handling
@@ -22,10 +22,12 @@ let nwwsObject = new nwws({
     database: `./database.db`, // Path to the SQLite database file (It will be created if it doesn't exist and will be used to store UGC counties and zones.)
 });
 
-nwwsObject.onEvent(`onAlert`, (alert) => {console.log(alert)});
-nwwsObject.onEvent(`onMessage`, (message) => {});
-nwwsObject.onEvent(`onOccupant`, (occupant) => {});
-nwwsObject.onEvent(`onError`, (error) => {console.log(error)});
-nwwsObject.onEvent(`onReconnect`, (service) => { 
-    nwwsObject.setDisplayName(`${username} (x${service.reconnects})`)
+Client.onEvent(`onAlert`, (alert) => {console.log(alert)});
+Client.onEvent(`onStormReport`, (report) => {});
+Client.onEvent(`onMesoscaleDiscussion`, (discussions) => {});
+Client.onEvent(`onMessage`, (message) => {});
+Client.onEvent(`onOccupant`, (occupant) => {});
+Client.onEvent(`onError`, (error) => {console.log(error)});
+Client.onEvent(`onReconnect`, (service) => { 
+    Client.setDisplayName(`${username} (x${service.reconnects})`)
 })

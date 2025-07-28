@@ -43,7 +43,7 @@ class NoaaWeatherWireServiceStanza {
                     let hasCapArea = message.includes(`<areaDesc>`);
                     let hasVtec = message.match(loader.definitions.expressions.vtec) != null;
                     let getId = this.getAwipsType(attributes)
-                    this.saveCache(message, getId, isCap, hasVtec);
+                    this.saveCache(message, attributes, getId, isCap, hasVtec);
                     return { message: message, attributes: attributes, isCap: isCap, hasCapArea: hasCapArea, hasVtec: hasVtec, id: getId, ignore: false }
                 }
             }
@@ -81,6 +81,8 @@ class NoaaWeatherWireServiceStanza {
         if (type == `default` && vtec && !cap) { loader.packages.mEvents.newRawProductEvent(stanza); return; }
         if (type == `default` && vtec && cap) { loader.packages.mEvents.newCapEvent(stanza); return; }
         if (type == `special-weather-statement`) { loader.packages.mEvents.newSpecialEvent(stanza); return; }
+        if (type == `mesoscale-discussion`) { loader.packages.mEvents.newMesoscaleDiscussion(stanza); return; }
+        if (type == `local-storm-report`) { loader.packages.mEvents.newStormReport(stanza); return; }
     }
 
     /**
@@ -92,9 +94,9 @@ class NoaaWeatherWireServiceStanza {
       * @param {boolean} isCap - Indicates if the message is in CAP format.
       */
 
-    saveCache = function(message, type, isCap, isVtec) {
+    saveCache = function(message, attributes, type, isCap, isVtec) {
         if (!loader.settings.cacheSettings.cacheDir) return;
-        loader.packages.fs.appendFileSync(`${loader.settings.cacheSettings.cacheDir}/nwws-raw-category-${type}s-${isCap ? 'cap' : 'raw'}${isVtec ? '-vtec' : ''}.bin`, `=================================================\n${new Date().toISOString().replace(/[:.]/g, '-')}\n=================================================\n\n${message}`, `utf8`);
+        loader.packages.fs.appendFileSync(`${loader.settings.cacheSettings.cacheDir}/nwws-raw-category-${type}s-${isCap ? 'cap' : 'raw'}${isVtec ? '-vtec' : ''}.bin`, `=================================================\n${new Date().toISOString().replace(/[:.]/g, '-')}\n\n[${JSON.stringify(attributes)}]\n=================================================\n\n${message}\n\n`, `utf8`);
     }
 }
 

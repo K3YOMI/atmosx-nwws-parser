@@ -15,6 +15,13 @@ let loader = require(`../bootstrap.js`);
 
 class NoaaWeatherWireServiceEvents { 
 
+    /**
+      * @function onEnhanced
+      * @description Enhances the event details based on the properties of the event.
+      * 
+      * @param {object} event - The event object containing properties to enhance.
+      */
+
     onEnhanced = function(event) {
         let tags = [`No tags found`];
         let eventName = event.properties.event
@@ -42,10 +49,10 @@ class NoaaWeatherWireServiceEvents {
         return { event: eventName, tags: tags };
     }
 
-
     /**
       * @function onFinished
       * @description onFinishedes the alerts and emits an event with enhanced event details.
+      * 
       * @param {Array} alerts - An array of alert objects to be onFinisheded.
       */ 
 
@@ -149,7 +156,7 @@ class NoaaWeatherWireServiceEvents {
                         messageType: vtec.status, 
                         event: vtec.event || `Unknown Event`,
                         sender: senderOffice,
-                        senderName: `NWS ${senderOffice}`,
+                        senderName: `${senderOffice}`,
                         description: getDescription,
                         geocode: { 
                             UGC: ugc.zones,
@@ -211,7 +218,7 @@ class NoaaWeatherWireServiceEvents {
                         messageType: `Issued`,
                         event: `Special Weather Statement`,
                         sender: senderOffice,
-                        senderName: `NWS ${senderOffice}`,
+                        senderName: `${senderOffice}`,
                         description: getDescription,
                         geocode: { 
                             UGC: ugc.zones,
@@ -237,6 +244,68 @@ class NoaaWeatherWireServiceEvents {
         }
         this.onFinished(alerts);
     }
+
+    /**
+      * @function newMesoscaleDiscussion
+      * @description Creates a new mesoscale discussion event from the provided stanza.
+      *
+      * @param {object} stanza - The stanza object containing message and attributes.
+      */
+
+    newMesoscaleDiscussion = async function(stanza) {
+        let message = stanza.message.split(/(?=\$\$)/g).map(msg => msg.trim());
+        let defaultWMO = stanza.message.match(new RegExp(loader.definitions.expressions.wmo, 'gimu'));
+        for (let msg of message) {
+            let startTime = new Date().getTime();
+            let ugc = await loader.packages.mUGC.getUGC(msg);
+            if (ugc) { 
+                let senderOffice = loader.packages.mText.getOffice(msg) || `NWS`;
+                let getDescription = loader.packages.mText.getCleanDescription(msg, null);
+                let tornadoIntensityProbability = loader.packages.mText.getString(msg, `MOST PROBABLE PEAK TORNADO INTENSITY...`)
+                let windIntensityProbability = loader.packages.mText.getString(msg, `MOST PROBABLE PEAK WIND GUST...`)
+                let hailIntensityProbability = loader.packages.mText.getString(msg, `MOST PROBABLE PEAK HAIL SIZE...`)
+                let alert = { 
+                    hitch: `${new Date().getTime() - startTime}ms`,
+                    id: `Wire-${defaultWMO ? defaultWMO[0] : `N/A`}-${ugc.zones.join(`-`)}`,
+                    tracking: `${defaultWMO ? defaultWMO[0] : `N/A`}-${ugc.zones.join(`-`)}`,
+                    action: `Issued`,
+                    history: [],
+                    properties: {
+                        areaDesc: ugc.locations.join(`; `) || `N/A`,
+                        expires: new Date(new Date().getTime() + 1 * 60 * 60 * 1000),
+                        sent: new Date(stanza.attributes.issue),
+                        messageType: `Issued`,
+                        event: `Mesoscale Discussion`,
+                        sender: senderOffice,
+                        senderName: `${senderOffice}`,
+                        description: getDescription,
+                        geocode: { 
+                            UGC: ugc.zones,
+                        },
+                        parameters: {
+                            WMOidentifier: defaultWMO?.[0] ? [defaultWMO[0]] : [`N/A`],
+                            tornadoIntensityProbability: tornadoIntensityProbability || `N/A`,
+                            hailIntensityProbability: hailIntensityProbability || `N/A`,
+                            windIntensityProbability: windIntensityProbability || `N/A`,
+                        },
+                    },
+                }
+                loader.static.events.emit(`onMesoscaleDiscussion`, alert);
+            }
+        }
+    }
+
+    /**
+      * @function newStormReport
+      * @description Creates a new storm report event from the provided stanza.
+      * 
+      * @param {object} stanza - The stanza object containing message and attributes.
+      */ 
+
+    newStormReport = async function(stanza) {
+        loader.static.events.emit(`onStormReport`, loader.packages.mText.getCleanDescription(stanza.message, null));
+    }
+
 }
 
 module.exports = new NoaaWeatherWireServiceEvents();
