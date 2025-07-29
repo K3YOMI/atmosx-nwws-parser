@@ -1,5 +1,5 @@
 {
-  "name": "@k3y0mi/nwws-parser",
+  "name": "atmosx-nwws-parser",
   "version": "1.0.154",
   "description": "NOAA Weather Wire Parser",
   "main": "index.js",
