@@ -132,52 +132,55 @@ class NoaaWeatherWireServiceEvents {
         let alerts = []
         for (let msg of message) {
             let startTime = new Date().getTime();
-            let vtec = await loader.packages.mVtec.getVTEC(msg, stanza.attributes);
-            let ugc = await loader.packages.mUGC.getUGC(msg);
-            if (vtec && ugc) {
-                if (vtec.wmo) defaultWMO = vtec.wmo;
-                let getTornado = loader.packages.mText.getString(msg, `TORNADO...`) || loader.packages.mText.getString(msg, `WATERSPOUT...`)
-                let getHail = loader.packages.mText.getString(msg, `MAX HAIL SIZE...`, [`IN`]) || loader.packages.mText.getString(msg, `HAIL...`, [`IN`]);
-                let getGusts = loader.packages.mText.getString(msg, `MAX WIND GUST...`) || loader.packages.mText.getString(msg, `WIND...`);
-                let getThreat = loader.packages.mText.getString(msg, `DAMAGE THREAT...`);
-                let senderOffice = loader.packages.mText.getOffice(msg) || vtec.tracking.split(`-`)[0];
-                let getCoordinates = loader.packages.mText.getPolygonCoordinates(msg);
-                let getDescription = loader.packages.mText.getCleanDescription(msg, vtec);
-                let alert = { 
-                    hitch: `${new Date().getTime() - startTime}ms`,
-                    id: `Wire-${vtec.tracking}`,
-                    tracking: vtec.tracking,
-                    action: vtec.status,
-                    history: [{description: getDescription, action: vtec.status, issued: new Date(vtec.issued)}],
-                    properties: {
-                        areaDesc: ugc.locations.join(`; `) || `N/A`,
-                        expires: new Date(vtec.expires) == `Invalid Date` ? new Date(new Date().getTime() + 999999 * 60 * 60 * 1000) : new Date(vtec.expires),
-                        sent: new Date(vtec.issued),
-                        messageType: vtec.status, 
-                        event: vtec.event || `Unknown Event`,
-                        sender: senderOffice,
-                        senderName: `${senderOffice}`,
-                        description: getDescription,
-                        geocode: { 
-                            UGC: ugc.zones,
+            let mVtec = await loader.packages.mVtec.getVTEC(msg, stanza.attributes);
+            let mUgc = await loader.packages.mUGC.getUGC(msg);
+            if (mVtec && mUgc) {
+                for (let i = 0; i < mVtec.length; i++) {
+                    let vtec = mVtec[i];
+                    if (vtec.wmo) defaultWMO = vtec.wmo;
+                    let getTornado = loader.packages.mText.getString(msg, `TORNADO...`) || loader.packages.mText.getString(msg, `WATERSPOUT...`)
+                    let getHail = loader.packages.mText.getString(msg, `MAX HAIL SIZE...`, [`IN`]) || loader.packages.mText.getString(msg, `HAIL...`, [`IN`]);
+                    let getGusts = loader.packages.mText.getString(msg, `MAX WIND GUST...`) || loader.packages.mText.getString(msg, `WIND...`);
+                    let getThreat = loader.packages.mText.getString(msg, `DAMAGE THREAT...`);
+                    let senderOffice = loader.packages.mText.getOffice(msg) || vtec.tracking.split(`-`)[0];
+                    let getCoordinates = loader.packages.mText.getPolygonCoordinates(msg);
+                    let getDescription = loader.packages.mText.getCleanDescription(msg, vtec);
+                    let alert = { 
+                        hitch: `${new Date().getTime() - startTime}ms`,
+                        id: `Wire-${vtec.tracking}`,
+                        tracking: vtec.tracking,
+                        action: vtec.status,
+                        history: [{description: getDescription, action: vtec.status, issued: new Date(vtec.issued)}],
+                        properties: {
+                            areaDesc: mUgc.locations.join(`; `) || `N/A`,
+                            expires: new Date(vtec.expires) == `Invalid Date` ? new Date(new Date().getTime() + 999999 * 60 * 60 * 1000) : new Date(vtec.expires),
+                            sent: new Date(vtec.issued),
+                            messageType: vtec.status, 
+                            event: vtec.event || `Unknown Event`,
+                            sender: senderOffice,
+                            senderName: `${senderOffice}`,
+                            description: getDescription,
+                            geocode: { 
+                                UGC: mUgc.zones,
+                            },
+                            parameters: {
+                                WMOidentifier: vtec.wmo?.[0] ? [vtec.wmo[0]] : defaultWMO?.[0] ? [defaultWMO[0]] : [`N/A`],
+                                tornadoDetection: getTornado || `N/A`,
+                                maxHailSize: getHail || `N/A`,
+                                maxWindGust: getGusts || `N/A`,
+                                thunderstormDamageThreat: [getThreat || `N/A`],
+                            },
                         },
-                        parameters: {
-                            WMOidentifier: vtec.wmo?.[0] ? [vtec.wmo[0]] : defaultWMO?.[0] ? [defaultWMO[0]] : [`N/A`],
-                            tornadoDetection: getTornado || `N/A`,
-                            maxHailSize: getHail || `N/A`,
-                            maxWindGust: getGusts || `N/A`,
-                            thunderstormDamageThreat: [getThreat || `N/A`],
-                        },
-                    },
-                    geometry: { type: `Polygon`, coordinates: [getCoordinates] }
-                }
-                if (loader.settings.alertSettings.ugcPolygons) {
-                    let coordinates = await loader.packages.mUGC.getCoordinates(ugc.zones);
-                    if (coordinates.length > 0) {
-                        alert.geometry.coordinates = [coordinates];
+                        geometry: { type: `Polygon`, coordinates: [getCoordinates] }
                     }
+                    if (loader.settings.alertSettings.ugcPolygons) {
+                        let coordinates = await loader.packages.mUGC.getCoordinates(mUgc.zones);
+                        if (coordinates.length > 0) {
+                            alert.geometry.coordinates = [coordinates];
+                        }
+                    }
+                    alerts.push(alert);
                 }
-                alerts.push(alert);
             }
         }
         this.onFinished(alerts);
@@ -196,8 +199,8 @@ class NoaaWeatherWireServiceEvents {
         let alerts = [];
         for (let msg of message) {
             let startTime = new Date().getTime();
-            let ugc = await loader.packages.mUGC.getUGC(msg);
-            if (ugc) {
+            let mUgc = await loader.packages.mUGC.getUGC(msg);
+            if (mUgc) {
                 let getTornado = loader.packages.mText.getString(msg, `TORNADO...`) || loader.packages.mText.getString(msg, `WATERSPOUT...`)
                 let getHail = loader.packages.mText.getString(msg, `MAX HAIL SIZE...`, [`IN`]) || loader.packages.mText.getString(msg, `HAIL...`, [`IN`]);
                 let getGusts = loader.packages.mText.getString(msg, `MAX WIND GUST...`) || loader.packages.mText.getString(msg, `WIND...`);
@@ -207,12 +210,12 @@ class NoaaWeatherWireServiceEvents {
                 let getDescription = loader.packages.mText.getCleanDescription(msg, null);
                 let alert = { 
                     hitch: `${new Date().getTime() - startTime}ms`,
-                    id: `Wire-${defaultWMO ? defaultWMO[0] : `N/A`}-${ugc.zones.join(`-`)}`,
-                    tracking: `${defaultWMO ? defaultWMO[0] : `N/A`}-${ugc.zones.join(`-`)}`,
+                    id: `Wire-${defaultWMO ? defaultWMO[0] : `N/A`}-${mUgc.zones.join(`-`)}`,
+                    tracking: `${defaultWMO ? defaultWMO[0] : `N/A`}-${mUgc.zones.join(`-`)}`,
                     action: `Issued`,
                     history: [{description: getDescription, action: `Issued`, issued: new Date(stanza.attributes.issue)}],
                     properties: {
-                        areaDesc: ugc.locations.join(`; `) || `N/A`,
+                        areaDesc: mUgc.locations.join(`; `) || `N/A`,
                         expires: new Date(new Date().getTime() + 1 * 60 * 60 * 1000),
                         sent: new Date(stanza.attributes.issue),
                         messageType: `Issued`,
@@ -221,7 +224,7 @@ class NoaaWeatherWireServiceEvents {
                         senderName: `${senderOffice}`,
                         description: getDescription,
                         geocode: { 
-                            UGC: ugc.zones,
+                            UGC: mUgc.zones,
                         },
                         parameters: {
                             WMOidentifier: defaultWMO?.[0] ? [defaultWMO[0]] : [`N/A`],
@@ -234,7 +237,7 @@ class NoaaWeatherWireServiceEvents {
                     geometry: { type: `Polygon`, coordinates: [getCoordinates] }
                 }
                 if (loader.settings.alertSettings.ugcPolygons) {
-                    let coordinates = await loader.packages.mUGC.getCoordinates(ugc.zones);
+                    let coordinates = await loader.packages.mUGC.getCoordinates(mUgc .zones);
                     if (coordinates.length > 0) {
                         alert.geometry.coordinates = [coordinates];
                     }
@@ -257,8 +260,8 @@ class NoaaWeatherWireServiceEvents {
         let defaultWMO = stanza.message.match(new RegExp(loader.definitions.expressions.wmo, 'gimu'));
         for (let msg of message) {
             let startTime = new Date().getTime();
-            let ugc = await loader.packages.mUGC.getUGC(msg);
-            if (ugc) { 
+            let mUgc = await loader.packages.mUGC.getUGC(msg);
+            if (mUgc) { 
                 let senderOffice = loader.packages.mText.getOffice(msg) || `NWS`;
                 let getDescription = loader.packages.mText.getCleanDescription(msg, null);
                 let tornadoIntensityProbability = loader.packages.mText.getString(msg, `MOST PROBABLE PEAK TORNADO INTENSITY...`)
@@ -266,12 +269,12 @@ class NoaaWeatherWireServiceEvents {
                 let hailIntensityProbability = loader.packages.mText.getString(msg, `MOST PROBABLE PEAK HAIL SIZE...`)
                 let alert = { 
                     hitch: `${new Date().getTime() - startTime}ms`,
-                    id: `Wire-${defaultWMO ? defaultWMO[0] : `N/A`}-${ugc.zones.join(`-`)}`,
-                    tracking: `${defaultWMO ? defaultWMO[0] : `N/A`}-${ugc.zones.join(`-`)}`,
+                    id: `Wire-${defaultWMO ? defaultWMO[0] : `N/A`}-${mUgc.zones.join(`-`)}`,
+                    tracking: `${defaultWMO ? defaultWMO[0] : `N/A`}-${mUgc.zones.join(`-`)}`,
                     action: `Issued`,
                     history: [],
                     properties: {
-                        areaDesc: ugc.locations.join(`; `) || `N/A`,
+                        areaDesc: mUgc.locations.join(`; `) || `N/A`,
                         expires: new Date(new Date().getTime() + 1 * 60 * 60 * 1000),
                         sent: new Date(stanza.attributes.issue),
                         messageType: `Issued`,
@@ -280,7 +283,7 @@ class NoaaWeatherWireServiceEvents {
                         senderName: `${senderOffice}`,
                         description: getDescription,
                         geocode: { 
-                            UGC: ugc.zones,
+                            UGC: mUgc.zones,
                         },
                         parameters: {
                             WMOidentifier: defaultWMO?.[0] ? [defaultWMO[0]] : [`N/A`],

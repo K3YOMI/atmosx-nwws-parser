@@ -23,19 +23,22 @@ class NoaaWeatherWireServiceVtec {
       */
 
     getVTEC = function(message, attributes) {
-        let match = message.match(loader.definitions.expressions.vtec);
-        if (!match) return null;
-        let splitVTEC = match[0].split(`.`);
-		let vtecDates = splitVTEC[6].split(`-`);
-        return {
-            raw: match[0],
-            tracking: this.getTrackingIdentifier(splitVTEC),
-            event: this.getEventName(splitVTEC),
-            status: this.getEventStatus(splitVTEC),
-            wmo: message.match(new RegExp(loader.definitions.expressions.wmo, 'gimu')),
-            expires: this.getExpires(vtecDates),
-            issued: attributes.issue
-        }
+		let matches = message.match(new RegExp(loader.definitions.expressions.vtec, 'g'));
+		if (!matches) return null;
+		let vtecs = matches.map(match => {
+			let splitVTEC = match.split(`.`);
+			let vtecDates = splitVTEC[6].split(`-`);
+			return {
+				raw: match,
+				tracking: this.getTrackingIdentifier(splitVTEC),
+				event: this.getEventName(splitVTEC),
+				status: this.getEventStatus(splitVTEC),
+				wmo: message.match(new RegExp(loader.definitions.expressions.wmo, 'gimu')),
+				expires: this.getExpires(vtecDates),
+				issued: attributes.issue
+			};
+		});
+      	return vtecs;
     }
 
     /**
