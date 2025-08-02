@@ -221,6 +221,7 @@ class NoaaWeatherWireServiceCore {
 
     onEvent = function(event, listener) {
         loader.static.events.on(event, listener);
+        return () => { loader.static.events.off(event, listener); };
     }
 }
 
