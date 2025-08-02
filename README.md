@@ -8,8 +8,6 @@ To install this package, you can use **NPM** (Node Package Manager). Open your t
 
 ```bash
 npm install atmosx-nwws-parser
-# Alternatively, you can install it from this repository directly as well.
-npm install @k3y0mi/nwws-parser
 ```
 
 ## Usage
