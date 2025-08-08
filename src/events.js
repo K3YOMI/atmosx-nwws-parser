@@ -30,7 +30,9 @@ class NoaaWeatherWireServiceEvents {
         if (description.includes(`flash flood emergency`) && eventName == `Flash Flood Warning`) eventName = `Flash Flood Emergency`;
         if (description.includes(`particularly dangerous situation`) && eventName == `Tornado Warning` && dmgTheat == `CONSIDERABLE`) eventName = `Particularly Dangerous Situation Tornado Warning`;
         if (description.includes(`particularly dangerous situation`) && eventName == `Tornado Watch`) eventName = `Particularly Dangerous Situation Tornado Watch`;
+        if (description.includes(`extremely dangerous situation`) && eventName == `Severe Thunderstorm Warning`) eventName = `Extremely Dangerous Situation Severe Thunderstorm Warning`;
         if (description.includes(`tornado emergency`) && eventName == `Tornado Warning` && dmgTheat == `CATASTROPHIC`) eventName = `Tornado Emergency`;
+        
         if (eventName == `Tornado Warning`) {
             eventName = `Radar Indicated Tornado Warning`;
             if (event.properties.parameters.tornadoDetection == `RADAR INDICATED`) eventName = `Radar Indicated Tornado Warning`;
@@ -39,6 +41,9 @@ class NoaaWeatherWireServiceEvents {
         if (eventName == `Severe Thunderstorm Warning`) {
             if (dmgTheat == `CONSIDERABLE`) eventName = `Considerable Severe Thunderstorm Warning`;
             if (dmgTheat == `DESTRUCTIVE`) eventName = `Destructive Severe Thunderstorm Warning`;
+        }
+        if (eventName == `Flash Flood Warning`) {
+            if (dmgTheat == `CONSIDERABLE`) eventName = `Considerable Flash Flood Warning`;
         }
         for (let [key, value] of Object.entries(loader.definitions.tags)) {
             if (event.properties.description.toLowerCase().includes(key.toLowerCase())) {
@@ -63,6 +68,9 @@ class NoaaWeatherWireServiceEvents {
                 alerts[i].properties.event = event;
                 alerts[i].properties.tags = tags;
             }
+        }
+        if (loader.settings.alertSettings.filteredAlerts && loader.settings.alertSettings.filteredAlerts.length > 0) {
+            alerts = alerts.filter(alert => loader.settings.alertSettings.filteredAlerts.includes(alert.properties.event));
         }
         if (alerts.length === 0) { return; }
         loader.static.events.emit(`onAlert`, alerts);

@@ -25,6 +25,7 @@ let Client = new AtmosXWireParser({
         onlyCap: false, // Set to true to only receive CAP messages only
         betterEvents: true, // Set to true to receive better event handling
         ugcPolygons: false, // Set to true to receive UGC Polygons instead of reading from raw products. 
+        filteredAlerts: [] // Alerts you want to only log, leave empty to receive all alerts (Ex. ["Tornado Warning", "Radar Indicated Tornado Warning"])
     },
     xmpp: {
         reconnect: true, // Set to true to enable automatic reconnection if you lose connection
@@ -32,6 +33,7 @@ let Client = new AtmosXWireParser({
     },
     cacheSettings: {
         maxMegabytes: 2, // Maximum cache size in megabytes
+        readCache: false, // Set to true if you wish to reupload the cache from earlier
         cacheDir: `./cache`, // Directory for cache files
     },
     authentication: {

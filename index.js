@@ -14,7 +14,6 @@
 let loader = require(`./bootstrap.js`);
 
 class NoaaWeatherWireServiceCore { 
-
     constructor(metadata={}) {
         this.packages = loader.packages;
         this.metadata = metadata;
@@ -25,6 +24,14 @@ class NoaaWeatherWireServiceCore {
             loader.static.events.emit(`onError`, { error: error.stack || error.message || `An unknown error occurred`, code: `uncaught-exception` });
         });
         this.initializeDatabase([{ id: `C`, file: `USCounties` }, { id: `Z`, file: `ForecastZones` }, { id: `Z`, file: `FireZones` }, { id: `Z`, file: `OffShoreZones` }, { id: `Z`, file: `FireCounties` }, { id: `Z`, file: `Marine` }]);
+        
+        if (loader.settings.cacheSettings.readCache && loader.settings.cacheSettings.cacheDir) {
+            let target = `${loader.settings.cacheSettings.cacheDir}/nwws-raw-category-defaults-raw-vtec.bin`;
+            if (loader.packages.fs.existsSync(target)) {
+                this.forwardCustomStanza(loader.packages.fs.readFileSync(target, 'utf8'), { awipsid: 'alert', category: 'default', raw: true });
+            }
+        }
+        
         setInterval(() => { 
             if (loader.settings.cacheSettings.cacheDir) { this.garbageCollect(loader.settings.cacheSettings.maxMegabytes || 1); }
             if (loader.settings.xmpp.reconnect) { this.isReconnectEligible(loader.settings.xmpp.reconnectInterval) }
@@ -94,7 +101,7 @@ class NoaaWeatherWireServiceCore {
             domain: `nwws-oi.weather.gov`, 
             username: metadata.username || ``,
             password: metadata.password || ``,
-        }).setMaxListeners(0);
+        })
     }
 
     /**
@@ -107,6 +114,14 @@ class NoaaWeatherWireServiceCore {
         if (this.metadata.authentication.display == undefined) this.metadata.authentication.display = this.metadata.authentication.username || ``;
         this.initializeClient({ username: this.metadata.authentication.username, password: this.metadata.authentication.password, display: this.metadata.authentication.display });
         loader.static.session.on(`online`, async () => {
+            if (loader.static.lastConnect && (new Date().getTime() - loader.static.lastConnect) < 10 * 1000) {
+                setTimeout(async () => {
+                    await loader.static.session.stop().catch(() => {});
+                    await loader.static.session.start().catch(() => {});
+                }, 2 * 1000);
+                throw new Error(`rapid-reconnect`);
+            }
+            loader.static.lastConnect = new Date().getTime();
             loader.cache.isConnected = true;
             loader.static.session.send(loader.packages.xmpp.xml('presence', { to: `nwws@conference.nwws-oi.weather.gov/${this.metadata.authentication.display}`, xmlns: 'http://jabber.org/protocol/muc' }))
             loader.static.session.send(loader.packages.xmpp.xml('presence', { to: `nwws@conference.nwws-oi.weather.gov`, type: 'available' }))
@@ -116,9 +131,11 @@ class NoaaWeatherWireServiceCore {
             }
         })
         loader.static.session.on(`offline`, () => {
+            loader.static.session.stop().catch(() => {});
+            loader.cache.isConnected = false;
             throw new Error(`unreachable-host`);
         })
-        loader.static.session.on(`error`, (error) => {
+        loader.static.session.on(`error`, async (error) => {
             throw new Error(error.message || `service-error`);
         })
         loader.static.session.on(`stanza`, (stanza) => {
@@ -220,7 +237,7 @@ class NoaaWeatherWireServiceCore {
       */
 
     onEvent = function(event, listener) {
-        loader.static.events.on(event, listener);
+        loader.static.events.on(event, listener)
         return () => { loader.static.events.off(event, listener); };
     }
 }

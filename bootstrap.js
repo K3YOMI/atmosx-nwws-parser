@@ -78,6 +78,7 @@ module.exports.definitions = {
         { error: "unreachable-host", message: "The host could not be reached. Please check your internet connection or the host address.", code: "xmpp-error" },
         { error: "service-error", message: "An error occurred while connecting to the NOAA Weather Wire Service. Please try again later.", code: "xmpp-error" },
         { error: "no-database-dir", message: "Database directory is not set. Please set the databaseDir in the metadata.", code: "no-database" },
+        { error: "rapid-reconnect", message: "The client is reconnecting too rapidly. Please wait a moment before trying again.", code: "xmpp-error" }
     ]
 }
 module.exports.settings = { 
@@ -85,12 +86,14 @@ module.exports.settings = {
         ugcPolygons: false,
         onlyCap: false,
         betterEvents: false,
+        filteredAlerts: [],
     },
     xmpp: {
         reconnect: true,
         reconnectInterval: 60,
     },
     cacheSettings: {
+        readCache: false,
         maxMegabytes: 1,
         cacheDir: false,
     },
