@@ -133,7 +133,7 @@ export class APIAlerts {
                         history: [{
                             description: feature?.properties?.description ?? null,
                             action: feature?.properties?.messageType ?? null,
-                            time: feature?.properties?.sent ? new Date(feature?.properties?.sent).toISOString() : null
+                            issued: feature?.properties?.sent ? new Date(feature?.properties?.sent).toISOString() : null
                         }],
                     },
                 },
