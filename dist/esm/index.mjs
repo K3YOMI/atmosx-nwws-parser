@@ -3878,7 +3878,6 @@ import * as xml2js from "xml2js";
 import * as jobs from "croner";
 import * as polygonClipping from "polygon-clipping";
 import sqlite3 from "better-sqlite3";
-import axios from "axios";
 import crypto2 from "crypto";
 import os from "os";
 import say from "say";
@@ -4754,7 +4753,6 @@ var packages = {
   xml2js,
   sqlite3,
   jobs,
-  axios,
   crypto: crypto2,
   os,
   say,
@@ -6433,9 +6431,10 @@ var Database = class {
             const name = shape.name;
             const type = shape.id;
             const link = shape.link;
-            const response2 = yield packages.axios.get(link, { responseType: "arraybuffer" });
+            const response2 = yield fetch(link);
+            const arrayBuffer = yield response2.arrayBuffer();
             const zip = new packages.jszip();
-            const content = yield zip.loadAsync(response2.data);
+            const content = yield zip.loadAsync(arrayBuffer);
             const dirPath = path2.resolve(__dirname, "../../shapefiles");
             if (!fs2.existsSync(dirPath)) fs2.mkdirSync(dirPath);
             for (const fileName of Object.keys(content.files)) {
@@ -6760,13 +6759,19 @@ var Utils = class _Utils {
         headers: __spreadValues(__spreadValues({}, defaultOptions.headers), (_a = options == null ? void 0 : options.headers) != null ? _a : {})
       });
       try {
-        const resp = yield packages.axios.get(url, {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), requestOptions.timeout);
+        const resp = yield fetch(url, {
           headers: requestOptions.headers,
-          timeout: requestOptions.timeout,
-          maxRedirects: 0,
-          validateStatus: (status2) => status2 === 200 || status2 === 500
+          signal: controller.signal,
+          redirect: "manual"
         });
-        return { error: false, message: resp.data };
+        clearTimeout(timeoutId);
+        if (resp.status !== 200 && resp.status !== 500) {
+          throw new Error(`HTTP Error: ${resp.status}`);
+        }
+        const data = yield resp.json();
+        return { error: false, message: data };
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         return { error: true, message: msg };

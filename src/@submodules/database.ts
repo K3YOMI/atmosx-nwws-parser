@@ -100,9 +100,10 @@ export class Database {
                     const name = shape.name;
                     const type = shape.id;
                     const link = shape.link;
-                    const response = await loader.packages.axios.get(link, { responseType: 'arraybuffer' });
+                    const response = await fetch(link);
+                    const arrayBuffer = await response.arrayBuffer();
                     const zip = new loader.packages.jszip();
-                    const content = await zip.loadAsync(response.data);
+                    const content = await zip.loadAsync(arrayBuffer);
                     const dirPath = path.resolve(__dirname, '../../shapefiles');
                     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath);
                     for (const fileName of Object.keys(content.files)) {

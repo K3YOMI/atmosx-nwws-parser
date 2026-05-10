@@ -20,7 +20,6 @@ import * as xml2js from 'xml2js';
 import * as jobs from 'croner';
 import * as polygonClipping from 'polygon-clipping';
 import sqlite3 from 'better-sqlite3';
-import axios from 'axios';
 import crypto from 'crypto';
 import os from 'os';
 import say from 'say';
@@ -37,7 +36,7 @@ import * as dictICAOs from './@dictionaries/icao';
 
 export const packages = {
     fs, path, events, xmpp, 
-    shapefile, xml2js, sqlite3, jobs, axios, 
+    shapefile, xml2js, sqlite3, jobs, 
     crypto, os, say, child, polygonClipping, jszip
 };
 
