@@ -17,7 +17,6 @@
 
 */
 
-
 export const zones = (header: string): string[] => {
     const splits = header.split('-');
     const zones: string[] = [];

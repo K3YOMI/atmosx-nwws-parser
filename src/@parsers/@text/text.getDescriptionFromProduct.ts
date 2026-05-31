@@ -17,7 +17,7 @@
 
 */
 
-import { RegularExpressions } from "../../@dictionaries/dictionaries.regex";
+import { regExp } from "../../@dictionaries/dictionaries.regExp";
 
 interface GetDescriptionFromProductOptions { 
     message: string
@@ -26,7 +26,7 @@ interface GetDescriptionFromProductOptions {
 
 export const getDescriptionFromProduct = (options: GetDescriptionFromProductOptions): string => {
     let message = options.message;
-    const dates = Array.from(message.matchAll(RegularExpressions.dateline));
+    const dates = Array.from(message.matchAll(regExp.dateline));
     if (dates.length) {
         const lastMatch = dates[dates.length - 1][0];
         const sIndx = message.lastIndexOf(lastMatch);

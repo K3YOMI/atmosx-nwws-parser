@@ -19,15 +19,13 @@
 
 import fs from 'fs'
 import { resolve, extname} from 'path'
-import sqlite3 from 'better-sqlite3'
 import { loadAsync } from 'jszip'
 import { read } from 'shapefile'
-
 import { TypeSettings } from "../../@types/types.settings"
 import { bootstrap } from "../../bootstrap"
 import { setSleep } from '../@utilities/utilities.setSleep'
 import { setWarning } from '../@utilities/utilities.setWarning'
-import { shapefiles } from '../../@dictionaries/dictionaries.shapefiles'
+import { shapefileLinks } from '../../@dictionaries/dictionaries.shapefileLinks'
 
 export const importShapefiles = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
@@ -38,7 +36,7 @@ export const importShapefiles = async (): Promise<void> => {
         if (tShapefiles === 0) {
             await setSleep({timeout: 1e3});
             setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.database} and restart the application.` })
-            for (const shapefile of shapefiles) {
+            for (const shapefile of shapefileLinks) {
                 const response = await fetch(shapefile.link);
                 const arrayBuff = await response.arrayBuffer();
                 const content = await loadAsync(arrayBuff);

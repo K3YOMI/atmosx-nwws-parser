@@ -1,0 +1,34 @@
+/*
+              _                             _               _     __   __
+         /\  | |                           | |             (_)    \ \ / /
+        /  \ | |_ _ __ ___   ___  ___ _ __ | |__   ___ _ __ _  ___ \ V / 
+       / /\ \| __| '_ ` _ \ / _ \/ __| '_ \| '_ \ / _ \ '__| |/ __| > <  
+      / ____ \ |_| | | | | | (_) \__ \ |_) | | | |  __/ |  | | (__ / . \ 
+     /_/    \_\__|_| |_| |_|\___/|___/ .__/|_| |_|\___|_|  |_|\___/_/ \_\
+                                     | |                            
+                                     |_|                                                                                                                
+
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Discord: https://atmosphericx-discord.scriptkitty.cafe
+    Ko-Fi: https://ko-fi.com/k3yomi
+    Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
+
+    Internal Package: @atmosx/event-product-parser
+
+*/
+
+import { setWarning } from "../@modules/@utilities/utilities.setWarning";
+import { TypeEvent } from "../@types/type.event";
+import { bootstrap } from "../bootstrap"
+
+export const rmEvent = (event: TypeEvent): void => {
+    const getEvent = bootstrap.cache.events.features.find(f => f?.properties?.metadata?.tracking === event?.properties?.metadata?.tracking);
+    if (getEvent) {
+        bootstrap.listener.emit(`onEventStatus`, {
+            type: `Removed`,
+            event: event
+        })
+        bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
+        bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
+    }
+}

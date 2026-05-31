@@ -17,7 +17,6 @@
 
 */
 import { union } from "polygon-clipping";
-import { RegularExpressions } from "../../@dictionaries/dictionaries.regex"
 import { bootstrap } from "../../bootstrap";
 
 interface CoordinatesOptions {

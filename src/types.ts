@@ -24,11 +24,9 @@ interface LocalAlertFilteringSettings {
     ugc_filter?: string[]; 
     state_filter?: string[]; 
     ignored_events?: string[]; 
-    check_expired?: boolean;
 }
 
 interface LocalGlobalSettings {
-    parent_events_only?: boolean;
     better_event_parsing?: boolean;
     shapefile_coordinates?: boolean;
     shapefile_skip?: number;
@@ -58,7 +56,6 @@ interface LocalAlertPreferenceSettings {
     disable_ugc?: boolean;
     disable_vtec?: boolean;
     disable_text?: boolean;
-    cap_only?: boolean;
 }
 
 interface LocalNoaaWeatherWireServiceSettings {
@@ -76,7 +73,7 @@ interface LocalNationalWeatherServiceSettings {
 // --- Exports --- //
 export interface ClientSettingsTypes {
     database?: string;
-    is_wire?: boolean;
+    wire?: boolean;
     journal?: boolean;
     noaa_weather_wire_service_settings?: LocalNoaaWeatherWireServiceSettings;
     national_weather_service_settings?: LocalNationalWeatherServiceSettings;

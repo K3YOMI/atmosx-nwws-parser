@@ -17,20 +17,21 @@
 
 */
 
-import { pvExtract } from "../@parsers/@pvtec/pvtec.extract";
-import { hvExtract } from "../@parsers/@hvtec/hvtec.extract";
 import { TypeAttributes } from "../@types/types.attributes";
 import { TypeStanzaCompiled } from "../@types/types.compiled"
+import { TypeEvent } from "../@types/type.event";
 import { TypePVTEC } from "../@types/types.pvtec";
 import { TypeHVTEC } from "../@types/types.hvtec";
+import { pvExtract } from "../@parsers/@pvtec/pvtec.extract";
+import { hvExtract } from "../@parsers/@hvtec/hvtec.extract";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";
-import { getProperties } from "../@building/building.getProperties";
-import { getHeader } from "../@building/building.getHeader";
-import { getTracking } from "../@building/building.getTracking";
+import { properties } from "../@building/building.properties";
+import { headers } from "../@building/building.headers";
+import { tracking } from "../@building/building.tracking";
+import { validate } from "../@building/building.validate";
 
-
-export const vtecEvent = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    let processed: unknown[] = [];
+export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
+    let processed: TypeEvent[] = [];
     const getMessages = stanza?.message
         ?.split(/(?=\$\$)/g)
         ?.map(message => message.trim())
@@ -45,26 +46,30 @@ export const vtecEvent = async (stanza: TypeStanzaCompiled): Promise<void> => {
         if (pVtec != null && ugc != null ) {
             for (const pv of pVtec) {
                 const vtec = pv;
-                const properties = getProperties({ message, attributes, ugc, pVtec: vtec })
-                const header = getHeader({properties, getType: stanza.getType, vtec: vtec})
+                const props = properties({ message, attributes, ugc, pVtec: vtec })
+                const header = headers({properties: props, getType: stanza.getType, vtec: vtec})
+                const issued = new Date(attributes.issue)?? new Date()
+                const expires = new Date(vtec.expires)
                 processed.push({
                     type: `Feature`,
                     properties: { 
                         event: pv.event,
                         parent: pv.event,
                         status: pv.status,
-                        ...properties,
+                        issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
+                        expires: (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                        ...props,
                         metadata: {
                             ms: performance.now() - tick,
                             source: `events.vtec`,
-                            tracking: getTracking({ type: `VTEC`, stanza, attributes, properties, vtec }),
+                            tracking: tracking({ type: `VTEC`, stanza, attributes, properties: props, vtec }),
                             header: header,
                             vtec: pv.vtec,
                             hvtec: hVtec,
                             history: [
                                 {
-                                    description: properties.description,
-                                    issued: properties.issued,
+                                    description: props.description,
+                                    issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
                                     status: pv.status
                                 }
                             ]
@@ -74,7 +79,5 @@ export const vtecEvent = async (stanza: TypeStanzaCompiled): Promise<void> => {
             }
         }
     }
-    if (processed.length > 0) {
-        console.log(JSON.stringify(processed, null, 4))
-    }
+    validate(processed)
 }

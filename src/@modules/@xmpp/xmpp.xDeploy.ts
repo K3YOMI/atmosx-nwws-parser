@@ -16,14 +16,16 @@
     Internal Package: @atmosx/event-product-parser
 
 */
+
 import { client } from '@xmpp/client';
-import { bootstrap } from "../../bootstrap"
 import { TypeSettings } from "../../@types/types.settings";
+import { bootstrap } from "../../bootstrap"
 import { setWarning } from "../@utilities/utilities.setWarning";
 import { xOnline } from "./xmpp.xOnline";
 import { xOffline } from "./xmpp.xOffline";
 import { xError } from "./xmpp.xError";
 import { xStanza } from "./xmpp.xStanza";
+import { xReconnect } from './xmpp.xReconnect';
 
 export const xDeploy = async (): Promise<void> => {
     let session;

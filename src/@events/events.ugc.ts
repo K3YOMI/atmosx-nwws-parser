@@ -16,3 +16,64 @@
     Internal Package: @atmosx/event-product-parser
 
 */
+
+import { TypeAttributes } from "../@types/types.attributes";
+import { TypeStanzaCompiled } from "../@types/types.compiled"
+import { TypeEvent } from "../@types/type.event";
+import { eventsOffshore } from "../@dictionaries/dictionaries.eventsOffshore";
+import { ugcExtract } from "../@parsers/@ugc/ugc.extract";
+import { properties } from "../@building/building.properties";
+import { headers } from "../@building/building.headers";
+import { tracking } from "../@building/building.tracking";
+import { validate } from "../@building/building.validate";
+
+export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
+    let processed: TypeEvent[] = [];
+    const getMessages = stanza?.message
+        ?.split(/(?=\$\$)/g)
+        ?.map(message => message.trim())
+        ?.filter(message => message && message !== "$$");
+    if (!getMessages || getMessages?.length == 0 ) return;
+    for (const message of getMessages) {
+        const tick = performance.now();
+        const attributes = stanza?.attributes as TypeAttributes
+        const ugc = await ugcExtract(message)
+        if (ugc != null ) {
+            const props = properties({ message, attributes, ugc: ugc })
+            const issued = new Date(attributes.issue)
+            const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1000)
+            const header = headers({properties: props, getType: stanza.getType })
+            let event = Object.keys(eventsOffshore).find(event => message.toLowerCase().includes(event.toLowerCase()));
+            if (!event) { 
+                event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
+            }
+            processed.push({
+                type: `Feature`,
+                properties: { 
+                    event: event,
+                    parent: event,
+                    status: `Issued`,
+                    issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
+                    expires: (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                    ...props,
+                    metadata: {
+                        ms: performance.now() - tick,
+                        source: `events.ugc`,
+                        tracking: tracking({ type: `RAW`, stanza, attributes, properties: props }),
+                        header: header,
+                        vtec: null,
+                        hvtec: null,
+                        history: [
+                            {
+                                description: props.description,
+                                issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
+                                status: `Issued`
+                            }
+                        ]
+                    }
+                }
+            })
+        }
+    }
+    validate(processed)
+}

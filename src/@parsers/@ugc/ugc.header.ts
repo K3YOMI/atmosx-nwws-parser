@@ -17,12 +17,12 @@
 
 */
 
-import { RegularExpressions } from "../../@dictionaries/dictionaries.regex"
+import { regExp } from "../../@dictionaries/dictionaries.regExp"
 
 export const header = (message: string): string | null => {
-    const start = message.search(RegularExpressions.ugc1)
+    const start = message.search(regExp.ugc1)
     const sub = message.substring(start)
-    const end = sub.search(RegularExpressions.ugc2)
+    const end = sub.search(regExp.ugc2)
     const fin = sub.substring(0, end)
         .replace(/\s+/g, '')
         .slice(0, -1);

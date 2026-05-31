@@ -18,15 +18,15 @@
 */
 
 import { TypePVTEC } from "../../@types/types.pvtec";
-import { RegularExpressions } from "../../@dictionaries/dictionaries.regex";
-import { products } from "../../@dictionaries/dictionaries.products";
-import { events } from "../../@dictionaries/dictionaries.events";
-import { actions } from "../../@dictionaries/dictionaries.actions";
-import { status } from "../../@dictionaries/dictionaries.status";
+import { regExp } from "../../@dictionaries/dictionaries.regExp";
+import { eventProducts } from "../../@dictionaries/dictionaries.eventProducts";
+import { eventTypes } from "../../@dictionaries/dictionaries.eventTypes";
+import { eventActions } from "../../@dictionaries/dictionaries.eventActions";
+import { eventStatus } from "../../@dictionaries/dictionaries.eventStatus";
 import { expires } from "./pvtec.expires";
 
 export const pvExtract = (message: string): TypePVTEC[] | null => {
-    const getVTECs = message.match(RegularExpressions.pvtec) ?? [];
+    const getVTECs = message.match(regExp.pvtec) ?? [];
     const vtecs: TypePVTEC[] = [];
     for (const vtec of getVTECs) {
         const sub = vtec.split(`.`);
@@ -34,11 +34,11 @@ export const pvExtract = (message: string): TypePVTEC[] | null => {
         const dates = sub[6]?.split(`-`);
         vtecs.push({
             vtec: vtec,
-            product: products[sub[0]],
+            product: eventProducts[sub[0]],
             tracking: `${sub[2]}-${sub[3]}-${sub[4]}-${sub[5]}`,
-            event: `${events[sub[3]]} ${actions[sub[4]]}`,
-            status: status[sub[1]],
-            organization: message.match(RegularExpressions.wmo)?.[0] ?? null,
+            event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
+            status: eventStatus[sub[1]],
+            organization: message.match(regExp.wmo)?.[0] ?? null,
             expires: expires(dates),
             prediction_center: 
                 (sub[4] == `A` || sub[4] == `Y`) &&

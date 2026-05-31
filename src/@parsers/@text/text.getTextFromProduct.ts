@@ -24,7 +24,6 @@ interface GetTextFromProductOptions {
     removal?: string[]
 }
 
-
 export const getTextFromProduct = (options: GetTextFromProductOptions): string => {
     const lines = options.message.split(`\n`);
     for (const line of lines) {

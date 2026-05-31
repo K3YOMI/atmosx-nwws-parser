@@ -21,7 +21,6 @@ import { bootstrap } from "../../bootstrap";
 import { setWarning } from "../@utilities/utilities.setWarning";
 import { setSleep } from "../@utilities/utilities.setSleep";
 
-
 export const xOnline = () => {
     const settings = bootstrap.settings;
     bootstrap.session_xmpp.on(`online`, async (address: string) => {
@@ -46,6 +45,5 @@ export const xOnline = () => {
             type: `online`,
             error: false
         })
-        setWarning({ message: `Successfully connected to NOAA Weather Wire Service as "${settings.noaa_weather_wire_service_settings.credentials.nickname}"` })
     })
 }

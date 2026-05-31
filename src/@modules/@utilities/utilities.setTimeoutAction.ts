@@ -32,7 +32,6 @@ type ExportOptions = {
     response?: string
 }
 
-
 export const setTimeoutAction = (options: ImportOptions): ExportOptions =>  {
     let target = bootstrap?.ratelimits?.[options?.identifier];
     if (!target) {

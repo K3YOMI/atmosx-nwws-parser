@@ -19,13 +19,15 @@
 
 import { TypeAttributes } from "../@types/types.attributes";
 import { TypeStanzaCompiled } from "../@types/types.compiled"
-import { getProperties } from "../@building/building.getProperties";
-import { getHeader } from "../@building/building.getHeader";
-import { offshore } from "../@dictionaries/dictionaries.offshore";
-import { getTracking } from "../@building/building.getTracking";
+import { TypeEvent } from "../@types/type.event";
+import { properties } from "../@building/building.properties";
+import { headers } from "../@building/building.headers";
+import { eventsOffshore } from "../@dictionaries/dictionaries.eventsOffshore";
+import { tracking } from "../@building/building.tracking";
+import { validate } from "../@building/building.validate";
 
-export const textEvent = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    let processed: unknown[] = [];
+export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
+    let processed: TypeEvent[] = [];
     const getMessages = stanza?.message
         ?.split(/(?=\$\$)/g)
         ?.map(message => message.trim())
@@ -34,9 +36,11 @@ export const textEvent = async (stanza: TypeStanzaCompiled): Promise<void> => {
     for (const message of getMessages) {
         const tick = performance.now();
         const attributes = stanza?.attributes as TypeAttributes
-        const properties = getProperties({ message, attributes })
-        const header = getHeader({properties, getType: stanza.getType})   
-        let event = Object.keys(offshore).find(event => message.toLowerCase().includes(event.toLowerCase()));
+        const props = properties({ message, attributes })
+        const header = headers({properties: props, getType: stanza.getType})   
+        const issued = new Date(attributes.issue)
+        const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1000)
+        let event = Object.keys(eventsOffshore).find(event => message.toLowerCase().includes(event.toLowerCase()));
         if (!event) { 
             event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
         }
@@ -46,18 +50,20 @@ export const textEvent = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 event: event,
                 parent: event,
                 status: `Issued`,
-                ...properties,
+                issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
+                expires: (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                ...props,
                 metadata: {
                     ms: performance.now() - tick,
                     source: `events.text`,
-                    tracking: getTracking({ type: `RAW`, stanza, attributes, properties }),
+                    tracking: tracking({ type: `RAW`, stanza, attributes, properties: props }),
                     header: header,
                     vtec: null,
                     hvtec: null,
                     history: [
                         {
-                            description: properties.description,
-                            issued: properties.issued,
+                            description: props.description,
+                            issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
                             status: `Issued`,
                         }
                     ]
@@ -65,7 +71,5 @@ export const textEvent = async (stanza: TypeStanzaCompiled): Promise<void> => {
             }
         })  
     }
-    if (processed.length > 0) {
-        console.log(JSON.stringify(processed, null ,4))
-    }
+    validate(processed)
 }

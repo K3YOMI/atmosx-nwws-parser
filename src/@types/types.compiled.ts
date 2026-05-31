@@ -19,9 +19,8 @@
 
 import { TypeAttributes } from "./types.attributes"
 
-
 export type TypeStanzaCompiled = {
-    filter(arg0: (key: any) => boolean): import("../types").DefaultAttributesType 
+    filter?: (arg0: (key: any) => boolean) => import("../types").DefaultAttributesType
     message?: string
     attributes?: TypeAttributes
     isCapEvent?: boolean

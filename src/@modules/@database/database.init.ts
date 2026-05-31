@@ -18,16 +18,10 @@
 */
 
 import fs from 'fs'
-import { resolve, extname} from 'path'
 import sqlite3 from 'better-sqlite3'
-import { loadAsync } from 'jszip'
-import { read } from 'shapefile'
-
 import { TypeSettings } from "../../@types/types.settings"
 import { bootstrap } from "../../bootstrap"
-import { setSleep } from '../@utilities/utilities.setSleep'
 import { setWarning } from '../@utilities/utilities.setWarning'
-import { shapefiles } from '../../@dictionaries/dictionaries.shapefiles'
 import { importShapefiles } from './database.shapefiles'
 
 export const initializeDatabase = async (): Promise<void> => {

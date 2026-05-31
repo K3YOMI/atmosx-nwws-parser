@@ -16,16 +16,16 @@
     Internal Package: @atmosx/event-product-parser
 
 */
+
+import { TypeSettings } from './@types/types.settings'
 import { bootstrap } from "./bootstrap";
 import { setWarning } from "./@modules/@utilities/utilities.setWarning";
 import { setSettings } from "./@modules/@utilities/utilities.setSettings"
 import { getSettings } from "./@modules/@utilities/utilities.getSettings";
 import { setListener } from "./@modules/@utilities/utilities.setListener"
 import { xDeploy } from "./@modules/@xmpp/xmpp.xDeploy"
-import { TypeSettings } from './@types/types.settings'
 import { initializeDatabase } from "./@modules/@database/database.init";
 import { getCachedEvents } from "./@modules/@database/database.cache";
-
 
 export class Manager { 
     constructor(settings: TypeSettings) {
@@ -39,7 +39,7 @@ export class Manager {
         setSettings(settings);
         bootstrap.isReady = true;
         await initializeDatabase();
-        if (settings.is_wire) {
+        if (settings.wire) {
             (async () => {
                 await getCachedEvents();
                 await xDeploy()

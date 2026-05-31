@@ -17,7 +17,6 @@
 
 */
 
-
 export type TypeStanza = {
     getChild(arg0: string): unknown
     is(arg0: string): unknown

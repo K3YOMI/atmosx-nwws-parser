@@ -19,7 +19,6 @@
 
 import { bootstrap } from "../../bootstrap";
 
-
 export const locations = async (zones: string[]): Promise<string[]> => {
     const sites = Array.from(new Set(zones));
     const placeholders = sites.map(() => '?').join(',');

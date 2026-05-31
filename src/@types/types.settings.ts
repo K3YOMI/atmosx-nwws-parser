@@ -17,10 +17,9 @@
 
 */
 
-
 export type TypeSettings = {
     database: string
-    is_wire: boolean
+    wire: boolean
     journal: boolean
     noaa_weather_wire_service_settings: {
         reconnection_settings: {
@@ -41,7 +40,6 @@ export type TypeSettings = {
             disable_ugc: boolean
             disable_vtec: boolean
             disable_text: boolean
-            cap_only: boolean
         }
     }
     national_weather_service_settings: {
@@ -49,7 +47,6 @@ export type TypeSettings = {
         endpoint: string
     }
     global_settings: {
-        parent_events_only: boolean
         better_event_parsing: boolean
         ignore_geometry_parsing: boolean
         shapefile_coordinates: boolean
@@ -61,7 +58,6 @@ export type TypeSettings = {
             ignored_events: string[]
             ugc_filter: string[]
             state_filter: string[]
-            check_expired: boolean
             ignore_test_products: boolean
         },
         eas_settings: {

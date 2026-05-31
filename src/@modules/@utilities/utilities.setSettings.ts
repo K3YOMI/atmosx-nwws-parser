@@ -17,8 +17,8 @@
 
 */
 
-import { bootstrap } from "../../bootstrap"
 import { TypeSettings } from '../../@types/types.settings'
+import { bootstrap } from "../../bootstrap"
 
 export const setSettings = (newSettings: TypeSettings): TypeSettings => {
     const settings = bootstrap.settings as Record<string, unknown>;

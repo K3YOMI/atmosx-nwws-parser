@@ -39,11 +39,12 @@ export const bootstrap = {
         tReconnects: 0,
         sigHault: false,
         events: {type: "FeatureCollection", features: []},
+        hashes: [],
         watches: {type: "FeatureCollection", features: []}
     },
     settings: {
         database: path.join(process.cwd(), 'shapefiles.db'),
-        is_wire: true,
+        wire: true,
         journal: true,
         noaa_weather_wire_service_settings: {
             reconnection_settings: {
@@ -64,7 +65,6 @@ export const bootstrap = {
                 disable_ugc: false,
                 disable_vtec: false,
                 disable_text: false,
-                cap_only: false,
             }
         },
         national_weather_service_settings: {
@@ -72,7 +72,6 @@ export const bootstrap = {
             endpoint: `https://api.weather.gov/alerts/active`,
         },
         global_settings: {
-            parent_events_only: true,
             better_event_parsing: true,
             ignore_geometry_parsing: false,
             shapefile_coordinates: false,
@@ -84,7 +83,6 @@ export const bootstrap = {
                 ignored_events: [`Xx`, `Test Message`],
                 ugc_filter: [],
                 state_filter: [],
-                check_expired: true,
                 ignore_test_products: true,
             },
             eas_settings: {

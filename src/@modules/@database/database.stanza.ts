@@ -23,7 +23,6 @@ import { setWarning } from '../@utilities/utilities.setWarning';
 import { TypeSettings } from "../../@types/types.settings"
 import { TypeStanzaCompiled } from '../../@types/types.compiled';
 
-
 export const importStanza = async (stanza: TypeStanzaCompiled): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
     try { 

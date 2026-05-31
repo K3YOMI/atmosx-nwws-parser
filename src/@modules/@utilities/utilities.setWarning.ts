@@ -22,15 +22,16 @@ import { setTimeoutAction } from "./utilities.setTimeoutAction"
 import { TypeSettings } from "../../@types/types.settings";
 
 interface ImportOptions { 
+    title?: string
     message: string
 }
 
 export const setWarning = (options: ImportOptions): void => {
     const settings = bootstrap.settings as TypeSettings;
-    bootstrap.listener.emit(`log`, options.message)
+    bootstrap.listener.emit(`log`, `${options.title ?? `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
     if (settings?.journal) { 
         //const isTimeout = setTimeoutAction({ identifier: `warning.timeout`, addTime: true, max: 1, interval: 1 })
         //if (isTimeout.limited) return;
-        console.log(`[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}] ${options.message}`)
+        console.log(`${options.title ?? `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
     }
 }

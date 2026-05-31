@@ -24,7 +24,6 @@ interface ImportOptions {
     callback: () => void
 }
 
-
 export const setListener = (options: ImportOptions): (() => void) => {
     bootstrap.listener.on(options.event, options.callback)
     return () => { void bootstrap.listener.off(options.event, options.callback) };

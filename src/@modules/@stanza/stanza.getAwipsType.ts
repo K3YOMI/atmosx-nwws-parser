@@ -16,9 +16,9 @@
     Internal Package: @atmosx/event-product-parser
 
 */
-import { awips } from "../../@dictionaries/dictionaries.awips"
-import { TypeAttributes } from "../../@types/types.attributes"
 
+import { TypeAttributes } from "../../@types/types.attributes"
+import { eventAwipAbreviations } from "../../@dictionaries/dictionaries.eventAwipAbreviations"
 
 interface ValidateOptions { 
     attributes: TypeAttributes
@@ -37,7 +37,7 @@ export const getAwipsType = (options: ValidateOptions): ValidiateResponse => {
             prefix: `--`
         }
     }
-    for (const [prefix, type] of Object.entries(awips)) {
+    for (const [prefix, type] of Object.entries(eventAwipAbreviations)) {
         if (attributes.awipsid.startsWith(prefix)) {
             return { type, prefix }
         }

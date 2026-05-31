@@ -17,12 +17,11 @@
 
 */
 
+import { TypeUGC } from "../../@types/types.ugc";
 import { header } from "./ugc.header"
 import { zones } from "./ugc.zones";
 import { expiry } from './ugc.expiry';
 import { locations } from "./ugc.locations";
-import { TypeUGC } from "../../@types/types.ugc";
-
 
 export const ugcExtract = async (message: string): Promise<TypeUGC> => {
     const head = header(message);

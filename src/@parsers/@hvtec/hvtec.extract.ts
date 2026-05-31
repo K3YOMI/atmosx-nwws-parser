@@ -16,25 +16,24 @@
     Internal Package: @atmosx/event-product-parser
 
 */
-import { causes } from "../../@dictionaries/dictionaries.causes";
-import { records } from "../../@dictionaries/dictionaries.records";
-import { RegularExpressions } from "../../@dictionaries/dictionaries.regex";
-import { severity } from "../../@dictionaries/dictionaries.severity";
+
 import { TypeHVTEC } from "../../@types/types.hvtec";
-
-
+import { eventCauses } from "../../@dictionaries/dictionaries.eventCauses";
+import { eventRecords } from "../../@dictionaries/dictionaries.eventRecords";
+import { regExp } from "../../@dictionaries/dictionaries.regExp";
+import { eventSeverity } from "../../@dictionaries/dictionaries.eventSeverity";
 
 export const hvExtract = (message: string): TypeHVTEC[] | null => {
-    const getHVTECs = message.match(RegularExpressions.hvtec) ?? [];
+    const getHVTECs = message.match(regExp.hvtec) ?? [];
     const vtecs: TypeHVTEC[] = [];
     for (const vtec of getHVTECs) {
         const sub = vtec.split(`.`);
         if (sub.length < 7) continue;
         vtecs.push({
             hvtec: vtec,
-            severity: severity[sub[1]],
-            cause: causes[sub[2]],
-            record: records[sub[6]]
+            severity: eventSeverity[sub[1]],
+            cause: eventCauses[sub[2]],
+            record: eventRecords[sub[6]]
         })
     }
     return vtecs.length > 0 ? vtecs : null;

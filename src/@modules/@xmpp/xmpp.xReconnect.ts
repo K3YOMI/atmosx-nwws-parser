@@ -17,10 +17,9 @@
 
 */
 
+import { TypeSettings } from "../../@types/types.settings";
 import { bootstrap } from "../../bootstrap"
 import { setWarning } from "../@utilities/utilities.setWarning";
-import { TypeSettings } from "../../@types/types.settings";
-
 
 export const xReconnect = async (interval: number): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
