@@ -40,8 +40,8 @@ export const bootstrap = {
         tReconnects: 0,
         sigHault: false,
         events: {type: "FeatureCollection", features: []},
+        nodes: {type: "FeatureCollection", features: []},
         hashes: [],
-        watches: {type: "FeatureCollection", features: []}
     },
     settings: {
         Database: path.join(process.cwd(), 'shapefiles.db'),
@@ -77,6 +77,8 @@ export const bootstrap = {
             DisableGeometryParsing: false,
             UseShapefileCoordinates: false,
             ShapefileSkipPoints: 15,
+            NodeTTL: 60,
+            NodeMinDistance: 120,
             EventFiltering: {
                 ListeningEvents: [],
                 ListeningICAO: [],
@@ -84,6 +86,7 @@ export const bootstrap = {
                 IgnoredEvents: [`Xx`, `Test Message`],
                 ListeningUGC: [],
                 ListeningStates: [],
+                NodeLocationFiltering: false,
                 IgnoreTestProducts: true,
             },
             EASSettings: {

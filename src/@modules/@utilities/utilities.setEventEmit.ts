@@ -18,17 +18,24 @@
 */
 
 import { bootstrap } from "../../bootstrap"
-import { TypeSettings } from "../../@types/types.settings";
+import { setTimeoutAction } from "./utilities.setTimeoutAction";
+import { setWarning } from "./utilities.setWarning";
 
-interface ImportOptions { 
-    title?: string
-    message: string
+interface SetEventEmitOptions { 
+    event: string
+    metadata: any
+    message?: string
+    limited?: boolean
 }
 
-export const setWarning = (options: ImportOptions): void => {
-    const settings = bootstrap.settings as TypeSettings;
-    bootstrap.listener.emit(`log`, `${options.title ?? `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
-    if (settings.EnableJournal) { 
-        console.log(`${options.title ?? `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
+export const setEventEmit = (options: SetEventEmitOptions): void => {
+    if (options.limited) {
+        const isTimeout = setTimeoutAction({ identifier: `event.${options.event}`, addTime: true, max: 1, interval: 1 })
+        if (isTimeout.limited) return;
+    }
+    bootstrap.listener.emit(options.event, options.metadata)
+    if (options.event != `log`) { bootstrap.listener.emit(`*`, {event: options.event, data: options.metadata}) }
+    if (options.message) {
+        setWarning({ message: options.message })
     }
 }

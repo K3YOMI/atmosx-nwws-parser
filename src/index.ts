@@ -19,20 +19,50 @@
 
 import { TypeSettings } from './@types/types.settings'
 import { setSettings } from "./@modules/@utilities/utilities.setSettings"
-import { getSettings } from "./@modules/@utilities/utilities.getSettings";
 import { getEventGeometry } from "./@building/building.geometry";
-import { start } from "./@core/core.start"
-import { stop } from "./@core/core.stop"
+import { getCleanedEvent } from "./@building/building.clean"
 import { listener } from "./@core/core.listener"
-
+import { startService } from "./@core/core.start"
+import { stopService } from "./@core/core.stop"
+import { addNode } from "./@core/core.addNode"
+import { setEventEmit } from './@modules/@utilities/utilities.setEventEmit';
+import { setWarning } from './@modules/@utilities/utilities.setWarning';
 
 export class Manager { 
-    constructor(settings: TypeSettings) { start(settings) }
+    constructor(settings: TypeSettings) { this.trycatch();startService(settings) }
 
     on(event: string, callback: () => void) {
         listener(event, callback)
     }
+
+    trycatch() {
+        process.on('uncaughtException', (err: any) => {
+            const ignored = ['ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'STARTTLS_FAILURE'];
+            if (ignored.includes(err?.code)) { 
+                setEventEmit({
+                    event: `onXMPPStatus`,
+                    metadata: {
+                        message: `XMPP Critical Error: ${err?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
+                        data: {},
+                        type: `error`,
+                        error: true 
+                    }
+                })
+                return; 
+            }
+            setWarning({message: `Uncaught Exception: ${err instanceof Error ? err.stack || err.message : String(err)}`})
+        })
+    }
 }
 
 export default Manager;
-export { setSettings, getSettings, getEventGeometry, start, stop } 
+export { 
+    setSettings,
+    getEventGeometry,
+    getCleanedEvent,
+    stopService,
+    startService,
+    addNode,
+}
+
+export type { TypeSettings } from './@types/types.settings'

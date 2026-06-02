@@ -17,11 +17,12 @@
 
 */
 
+import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
 import { setHash } from "./manager.setHash";
 
-export const mkEvent = (event: TypeEvent): void => {
+export const mkEvent = async (event: TypeEvent): Promise<void> => {
     const features = bootstrap.cache.events.features;
     const featureMap: Map<string, typeof features[0]> = new Map();
     const getHash = event.properties.metadata.hash;
@@ -31,9 +32,13 @@ export const mkEvent = (event: TypeEvent): void => {
     const isHashed = isEntry?.hashes?.includes(getHash) ?? false;
     const getFeature = featureMap.get(getTracking);
     if (isHashed || event.properties.status_metadata.is_expired) return
-    bootstrap.listener.emit(`onEventStatus`, {
-        type: getFeature ? `Updated` : `New`,
-        event: event
+    setEventEmit({
+        event: `onEventStatus`,
+        metadata: {
+            type: getFeature ? `Updated` : `New`,
+            event: event
+        },
+        message: `[${getFeature ? 'Updated' : 'New'}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
     })
     setHash(event, isEntry)
     if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
@@ -61,7 +66,7 @@ export const mkEvent = (event: TypeEvent): void => {
                     },
                     locations: mLocations,
                     geocode: {
-                        ...event?.properties?.geocode,
+                        ...event?.properties?.geocode,  
                         ugc: mUgc
                     },
                 }
@@ -71,5 +76,4 @@ export const mkEvent = (event: TypeEvent): void => {
             featureMap.set(getTracking, event)
         }
     }
-    bootstrap.listener.emit(`onEventCache`, bootstrap.cache.events)
 }

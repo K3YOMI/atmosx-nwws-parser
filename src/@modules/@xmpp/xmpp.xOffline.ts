@@ -18,18 +18,21 @@
 */
 
 import { bootstrap } from "../../bootstrap";
+import { setEventEmit } from "../@utilities/utilities.setEventEmit";
 import { setWarning } from "../@utilities/utilities.setWarning";
 
 export const xOffline = () => {
     bootstrap.session_xmpp.on(`offline`, async () => {
         bootstrap.cache.isConnected = false;
         bootstrap.cache.sigHault = true;
-        setWarning({ message: `XMPP Client has gone offline.` })
-        bootstrap.listener.emit(`onXMPPStatus`, {
-            message: `Client has gone offline`,
-            data: {},
-            type: `offline`,
-            error: true 
+        setEventEmit({
+            event: `onXMPPStatus`,
+            metadata: {
+                message: `Client has gone offline`,
+                data: {},
+                type: `offline`,
+                error: true 
+            },
         })
     })
 }

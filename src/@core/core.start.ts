@@ -26,8 +26,9 @@ import { initializeDatabase } from "../@modules/@database/database.init";
 import { getCachedEvents } from "../@modules/@database/database.cache";
 import { setCronSchedule } from "../@modules/@utilities/utilities.setCronSchedule";
 import { Cron } from "croner";
+import { updateNodes } from "../@manager/manager.updateNodes";
 
-export const start = async (settings: TypeSettings): Promise<void> => {
+export const startService = async (settings: TypeSettings): Promise<void> => {
     if (!bootstrap.isReady) { 
         return setWarning({ 
             message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!` 
@@ -43,8 +44,12 @@ export const start = async (settings: TypeSettings): Promise<void> => {
         })();
     }
     await setCronSchedule()
-    const interval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 5;
-    bootstrap.cron = new Cron(`*/${interval} * * * *`, async () => {
+    const scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 5;
+    const nodeInterval = settings.GlobalSettings.NodeTTL ?? 30;
+    bootstrap.cron = new Cron(`*/${scheduleInterval} * * * * *`, async () => {
         await setCronSchedule();
+    })
+    bootstrap.cron = new Cron(`*/${nodeInterval} * * * * *`, async () => {
+        await updateNodes();
     })
 }

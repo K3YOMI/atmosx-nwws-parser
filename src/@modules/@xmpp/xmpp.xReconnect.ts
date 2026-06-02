@@ -19,6 +19,7 @@
 
 import { TypeSettings } from "../../@types/types.settings";
 import { bootstrap } from "../../bootstrap"
+import { setEventEmit } from "../@utilities/utilities.setEventEmit";
 import { setWarning } from "../@utilities/utilities.setWarning";
 
 export const xReconnect = async (interval: number): Promise<void> => {
@@ -34,14 +35,17 @@ export const xReconnect = async (interval: number): Promise<void> => {
             bootstrap.cache.isConnected = false;
             bootstrap.cache.tReconnects += 1;
             try { 
-                bootstrap.listener.emit(`onXMPPStatus`, {
-                    message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
-                    data: {
-                        last_stanza: lastStanza,
-                        nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
+                setEventEmit({
+                    event: `onXMPPStatus`,
+                    metadata: {
+                        message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
+                        data: {
+                            last_stanza: lastStanza,
+                            nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
+                        },
+                        type: `reconnect`,
+                        error: true
                     },
-                    type: `reconnect`,
-                    error: true
                 })
                 await bootstrap.session_xmpp.stop().catch(() => {});
                 await bootstrap.session_xmpp.start().catch(() => {});

@@ -51,6 +51,8 @@ export type TypeSettings = {
         DisableGeometryParsing: boolean
         UseShapefileCoordinates: boolean
         ShapefileSkipPoints: number
+        NodeTTL: number
+        NodeMinDistance: number
         EventFiltering: {
             ListeningEvents: string[]
             ListeningICAO: string[]
@@ -58,6 +60,7 @@ export type TypeSettings = {
             IgnoredEvents: string[]
             ListeningUGC: string[]
             ListeningStates: string[]
+            NodeLocationFiltering: boolean
             IgnoreTestProducts: boolean
         },
         EASSettings: {

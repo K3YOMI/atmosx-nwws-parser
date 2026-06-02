@@ -46,6 +46,17 @@ export type TypeEvent = {
             header: string
             vtec: string
             hvtec: TypeHVTEC[]
+            nodes?: {
+               updated: number
+               node: {
+                    id?: string | number
+                    coordinates: [number, number]
+                    nearest: [number, number]
+                    miles: number | null
+                    kilometers: number | null
+                    proximity: boolean
+               }[]
+            }
             history: {
                 description: string
                 issued: string

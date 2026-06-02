@@ -126,11 +126,11 @@ var require_escape = __commonJS({
     }
     function unescapeXML2(s) {
       let result = "";
-      let start2 = -1;
+      let start = -1;
       let end = -1;
       let previous = 0;
-      while ((start2 = s.indexOf("&", previous)) !== -1 && (end = s.indexOf(";", start2 + 1)) !== -1) {
-        result = result + s.slice(previous, start2) + unescapeXMLReplace(s.slice(start2, end + 1));
+      while ((start = s.indexOf("&", previous)) !== -1 && (end = s.indexOf(";", start + 1)) !== -1) {
+        result = result + s.slice(previous, start) + unescapeXMLReplace(s.slice(start, end + 1));
         previous = end + 1;
       }
       if (previous === 0) return s;
@@ -1103,12 +1103,13 @@ var require_main3 = __commonJS({
 var index_exports = {};
 __export(index_exports, {
   Manager: () => Manager,
+  addNode: () => addNode,
   default: () => index_default,
+  getCleanedEvent: () => getCleanedEvent,
   getEventGeometry: () => getEventGeometry,
-  getSettings: () => getSettings,
   setSettings: () => setSettings,
-  start: () => start,
-  stop: () => stop
+  startService: () => startService,
+  stopService: () => stopService
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -1140,8 +1141,8 @@ var bootstrap = {
     tReconnects: 0,
     sigHault: false,
     events: { type: "FeatureCollection", features: [] },
-    hashes: [],
-    watches: { type: "FeatureCollection", features: [] }
+    nodes: { type: "FeatureCollection", features: [] },
+    hashes: []
   },
   settings: {
     Database: import_path.default.join(process.cwd(), "shapefiles.db"),
@@ -1177,6 +1178,8 @@ var bootstrap = {
       DisableGeometryParsing: false,
       UseShapefileCoordinates: false,
       ShapefileSkipPoints: 15,
+      NodeTTL: 60,
+      NodeMinDistance: 120,
       EventFiltering: {
         ListeningEvents: [],
         ListeningICAO: [],
@@ -1184,6 +1187,7 @@ var bootstrap = {
         IgnoredEvents: [`Xx`, `Test Message`],
         ListeningUGC: [],
         ListeningStates: [],
+        NodeLocationFiltering: false,
         IgnoreTestProducts: true
       },
       EASSettings: {
@@ -1314,41 +1318,30 @@ var getEventGeometry = (event) => __async(null, null, function* () {
   return geo;
 });
 
-// src/@modules/@utilities/utilities.setTimeoutAction.ts
-var setTimeoutAction = (options) => {
-  var _a, _b;
-  let target = (_b = (_a = bootstrap) == null ? void 0 : _a.ratelimits) == null ? void 0 : _b[options == null ? void 0 : options.identifier];
-  if (!target) {
-    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = [];
-    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
-  }
-  if ((target == null ? void 0 : target.length) > 0) {
-    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = target.filter((ts) => Date.now() - ts < (options == null ? void 0 : options.interval) * 1e3);
-    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
-  }
-  const lastTimestamp = target == null ? void 0 : target[(target == null ? void 0 : target.length) - 1];
-  const getWait = lastTimestamp ? Math.ceil((options == null ? void 0 : options.interval) * 1e3 - (Date.now() - lastTimestamp)) : 0;
-  if (options == null ? void 0 : options.addTime) {
-    if (getWait > 0) {
-      return {
-        limited: true,
-        remaining: getWait,
-        response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
-      };
-    }
-  } else {
-    if ((target == null ? void 0 : target.length) >= ((options == null ? void 0 : options.max) || 1)) {
-      if (getWait > 0) {
-        return {
-          limited: true,
-          remaining: getWait,
-          response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
-        };
-      }
+// src/@building/building.clean.ts
+var getCleanedEvent = (event) => {
+  for (const key of Object.keys(event)) {
+    const value = event[key];
+    if (value === null || value === void 0) {
+      delete event[key];
+    } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+      event[key] = getCleanedEvent(value);
     }
   }
-  bootstrap.ratelimits[options == null ? void 0 : options.identifier].push(Date.now());
-  return { limited: false };
+  return event;
+};
+
+// src/@modules/@utilities/utilities.setListener.ts
+var setListener = (options) => {
+  bootstrap.listener.on(options.event, options.callback);
+  return () => {
+    void bootstrap.listener.off(options.event, options.callback);
+  };
+};
+
+// src/@core/core.listener.ts
+var listener = (event, callback2) => {
+  setListener({ event, callback: callback2 });
 };
 
 // src/@modules/@utilities/utilities.setWarning.ts
@@ -1357,8 +1350,6 @@ var setWarning = (options) => {
   const settings = bootstrap.settings;
   bootstrap.listener.emit(`log`, `${(_a = options.title) != null ? _a : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
   if (settings.EnableJournal) {
-    const isTimeout = setTimeoutAction({ identifier: `warning.timeout`, addTime: true, max: 1, interval: 1 });
-    if (isTimeout.limited) return;
     console.log(`${(_b = options.title) != null ? _b : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
   }
 };
@@ -2630,7 +2621,7 @@ var OutgoingContext = class extends Context {
 };
 
 // node_modules/@xmpp/middleware/index.js
-function listener(entity, middleware2, Context2) {
+function listener2(entity, middleware2, Context2) {
   return (stanza) => {
     const ctx = new Context2(entity, stanza);
     return (0, import_koa_compose.default)(middleware2)(ctx);
@@ -2644,8 +2635,8 @@ function errorHandler(entity) {
 function middleware({ entity }) {
   const incoming = [errorHandler(entity)];
   const outgoing = [];
-  const incomingListener = listener(entity, incoming, IncomingContext);
-  const outgoingListener = listener(entity, outgoing, OutgoingContext);
+  const incomingListener = listener2(entity, incoming, IncomingContext);
+  const outgoingListener = listener2(entity, outgoing, OutgoingContext);
   entity.on("element", incomingListener);
   entity.on("send", outgoingListener);
   return {
@@ -4127,6 +4118,47 @@ var setSleep = (options) => __async(null, null, function* () {
   });
 });
 
+// src/@modules/@utilities/utilities.setTimeoutAction.ts
+var setTimeoutAction = (options) => {
+  var _a, _b;
+  let target = (_b = (_a = bootstrap) == null ? void 0 : _a.ratelimits) == null ? void 0 : _b[options == null ? void 0 : options.identifier];
+  if (!target) {
+    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = [];
+    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
+  }
+  if ((target == null ? void 0 : target.length) > 0) {
+    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = target.filter((ts) => Date.now() - ts < (options == null ? void 0 : options.interval) * 1e3);
+    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
+  }
+  const oldestTimestamp = target == null ? void 0 : target[0];
+  const getWait = oldestTimestamp ? Math.ceil((options == null ? void 0 : options.interval) * 1e3 - (Date.now() - oldestTimestamp)) : 0;
+  const max = (options == null ? void 0 : options.max) || 1;
+  if ((target == null ? void 0 : target.length) >= max && getWait > 0) {
+    return {
+      limited: true,
+      remaining: getWait,
+      response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
+    };
+  }
+  bootstrap.ratelimits[options == null ? void 0 : options.identifier].push(Date.now());
+  return { limited: false };
+};
+
+// src/@modules/@utilities/utilities.setEventEmit.ts
+var setEventEmit = (options) => {
+  if (options.limited) {
+    const isTimeout = setTimeoutAction({ identifier: `event.${options.event}`, addTime: true, max: 1, interval: 1 });
+    if (isTimeout.limited) return;
+  }
+  bootstrap.listener.emit(options.event, options.metadata);
+  if (options.event != `log`) {
+    bootstrap.listener.emit(`*`, { event: options.event, data: options.metadata });
+  }
+  if (options.message) {
+    setWarning({ message: options.message });
+  }
+};
+
 // src/@modules/@xmpp/xmpp.xOnline.ts
 var xOnline = () => {
   const settings = bootstrap.settings;
@@ -4134,7 +4166,15 @@ var xOnline = () => {
     const tick = Date.now();
     if (bootstrap.cache.lastConnect && tick - bootstrap.cache.lastConnect > 1e4) {
       bootstrap.cache.sigHault = true;
-      setWarning({ message: `The XMPP Client is attempting to reconnect too fast, this may be due to network instability and this reconnect request has been throttled. We will attempt to reconnect when all connections have been killed` });
+      setEventEmit({
+        event: `onXMPPStatus`,
+        metadata: {
+          message: `The XMPP Client is attempting to reconnect too fast, this may be due to network instability and this reconnect request has been throttled. We will attempt to reconnect when all connections have been killed`,
+          data: {},
+          type: `offline`,
+          error: true
+        }
+      });
       yield setSleep({ timeout: 2e3 });
       bootstrap.session_xmpp.stop().catch(() => {
       });
@@ -4148,11 +4188,14 @@ var xOnline = () => {
       to: `nwws@conference.nwws-oi.weather.gov/${nickname}`,
       xmlns: "http://jabber.org/protocol/muc"
     }));
-    bootstrap.listener.emit(`onXMPPStatus`, {
-      message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
-      data: {},
-      type: `online`,
-      error: false
+    setEventEmit({
+      event: `onXMPPStatus`,
+      metadata: {
+        message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
+        data: {},
+        type: `online`,
+        error: false
+      }
     });
   }));
 };
@@ -4162,12 +4205,14 @@ var xOffline = () => {
   bootstrap.session_xmpp.on(`offline`, () => __async(null, null, function* () {
     bootstrap.cache.isConnected = false;
     bootstrap.cache.sigHault = true;
-    setWarning({ message: `XMPP Client has gone offline.` });
-    bootstrap.listener.emit(`onXMPPStatus`, {
-      message: `Client has gone offline`,
-      data: {},
-      type: `offline`,
-      error: true
+    setEventEmit({
+      event: `onXMPPStatus`,
+      metadata: {
+        message: `Client has gone offline`,
+        data: {},
+        type: `offline`,
+        error: true
+      }
     });
   }));
 };
@@ -4177,12 +4222,14 @@ var xError = () => {
   bootstrap.session_xmpp.on(`error`, (error) => __async(null, null, function* () {
     bootstrap.cache.isConnected = false;
     bootstrap.cache.sigHault = true;
-    setWarning({ message: `XMPP Client has recieved an error => ${error.message}` });
-    bootstrap.listener.emit(`onXMPPStatus`, {
-      message: `Client has recieved an error`,
-      data: {},
-      type: `error`,
-      error: true
+    setEventEmit({
+      event: `onXMPPStatus`,
+      metadata: {
+        message: `Client has recieved an error`,
+        data: {},
+        type: `error`,
+        error: true
+      }
     });
   }));
 };
@@ -5295,7 +5342,7 @@ var setHash = (event, entry) => {
 };
 
 // src/@manager/manager.mkEvent.ts
-var mkEvent = (event) => {
+var mkEvent = (event) => __async(null, null, function* () {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
   const features = bootstrap.cache.events.features;
   const featureMap = /* @__PURE__ */ new Map();
@@ -5309,9 +5356,13 @@ var mkEvent = (event) => {
   const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
   const getFeature = featureMap.get(getTracking);
   if (isHashed || event.properties.status_metadata.is_expired) return;
-  bootstrap.listener.emit(`onEventStatus`, {
-    type: getFeature ? `Updated` : `New`,
-    event
+  setEventEmit({
+    event: `onEventStatus`,
+    metadata: {
+      type: getFeature ? `Updated` : `New`,
+      event
+    },
+    message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
   });
   setHash(event, isEntry);
   if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
@@ -5342,8 +5393,7 @@ var mkEvent = (event) => {
       featureMap.set(getTracking, event);
     }
   }
-  bootstrap.listener.emit(`onEventCache`, bootstrap.cache.events);
-};
+});
 
 // src/@manager/manager.rmEvent.ts
 var rmEvent = (event) => {
@@ -5352,15 +5402,177 @@ var rmEvent = (event) => {
     return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === ((_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.metadata) == null ? void 0 : _d.tracking);
   });
   if (getEvent) {
-    bootstrap.listener.emit(`onEventStatus`, {
-      type: `Removed`,
-      event
+    setEventEmit({
+      event: `onEventStatus`,
+      metadata: {
+        type: `Removed`,
+        event
+      },
+      message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
     });
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
   }
-  bootstrap.listener.emit(`onEventCache`, bootstrap.cache.events);
+  setEventEmit({
+    event: `onEventCache`,
+    metadata: bootstrap.cache.events,
+    limited: true
+  });
 };
+
+// src/@modules/@utilities/utilities.getShapeNearestPoint.ts
+var getShapeNearestPoint = (coordinates, point) => {
+  if (!coordinates || !point) {
+    return { proximity: false, point: [0, 0], distance: null };
+  }
+  const normalize = (coords) => {
+    if (!Array.isArray(coords)) return [];
+    if (typeof coords[0] === "number" && typeof coords[1] === "number") return [];
+    if (Array.isArray(coords[0]) && typeof coords[0][0] === "number") {
+      return [[coords]];
+    }
+    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && typeof coords[0][0][0] === "number") {
+      return [coords];
+    }
+    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && Array.isArray(coords[0][0][0]) && typeof coords[0][0][0][0] === "number") {
+      return coords;
+    }
+    return [];
+  };
+  const polys = normalize(coordinates);
+  if (polys.length === 0) return { proximity: false, point: [0, 0], distance: null };
+  const lon = point[0];
+  const lat = point[1];
+  const pointInRing = (pt, ring) => {
+    let x = pt[0], y = pt[1];
+    let inside = false;
+    for (let i = 0, j2 = ring.length - 1; i < ring.length; j2 = i++) {
+      const xi = ring[i][0], yi = ring[i][1];
+      const xj = ring[j2][0], yj = ring[j2][1];
+      const intersect = yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi + 0) + xi;
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
+  const toRadians = (deg) => deg * Math.PI / 180;
+  const haversineMiles = (a, b) => {
+    const R = 3958.8;
+    const dLat = toRadians(b[1] - a[1]);
+    const dLon = toRadians(b[0] - a[0]);
+    const lat1 = toRadians(a[1]);
+    const lat2 = toRadians(b[1]);
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLon = Math.sin(dLon / 2);
+    const c = 2 * Math.asin(Math.sqrt(sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon));
+    return R * c;
+  };
+  let minDistance = Infinity;
+  let closestPoint = null;
+  for (const poly of polys) {
+    const outer = poly[0];
+    const holes = poly.slice(1);
+    if (pointInRing(point, outer)) {
+      let inHole = false;
+      for (const hole of holes) {
+        if (pointInRing(point, hole)) {
+          inHole = true;
+          break;
+        }
+      }
+      if (!inHole) {
+        return { proximity: true, point, distance: 0 };
+      }
+    }
+    for (const ring of poly) {
+      for (let i = 0; i < ring.length - 1; i++) {
+        const start = [ring[i][0], ring[i][1]];
+        const end = [ring[i + 1][0], ring[i + 1][1]];
+        const A = lon - start[0];
+        const B = lat - start[1];
+        const C = end[0] - start[0];
+        const D = end[1] - start[1];
+        const lenSq = C * C + D * D;
+        const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, (A * C + B * D) / lenSq));
+        const candidate = [start[0] + t * C, start[1] + t * D];
+        const dist = haversineMiles([lon, lat], candidate);
+        if (!isNaN(dist) && dist < minDistance) {
+          minDistance = Number(dist.toFixed(3));
+          closestPoint = candidate;
+        }
+      }
+    }
+  }
+  if (!isFinite(minDistance) || closestPoint == null) {
+    return { proximity: false, point: [0, 0], distance: null };
+  }
+  const distanceMiles = minDistance;
+  const distanceKm = Number((distanceMiles * 1.609344).toFixed(3));
+  const distanceMeters = Math.round(distanceKm * 1e3);
+  return { proximity: distanceMiles === 0, point: closestPoint, distance: distanceMiles, distanceKm, distanceMeters };
+};
+
+// src/@building/building.polygon.ts
+var getEventNodes = (event) => __async(null, null, function* () {
+  var _a, _b;
+  const metadata = { nodes: [], proximity: false, filtered: false };
+  const geometry = yield getEventGeometry(event);
+  if (!geometry || !geometry.coordinates) {
+    return { nodes: [], filtered: false, updated: Date.now() };
+  }
+  const nodes = bootstrap.cache.nodes.features;
+  for (const node of nodes) {
+    const [longitude, latitude] = node.geometry.coordinates;
+    const getPoint = getShapeNearestPoint(geometry.coordinates, [longitude, latitude]);
+    const miles = (_a = getPoint.distance) != null ? _a : null;
+    const kilometers = Number((miles * 1.609344).toFixed(3));
+    const info = {
+      id: (_b = node.properties) == null ? void 0 : _b.identifier,
+      coordinates: [longitude, latitude],
+      nearest: getPoint.point,
+      miles,
+      kilometers,
+      proximity: getPoint.proximity
+    };
+    metadata.nodes.push(info);
+    if (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMinDistance) {
+      metadata.proximity = true;
+      info.proximity = true;
+    }
+  }
+  return {
+    nodes: metadata.nodes,
+    filtered: metadata.proximity,
+    updated: Date.now()
+  };
+});
+
+// src/@manager/manager.updateNodes.ts
+var updateNodes = () => __async(null, null, function* () {
+  const events = bootstrap.cache.events.features;
+  const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
+  let total = 0;
+  yield Promise.all(events.map((evt) => __async(null, null, function* () {
+    var _a, _b, _c;
+    const lastUpdate = (_c = (_b = (_a = evt == null ? void 0 : evt.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.nodes_updated) != null ? _c : null;
+    if (lastUpdate != null && Date.now() - lastUpdate < ttl) {
+      return evt;
+    }
+    const node = yield getEventNodes(evt);
+    evt.properties.metadata.nodes = node.nodes;
+    evt.properties.metadata.filtered_proximity = node.filtered;
+    evt.properties.metadata.nodes_updated = node.updated;
+    total++;
+  })));
+  if (total > 0) {
+    setEventEmit({
+      event: `onNodeUpdate`,
+      metadata: {
+        type: `global-update`,
+        updated: total
+      }
+    });
+  }
+});
 
 // src/@building/building.validate.ts
 var validateEvents = (events) => __async(null, null, function* () {
@@ -5380,46 +5592,79 @@ var validateEvents = (events) => __async(null, null, function* () {
     }
   }
   const filterd = events.filter((event) => {
+    var _a2;
     const define2 = getEventSignature(event);
     const properties2 = define2.properties;
     const zones = properties2.geocode.ugc;
     const icao = properties2.geocode.office.office;
     const enhancedEventName = properties2.event = getEventEnhancedName(event);
-    properties2.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(properties2)).digest("hex");
+    const filteredProperties = JSON.parse(JSON.stringify(properties2));
+    if ((filteredProperties == null ? void 0 : filteredProperties.metadata) && "ms" in filteredProperties.metadata) {
+      delete filteredProperties.metadata.ms;
+    }
+    filteredProperties.metadata = (_a2 = filteredProperties.metadata) != null ? _a2 : {};
+    filteredProperties.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
     if (properties2.status_metadata.is_test) {
-      bootstrap.listener.emit(`onTestProduct`, define2);
+      setEventEmit({
+        event: `onTestProduct`,
+        metadata: define2
+      });
       if (bools == null ? void 0 : bools.IgnoreTestProducts) return false;
     }
     if (properties2.status_metadata.is_expired) {
-      bootstrap.listener.emit(`onExpiredProduct`, define2);
+      setEventEmit({
+        event: `onExpiredProduct`,
+        metadata: define2
+      });
       rmEvent(define2);
       return false;
     }
-    bootstrap.listener.emit(`onProductType${enhancedEventName.replace(/\s+/g, "")}`, define2);
+    setEventEmit({
+      event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`,
+      metadata: define2
+    });
     for (const key in sets) {
       const setting = sets[key];
       if (key === "ListeningEvents" && setting.size > 0 && !setting.has(define2.properties.event.toLowerCase())) {
-        bootstrap.listener.emit(`onFilteredEvent`, define2);
+        setEventEmit({
+          event: `onFilteredEvent`,
+          metadata: define2
+        });
         return false;
       }
       if (key === "IgnoredEvents" && setting.size > 0 && setting.has(define2.properties.event.toLowerCase())) {
-        bootstrap.listener.emit(`onIgnoredEvent`, define2);
+        setEventEmit({
+          event: `onIgnoredEvent`,
+          metadata: define2
+        });
         return false;
       }
       if (key === "ListeningICAO" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
-        bootstrap.listener.emit(`onFilteredICAO`, define2);
+        setEventEmit({
+          event: `onFilteredICAO`,
+          metadata: define2
+        });
         return false;
       }
       if (key === "IgnoredICAO" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
-        bootstrap.listener.emit(`onIgnoredICAO`, define2);
+        setEventEmit({
+          event: `onIgnoredICAO`,
+          metadata: define2
+        });
         return false;
       }
       if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.toLowerCase()))) {
-        bootstrap.listener.emit(`onFilteredUGC`, define2);
+        setEventEmit({
+          event: `onFilteredUGC`,
+          metadata: define2
+        });
         return false;
       }
       if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.substring(0, 2).toLowerCase()))) {
-        bootstrap.listener.emit(`onFilteredState`, define2);
+        setEventEmit({
+          event: `onFilteredState`,
+          metadata: define2
+        });
         return false;
       }
     }
@@ -5431,11 +5676,16 @@ var validateEvents = (events) => __async(null, null, function* () {
     }
   }
   if (filterd.length > 0) {
-    bootstrap.listener.emit(`onEventCreation`, filterd);
     for (const event of filterd) {
-      mkEvent(event);
+      yield mkEvent(event);
     }
   }
+  yield updateNodes();
+  setEventEmit({
+    event: `onEventCache`,
+    metadata: bootstrap.cache.events,
+    limited: true
+  });
 });
 
 // src/@events/events.text.ts
@@ -5491,8 +5741,8 @@ var text = (stanza) => __async(null, null, function* () {
 
 // src/@parsers/@ugc/ugc.header.ts
 var getUGCHeader = (message) => {
-  const start2 = message.search(regExp.ugc1);
-  const sub = message.substring(start2);
+  const start = message.search(regExp.ugc1);
+  const sub = message.substring(start);
   const end = sub.search(regExp.ugc2);
   const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
   return fin != null ? fin : null;
@@ -5508,8 +5758,8 @@ var getZones = (header) => {
     if (/^[A-Z]/.test(part)) {
       state = part.substring(0, 2);
       if (part.includes(">")) {
-        const [start2, end] = part.split(">");
-        const startNum = parseInt(start2.substring(3), 10);
+        const [start, end] = part.split(">");
+        const startNum = parseInt(start.substring(3), 10);
         const endNum = parseInt(end, 10);
         for (let j2 = startNum; j2 <= endNum; j2++) {
           zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
@@ -5520,8 +5770,8 @@ var getZones = (header) => {
       continue;
     }
     if (part.includes(">")) {
-      const [start2, end] = part.split(">");
-      const startNum = parseInt(start2, 10);
+      const [start, end] = part.split(">");
+      const startNum = parseInt(start, 10);
       const endNum = parseInt(end, 10);
       for (let j2 = startNum; j2 <= endNum; j2++) {
         zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
@@ -5858,7 +6108,7 @@ var vtec = (stanza) => __async(null, null, function* () {
 
 // src/@events/events.api.ts
 var api = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb;
   let processed = [];
   const messages = Object.values(JSON.parse(stanza.message).features);
   for (const feature of messages) {
@@ -5880,58 +6130,61 @@ var api = (stanza) => __async(null, null, function* () {
         description: (_r = (_q = feature == null ? void 0 : feature.properties) == null ? void 0 : _q.description) != null ? _r : null,
         attributes: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.attributes) != null ? _t : {},
         geocode: {
-          office: getEventOffice({ attributes: null, organization: (_w = (_v = (_u = feature == null ? void 0 : feature.properties) == null ? void 0 : _u.parameters) == null ? void 0 : _v.WMOidentifier) == null ? void 0 : _w[0], pVtec }),
-          organization: (_z = (_y = (_x = feature == null ? void 0 : feature.properties) == null ? void 0 : _x.parameters) == null ? void 0 : _y.WMOidentifier) == null ? void 0 : _z[0],
-          ugc: (_C = (_B = (_A = feature == null ? void 0 : feature.properties) == null ? void 0 : _A.geocode) == null ? void 0 : _B.UGC) != null ? _C : [],
-          polygon: ((_D = feature == null ? void 0 : feature.geometry) == null ? void 0 : _D.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_E = feature == null ? void 0 : feature.geometry) == null ? void 0 : _E.coordinates[0]])).toString("base64") : null,
-          polygon_generated: ((_F = feature == null ? void 0 : feature.geometry) == null ? void 0 : _F.coordinates.length) > 0 ? true : false
+          office: {
+            office: pVtec ? pVtec.split(`.`)[2] : null,
+            name: (_u = officeICAOs[pVtec ? pVtec.split(`.`)[2] : null]) != null ? _u : null
+          },
+          organization: (_x = (_w = (_v = feature == null ? void 0 : feature.properties) == null ? void 0 : _v.parameters) == null ? void 0 : _w.WMOidentifier) == null ? void 0 : _x[0],
+          ugc: (_A = (_z = (_y = feature == null ? void 0 : feature.properties) == null ? void 0 : _y.geocode) == null ? void 0 : _z.UGC) != null ? _A : [],
+          polygon: ((_B = feature == null ? void 0 : feature.geometry) == null ? void 0 : _B.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_C = feature == null ? void 0 : feature.geometry) == null ? void 0 : _C.coordinates[0]])).toString("base64") : null,
+          polygon_generated: ((_D = feature == null ? void 0 : feature.geometry) == null ? void 0 : _D.coordinates.length) > 0 ? true : false
         },
         parameters: {
-          tags: getEventTags((_G = feature == null ? void 0 : feature.properties) == null ? void 0 : _G.description),
-          instructions: (_I = (_H = feature == null ? void 0 : feature.properties) == null ? void 0 : _H.instruction) != null ? _I : null,
-          source: (_K = getTextFromProduct({ message: (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _K : null,
-          hazards: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _M : null,
-          impacts: (_O = getTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _O : null,
-          estimated_hail_size: (_R = (_Q = (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.parameters) == null ? void 0 : _Q.maxHailSize) != null ? _R : null,
-          estimated_wind_gusts: (_U = (_T = (_S = feature == null ? void 0 : feature.properties) == null ? void 0 : _S.parameters) == null ? void 0 : _T.maxWindGust) != null ? _U : null,
+          tags: getEventTags((_E = feature == null ? void 0 : feature.properties) == null ? void 0 : _E.description),
+          instructions: (_G = (_F = feature == null ? void 0 : feature.properties) == null ? void 0 : _F.instruction) != null ? _G : null,
+          source: (_I = getTextFromProduct({ message: (_H = feature == null ? void 0 : feature.properties) == null ? void 0 : _H.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _I : null,
+          hazards: (_K = getTextFromProduct({ message: (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _K : null,
+          impacts: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _M : null,
+          estimated_hail_size: (_Q = (_P = (_O = (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.parameters) == null ? void 0 : _O.maxHailSize) == null ? void 0 : _P[0]) != null ? _Q : null,
+          estimated_wind_gusts: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxWindGust) == null ? void 0 : _T[0]) != null ? _U : null,
           damage_threat: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.thunderstormDamageThreat) == null ? void 0 : _X[0]) != null ? _Y : null,
           tornado_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.tornadoDetection) == null ? void 0 : _$[0]) != null ? _aa : null,
           flood_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.floodDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
-          wind_threat: (_ga = getTextFromProduct({ message: (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.description, find: [`WIND THREAT...`] })) != null ? _ga : null,
-          hail_threat: (_ia = getTextFromProduct({ message: (_ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _ha.description, find: [`HAIL THREAT...`], removal: [] })) != null ? _ia : null
+          wind_threat: (_ia = (_ha = (_ga = (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.parameters) == null ? void 0 : _ga.windThreat) == null ? void 0 : _ha[0]) != null ? _ia : null,
+          hail_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.hailThreat) == null ? void 0 : _la[0]) != null ? _ma : null
         },
         spc_parameters: {
-          spc_max_tornado: (_ka = getTextFromProduct({ message: (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _ka : null,
-          spc_max_hail: (_ma = getTextFromProduct({ message: (_la = feature == null ? void 0 : feature.properties) == null ? void 0 : _la.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _ma : null,
-          spc_max_wind: (_oa = getTextFromProduct({ message: (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _oa : null,
-          spc_watch_issuance: (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _qa : null
+          spc_max_tornado: (_oa = getTextFromProduct({ message: (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _oa : null,
+          spc_max_hail: (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _qa : null,
+          spc_max_wind: (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _sa : null,
+          spc_watch_issuance: (_ua = getTextFromProduct({ message: (_ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _ta.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _ua : null
         },
         watch_parameters: {
-          watch_number: (_ua = (_ta = (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _sa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _ta.trim()) != null ? _ua : null,
-          watch_type: ((_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_wa = feature == null ? void 0 : feature.properties) == null ? void 0 : _wa.description.includes(`SEVERE`)) ? `Severe` : null,
-          additional_tornadoes_probability: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _ya : null,
-          strong_tornadoes_probability: (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Aa : null,
-          severe_wind_probability: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ca : null,
-          severe_hail_probability: (_Ea = getTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ea : null,
-          hail_2in_probability: (_Ga = getTextFromProduct({ message: (_Fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Fa.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _Ga : null,
-          combined_hail_wind_probability: (_Ia = getTextFromProduct({ message: (_Ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ha.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ia : null,
-          max_hail_in: (_Ka = getTextFromProduct({ message: (_Ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ja.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _Ka : null,
-          max_wind_surface: (_Ma = getTextFromProduct({ message: (_La = feature == null ? void 0 : feature.properties) == null ? void 0 : _La.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _Ma : null,
-          max_tops_x100feet: (_Oa = getTextFromProduct({ message: (_Na = feature == null ? void 0 : feature.properties) == null ? void 0 : _Na.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _Oa : null,
-          pds_watch: getTextFromProduct({ message: (_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+          watch_number: (_ya = (_xa = (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _wa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _xa.trim()) != null ? _ya : null,
+          watch_type: ((_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Aa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Aa.description.includes(`SEVERE`)) ? `Severe` : null,
+          additional_tornadoes_probability: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ca : null,
+          strong_tornadoes_probability: (_Ea = getTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ea : null,
+          severe_wind_probability: (_Ga = getTextFromProduct({ message: (_Fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Fa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ga : null,
+          severe_hail_probability: (_Ia = getTextFromProduct({ message: (_Ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ha.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ia : null,
+          hail_2in_probability: (_Ka = getTextFromProduct({ message: (_Ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ja.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _Ka : null,
+          combined_hail_wind_probability: (_Ma = getTextFromProduct({ message: (_La = feature == null ? void 0 : feature.properties) == null ? void 0 : _La.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ma : null,
+          max_hail_in: (_Oa = getTextFromProduct({ message: (_Na = feature == null ? void 0 : feature.properties) == null ? void 0 : _Na.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _Oa : null,
+          max_wind_surface: (_Qa = getTextFromProduct({ message: (_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _Qa : null,
+          max_tops_x100feet: (_Sa = getTextFromProduct({ message: (_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _Sa : null,
+          pds_watch: getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
         },
         metadata: {
           ms: performance.now() - tick,
           source: `events.api`,
-          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_Sa = (_Ra = (_Qa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Qa.parameters) == null ? void 0 : _Ra.WMOidentifier) == null ? void 0 : _Sa[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec }),
-          header: `ZCZC-ATMOSX-${(_Ua = (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.parameters) == null ? void 0 : _Ua.WMOidentifier}`,
+          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_Wa = (_Va = (_Ua = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ua.parameters) == null ? void 0 : _Va.WMOidentifier) == null ? void 0 : _Wa[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec }),
+          header: `ZCZC-ATMOSX-${(_Ya = (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.parameters) == null ? void 0 : _Ya.WMOidentifier}`,
           vtec: pVtec,
           hvtec: null,
           history: [
             {
-              description: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description,
-              issued: ((_Wa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Wa.sent) ? new Date((_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.sent).toISOString() : null,
-              status: (_Za = (_Ya = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ya.messageType) != null ? _Za : null
+              description: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description,
+              issued: ((__a = feature == null ? void 0 : feature.properties) == null ? void 0 : __a.sent) ? new Date((_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.sent).toISOString() : null,
+              status: (_bb = (_ab = feature == null ? void 0 : feature.properties) == null ? void 0 : _ab.messageType) != null ? _bb : null
             }
           ]
         }
@@ -5993,11 +6246,14 @@ var xStanza = () => {
     if (stanza.is(`presence`) && msgFrom.startsWith("nwws@conference.nwws-oi.weather.gov/")) {
       const getOccupant = msgFrom.split(`/`).slice(1).join(`/`);
       const getAvailability = msgType === `unavailable`;
-      bootstrap.listener.emit(`onXMPPStatus`, {
-        message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
-        data: {},
-        type: `occupant`,
-        error: false
+      setEventEmit({
+        event: `onXMPPStatus`,
+        metadata: {
+          message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
+          data: {},
+          type: `occupant`,
+          error: false
+        }
       });
     }
   }));
@@ -6022,12 +6278,14 @@ var xDeploy = () => __async(null, null, function* () {
     yield xOnline();
     yield session.start();
   } catch (error) {
-    setWarning({ message: `Error occurred while starting XMPP session: ${error}` });
-    bootstrap.listener.emit(`onXMPPStatus`, {
-      message: `Error occured while starting XMPP Session: ${error}`,
-      data: {},
-      type: `error`,
-      error: true
+    setEventEmit({
+      event: `onXMPPStatus`,
+      metadata: {
+        message: `Error occured while starting XMPP Session: ${error}`,
+        data: {},
+        type: `error`,
+        error: true
+      }
     });
   }
 });
@@ -6179,14 +6437,17 @@ var xReconnect = (interval) => __async(null, null, function* () {
       bootstrap.cache.isConnected = false;
       bootstrap.cache.tReconnects += 1;
       try {
-        bootstrap.listener.emit(`onXMPPStatus`, {
-          message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
-          data: {
-            last_stanza: lastStanza,
-            nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
-          },
-          type: `reconnect`,
-          error: true
+        setEventEmit({
+          event: `onXMPPStatus`,
+          metadata: {
+            message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
+            data: {
+              last_stanza: lastStanza,
+              nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
+            },
+            type: `reconnect`,
+            error: true
+          }
         });
         yield bootstrap.session_xmpp.stop().catch(() => {
         });
@@ -6283,7 +6544,8 @@ var setCronSchedule = () => __async(null, null, function* () {
 
 // src/@core/core.start.ts
 var import_croner = require("croner");
-var start = (settings) => __async(null, null, function* () {
+var startService = (settings) => __async(null, null, function* () {
+  var _a;
   if (!bootstrap.isReady) {
     return setWarning({
       message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!`
@@ -6299,14 +6561,18 @@ var start = (settings) => __async(null, null, function* () {
     }))();
   }
   yield setCronSchedule();
-  const interval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 5;
-  bootstrap.cron = new import_croner.Cron(`*/${interval} * * * *`, () => __async(null, null, function* () {
+  const scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 5;
+  const nodeInterval = (_a = settings.GlobalSettings.NodeTTL) != null ? _a : 30;
+  bootstrap.cron = new import_croner.Cron(`*/${scheduleInterval} * * * * *`, () => __async(null, null, function* () {
     yield setCronSchedule();
+  }));
+  bootstrap.cron = new import_croner.Cron(`*/${nodeInterval} * * * * *`, () => __async(null, null, function* () {
+    yield updateNodes();
   }));
 });
 
 // src/@core/core.stop.ts
-var stop = () => __async(null, null, function* () {
+var stopService = () => __async(null, null, function* () {
   if (bootstrap.isReady) {
     bootstrap.isReady = false;
     if (bootstrap.session_xmpp) {
@@ -6321,35 +6587,82 @@ var stop = () => __async(null, null, function* () {
   }
 });
 
-// src/@modules/@utilities/utilities.setListener.ts
-var setListener = (options) => {
-  bootstrap.listener.on(options.event, options.callback);
-  return () => {
-    void bootstrap.listener.off(options.event, options.callback);
-  };
-};
-
-// src/@core/core.listener.ts
-var listener2 = (event, callback2) => {
-  setListener({ event, callback: callback2 });
+// src/@core/core.addNode.ts
+var addNode = (options) => {
+  const nodes = bootstrap.cache.nodes.features;
+  const exists = nodes.find((node) => node.properties.identifier === options.identifier);
+  if (exists) {
+    const index = nodes.indexOf(exists);
+    nodes[index] = __spreadProps(__spreadValues({}, exists), {
+      geometry: {
+        type: "Point",
+        coordinates: [options.coordinates.longitude, options.coordinates.latitude]
+      }
+    });
+    return setEventEmit({
+      event: `onNodeUpdate`,
+      metadata: {
+        type: `node-update`,
+        node: nodes[index]
+      }
+    });
+  }
+  nodes.push({
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [options.coordinates.longitude, options.coordinates.latitude]
+    },
+    properties: {
+      identifier: options.identifier
+    }
+  });
+  return setEventEmit({
+    event: `onNodeUpdate`,
+    metadata: {
+      type: `node-add`,
+      node: nodes[nodes.length - 1]
+    }
+  });
 };
 
 // src/index.ts
 var Manager = class {
   constructor(settings) {
-    start(settings);
+    this.trycatch();
+    startService(settings);
   }
   on(event, callback2) {
-    listener2(event, callback2);
+    listener(event, callback2);
+  }
+  trycatch() {
+    process.on("uncaughtException", (err) => {
+      var _a;
+      const ignored = ["ETIMEDOUT", "ECONNRESET", "EHOSTUNREACH", "STARTTLS_FAILURE"];
+      if (ignored.includes(err == null ? void 0 : err.code)) {
+        setEventEmit({
+          event: `onXMPPStatus`,
+          metadata: {
+            message: `XMPP Critical Error: ${(_a = err == null ? void 0 : err.code) != null ? _a : "Unknown error code"}. This may indicate a connection issue. Attempting to continue...`,
+            data: {},
+            type: `error`,
+            error: true
+          }
+        });
+        return;
+      }
+      setWarning({ message: `Uncaught Exception: ${err instanceof Error ? err.stack || err.message : String(err)}` });
+    });
   }
 };
 var index_default = Manager;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   Manager,
+  addNode,
+  getCleanedEvent,
   getEventGeometry,
-  getSettings,
   setSettings,
-  start,
-  stop
+  startService,
+  stopService
 });

@@ -17,22 +17,33 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
-import { setEventEmit } from "../@utilities/utilities.setEventEmit";
-import { setWarning } from "../@utilities/utilities.setWarning";
+import { getEventNodes } from "../@building/building.polygon";
+import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
+import { bootstrap } from "../bootstrap"
 
-export const xError = () => {
-    bootstrap.session_xmpp.on(`error`, async (error: Error) => {
-        bootstrap.cache.isConnected = false;
-        bootstrap.cache.sigHault = true;
+
+export const updateNodes = async (): Promise<void> => {
+    const events = bootstrap.cache.events.features;
+    const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
+    let total = 0;
+    await Promise.all(events.map(async (evt) => {
+        const lastUpdate = evt?.properties?.metadata?.nodes_updated ?? null;
+        if (lastUpdate != null && (Date.now() - lastUpdate) < ttl) {
+            return evt;
+        }
+        const node = await getEventNodes(evt);
+        evt.properties.metadata.nodes = node.nodes
+        evt.properties.metadata.filtered_proximity = node.filtered
+        evt.properties.metadata.nodes_updated = node.updated
+        total++
+    }))
+    if (total > 0) {
         setEventEmit({
-            event: `onXMPPStatus`,
+            event: `onNodeUpdate`,
             metadata: {
-                message: `Client has recieved an error`,
-                data: {},
-                type: `error`,
-                error: true 
+                type: `global-update`,
+                updated: total
             },
         })
-    })
+    }
 }

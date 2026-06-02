@@ -22,6 +22,7 @@ import { bootstrap } from "../../bootstrap";
 import { validate } from "../@stanza/stanza.validate";
 import { createEvent } from "../../@building/building.create";
 import { importStanza } from "../@database/database.stanza";
+import { setEventEmit } from "../@utilities/utilities.setEventEmit";
 
 export const xStanza = () => {
     bootstrap.session_xmpp.on(`stanza`, async (stanza: TypeStanza) => {
@@ -41,11 +42,14 @@ export const xStanza = () => {
         if (stanza.is(`presence`) && msgFrom.startsWith('nwws@conference.nwws-oi.weather.gov/')) {
             const getOccupant = msgFrom.split(`/`).slice(1).join(`/`)
             const getAvailability = msgType === `unavailable`
-            bootstrap.listener.emit(`onXMPPStatus`, {
-                message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
-                data: {},
-                type: `occupant`,
-                error: false 
+            setEventEmit({
+                event: `onXMPPStatus`,
+                metadata: {
+                    message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
+                    data: {},
+                    type: `occupant`,
+                    error: false 
+                },
             })
         }
     })

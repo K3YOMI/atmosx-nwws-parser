@@ -24,6 +24,7 @@ import { validateEvents } from "../@building/building.validate";
 import { getEventOffice } from "../@building/building.office";
 import { getEventTags } from "../@building/building.tags";
 import { getTextFromProduct } from "../@parsers/@text/text.getTextFromProduct";
+import { officeICAOs } from "../@dictionaries/dictionaries.officeICAOs";
 
 export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
     let processed: TypeEvent[] = [];
@@ -47,7 +48,10 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 description: feature?.properties?.description ?? null,
                 attributes: feature?.properties?.attributes ?? {},
                 geocode: {
-                    office: getEventOffice({ attributes: null, organization: feature?.properties?.parameters?.WMOidentifier?.[0], pVtec }),
+                    office: {
+                        office: pVtec ? pVtec.split(`.`)[2] : null,
+                        name: officeICAOs[pVtec ? pVtec.split(`.`)[2] : null] ?? null,
+                    },
                     organization:  feature?.properties?.parameters?.WMOidentifier?.[0],
                     ugc: feature?.properties?.geocode?.UGC ?? [], 
                     polygon: feature?.geometry?.coordinates.length > 0 ? Buffer.from(JSON.stringify([feature?.geometry?.coordinates[0]])).toString('base64') : null,
@@ -59,13 +63,13 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     source: getTextFromProduct({ message: feature?.properties?.description, find: [`SOURCE...`], removal: [`.`]}) ?? null,
                     hazards: getTextFromProduct({ message: feature?.properties?.description, find: [`HAZARD...`], removal: [`.`]}) ?? null,
                     impacts: getTextFromProduct({ message: feature?.properties?.description, find: [`IMPACT...`], removal: [`.`]}) ?? null,
-                    estimated_hail_size: feature?.properties?.parameters?.maxHailSize ?? null,
-                    estimated_wind_gusts: feature?.properties?.parameters?.maxWindGust ?? null,
+                    estimated_hail_size: feature?.properties?.parameters?.maxHailSize?.[0] ?? null,
+                    estimated_wind_gusts: feature?.properties?.parameters?.maxWindGust?.[0] ?? null,
                     damage_threat: feature?.properties?.parameters?.thunderstormDamageThreat?.[0] ?? null,
                     tornado_threat: feature?.properties?.parameters?.tornadoDetection?.[0] ?? null,
                     flood_threat: feature?.properties?.parameters?.floodDetection?.[0] ?? null,
-                    wind_threat: getTextFromProduct({ message: feature?.properties?.description, find: [`WIND THREAT...`]}) ?? null,
-                    hail_threat: getTextFromProduct({ message: feature?.properties?.description, find: [`HAIL THREAT...`], removal: []}) ?? null,
+                    wind_threat: feature?.properties?.parameters?.windThreat?.[0] ?? null,
+                    hail_threat: feature?.properties?.parameters?.hailThreat?.[0] ?? null,
                 },
                 spc_parameters: {
                     spc_max_tornado: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,

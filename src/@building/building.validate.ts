@@ -16,6 +16,7 @@
     Internal Package: @atmosx/event-product-parser
 
 */
+
 import { createHash } from "crypto"
 import { TypeEvent } from "../@types/type.event";
 import { TypeSettings } from "../@types/types.settings";
@@ -25,6 +26,8 @@ import { getEventSignature } from "./building.signature"
 import { mkEvent } from "../@manager/manager.mkEvent";
 import { rmEvent } from "../@manager/manager.rmEvent";
 import { getEventGeometry } from "./building.geometry";
+import { updateNodes } from "../@manager/manager.updateNodes";
+import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
 export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
     if (events.length === 0) return;
@@ -43,33 +46,68 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         const zones = properties.geocode.ugc;
         const icao = properties.geocode.office.office
         const enhancedEventName = properties.event = getEventEnhancedName(event)
-        properties.metadata.hash = createHash("sha256").update(JSON.stringify(properties)).digest("hex")
-        if (properties.status_metadata.is_test) { bootstrap.listener.emit(`onTestProduct`, define); if (bools?.IgnoreTestProducts) return false; }
+        const filteredProperties = JSON.parse(JSON.stringify(properties)) as typeof properties;
+        if (filteredProperties?.metadata && 'ms' in filteredProperties.metadata) {
+            delete filteredProperties.metadata.ms;
+        }
+        filteredProperties.metadata = filteredProperties.metadata ?? {} as any;
+        filteredProperties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex")
+        if (properties.status_metadata.is_test) { 
+            setEventEmit({
+                event: `onTestProduct`,
+                metadata: define
+            })
+            if (bools?.IgnoreTestProducts) return false; 
+        }
         if (properties.status_metadata.is_expired) { 
-            bootstrap.listener.emit(`onExpiredProduct`, define); 
+            setEventEmit({
+                event: `onExpiredProduct`,
+                metadata: define
+            })
             rmEvent(define)
             return false; 
         }
-        bootstrap.listener.emit(`onProductType${enhancedEventName.replace(/\s+/g, '')}`, define);
+        setEventEmit({
+            event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`,
+            metadata: define
+        });
         for (const key in sets) {
             const setting = sets[key]
             if (key === 'ListeningEvents' && setting.size > 0 && !setting.has(define.properties.event.toLowerCase())) { 
-                bootstrap.listener.emit(`onFilteredEvent`, define); return false 
+                setEventEmit({
+                    event: `onFilteredEvent`,
+                    metadata: define
+                }); return false 
             } 
             if (key === 'IgnoredEvents' && setting.size > 0 && setting.has(define.properties.event.toLowerCase())) { 
-                bootstrap.listener.emit(`onIgnoredEvent`, define); return false 
+                setEventEmit({
+                    event: `onIgnoredEvent`,
+                    metadata: define
+                }); return false 
             } 
             if (key === 'ListeningICAO' && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) { 
-                bootstrap.listener.emit(`onFilteredICAO`, define); return false 
+                setEventEmit({
+                    event: `onFilteredICAO`,
+                    metadata: define
+                }); return false 
             }
             if (key === 'IgnoredICAO' && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) { 
-                bootstrap.listener.emit(`onIgnoredICAO`, define); return false 
+                setEventEmit({
+                    event: `onIgnoredICAO`,
+                    metadata: define
+                }); return false 
             }
             if (key === 'ListeningUGC' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.toLowerCase()))) { 
-                bootstrap.listener.emit(`onFilteredUGC`, define); return false 
+                setEventEmit({
+                    event: `onFilteredUGC`,
+                    metadata: define
+                }); return false 
             }
             if (key === 'ListeningStates' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.substring(0, 2).toLowerCase()))) { 
-                bootstrap.listener.emit(`onFilteredState`, define); return false 
+                setEventEmit({
+                    event: `onFilteredState`,
+                    metadata: define
+                }); return false 
             }
         }
         return true;
@@ -81,9 +119,14 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
     }
 
     if (filterd.length > 0) {
-        bootstrap.listener.emit(`onEventCreation`, filterd)
         for (const event of filterd) {
-            mkEvent(event)
+            await mkEvent(event)
         }
     }
+    await updateNodes()
+    setEventEmit({
+        event: `onEventCache`,
+        metadata: bootstrap.cache.events,
+        limited: true
+    })
 }

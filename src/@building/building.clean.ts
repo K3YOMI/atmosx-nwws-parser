@@ -17,18 +17,14 @@
 
 */
 
-import { bootstrap } from "../../bootstrap"
-import { TypeSettings } from "../../@types/types.settings";
-
-interface ImportOptions { 
-    title?: string
-    message: string
-}
-
-export const setWarning = (options: ImportOptions): void => {
-    const settings = bootstrap.settings as TypeSettings;
-    bootstrap.listener.emit(`log`, `${options.title ?? `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
-    if (settings.EnableJournal) { 
-        console.log(`${options.title ?? `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
+export const getCleanedEvent = <T extends Record<string, any>>(event: T): T => {
+    for (const key of Object.keys(event)) {
+        const value = event[key];
+        if (value === null || value === undefined) {
+            delete event[key];
+        } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+            (event as Record<string, any>)[key] = getCleanedEvent(value as Record<string, any>) as any;
+        }
     }
-}
+    return event;
+};

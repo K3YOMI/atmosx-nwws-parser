@@ -17,18 +17,27 @@
 
 */
 
+import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
 
 export const rmEvent = (event: TypeEvent): void => {
     const getEvent = bootstrap.cache.events.features.find(f => f?.properties?.metadata?.tracking === event?.properties?.metadata?.tracking);
     if (getEvent) {
-        bootstrap.listener.emit(`onEventStatus`, {
-            type: `Removed`,
-            event: event
+        setEventEmit({
+            event: `onEventStatus`,
+            metadata: {
+                type: `Removed`,
+                event: event
+            },
+            message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
         })
         bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
         bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
     }
-    bootstrap.listener.emit(`onEventCache`, bootstrap.cache.events)
+    setEventEmit({
+        event: `onEventCache`,
+        metadata: bootstrap.cache.events,
+        limited: true
+    })
 }

@@ -18,8 +18,8 @@
 */
 import { xml } from '@xmpp/client'
 import { bootstrap } from "../../bootstrap";
-import { setWarning } from "../@utilities/utilities.setWarning";
 import { setSleep } from "../@utilities/utilities.setSleep";
+import { setEventEmit } from '../@utilities/utilities.setEventEmit';
 
 export const xOnline = () => {
     const settings = bootstrap.settings;
@@ -27,7 +27,15 @@ export const xOnline = () => {
         const tick = Date.now();
         if (bootstrap.cache.lastConnect && tick - bootstrap.cache.lastConnect > 10e3) {
             bootstrap.cache.sigHault = true;
-            setWarning({ message: `The XMPP Client is attempting to reconnect too fast, this may be due to network instability and this reconnect request has been throttled. We will attempt to reconnect when all connections have been killed` })
+            setEventEmit({
+                event: `onXMPPStatus`,
+                metadata: {
+                    message: `The XMPP Client is attempting to reconnect too fast, this may be due to network instability and this reconnect request has been throttled. We will attempt to reconnect when all connections have been killed`,
+                    data: {},
+                    type: `offline`,
+                    error: true 
+                },
+            })
             await setSleep({timeout: 2e3})
             bootstrap.session_xmpp.stop().catch(() => {});
             return;
@@ -40,11 +48,14 @@ export const xOnline = () => {
             to: `nwws@conference.nwws-oi.weather.gov/${nickname}`,
             xmlns: 'http://jabber.org/protocol/muc',
         }))
-        bootstrap.listener.emit(`onXMPPStatus`, {
-            message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
-            data: {},
-            type: `online`,
-            error: false
+        setEventEmit({
+            event: `onXMPPStatus`,
+            metadata: {
+                message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
+                data: {},
+                type: `online`,
+                error: false
+            },
         })
     })
 }

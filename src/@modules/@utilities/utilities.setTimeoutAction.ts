@@ -39,30 +39,19 @@ export const setTimeoutAction = (options: ImportOptions): ExportOptions =>  {
         target = bootstrap.ratelimits[options?.identifier];
     }
     if (target?.length > 0) {
-       bootstrap.ratelimits[options?.identifier] = target.filter(ts => Date.now() - ts < options?.interval * 1000);
+       bootstrap.ratelimits[options?.identifier] = target.filter((ts: number) => Date.now() - ts < options?.interval * 1000);
        target = bootstrap.ratelimits[options?.identifier];
     }
 
-    const lastTimestamp = target?.[target?.length - 1];
-    const getWait = lastTimestamp ? Math.ceil((options?.interval * 1000) - (Date.now() - lastTimestamp)) : 0;
+    const oldestTimestamp = target?.[0];
+    const getWait = oldestTimestamp ? Math.ceil((options?.interval * 1000) - (Date.now() - oldestTimestamp)) : 0;
+    const max = options?.max || 1;
     
-    if (options?.addTime) { 
-        if (getWait > 0) {
-            return {
-                limited: true,
-                remaining: getWait,
-                response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
-            }
-        }
-    } else { 
-        if (target?.length >= (options?.max || 1)) {
-            if (getWait > 0) {
-                return {
-                    limited: true,
-                    remaining: getWait,
-                    response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
-                }
-            }
+    if (target?.length >= max && getWait > 0) {
+        return {
+            limited: true,
+            remaining: getWait,
+            response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
         }
     }
     bootstrap.ratelimits[options?.identifier].push(Date.now());

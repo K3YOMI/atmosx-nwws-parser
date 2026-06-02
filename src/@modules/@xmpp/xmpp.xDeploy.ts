@@ -25,6 +25,7 @@ import { xOnline } from "./xmpp.xOnline";
 import { xOffline } from "./xmpp.xOffline";
 import { xError } from "./xmpp.xError";
 import { xStanza } from "./xmpp.xStanza";
+import { setEventEmit } from '../@utilities/utilities.setEventEmit';
 
 export const xDeploy = async (): Promise<void> => {
     let session;
@@ -44,12 +45,14 @@ export const xDeploy = async (): Promise<void> => {
         await xOnline();
         await session.start()
     } catch (error) {
-        setWarning({ message: `Error occurred while starting XMPP session: ${error}` })
-        bootstrap.listener.emit(`onXMPPStatus`, {
-            message: `Error occured while starting XMPP Session: ${error}`,
-            data: {},
-            type: `error`,
-            error: true 
+        setEventEmit({
+            event: `onXMPPStatus`,
+            metadata: {
+                message: `Error occured while starting XMPP Session: ${error}`,
+                data: {},
+                type: `error`,
+                error: true 
+            },
         })
     }
 }

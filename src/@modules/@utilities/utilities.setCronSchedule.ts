@@ -22,6 +22,7 @@ import { TypeSettings } from "../../@types/types.settings";
 import { xReconnect } from "../@xmpp/xmpp.xReconnect"
 import { callback } from "../../@core/core.callback"
 import { bootstrap } from "../../bootstrap";
+import { updateNodes } from "../../@manager/manager.updateNodes";
 
 export const setCronSchedule = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;

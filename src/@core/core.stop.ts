@@ -19,7 +19,7 @@
 
 import { bootstrap } from "../bootstrap";
 
-export const stop = async (): Promise<void> => {
+export const stopService = async (): Promise<void> => {
     if (bootstrap.isReady) {
         bootstrap.isReady = false;
         if (bootstrap.session_xmpp) {
