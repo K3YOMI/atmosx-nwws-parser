@@ -1194,7 +1194,7 @@ var bootstrap = {
         IgnoreTestProducts: true
       },
       EASSettings: {
-        ArchiveDirectory: "eas",
+        ArchiveDirectory: null,
         IntroWavFile: null
       }
     }
@@ -1394,8 +1394,8 @@ var setListener = (options) => {
 };
 
 // src/@core/core.listener.ts
-var listener = (event, callback2) => {
-  setListener({ event, callback: callback2 });
+var listener = (event, callback) => {
+  setListener({ event, callback });
 };
 
 // node_modules/@xmpp/xml/index.js
@@ -6519,22 +6519,6 @@ var createHttp = (options) => __async(null, null, function* () {
   });
 });
 
-// src/@core/core.callback.ts
-var callback = () => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  const response2 = yield createHttp({
-    url: settings.NationalWeatherServiceSettings.EventsEndpoint,
-    headers: {
-      "User-Agent": "@atmosx/event-product-parser"
-    }
-  });
-  if (response2.error) return;
-  createEvent({
-    message: response2.message,
-    isNWWS: false
-  });
-});
-
 // src/@modules/@utilities/utilities.setCronSchedule.ts
 var setCronSchedule = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
@@ -6543,7 +6527,17 @@ var setCronSchedule = () => __async(null, null, function* () {
       void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
     }
   } else {
-    yield callback();
+    const response2 = yield createHttp({
+      url: settings.NationalWeatherServiceSettings.EventsEndpoint,
+      headers: {
+        "User-Agent": "@atmosx/event-product-parser"
+      }
+    });
+    if (response2.error) return;
+    createEvent({
+      message: response2.message,
+      isNWWS: false
+    });
   }
 });
 
@@ -7047,8 +7041,8 @@ var Manager = class {
     this.trycatch();
     startService(settings);
   }
-  on(event, callback2) {
-    listener(event, callback2);
+  on(event, callback) {
+    listener(event, callback);
   }
   trycatch() {
     process.on("uncaughtException", (err) => {

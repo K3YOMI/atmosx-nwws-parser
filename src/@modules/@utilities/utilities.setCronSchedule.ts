@@ -20,9 +20,9 @@
 
 import { TypeSettings } from "../../@types/types.settings";
 import { xReconnect } from "../@xmpp/xmpp.xReconnect"
-import { callback } from "../../@core/core.callback"
 import { bootstrap } from "../../bootstrap";
-import { updateNodes } from "../../@manager/manager.updateNodes";
+import { createHttp } from "./utilities.createHttp";
+import { createEvent } from "../../@building/building.create";
 
 export const setCronSchedule = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
@@ -31,7 +31,17 @@ export const setCronSchedule = async (): Promise<void> => {
             void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval)
         }
     } else { 
-        await callback();
+        const response = await createHttp({
+            url: settings.NationalWeatherServiceSettings.EventsEndpoint,
+            headers: {
+                "User-Agent": "@atmosx/event-product-parser"
+            }
+        })
+        if (response.error) return;
+        createEvent({
+            message: response.message,
+            isNWWS: false
+        })
     }
 }
 
