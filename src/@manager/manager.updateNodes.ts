@@ -32,10 +32,12 @@ export const updateNodes = async (): Promise<void> => {
             return evt;
         }
         const node = await getEventNodes(evt);
+        if (node.nodes.length > 0) {
+            total++
+        }
         evt.properties.metadata.nodes = node.nodes
         evt.properties.metadata.filtered_proximity = node.filtered
         evt.properties.metadata.nodes_updated = node.updated
-        total++
     }))
     if (total > 0) {
         setEventEmit({

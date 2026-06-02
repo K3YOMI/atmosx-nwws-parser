@@ -5561,10 +5561,12 @@ var updateNodes = () => __async(null, null, function* () {
       return evt;
     }
     const node = yield getEventNodes(evt);
+    if (node.nodes.length > 0) {
+      total++;
+    }
     evt.properties.metadata.nodes = node.nodes;
     evt.properties.metadata.filtered_proximity = node.filtered;
     evt.properties.metadata.nodes_updated = node.updated;
-    total++;
   })));
   if (total > 0) {
     setEventEmit({
@@ -5607,10 +5609,6 @@ var validateEvents = (events) => __async(null, null, function* () {
     }
     filteredProperties.metadata = (_a2 = filteredProperties.metadata) != null ? _a2 : {};
     filteredProperties.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
-    setEventEmit({
-      event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`,
-      metadata: define2
-    });
     if (properties2.status_metadata.is_test) {
       setEventEmit({ event: `onTestProduct`, metadata: define2 });
       if (bools == null ? void 0 : bools.IgnoreTestProducts) return false;
@@ -5620,6 +5618,7 @@ var validateEvents = (events) => __async(null, null, function* () {
       rmEvent(define2);
       return false;
     }
+    setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`, metadata: define2 });
     for (const key in sets) {
       const setting = sets[key];
       if (key === "ListeningEvents" && setting.size > 0 && !setting.has(define2.properties.event.toLowerCase())) {
@@ -6230,6 +6229,14 @@ var xStanza = () => {
     var _a, _b, _c, _d;
     const msgFrom = (_b = (_a = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _a.from) != null ? _b : ``;
     const msgType = (_d = (_c = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _c.type) != null ? _d : ``;
+    setEventEmit({
+      event: `onXMPPStatus`,
+      metadata: {
+        message: stanza,
+        from: msgFrom,
+        type: `stanza`
+      }
+    });
     bootstrap.cache.lastStanza = Date.now();
     if (stanza.is(`message`)) {
       const result = validate({ stanza });

@@ -53,10 +53,6 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         filteredProperties.metadata = filteredProperties.metadata ?? {} as any;
         filteredProperties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex")
         
-        setEventEmit({
-            event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`,
-            metadata: define
-        });
         if (properties.status_metadata.is_test) { 
             setEventEmit({ event: `onTestProduct`, metadata: define })
             if (bools?.IgnoreTestProducts) return false; 
@@ -66,6 +62,7 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
             rmEvent(define)
             return false; 
         }
+        setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`, metadata: define });
         for (const key in sets) {
             const setting = sets[key]
             if (key === 'ListeningEvents' && setting.size > 0 && !setting.has(define.properties.event.toLowerCase())) { 

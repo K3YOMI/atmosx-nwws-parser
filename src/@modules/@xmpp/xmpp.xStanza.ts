@@ -28,7 +28,14 @@ export const xStanza = () => {
     bootstrap.session_xmpp.on(`stanza`, async (stanza: TypeStanza) => {
         const msgFrom = stanza?.attrs?.from ?? ``
         const msgType = stanza?.attrs?.type ?? ``
-        
+        setEventEmit({
+            event: `onXMPPStatus`,
+            metadata: {
+                message: stanza,
+                from: msgFrom,
+                type: `stanza`
+            },
+        })
         bootstrap.cache.lastStanza = Date.now();
         if (stanza.is(`message`)) {
             const result = validate({ stanza });
