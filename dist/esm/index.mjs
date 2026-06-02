@@ -127,11 +127,11 @@ var require_escape = __commonJS({
     }
     function unescapeXML2(s) {
       let result = "";
-      let start = -1;
+      let start2 = -1;
       let end = -1;
       let previous = 0;
-      while ((start = s.indexOf("&", previous)) !== -1 && (end = s.indexOf(";", start + 1)) !== -1) {
-        result = result + s.slice(previous, start) + unescapeXMLReplace(s.slice(start, end + 1));
+      while ((start2 = s.indexOf("&", previous)) !== -1 && (end = s.indexOf(";", start2 + 1)) !== -1) {
+        result = result + s.slice(previous, start2) + unescapeXMLReplace(s.slice(start2, end + 1));
         previous = end + 1;
       }
       if (previous === 0) return s;
@@ -1108,6 +1108,7 @@ var bootstrap = {
   ratelimits: {},
   session_xmpp: null,
   database: null,
+  cron: null,
   listener: new EventEmitter(),
   ansi_colors: {
     RED: `\x1B[31m`,
@@ -1131,63 +1132,53 @@ var bootstrap = {
     watches: { type: "FeatureCollection", features: [] }
   },
   settings: {
-    database: path.join(process.cwd(), "shapefiles.db"),
-    wire: true,
-    journal: true,
-    noaa_weather_wire_service_settings: {
-      reconnection_settings: {
-        enabled: true,
-        interval: 60
+    Database: path.join(process.cwd(), "shapefiles.db"),
+    EnableWireService: true,
+    EnableJournal: true,
+    NOAAWeatherWireServiceSettings: {
+      ReconnectionSettings: {
+        Enabled: true,
+        ReconnectionInterval: 60
       },
-      credentials: {
-        username: null,
-        password: null,
-        nickname: "@atmosx/event-product-parser/3.0"
+      CredentialSettings: {
+        Username: null,
+        Password: null,
+        Nickname: "@atmosx/event-product-parser/3.0"
       },
-      cache: {
-        enabled: true,
-        max_db_history: 5e3,
-        max_db_cache_size: 1e3
+      CacheSettings: {
+        Enabled: true,
+        MaxDatabaseHistory: 5e3,
+        MaxRetentionHistory: 1e3
       },
-      preferences: {
-        disable_ugc: false,
-        disable_vtec: false,
-        disable_text: false
+      StanzaSettings: {
+        DisableUGC: false,
+        DisableVTEC: false,
+        DisableText: false
       }
     },
-    national_weather_service_settings: {
-      interval: 15,
-      endpoint: `https://api.weather.gov/alerts/active`
+    NationalWeatherServiceSettings: {
+      CallbackInterval: 15,
+      EventsEndpoint: `https://api.weather.gov/alerts/active`
     },
-    global_settings: {
-      better_event_parsing: true,
-      ignore_geometry_parsing: false,
-      shapefile_coordinates: false,
-      shapefile_skip: 15,
-      filtering: {
-        events: [],
-        filtered_icao: [],
-        ignored_icao: [],
-        ignored_events: [`Xx`, `Test Message`],
-        ugc_filter: [],
-        state_filter: [],
-        ignore_test_products: true
+    GlobalSettings: {
+      BetterEventNames: true,
+      DisableGeometryParsing: false,
+      UseShapefileCoordinates: false,
+      ShapefileSkipPoints: 15,
+      EventFiltering: {
+        ListeningEvents: [],
+        ListeningICAO: [],
+        IgnoredICAO: [],
+        IgnoredEvents: [`Xx`, `Test Message`],
+        ListeningUGC: [],
+        ListeningStates: [],
+        IgnoreTestProducts: true
       },
-      eas_settings: {
-        directory: null,
-        intro_wav: null
+      EASSettings: {
+        ArchiveDirectory: null,
+        IntroWavFile: null
       }
     }
-  }
-};
-
-// src/@modules/@utilities/utilities.setWarning.ts
-var setWarning = (options) => {
-  var _a, _b;
-  const settings = bootstrap.settings;
-  bootstrap.listener.emit(`log`, `${(_a = options.title) != null ? _a : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
-  if (settings == null ? void 0 : settings.journal) {
-    console.log(`${(_b = options.title) != null ? _b : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
   }
 };
 
@@ -1218,12 +1209,146 @@ var getSettings = () => {
   return bootstrap.settings;
 };
 
-// src/@modules/@utilities/utilities.setListener.ts
-var setListener = (options) => {
-  bootstrap.listener.on(options.event, options.callback);
-  return () => {
-    void bootstrap.listener.off(options.event, options.callback);
+// src/@parsers/@ugc/ugc.coordinates.ts
+import { union } from "polygon-clipping";
+var getZonePolygon = (options) => {
+  const list = [...new Set(options.zones.map((z) => z.trim()))].filter((z) => z === "XX000" ? false : true);
+  if (list.length === 0) return null;
+  const placeholders = list.map(() => "?").join(",");
+  const rows = bootstrap.database.prepare(`SELECT geometry FROM shapefiles WHERE id IN (${placeholders})`).all(...list);
+  const polygons = [];
+  for (const row of rows) {
+    if (!(row == null ? void 0 : row.geometry)) continue;
+    const geom = JSON.parse(row.geometry);
+    if ((geom == null ? void 0 : geom.type) === "Polygon") {
+      polygons.push(geom.coordinates);
+    }
+  }
+  if (polygons.length === 0) return null;
+  if (options.isUnion) {
+    const unionFn = union;
+    const mergedCoords = unionFn(...polygons);
+    if (!mergedCoords || mergedCoords.length === 0) return null;
+    let maxArea = -1;
+    let bestPoly = [];
+    for (const poly of mergedCoords) {
+      const outerRing2 = poly[0];
+      let area = 0;
+      for (let i = 0; i < outerRing2.length - 1; i++) {
+        const [x1, y1] = outerRing2[i];
+        const [x2, y2] = outerRing2[i + 1];
+        area += x1 * y2 - x2 * y1;
+      }
+      area = Math.abs(area / 2);
+      if (area > maxArea) {
+        maxArea = area;
+        bestPoly = poly;
+      }
+    }
+    if (!bestPoly || bestPoly.length === 0) return null;
+    const outerRing = bestPoly[0];
+    const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) || 1);
+    let skipped = outerRing.filter((_, idx) => idx % skip === 0);
+    if (skipped.length < 4) {
+      skipped = outerRing.slice();
+    }
+    const first = skipped[0];
+    const last = skipped[skipped.length - 1];
+    if (!first || !last || first[0] !== last[0] || first[1] !== last[1]) {
+      skipped.push([first[0], first[1]]);
+    }
+    return { type: "Polygon", coordinates: [skipped] };
+  } else {
+    const multi = [];
+    for (const polyCoords of polygons) {
+      if (Array.isArray(polyCoords) && Array.isArray(polyCoords[0])) {
+        multi.push(polyCoords);
+      }
+    }
+    if (multi.length === 0) return null;
+    const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) || 1);
+    if (skip > 1) {
+      for (let p = 0; p < multi.length; p++) {
+        for (let r = 0; r < multi[p].length; r++) {
+          const ring = multi[p][r];
+          let reduced = ring.filter((_, i) => i % skip === 0);
+          if (reduced.length < 4) reduced = ring.slice();
+          const first = reduced[0];
+          const last = reduced[reduced.length - 1];
+          if (first && last && (first[0] !== last[0] || first[1] !== last[1])) {
+            reduced.push([first[0], first[1]]);
+          }
+          multi[p][r] = reduced;
+        }
+      }
+    }
+    return { type: "MultiPolygon", coordinates: multi };
+  }
+};
+
+// src/@building/building.geometry.ts
+var getEventGeometry = (event) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f;
+  const settings = getSettings();
+  const generated = (_c = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.geocode) == null ? void 0 : _b.polygon) != null ? _c : null;
+  const ugc2 = (_f = (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.geocode) == null ? void 0 : _e.ugc) != null ? _f : null;
+  let geo = {
+    type: `Polygon`,
+    coordinates: generated != null ? JSON.parse(Buffer.from(generated, "base64").toString("utf-8")) : null
   };
+  if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc2 != null) {
+    geo = yield getZonePolygon({ zones: ugc2, isUnion: false });
+  }
+  return geo;
+});
+
+// src/@modules/@utilities/utilities.setTimeoutAction.ts
+var setTimeoutAction = (options) => {
+  var _a, _b;
+  let target = (_b = (_a = bootstrap) == null ? void 0 : _a.ratelimits) == null ? void 0 : _b[options == null ? void 0 : options.identifier];
+  if (!target) {
+    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = [];
+    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
+  }
+  if ((target == null ? void 0 : target.length) > 0) {
+    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = target.filter((ts) => Date.now() - ts < (options == null ? void 0 : options.interval) * 1e3);
+    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
+  }
+  const lastTimestamp = target == null ? void 0 : target[(target == null ? void 0 : target.length) - 1];
+  const getWait = lastTimestamp ? Math.ceil((options == null ? void 0 : options.interval) * 1e3 - (Date.now() - lastTimestamp)) : 0;
+  if (options == null ? void 0 : options.addTime) {
+    if (getWait > 0) {
+      return {
+        limited: true,
+        remaining: getWait,
+        response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
+      };
+    }
+  } else {
+    if ((target == null ? void 0 : target.length) >= ((options == null ? void 0 : options.max) || 1)) {
+      if (getWait > 0) {
+        return {
+          limited: true,
+          remaining: getWait,
+          response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
+        };
+      }
+    }
+  }
+  bootstrap.ratelimits[options == null ? void 0 : options.identifier].push(Date.now());
+  return { limited: false };
+};
+
+// src/@modules/@utilities/utilities.setWarning.ts
+var setWarning = (options) => {
+  var _a, _b;
+  const settings = bootstrap.settings;
+  bootstrap.listener.emit(`log`, `${(_a = options.title) != null ? _a : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
+  if (settings.EnableJournal) {
+    const isTimeout = setTimeoutAction({ identifier: `warning.timeout`, addTime: true, max: 1, interval: 1 });
+    if (isTimeout.limited) return;
+    console.log(`${(_b = options.title) != null ? _b : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
+  }
 };
 
 // node_modules/@xmpp/xml/index.js
@@ -1332,14 +1457,14 @@ function Deferred() {
 function procedure(entity, stanza = null, handler) {
   return new Promise((resolve6, reject) => {
     function onError(err) {
-      entity.removeListener("nonza", listener2);
+      entity.removeListener("nonza", listener3);
       reject(err);
     }
     function done(...args) {
-      entity.removeListener("nonza", listener2);
+      entity.removeListener("nonza", listener3);
       resolve6(...args);
     }
-    function listener2(element) {
+    function listener3(element) {
       return __async(this, null, function* () {
         try {
           yield handler(element, done);
@@ -1349,7 +1474,7 @@ function procedure(entity, stanza = null, handler) {
       });
     }
     stanza && entity.send(stanza).catch(onError);
-    entity.on("nonza", listener2);
+    entity.on("nonza", listener3);
   });
 }
 
@@ -3838,21 +3963,21 @@ Mechanism.prototype.response = function response(_0) {
       // extractable
       ["sign", "verify"]
     );
-    const signature2 = yield crypto.subtle.sign(
+    const signature = yield crypto.subtle.sign(
       "HMAC",
       this.key,
       new TextEncoder().encode("Initiator")
     );
-    return `${username}\0${String.fromCodePoint(...new Uint8Array(signature2))}`;
+    return `${username}\0${String.fromCodePoint(...new Uint8Array(signature))}`;
   });
 };
 Mechanism.prototype.final = function final(data) {
   return __async(this, null, function* () {
-    const signature2 = Uint8Array.from(data, (c) => c.codePointAt(0));
+    const signature = Uint8Array.from(data, (c) => c.codePointAt(0));
     const result = yield crypto.subtle.verify(
       "HMAC",
       this.key,
-      signature2,
+      signature,
       new TextEncoder().encode("Responder")
     );
     if (result !== true) {
@@ -4006,12 +4131,13 @@ var xOnline = () => {
     bootstrap.cache.sigHault = false;
     bootstrap.cache.isConnected = true;
     bootstrap.cache.lastConnect = tick;
+    const nickname = settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname;
     bootstrap.session_xmpp.send(xml("presence", {
-      to: `nwws@conference.nwws-oi.weather.gov/${settings.noaa_weather_wire_service_settings.credentials.nickname}`,
+      to: `nwws@conference.nwws-oi.weather.gov/${nickname}`,
       xmlns: "http://jabber.org/protocol/muc"
     }));
     bootstrap.listener.emit(`onXMPPStatus`, {
-      message: `Succesfully connected to NOAA Weather Wire Service as "${settings.noaa_weather_wire_service_settings.credentials.nickname}"`,
+      message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
       data: {},
       type: `online`,
       error: false
@@ -4412,8 +4538,8 @@ var getAwipsType = (options) => {
   const attributes = options.attributes;
   if (!attributes.awipsid) {
     return {
-      type: `Unknown Event`,
-      prefix: `--`
+      type: null,
+      prefix: null
     };
   }
   for (const [prefix, type] of Object.entries(eventAwipAbreviations)) {
@@ -4421,7 +4547,7 @@ var getAwipsType = (options) => {
       return { type, prefix };
     }
   }
-  return { type: `Unknown Event`, prefix: `--` };
+  return { type: null, prefix: null };
 };
 
 // src/@modules/@stanza/stanza.validate.ts
@@ -4437,17 +4563,19 @@ var validate = (options) => {
         const isVTEC = message.match(regExp.pvtec) != null;
         const isUGC = message.match(regExp.ugc1) != null;
         const getType = getAwipsType({ attributes });
-        return {
-          message,
-          attributes,
-          isCapEvent,
-          isVTEC,
-          isUGC,
-          isCapAreaDescription,
-          isIgnored: false,
-          isNWWS: true,
-          getType
-        };
+        if (getType.type != null) {
+          return {
+            message,
+            attributes,
+            isCapEvent,
+            isVTEC,
+            isUGC,
+            isCapAreaDescription,
+            isIgnored: false,
+            isNWWS: true,
+            getType
+          };
+        }
       }
     }
   }
@@ -4764,11 +4892,11 @@ var officeICAOs = {
 };
 
 // src/@building/building.office.ts
-var office = (options) => {
-  var _a, _b, _c, _d;
-  const office2 = options.pVtec != null ? (_a = options.pVtec) == null ? void 0 : _a.tracking.split(`-`)[0] : ((_b = options.attributes) == null ? void 0 : _b.cccc) || (options.organization != null ? Array.isArray(options.organization) ? options.organization[0] : options.organization : null);
-  const name = (_d = (_c = officeICAOs) == null ? void 0 : _c[office2]) != null ? _d : null;
-  return { office: office2, name };
+var getEventOffice = (options) => {
+  var _a, _b, _c, _d, _e, _f;
+  const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`-`)[0] : ((_c = options.attributes) == null ? void 0 : _c.cccc) || (options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null);
+  const name = (_f = (_e = officeICAOs) == null ? void 0 : _e[office]) != null ? _f : null;
+  return { office, name };
 };
 
 // src/@dictionaries/dictionaries.eventTags.ts
@@ -4839,7 +4967,7 @@ var eventTags = {
 };
 
 // src/@building/building.tags.ts
-var tags = (message) => {
+var getEventTags = (message) => {
   return Object.entries(eventTags).filter(([key]) => message == null ? void 0 : message.toLowerCase().includes(key.toLowerCase())).map(([, value]) => value);
 };
 
@@ -4853,14 +4981,14 @@ var properties = (options) => {
     description: getDescriptionFromProduct({ message: options.message, handle: (_g = (_f = options == null ? void 0 : options.pVtec) == null ? void 0 : _f.vtec) != null ? _g : null }),
     attributes: options.attributes,
     geocode: {
-      office: office({ attributes: options.attributes, organization, pVtec: options.pVtec }),
+      office: getEventOffice({ attributes: options.attributes, organization, pVtec: options.pVtec }),
       organization,
       ugc: (_i = (_h = options == null ? void 0 : options.ugc) == null ? void 0 : _h.zones) != null ? _i : [],
       polygon: polygons.length > 0 ? Buffer.from(JSON.stringify([polygons])).toString("base64") : null,
       polygon_generated: polygons.length > 0 ? true : false
     },
     parameters: {
-      tags: tags(options.message),
+      tags: getEventTags(options.message),
       instructions: (_j = getTextFromProduct({ message: options.message, find: [`For your protection`, `do not`, `use extreme caution`], append: `...`, removal: [`.`] })) != null ? _j : null,
       source: (_k = getTextFromProduct({ message: options.message, find: [`SOURCE...`], removal: [`.`] })) != null ? _k : null,
       hazards: (_l = getTextFromProduct({ message: options.message, find: [`HAZARD...`], removal: [`.`] })) != null ? _l : null,
@@ -4897,7 +5025,7 @@ var properties = (options) => {
 };
 
 // src/@building/building.headers.ts
-var headers = (options) => {
+var getEventHeader = (options) => {
   var _a, _b, _c;
   const properties2 = options.properties;
   const vtec2 = (_a = options.vtec) != null ? _a : null;
@@ -4920,8 +5048,8 @@ var eventsOffshore = {
 };
 
 // src/@building/building.tracking.ts
-var tracking = (options) => {
-  var _a, _b;
+var getEventTracking = (options) => {
+  var _a, _b, _c, _d, _e, _f, _g;
   const proprties = options.properties;
   const attributes = options.attributes;
   const stanza = options.stanza;
@@ -4935,6 +5063,21 @@ var tracking = (options) => {
   }
   if (options.type === `VTEC`) {
     return vtec2.tracking;
+  }
+  if (options.type === `API`) {
+    if (options.vtec) {
+      const vtecValue = Array.isArray(options.vtec) ? options.vtec[0] : options.vtec;
+      const splitPVTEC = vtecValue.split(".");
+      return `${splitPVTEC[2]}-${splitPVTEC[3]}-${splitPVTEC[4]}-${splitPVTEC[5]}`;
+    }
+    const wmoMatch = (_d = (_c = options.organization) == null ? void 0 : _c.wmoidentifier) == null ? void 0 : _d.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
+    const station = (_e = wmoMatch == null ? void 0 : wmoMatch[2]) != null ? _e : "N/A";
+    if (options.organization.featureId) {
+      const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
+      return `${station}-${(_f = idMatch == null ? void 0 : idMatch[1]) != null ? _f : "N/A"}`;
+    }
+    const id2 = (_g = wmoMatch == null ? void 0 : wmoMatch[1]) != null ? _g : "N/A";
+    return `${station}-${id2}`;
   }
 };
 
@@ -5003,11 +5146,11 @@ var betterEventNames = {
 };
 
 // src/@building/building.enhance.ts
-var enhance = (event) => {
+var getEventEnhancedName = (event) => {
   var _a, _b, _c, _d, _e, _f, _g;
   const configurations = bootstrap.settings;
   let name = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.event;
-  if (!((_b = configurations == null ? void 0 : configurations.global_settings) == null ? void 0 : _b.better_event_parsing)) {
+  if (!((_b = configurations == null ? void 0 : configurations.GlobalSettings) == null ? void 0 : _b.BetterEventNames)) {
     return name;
   }
   const damage = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.parameters) == null ? void 0 : _d.damage_threat;
@@ -5090,32 +5233,8 @@ var hailStrings = {
   "4.00": "CD/DVD"
 };
 
-// src/@modules/@utilities/utilities.getFormattedTime.ts
-var getFormattedTime = (date) => {
-  const now = Date.now();
-  const then = typeof date === "number" ? date : new Date(date).getTime();
-  const seconds = Math.floor((now - then) / 1e3);
-  const absSeconds = Math.abs(seconds);
-  const isPast = seconds > 0;
-  const units = [
-    ["year", 31536e3],
-    ["month", 2592e3],
-    ["day", 86400],
-    ["hour", 3600],
-    ["minute", 60],
-    ["second", 1]
-  ];
-  for (const [name, value] of units) {
-    const interval = Math.floor(absSeconds / value);
-    if (interval >= 1) {
-      return isPast ? `${interval} ${name}${interval > 1 ? "s" : ""} ago` : `in ${interval} ${name}${interval > 1 ? "s" : ""}`;
-    }
-  }
-  return "just now";
-};
-
 // src/@building/building.signature.ts
-var signature = (event) => {
+var getEventSignature = (event) => {
   var _a, _b, _c, _d;
   const properties2 = event == null ? void 0 : event.properties;
   const vtec2 = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.vtec;
@@ -5145,10 +5264,7 @@ var signature = (event) => {
   if (new Date(properties2.expires).getTime() < (/* @__PURE__ */ new Date()).getTime()) {
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
   }
-  properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), {
-    issued_string: getFormattedTime(properties2.issued),
-    expires_string: getFormattedTime(properties2.expires)
-  });
+  properties2.status_metadata = __spreadValues({}, properties2.status_metadata);
   return event;
 };
 
@@ -5214,6 +5330,7 @@ var mkEvent = (event) => {
       featureMap.set(getTracking, event);
     }
   }
+  bootstrap.listener.emit(`onEventCache`, bootstrap.cache.events);
 };
 
 // src/@manager/manager.rmEvent.ts
@@ -5230,15 +5347,17 @@ var rmEvent = (event) => {
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
   }
+  bootstrap.listener.emit(`onEventCache`, bootstrap.cache.events);
 };
 
 // src/@building/building.validate.ts
-var validate2 = (events) => {
+var validateEvents = (events) => __async(null, null, function* () {
+  var _a;
   if (events.length === 0) return;
   const configurations = bootstrap.settings;
   const sets = {};
   const bools = {};
-  const megered = __spreadValues(__spreadValues({}, configurations.global_settings), configurations.global_settings.filtering);
+  const megered = __spreadValues(__spreadValues({}, configurations.GlobalSettings), configurations.GlobalSettings.EventFiltering);
   for (const key in megered) {
     const setting = megered[key];
     if (Array.isArray(setting)) {
@@ -5249,15 +5368,15 @@ var validate2 = (events) => {
     }
   }
   const filterd = events.filter((event) => {
-    const define2 = signature(event);
+    const define2 = getEventSignature(event);
     const properties2 = define2.properties;
-    const zones2 = properties2.geocode.ugc;
+    const zones = properties2.geocode.ugc;
     const icao = properties2.geocode.office.office;
-    const enhancedEventName = properties2.event = enhance(event);
+    const enhancedEventName = properties2.event = getEventEnhancedName(event);
     properties2.metadata.hash = createHash("sha256").update(JSON.stringify(properties2)).digest("hex");
     if (properties2.status_metadata.is_test) {
       bootstrap.listener.emit(`onTestProduct`, define2);
-      if (bools == null ? void 0 : bools.ignore_test_products) return false;
+      if (bools == null ? void 0 : bools.IgnoreTestProducts) return false;
     }
     if (properties2.status_metadata.is_expired) {
       bootstrap.listener.emit(`onExpiredProduct`, define2);
@@ -5267,40 +5386,45 @@ var validate2 = (events) => {
     bootstrap.listener.emit(`onProductType${enhancedEventName.replace(/\s+/g, "")}`, define2);
     for (const key in sets) {
       const setting = sets[key];
-      if (key === "events" && setting.size > 0 && !setting.has(define2.properties.event.toLowerCase())) {
+      if (key === "ListeningEvents" && setting.size > 0 && !setting.has(define2.properties.event.toLowerCase())) {
         bootstrap.listener.emit(`onFilteredEvent`, define2);
         return false;
       }
-      if (key === "ignored_events" && setting.size > 0 && setting.has(define2.properties.event.toLowerCase())) {
+      if (key === "IgnoredEvents" && setting.size > 0 && setting.has(define2.properties.event.toLowerCase())) {
         bootstrap.listener.emit(`onIgnoredEvent`, define2);
         return false;
       }
-      if (key === "filtered_icao" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
+      if (key === "ListeningICAO" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
         bootstrap.listener.emit(`onFilteredICAO`, define2);
         return false;
       }
-      if (key === "ignored_icao" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
+      if (key === "IgnoredICAO" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
         bootstrap.listener.emit(`onIgnoredICAO`, define2);
         return false;
       }
-      if (key === "ugc_filter" && setting.size > 0 && zones2.length > 0 && !zones2.some((ugc2) => setting.has(ugc2.toLowerCase()))) {
+      if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.toLowerCase()))) {
         bootstrap.listener.emit(`onFilteredUGC`, define2);
         return false;
       }
-      if (key === "state_filter" && setting.size > 0 && zones2.length > 0 && !zones2.some((ugc2) => setting.has(ugc2.substring(0, 2).toLowerCase()))) {
+      if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.substring(0, 2).toLowerCase()))) {
         bootstrap.listener.emit(`onFilteredState`, define2);
         return false;
       }
     }
     return true;
   });
+  if (!((_a = configurations == null ? void 0 : configurations.GlobalSettings) == null ? void 0 : _a.DisableGeometryParsing)) {
+    for (const event of filterd) {
+      event.geometry = yield getEventGeometry(event);
+    }
+  }
   if (filterd.length > 0) {
     bootstrap.listener.emit(`onEventCreation`, filterd);
     for (const event of filterd) {
       mkEvent(event);
     }
   }
-};
+});
 
 // src/@events/events.text.ts
 var text = (stanza) => __async(null, null, function* () {
@@ -5312,27 +5436,31 @@ var text = (stanza) => __async(null, null, function* () {
     const tick = performance.now();
     const attributes = stanza == null ? void 0 : stanza.attributes;
     const props = properties({ message, attributes });
-    const header2 = headers({ properties: props, getType: stanza.getType });
+    const header = getEventHeader({ properties: props, getType: stanza.getType });
     const issued = new Date(attributes.issue);
-    const expires2 = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
+    const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
     let event = Object.keys(eventsOffshore).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
     if (!event) {
       event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
     }
     processed.push({
       type: `Feature`,
+      geometry: {
+        type: `Point`,
+        coordinates: []
+      },
       properties: __spreadProps(__spreadValues({
         event,
         parent: event,
         status: `Issued`,
         issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-        expires: !isNaN(expires2.getTime()) ? expires2.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+        expires: !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
       }, props), {
         metadata: {
           ms: performance.now() - tick,
           source: `events.text`,
-          tracking: tracking({ type: `RAW`, stanza, attributes, properties: props }),
-          header: header2,
+          tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+          header,
           vtec: null,
           hvtec: null,
           history: [
@@ -5346,55 +5474,55 @@ var text = (stanza) => __async(null, null, function* () {
       })
     });
   }
-  validate2(processed);
+  validateEvents(processed);
 });
 
 // src/@parsers/@ugc/ugc.header.ts
-var header = (message) => {
-  const start = message.search(regExp.ugc1);
-  const sub = message.substring(start);
+var getUGCHeader = (message) => {
+  const start2 = message.search(regExp.ugc1);
+  const sub = message.substring(start2);
   const end = sub.search(regExp.ugc2);
   const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
   return fin != null ? fin : null;
 };
 
 // src/@parsers/@ugc/ugc.zones.ts
-var zones = (header2) => {
-  const splits = header2.split("-");
-  const zones2 = [];
+var getZones = (header) => {
+  const splits = header.split("-");
+  const zones = [];
   let state = splits[0].substring(0, 2);
   const format = splits[0].substring(2, 3);
   for (const part of splits) {
     if (/^[A-Z]/.test(part)) {
       state = part.substring(0, 2);
       if (part.includes(">")) {
-        const [start, end] = part.split(">");
-        const startNum = parseInt(start.substring(3), 10);
+        const [start2, end] = part.split(">");
+        const startNum = parseInt(start2.substring(3), 10);
         const endNum = parseInt(end, 10);
         for (let j2 = startNum; j2 <= endNum; j2++) {
-          zones2.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
+          zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
         }
       } else {
-        zones2.push(part);
+        zones.push(part);
       }
       continue;
     }
     if (part.includes(">")) {
-      const [start, end] = part.split(">");
-      const startNum = parseInt(start, 10);
+      const [start2, end] = part.split(">");
+      const startNum = parseInt(start2, 10);
       const endNum = parseInt(end, 10);
       for (let j2 = startNum; j2 <= endNum; j2++) {
-        zones2.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
+        zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
       }
     } else {
-      zones2.push(`${state}${format}${part}`);
+      zones.push(`${state}${format}${part}`);
     }
   }
-  return zones2.filter((item) => item !== "");
+  return zones.filter((item) => item !== "");
 };
 
 // src/@parsers/@ugc/ugc.expiry.ts
-var expiry = (message) => {
+var getExpiry = (message) => {
   const match = message.match(/\b(\d{6})-/);
   if (!match) {
     return null;
@@ -5404,13 +5532,13 @@ var expiry = (message) => {
   const hour = parseInt(date == null ? void 0 : date.slice(2, 4), 10);
   const minute = parseInt(date == null ? void 0 : date.slice(4, 6), 10);
   const now = /* @__PURE__ */ new Date();
-  const expires2 = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
-  return expires2.toISOString();
+  const expires = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
+  return expires.toISOString();
 };
 
 // src/@parsers/@ugc/ugc.locations.ts
-var locations = (zones2) => __async(null, null, function* () {
-  const sites = Array.from(new Set(zones2));
+var getLocations = (zones) => __async(null, null, function* () {
+  const sites = Array.from(new Set(zones));
   const placeholders = sites.map(() => "?").join(",");
   const rows = yield bootstrap.database.prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`).all(...sites);
   return rows.map((row) => row.location).sort();
@@ -5418,15 +5546,15 @@ var locations = (zones2) => __async(null, null, function* () {
 
 // src/@parsers/@ugc/ugc.extract.ts
 var ugcExtract = (message) => __async(null, null, function* () {
-  const head = header(message);
-  const ugcs = zones(head);
-  const expires2 = expiry(message);
-  const areas = yield locations(ugcs);
+  const head = getUGCHeader(message);
+  const ugcs = getZones(head);
+  const expires = getExpiry(message);
+  const areas = yield getLocations(ugcs);
   if (!head || (ugcs == null ? void 0 : ugcs.length) == 0) return;
   return {
     zones: ugcs,
     locations: areas,
-    expires: expires2
+    expires
   };
 });
 
@@ -5443,26 +5571,30 @@ var ugc = (stanza) => __async(null, null, function* () {
     if (ugc2 != null) {
       const props = properties({ message, attributes, ugc: ugc2 });
       const issued = new Date(attributes.issue);
-      const expires2 = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
-      const header2 = headers({ properties: props, getType: stanza.getType });
+      const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
+      const header = getEventHeader({ properties: props, getType: stanza.getType });
       let event = Object.keys(eventsOffshore).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
       if (!event) {
         event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
       }
       processed.push({
         type: `Feature`,
+        geometry: {
+          type: `Point`,
+          coordinates: []
+        },
         properties: __spreadProps(__spreadValues({
           event,
           parent: event,
           status: `Issued`,
           issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-          expires: !isNaN(expires2.getTime()) ? expires2.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+          expires: !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
         }, props), {
           metadata: {
             ms: performance.now() - tick,
             source: `events.ugc`,
-            tracking: tracking({ type: `RAW`, stanza, attributes, properties: props }),
-            header: header2,
+            tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+            header,
             vtec: null,
             hvtec: null,
             history: [
@@ -5477,7 +5609,7 @@ var ugc = (stanza) => __async(null, null, function* () {
       });
     }
   }
-  validate2(processed);
+  validateEvents(processed);
 });
 
 // src/@dictionaries/dictionaries.eventTypes.ts
@@ -5571,10 +5703,10 @@ var eventStatus = {
 };
 
 // src/@parsers/@pvtec/pvtec.expires.ts
-var expires = (dates) => {
+var getExpiry2 = (dates) => {
   if ((dates == null ? void 0 : dates[1]) == `000000T0000Z`) return "Invalid Date Format";
-  const expires2 = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
-  const local = new Date(new Date(expires2).getTime() - 4 * 60 * 6e4);
+  const expires = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
+  const local = new Date(new Date(expires).getTime() - 4 * 60 * 6e4);
   const pad = (n) => n.toString().padStart(2, "0");
   return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}:00.000-04:00`;
 };
@@ -5595,7 +5727,7 @@ var pvExtract = (message) => {
       event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
       status: eventStatus[sub[1]],
       organization: (_d = (_c = message.match(regExp.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
-      expires: expires(dates),
+      expires: getExpiry2(dates),
       prediction_center: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`) ? true : false
     });
   }
@@ -5673,23 +5805,27 @@ var vtec = (stanza) => __async(null, null, function* () {
       for (const pv of pVtec) {
         const vtec2 = pv;
         const props = properties({ message, attributes, ugc: ugc2, pVtec: vtec2 });
-        const header2 = headers({ properties: props, getType: stanza.getType, vtec: vtec2 });
+        const header = getEventHeader({ properties: props, getType: stanza.getType, vtec: vtec2 });
         const issued = (_d = new Date(attributes.issue)) != null ? _d : /* @__PURE__ */ new Date();
-        const expires2 = new Date(vtec2.expires);
+        const expires = new Date(vtec2.expires);
         processed.push({
           type: `Feature`,
+          geometry: {
+            type: `Point`,
+            coordinates: []
+          },
           properties: __spreadProps(__spreadValues({
             event: pv.event,
             parent: pv.event,
             status: pv.status,
             issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-            expires: !isNaN(expires2.getTime()) ? expires2.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+            expires: !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
           }, props), {
             metadata: {
               ms: performance.now() - tick,
               source: `events.vtec`,
-              tracking: tracking({ type: `VTEC`, stanza, attributes, properties: props, vtec: vtec2 }),
-              header: header2,
+              tracking: getEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec: vtec2 }),
+              header,
               vtec: pv.vtec,
               hvtec: hVtec,
               history: [
@@ -5705,21 +5841,106 @@ var vtec = (stanza) => __async(null, null, function* () {
       }
     }
   }
-  validate2(processed);
+  validateEvents(processed);
+});
+
+// src/@events/events.api.ts
+var api = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za;
+  let processed = [];
+  const messages = Object.values(JSON.parse(stanza.message).features);
+  for (const feature of messages) {
+    const tick = performance.now();
+    const pVtec = (_d = (_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0]) != null ? _d : null;
+    processed.push({
+      type: `Feature`,
+      geometry: {
+        type: `Point`,
+        coordinates: []
+      },
+      properties: {
+        event: (_f = (_e = feature == null ? void 0 : feature.properties) == null ? void 0 : _e.event) != null ? _f : null,
+        parent: (_h = (_g = feature == null ? void 0 : feature.properties) == null ? void 0 : _g.event) != null ? _h : null,
+        status: (_j = (_i = feature == null ? void 0 : feature.properties) == null ? void 0 : _i.messageType) != null ? _j : null,
+        issued: ((_k = feature == null ? void 0 : feature.properties) == null ? void 0 : _k.sent) ? new Date((_l = feature == null ? void 0 : feature.properties) == null ? void 0 : _l.sent).toISOString() : null,
+        expires: ((_m = feature == null ? void 0 : feature.properties) == null ? void 0 : _m.expires) ? new Date((_n = feature == null ? void 0 : feature.properties) == null ? void 0 : _n.expires).toISOString() : null,
+        locations: (_p = (_o = feature == null ? void 0 : feature.properties) == null ? void 0 : _o.areaDesc) != null ? _p : null,
+        description: (_r = (_q = feature == null ? void 0 : feature.properties) == null ? void 0 : _q.description) != null ? _r : null,
+        attributes: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.attributes) != null ? _t : {},
+        geocode: {
+          office: getEventOffice({ attributes: null, organization: (_w = (_v = (_u = feature == null ? void 0 : feature.properties) == null ? void 0 : _u.parameters) == null ? void 0 : _v.WMOidentifier) == null ? void 0 : _w[0], pVtec }),
+          organization: (_z = (_y = (_x = feature == null ? void 0 : feature.properties) == null ? void 0 : _x.parameters) == null ? void 0 : _y.WMOidentifier) == null ? void 0 : _z[0],
+          ugc: (_C = (_B = (_A = feature == null ? void 0 : feature.properties) == null ? void 0 : _A.geocode) == null ? void 0 : _B.UGC) != null ? _C : [],
+          polygon: ((_D = feature == null ? void 0 : feature.geometry) == null ? void 0 : _D.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_E = feature == null ? void 0 : feature.geometry) == null ? void 0 : _E.coordinates[0]])).toString("base64") : null,
+          polygon_generated: ((_F = feature == null ? void 0 : feature.geometry) == null ? void 0 : _F.coordinates.length) > 0 ? true : false
+        },
+        parameters: {
+          tags: getEventTags((_G = feature == null ? void 0 : feature.properties) == null ? void 0 : _G.description),
+          instructions: (_I = (_H = feature == null ? void 0 : feature.properties) == null ? void 0 : _H.instruction) != null ? _I : null,
+          source: (_K = getTextFromProduct({ message: (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _K : null,
+          hazards: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _M : null,
+          impacts: (_O = getTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _O : null,
+          estimated_hail_size: (_R = (_Q = (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.parameters) == null ? void 0 : _Q.maxHailSize) != null ? _R : null,
+          estimated_wind_gusts: (_U = (_T = (_S = feature == null ? void 0 : feature.properties) == null ? void 0 : _S.parameters) == null ? void 0 : _T.maxWindGust) != null ? _U : null,
+          damage_threat: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.thunderstormDamageThreat) == null ? void 0 : _X[0]) != null ? _Y : null,
+          tornado_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.tornadoDetection) == null ? void 0 : _$[0]) != null ? _aa : null,
+          flood_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.floodDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
+          wind_threat: (_ga = getTextFromProduct({ message: (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.description, find: [`WIND THREAT...`] })) != null ? _ga : null,
+          hail_threat: (_ia = getTextFromProduct({ message: (_ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _ha.description, find: [`HAIL THREAT...`], removal: [] })) != null ? _ia : null
+        },
+        spc_parameters: {
+          spc_max_tornado: (_ka = getTextFromProduct({ message: (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _ka : null,
+          spc_max_hail: (_ma = getTextFromProduct({ message: (_la = feature == null ? void 0 : feature.properties) == null ? void 0 : _la.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _ma : null,
+          spc_max_wind: (_oa = getTextFromProduct({ message: (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _oa : null,
+          spc_watch_issuance: (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _qa : null
+        },
+        watch_parameters: {
+          watch_number: (_ua = (_ta = (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _sa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _ta.trim()) != null ? _ua : null,
+          watch_type: ((_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_wa = feature == null ? void 0 : feature.properties) == null ? void 0 : _wa.description.includes(`SEVERE`)) ? `Severe` : null,
+          additional_tornadoes_probability: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _ya : null,
+          strong_tornadoes_probability: (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Aa : null,
+          severe_wind_probability: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ca : null,
+          severe_hail_probability: (_Ea = getTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ea : null,
+          hail_2in_probability: (_Ga = getTextFromProduct({ message: (_Fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Fa.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _Ga : null,
+          combined_hail_wind_probability: (_Ia = getTextFromProduct({ message: (_Ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ha.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ia : null,
+          max_hail_in: (_Ka = getTextFromProduct({ message: (_Ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ja.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _Ka : null,
+          max_wind_surface: (_Ma = getTextFromProduct({ message: (_La = feature == null ? void 0 : feature.properties) == null ? void 0 : _La.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _Ma : null,
+          max_tops_x100feet: (_Oa = getTextFromProduct({ message: (_Na = feature == null ? void 0 : feature.properties) == null ? void 0 : _Na.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _Oa : null,
+          pds_watch: getTextFromProduct({ message: (_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+        },
+        metadata: {
+          ms: performance.now() - tick,
+          source: `events.api`,
+          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_Sa = (_Ra = (_Qa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Qa.parameters) == null ? void 0 : _Ra.WMOidentifier) == null ? void 0 : _Sa[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec }),
+          header: `ZCZC-ATMOSX-${(_Ua = (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.parameters) == null ? void 0 : _Ua.WMOidentifier}`,
+          vtec: pVtec,
+          hvtec: null,
+          history: [
+            {
+              description: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description,
+              issued: ((_Wa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Wa.sent) ? new Date((_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.sent).toISOString() : null,
+              status: (_Za = (_Ya = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ya.messageType) != null ? _Za : null
+            }
+          ]
+        }
+      }
+    });
+  }
+  validateEvents(processed);
 });
 
 // src/@building/building.create.ts
-var create = (stanza) => __async(null, null, function* () {
+var createEvent = (stanza) => __async(null, null, function* () {
   const settings = bootstrap.settings;
-  const preferences = settings.noaa_weather_wire_service_settings.preferences;
+  const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
   const isVtecEvent = stanza.isVTEC && stanza.isUGC;
   const isUgcEvent = !stanza.isVTEC && stanza.isUGC;
   const isTextEvent = !stanza.isVTEC && !stanza.isUGC;
   const isNWWS = stanza.isNWWS;
-  if (!isNWWS) return "";
-  if (!preferences.disable_vtec && isVtecEvent) return yield vtec(stanza);
-  if (!preferences.disable_ugc && isUgcEvent) return yield ugc(stanza);
-  if (!preferences.disable_text && isTextEvent) return yield text(stanza);
+  if (!isNWWS) return yield api(stanza);
+  if (!StanzaSettings.DisableVTEC && isVtecEvent) return yield vtec(stanza);
+  if (!StanzaSettings.DisableUGC && isUgcEvent) return yield ugc(stanza);
+  if (!StanzaSettings.DisableText && isTextEvent) return yield text(stanza);
   return "nothing picked";
 });
 
@@ -5729,7 +5950,7 @@ var importStanza = (stanza) => __async(null, null, function* () {
   try {
     bootstrap.database.prepare(`INSERT OR IGNORE INTO stanzas (type, stanza, issued) VALUES (?, ?, ?)`).run(stanza.getType.type, JSON.stringify(stanza), stanza.attributes.issue);
     const count = bootstrap.database.prepare(`SELECT COUNT(*) as total FROM stanzas`).get();
-    const max = settings.noaa_weather_wire_service_settings.cache.max_db_history;
+    const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxDatabaseHistory;
     if (count.total > max) {
       const toDelete = count.total - max;
       if (toDelete > 0) {
@@ -5754,7 +5975,7 @@ var xStanza = () => {
       if (isSkippable) {
         return;
       }
-      yield create(result);
+      yield createEvent(result);
       yield importStanza(result);
     }
     if (stanza.is(`presence`) && msgFrom.startsWith("nwws@conference.nwws-oi.weather.gov/")) {
@@ -5775,12 +5996,12 @@ var xDeploy = () => __async(null, null, function* () {
   var _a, _b;
   let session;
   const settings = bootstrap.settings;
-  (_b = (_a = settings.noaa_weather_wire_service_settings.credentials).nickname) != null ? _b : _a.nickname = settings.noaa_weather_wire_service_settings.credentials.username;
+  (_b = (_a = settings.NOAAWeatherWireServiceSettings.CredentialSettings).Nickname) != null ? _b : _a.Nickname = settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username;
   session = bootstrap.session_xmpp = client({
     service: "xmpp://nwws-oi.weather.gov",
     domain: "nwws-oi.weather.gov",
-    username: settings.noaa_weather_wire_service_settings.credentials.username,
-    password: settings.noaa_weather_wire_service_settings.credentials.password
+    username: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username,
+    password: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Password
   });
   try {
     yield xOffline();
@@ -5830,7 +6051,7 @@ var importShapefiles = () => __async(null, null, function* () {
     const tShapefiles = bootstrap.database.prepare(`SELECT COUNT(*) AS count FROM shapefiles`).get().count;
     if (tShapefiles === 0) {
       yield setSleep({ timeout: 1e3 });
-      setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.database} and restart the application.` });
+      setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` });
       for (const shapefile of shapefileLinks) {
         const response2 = yield fetch(shapefile.link);
         const arrayBuff = yield response2.arrayBuffer();
@@ -5893,11 +6114,11 @@ var importShapefiles = () => __async(null, null, function* () {
 var initializeDatabase = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   try {
-    if (!fs2.existsSync(settings.database)) {
-      fs2.writeFileSync(settings.database, "");
-      setWarning({ message: `Creating new database at ${settings.database}` });
+    if (!fs2.existsSync(settings.Database)) {
+      fs2.writeFileSync(settings.Database, "");
+      setWarning({ message: `Creating new database at ${settings.Database}` });
     }
-    bootstrap.database = new sqlite3(settings.database);
+    bootstrap.database = new sqlite3(settings.Database);
     bootstrap.database.prepare(`CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )`).run();
     bootstrap.database.prepare(`CREATE TABLE IF NOT EXISTS shapefiles (id TEXT PRIMARY KEY, location TEXT, geometry TEXT)`).run();
     yield importShapefiles();
@@ -5912,8 +6133,8 @@ var getCachedEvents = () => __async(null, null, function* () {
   try {
     const settings = bootstrap.settings;
     const tick = performance.now();
-    if (settings.noaa_weather_wire_service_settings.cache.enabled) {
-      const max = (_a = settings.noaa_weather_wire_service_settings.cache.max_db_cache_size) != null ? _a : 500;
+    if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
+      const max = (_a = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory) != null ? _a : 500;
       const get = yield bootstrap.database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max);
       setWarning({ message: `Fetched ${get.length} cached events from the database in ${Math.floor(performance.now() - tick)} ms` });
       let events = get.map((row) => JSON.parse(row.stanza)).filter((stanza) => {
@@ -5924,7 +6145,7 @@ var getCachedEvents = () => __async(null, null, function* () {
         return !isSkippable;
       });
       events = events.sort((a, b) => b.issued - a.issued);
-      yield Promise.all(events.map((event) => create(event)));
+      yield Promise.all(events.map((event) => createEvent(event)));
       setWarning({ message: `Processed ${events.length} cached events in ${Math.floor(performance.now() - tick)} ms` });
     }
   } catch (error) {
@@ -5932,35 +6153,191 @@ var getCachedEvents = () => __async(null, null, function* () {
   }
 });
 
+// src/@modules/@xmpp/xmpp.xReconnect.ts
+var xReconnect = (interval) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const lastStanza = Date.now() - bootstrap.cache.lastStanza;
+  const reconnectThreshold = interval * 1e3;
+  if (!bootstrap.cache.isConnected && !bootstrap.cache.sigHault || !bootstrap.session_xmpp) {
+    return;
+  }
+  if (lastStanza > reconnectThreshold) {
+    if (!bootstrap.cache.isReconnecting) {
+      bootstrap.cache.isReconnecting = true;
+      bootstrap.cache.isConnected = false;
+      bootstrap.cache.tReconnects += 1;
+      try {
+        bootstrap.listener.emit(`onXMPPStatus`, {
+          message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
+          data: {
+            last_stanza: lastStanza,
+            nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
+          },
+          type: `reconnect`,
+          error: true
+        });
+        yield bootstrap.session_xmpp.stop().catch(() => {
+        });
+        yield bootstrap.session_xmpp.start().catch(() => {
+        });
+      } catch (error) {
+        setWarning({ message: `XMPP Reconnect Failed - ${error.message}` });
+      } finally {
+        bootstrap.cache.isReconnecting = false;
+      }
+    }
+  }
+});
+
+// src/@modules/@utilities/utilities.createHttp.ts
+import request from "request";
+var createHttp = (options) => __async(null, null, function* () {
+  return new Promise((resolve6, reject) => {
+    var _a, _b, _c, _d;
+    const requestOptions = {
+      url: (_a = options.url) != null ? _a : `https://api.weather.gov/alerts/active`,
+      headers: (_b = options.headers) != null ? _b : {
+        "User-Agent": "AtmosphericX",
+        "Accept": "application/geo+json, text/plain, */*; q=0.9",
+        "Accept-Language": "en-US,en;q=0.9"
+      },
+      timeout: (_c = options.timeout) != null ? _c : 1e4,
+      proxy: (_d = options.proxy) != null ? _d : null,
+      maxRedirects: 1
+    };
+    request(requestOptions, (error, response2, body) => {
+      var _a2, _b2, _c2, _d2, _e;
+      if (error) {
+        return resolve6({
+          error: true,
+          options: requestOptions,
+          status: -1,
+          message: (_a2 = error.message) != null ? _a2 : `Unknown Error`
+        });
+      }
+      if (response2.statusCode !== 200) {
+        return resolve6({
+          error: true,
+          options: requestOptions,
+          status: (_b2 = response2.statusCode) != null ? _b2 : -1,
+          message: `HTTP Status Code ${(_c2 = response2.statusCode) != null ? _c2 : `Unknown Status Code`}`
+        });
+      }
+      if (body == void 0 || body == null) {
+        return resolve6({
+          error: true,
+          options: requestOptions,
+          status: (_d2 = response2.statusCode) != null ? _d2 : -1,
+          message: `Empty Response Body`
+        });
+      }
+      resolve6({
+        error: false,
+        options: requestOptions,
+        status: (_e = response2.statusCode) != null ? _e : -1,
+        message: body
+      });
+    });
+  });
+});
+
+// src/@core/core.callback.ts
+var callback = () => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const response2 = yield createHttp({
+    url: settings.NationalWeatherServiceSettings.EventsEndpoint,
+    headers: {
+      "User-Agent": "@atmosx/event-product-parser"
+    }
+  });
+  if (response2.error) return;
+  createEvent({
+    message: response2.message,
+    isNWWS: false
+  });
+});
+
+// src/@modules/@utilities/utilities.setCronSchedule.ts
+var setCronSchedule = () => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  if (settings.EnableWireService) {
+    if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
+      void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
+    }
+  } else {
+    yield callback();
+  }
+});
+
+// src/@core/core.start.ts
+import { Cron } from "croner";
+var start = (settings) => __async(null, null, function* () {
+  if (!bootstrap.isReady) {
+    return setWarning({
+      message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!`
+    });
+  }
+  setSettings(settings);
+  bootstrap.isReady = true;
+  yield initializeDatabase();
+  if (settings.EnableWireService) {
+    (() => __async(null, null, function* () {
+      yield getCachedEvents();
+      yield xDeploy();
+    }))();
+  }
+  yield setCronSchedule();
+  const interval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 5;
+  bootstrap.cron = new Cron(`*/${interval} * * * *`, () => __async(null, null, function* () {
+    yield setCronSchedule();
+  }));
+});
+
+// src/@core/core.stop.ts
+var stop = () => __async(null, null, function* () {
+  if (bootstrap.isReady) {
+    bootstrap.isReady = false;
+    if (bootstrap.session_xmpp) {
+      try {
+        yield bootstrap.session_xmpp.stop();
+      } catch (e) {
+      }
+      bootstrap.cache.isConnected = false;
+      bootstrap.cache.sigHault = true;
+      bootstrap.session_xmpp = null;
+    }
+  }
+});
+
+// src/@modules/@utilities/utilities.setListener.ts
+var setListener = (options) => {
+  bootstrap.listener.on(options.event, options.callback);
+  return () => {
+    void bootstrap.listener.off(options.event, options.callback);
+  };
+};
+
+// src/@core/core.listener.ts
+var listener2 = (event, callback2) => {
+  setListener({ event, callback: callback2 });
+};
+
 // src/index.ts
 var Manager = class {
   constructor(settings) {
-    this.start(settings);
+    start(settings);
   }
-  start(settings) {
-    return __async(this, null, function* () {
-      if (!bootstrap.isReady) {
-        return setWarning({ message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!` });
-      }
-      setSettings(settings);
-      bootstrap.isReady = true;
-      yield initializeDatabase();
-      if (settings.wire) {
-        (() => __async(null, null, function* () {
-          yield getCachedEvents();
-          yield xDeploy();
-        }))();
-      }
-    });
-  }
-  on(event, callback) {
-    setListener({ event, callback });
+  on(event, callback2) {
+    listener2(event, callback2);
   }
 };
 var index_default = Manager;
 export {
   Manager,
   index_default as default,
+  getEventGeometry,
   getSettings,
-  setSettings
+  setSettings,
+  start,
+  stop
 };

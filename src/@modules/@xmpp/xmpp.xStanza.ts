@@ -20,7 +20,7 @@
 import { TypeStanza } from "../../@types/types.stanza";
 import { bootstrap } from "../../bootstrap";
 import { validate } from "../@stanza/stanza.validate";
-import { create } from "../../@building/building.create";
+import { createEvent } from "../../@building/building.create";
 import { importStanza } from "../@database/database.stanza";
 
 export const xStanza = () => {
@@ -35,7 +35,7 @@ export const xStanza = () => {
                 (result.isCapEvent) ||
                 (result.isCapEvent && !result.isCapAreaDescription)
             if (isSkippable) { return; }
-            await create(result);
+            await createEvent(result);
             await importStanza(result);
         }
         if (stanza.is(`presence`) && msgFrom.startsWith('nwws@conference.nwws-oi.weather.gov/')) {

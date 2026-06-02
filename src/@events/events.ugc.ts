@@ -23,9 +23,9 @@ import { TypeEvent } from "../@types/type.event";
 import { eventsOffshore } from "../@dictionaries/dictionaries.eventsOffshore";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";
 import { properties } from "../@building/building.properties";
-import { headers } from "../@building/building.headers";
-import { tracking } from "../@building/building.tracking";
-import { validate } from "../@building/building.validate";
+import { getEventHeader } from "../@building/building.headers";
+import { getEventTracking } from "../@building/building.tracking";
+import { validateEvents } from "../@building/building.validate";
 
 export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
     let processed: TypeEvent[] = [];
@@ -42,13 +42,17 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
             const props = properties({ message, attributes, ugc: ugc })
             const issued = new Date(attributes.issue)
             const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1000)
-            const header = headers({properties: props, getType: stanza.getType })
+            const header = getEventHeader({properties: props, getType: stanza.getType })
             let event = Object.keys(eventsOffshore).find(event => message.toLowerCase().includes(event.toLowerCase()));
             if (!event) { 
                 event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
             }
             processed.push({
                 type: `Feature`,
+                geometry: {
+                    type: `Point`,
+                    coordinates: []
+                },
                 properties: { 
                     event: event,
                     parent: event,
@@ -59,7 +63,7 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     metadata: {
                         ms: performance.now() - tick,
                         source: `events.ugc`,
-                        tracking: tracking({ type: `RAW`, stanza, attributes, properties: props }),
+                        tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
                         header: header,
                         vtec: null,
                         hvtec: null,
@@ -75,5 +79,5 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
             })
         }
     }
-    validate(processed)
+    validateEvents(processed)
 }

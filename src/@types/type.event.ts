@@ -22,6 +22,10 @@ import { TypeHVTEC } from "../@types/types.hvtec";
 
 export type TypeEvent = {
     type: string
+    geometry: {
+        type: string
+        coordinates: number[][]
+    }
     properties: {
         event: string
         parent: string
@@ -33,8 +37,6 @@ export type TypeEvent = {
             is_updated?: boolean
             is_expired?: boolean
             is_test?: boolean
-            issued_string?: string
-            expires_string?: string
         }
         metadata: {
             ms: number

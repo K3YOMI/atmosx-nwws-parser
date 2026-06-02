@@ -17,13 +17,23 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
+import { createEvent } from "../@building/building.create";
+import { createHttp } from "../@modules/@utilities/utilities.createHttp";
+import { TypeSettings } from "../@types/types.settings";
+import { bootstrap } from "../bootstrap";
 
-export const getLocations = async (zones: string[]): Promise<string[]> => {
-    const sites = Array.from(new Set(zones));
-    const placeholders = sites.map(() => '?').join(',');
-    const rows = await bootstrap.database
-        .prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`)
-        .all(...sites)
-    return rows.map((row: any) => row.location).sort();
+
+export const callback = async (): Promise<void> => {
+    const settings = bootstrap.settings as TypeSettings;
+    const response = await createHttp({
+        url: settings.NationalWeatherServiceSettings.EventsEndpoint,
+        headers: {
+            "User-Agent": "@atmosx/event-product-parser"
+        }
+    })
+    if (response.error) return;
+    createEvent({
+        message: response.message,
+        isNWWS: false
+    })
 }

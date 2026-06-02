@@ -18,16 +18,16 @@
 */
 
 import { TypeUGC } from "../../@types/types.ugc";
-import { header } from "./ugc.header"
-import { zones } from "./ugc.zones";
-import { expiry } from './ugc.expiry';
-import { locations } from "./ugc.locations";
+import { getUGCHeader } from "./ugc.header"
+import { getZones } from "./ugc.zones";
+import { getExpiry } from './ugc.expiry';
+import { getLocations } from "./ugc.locations";
 
 export const ugcExtract = async (message: string): Promise<TypeUGC> => {
-    const head = header(message);
-    const ugcs = zones(head)
-    const expires = expiry(message)
-    const areas = await locations(ugcs)
+    const head = getUGCHeader(message);
+    const ugcs = getZones(head)
+    const expires = getExpiry(message)
+    const areas = await getLocations(ugcs)
     if (!head || ugcs?.length == 0) return;
     return { 
         zones: ugcs,

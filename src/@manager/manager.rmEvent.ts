@@ -17,7 +17,6 @@
 
 */
 
-import { setWarning } from "../@modules/@utilities/utilities.setWarning";
 import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
 
@@ -31,4 +30,5 @@ export const rmEvent = (event: TypeEvent): void => {
         bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
         bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
     }
+    bootstrap.listener.emit(`onEventCache`, bootstrap.cache.events)
 }

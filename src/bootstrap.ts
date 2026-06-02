@@ -25,6 +25,7 @@ export const bootstrap = {
     ratelimits: {},
     session_xmpp: null,
     database: null,
+    cron: null,
     listener: new EventEmitter(),
     ansi_colors: {
         RED: `\x1b[31m`, GREEN: `\x1b[32m`, YELLOW: `\x1b[33m`,
@@ -43,51 +44,51 @@ export const bootstrap = {
         watches: {type: "FeatureCollection", features: []}
     },
     settings: {
-        database: path.join(process.cwd(), 'shapefiles.db'),
-        wire: true,
-        journal: true,
-        noaa_weather_wire_service_settings: {
-            reconnection_settings: {
-                enabled: true,
-                interval: 60,
+        Database: path.join(process.cwd(), 'shapefiles.db'),
+        EnableWireService: true,
+        EnableJournal: true,
+        NOAAWeatherWireServiceSettings: {
+            ReconnectionSettings: {
+                Enabled: true,
+                ReconnectionInterval: 60,
             },
-            credentials: {
-                username: null,
-                password: null,
-                nickname: "@atmosx/event-product-parser/3.0",
+            CredentialSettings: {
+                Username: null,
+                Password: null,
+                Nickname: "@atmosx/event-product-parser/3.0",
             },   
-            cache: {
-                enabled: true,
-                max_db_history: 5000,
-                max_db_cache_size: 1000,
+            CacheSettings: {
+                Enabled: true,
+                MaxDatabaseHistory: 5000,
+                MaxRetentionHistory: 1000,
             },
-            preferences: {
-                disable_ugc: false,
-                disable_vtec: false,
-                disable_text: false,
+            StanzaSettings: {
+                DisableUGC: false,
+                DisableVTEC: false,
+                DisableText: false,
             }
         },
-        national_weather_service_settings: {
-            interval: 15,
-            endpoint: `https://api.weather.gov/alerts/active`,
+        NationalWeatherServiceSettings: {
+            CallbackInterval: 15,
+            EventsEndpoint: `https://api.weather.gov/alerts/active`,
         },
-        global_settings: {
-            better_event_parsing: true,
-            ignore_geometry_parsing: false,
-            shapefile_coordinates: false,
-            shapefile_skip: 15,
-            filtering: {
-                events: [],
-                filtered_icao: [],
-                ignored_icao: [],
-                ignored_events: [`Xx`, `Test Message`],
-                ugc_filter: [],
-                state_filter: [],
-                ignore_test_products: true,
+        GlobalSettings: {
+            BetterEventNames: true,
+            DisableGeometryParsing: false,
+            UseShapefileCoordinates: false,
+            ShapefileSkipPoints: 15,
+            EventFiltering: {
+                ListeningEvents: [],
+                ListeningICAO: [],
+                IgnoredICAO: [],
+                IgnoredEvents: [`Xx`, `Test Message`],
+                ListeningUGC: [],
+                ListeningStates: [],
+                IgnoreTestProducts: true,
             },
-            eas_settings: {
-                directory: null,
-                intro_wav: null,
+            EASSettings: {
+                ArchiveDirectory: null,
+                IntroWavFile: null,
             }
         }
     },

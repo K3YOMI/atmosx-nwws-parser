@@ -17,7 +17,6 @@
 
 */
 
-import { setWarning } from "../@modules/@utilities/utilities.setWarning";
 import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
 import { setHash } from "./manager.setHash";
@@ -48,15 +47,9 @@ export const mkEvent = (event: TypeEvent): void => {
             const iLocations = event.properties?.locations?.split(";").map((l: string) => l.trim()) ?? [];
             const iUgc = event.properties?.geocode?.ugc ?? [];
 
-            const mHistory = [...cHistory, ...iHistory]
-                .filter((v, i, a) => a.indexOf(v) === i);
-                
-            const mLocations = [...cLocations, ...iLocations]
-                .filter((v, i, a) => a.indexOf(v) === i)
-                .join('; ');
-
-            const mUgc = [...cUgc, ...iUgc]
-                .filter((v, i, a) => a.indexOf(v) === i);
+            const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i);
+            const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join('; ');
+            const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
 
             bootstrap.cache.events.features[getIndex] = {
                 ...event,
@@ -78,5 +71,5 @@ export const mkEvent = (event: TypeEvent): void => {
             featureMap.set(getTracking, event)
         }
     }
-    
+    bootstrap.listener.emit(`onEventCache`, bootstrap.cache.events)
 }

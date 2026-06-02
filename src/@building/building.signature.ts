@@ -41,7 +41,7 @@ export const hailStrings: Record<string, string> = {
 }
     */
 
-export const signature = (event: TypeEvent): TypeEvent => {
+export const getEventSignature = (event: TypeEvent): TypeEvent => {
     const properties = event?.properties;
     const vtec = event?.properties?.metadata?.vtec
     const status = statusCorrelationText
@@ -72,8 +72,6 @@ export const signature = (event: TypeEvent): TypeEvent => {
     }  
     properties.status_metadata = {
         ...properties.status_metadata,
-        issued_string: getFormattedTime(properties.issued),
-        expires_string: getFormattedTime(properties.expires)
     }
     
     return event

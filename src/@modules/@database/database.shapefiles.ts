@@ -35,7 +35,7 @@ export const importShapefiles = async (): Promise<void> => {
             .get().count;
         if (tShapefiles === 0) {
             await setSleep({timeout: 1e3});
-            setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.database} and restart the application.` })
+            setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` })
             for (const shapefile of shapefileLinks) {
                 const response = await fetch(shapefile.link);
                 const arrayBuff = await response.arrayBuffer();

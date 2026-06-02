@@ -23,14 +23,18 @@ import { TypeStanzaCompiled } from "../@types/types.compiled";
 import { TypePVTEC } from "../@types/types.pvtec";
 
 interface GetTrackingOptions { 
-    type: `RAW` | `VTEC`
-    stanza: TypeStanzaCompiled
-    attributes: TypeAttributes
-    properties: TypeEventProperties
+    type: `RAW` | `VTEC` | `API`
+    stanza?: TypeStanzaCompiled
+    attributes?: TypeAttributes
+    properties?: TypeEventProperties
+    organization?: {
+        wmoidentifier: string
+        featureId: string
+    }
     vtec?: TypePVTEC
 }
 
-export const tracking = (options: GetTrackingOptions): string => {
+export const getEventTracking = (options: GetTrackingOptions): string => {
     const proprties = options.properties
     const attributes = options.attributes
     const stanza = options.stanza
@@ -44,5 +48,21 @@ export const tracking = (options: GetTrackingOptions): string => {
     }
     if (options.type === `VTEC`) {
         return vtec.tracking;
+    }
+    if (options.type === `API`) {
+        if (options.vtec) { 
+            const vtecValue = Array.isArray(options.vtec) 
+                ? options.vtec[0] : options.vtec;
+            const splitPVTEC = vtecValue.split('.');
+            return `${splitPVTEC[2]}-${splitPVTEC[3]}-${splitPVTEC[4]}-${splitPVTEC[5]}`;
+        }
+        const wmoMatch = options.organization?.wmoidentifier?.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
+        const station = wmoMatch?.[2] ?? 'N/A';
+        if (options.organization.featureId) {
+            const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
+            return `${station}-${idMatch?.[1] ?? 'N/A'}`;
+        }
+        const id = wmoMatch?.[1] ?? 'N/A';
+        return `${station}-${id}`;
     }
 }

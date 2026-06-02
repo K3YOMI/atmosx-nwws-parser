@@ -38,8 +38,10 @@ export const validate = (options: ValidateOptions): TypeStanzaCompiled => {
                 const isVTEC = message.match(regExp.pvtec) != null;
                 const isUGC = message.match(regExp.ugc1) != null;
                 const getType = getAwipsType({ attributes: attributes})
-                return { 
-                    message, attributes, isCapEvent, isVTEC, isUGC, isCapAreaDescription, isIgnored: false, isNWWS: true, getType
+                if (getType.type != null) {
+                    return { 
+                        message, attributes, isCapEvent, isVTEC, isUGC, isCapAreaDescription, isIgnored: false, isNWWS: true, getType
+                    }
                 }
             }
         }

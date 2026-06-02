@@ -18,51 +18,51 @@
 */
 
 export type TypeSettings = {
-    database: string
-    wire: boolean
-    journal: boolean
-    noaa_weather_wire_service_settings: {
-        reconnection_settings: {
-            enabled: boolean
-            interval: number
+    Database: string
+    EnableWireService: boolean
+    EnableJournal: boolean
+    NOAAWeatherWireServiceSettings: {
+        ReconnectionSettings: {
+            Enabled: boolean
+            ReconnectionInterval: number
         }
-        credentials: {
-            username: string | void
-            password: string | void
-            nickname: string | void
+        CredentialSettings: {
+            Username: string | void
+            Password: string | void
+            Nickname: string | void
         }
-        cache: {
-            enabled: boolean
-            max_db_history: number
-            max_db_cache_size: number
+        CacheSettings: {
+            Enabled: boolean
+            MaxDatabaseHistory: number
+            MaxRetentionHistory: number
         }
-        preferences: {
-            disable_ugc: boolean
-            disable_vtec: boolean
-            disable_text: boolean
+        StanzaSettings: {
+            DisableUGC: boolean
+            DisableVTEC: boolean
+            DisableText: boolean
         }
     }
-    national_weather_service_settings: {
-        interval: number
-        endpoint: string
+    NationalWeatherServiceSettings: {
+        CallbackInterval: number
+        EventsEndpoint: string
     }
-    global_settings: {
-        better_event_parsing: boolean
-        ignore_geometry_parsing: boolean
-        shapefile_coordinates: boolean
-        shapefile_skip: number
-        filtering: {
-            events: string[]
-            filtered_icao: string[]
-            ignored_icao: string[]
-            ignored_events: string[]
-            ugc_filter: string[]
-            state_filter: string[]
-            ignore_test_products: boolean
+    GlobalSettings: {
+        BetterEventNames: boolean
+        DisableGeometryParsing: boolean
+        UseShapefileCoordinates: boolean
+        ShapefileSkipPoints: number
+        EventFiltering: {
+            ListeningEvents: string[]
+            ListeningICAO: string[]
+            IgnoredICAO: string[]
+            IgnoredEvents: string[]
+            ListeningUGC: string[]
+            ListeningStates: string[]
+            IgnoreTestProducts: boolean
         },
-        eas_settings: {
-            directory: string | void,
-            intro_wav: string | void,
+        EASSettings: {
+            ArchiveDirectory: string | void,
+            IntroWavFile: string | void,
         }
     }
 }

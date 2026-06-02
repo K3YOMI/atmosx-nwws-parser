@@ -19,7 +19,7 @@
 
 import { regExp } from "../../@dictionaries/dictionaries.regExp"
 
-export const header = (message: string): string | null => {
+export const getUGCHeader = (message: string): string | null => {
     const start = message.search(regExp.ugc1)
     const sub = message.substring(start)
     const end = sub.search(regExp.ugc2)

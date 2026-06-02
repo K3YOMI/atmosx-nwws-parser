@@ -22,11 +22,11 @@ import { TypeSettings } from "../@types/types.settings";
 import { bootstrap } from "../bootstrap"
 import { betterEventNames } from "../@dictionaries/dictionaries.betterEventNames"
 
-export const enhance = (event: TypeEvent): string => {
+export const getEventEnhancedName = (event: TypeEvent): string => {
     const configurations = bootstrap.settings as TypeSettings
     let name = event?.properties?.event
 
-    if (!configurations?.global_settings?.better_event_parsing) {
+    if (!configurations?.GlobalSettings?.BetterEventNames) {
         return name 
     }
 

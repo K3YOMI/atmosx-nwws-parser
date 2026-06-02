@@ -20,14 +20,14 @@
 import { TypeSettings } from "../../@types/types.settings"
 import { bootstrap } from '../../bootstrap'
 import { setWarning } from '../@utilities/utilities.setWarning';
-import { create } from '../../@building/building.create';
+import { createEvent } from '../../@building/building.create';
 
 export const getCachedEvents = async (): Promise<void> => {
     try { 
         const settings = bootstrap.settings as TypeSettings;
         const tick = performance.now();
-        if (settings.noaa_weather_wire_service_settings.cache.enabled) {
-            const max = settings.noaa_weather_wire_service_settings.cache.max_db_cache_size ?? 500;
+        if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
+            const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory ?? 500;
             const get = await bootstrap.database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max) as { rowid: number; stanza: string }[];
             setWarning({ message: `Fetched ${get.length} cached events from the database in ${Math.floor(performance.now() - tick)} ms` })
             let events = get.map((row) => JSON.parse(row.stanza))
@@ -39,7 +39,7 @@ export const getCachedEvents = async (): Promise<void> => {
                     return !isSkippable
                 });
             events = events.sort((a, b) => b.issued - a.issued)
-            await Promise.all(events.map(event => create(event)))
+            await Promise.all(events.map(event => createEvent(event)))
             setWarning({ message: `Processed ${events.length} cached events in ${Math.floor(performance.now() - tick)} ms` })
         }
     } catch (error) {

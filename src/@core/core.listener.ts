@@ -17,13 +17,8 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
+import { setListener } from "../@modules/@utilities/utilities.setListener";
 
-export const getLocations = async (zones: string[]): Promise<string[]> => {
-    const sites = Array.from(new Set(zones));
-    const placeholders = sites.map(() => '?').join(',');
-    const rows = await bootstrap.database
-        .prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`)
-        .all(...sites)
-    return rows.map((row: any) => row.location).sort();
+export const listener = (event: string, callback: () => void) => {
+    setListener({event, callback})
 }

@@ -23,19 +23,20 @@ import { bootstrap } from "../bootstrap"
 import { text } from "../@events/events.text"
 import { ugc } from "../@events/events.ugc"
 import { vtec } from "../@events/events.vtec"
+import { api } from "../@events/events.api"
 
-export const create = async (stanza: TypeStanzaCompiled): Promise<void | string> => {
+export const createEvent = async (stanza: TypeStanzaCompiled): Promise<void | string> => {
     const settings = bootstrap.settings as TypeSettings
-    const preferences = settings.noaa_weather_wire_service_settings.preferences;
+    const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
 
     const isVtecEvent = (stanza.isVTEC && stanza.isUGC)
     const isUgcEvent = (!stanza.isVTEC && stanza.isUGC)
     const isTextEvent = (!stanza.isVTEC && !stanza.isUGC)
     const isNWWS = (stanza.isNWWS)
 
-    if (!isNWWS) return ''
-    if (!preferences.disable_vtec && isVtecEvent) return await vtec(stanza)
-    if (!preferences.disable_ugc && isUgcEvent) return await ugc(stanza);
-    if (!preferences.disable_text && isTextEvent) return await text(stanza);
+    if (!isNWWS) return await api(stanza)
+    if (!StanzaSettings.DisableVTEC && isVtecEvent) return await vtec(stanza)
+    if (!StanzaSettings.DisableUGC && isUgcEvent) return await ugc(stanza);
+    if (!StanzaSettings.DisableText && isTextEvent) return await text(stanza);
     return 'nothing picked';
 }

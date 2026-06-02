@@ -17,7 +17,7 @@
 
 */
 
-export const expiry = (message: string): string | null => {
+export const getExpiry = (message: string): string | null => {
     const match = message.match(/\b(\d{6})-/);
     if (!match) { 
         return null;

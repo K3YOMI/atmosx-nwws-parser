@@ -19,6 +19,6 @@
 
 import { eventTags } from "../@dictionaries/dictionaries.eventTags";
 
-export const tags = (message: string): string[] => {
+export const getEventTags = (message: string): string[] => {
     return Object.entries(eventTags).filter(([key]) => message?.toLowerCase().includes(key.toLowerCase())).map(([, value]) => value)
 }

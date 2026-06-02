@@ -25,24 +25,23 @@ import { xOnline } from "./xmpp.xOnline";
 import { xOffline } from "./xmpp.xOffline";
 import { xError } from "./xmpp.xError";
 import { xStanza } from "./xmpp.xStanza";
-import { xReconnect } from './xmpp.xReconnect';
 
 export const xDeploy = async (): Promise<void> => {
     let session;
     const settings = bootstrap.settings as TypeSettings
-    settings.noaa_weather_wire_service_settings.credentials.nickname 
-        ??= settings.noaa_weather_wire_service_settings.credentials.username;
+    settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname 
+        ??= settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username;
     session = bootstrap.session_xmpp = client({
         service: 'xmpp://nwws-oi.weather.gov',
         domain: 'nwws-oi.weather.gov',
-        username: settings.noaa_weather_wire_service_settings.credentials.username,
-        password: settings.noaa_weather_wire_service_settings.credentials.password
+        username: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username,
+        password: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Password
     })
     try {
         await xOffline();
         await xError();
         await xStanza();
-        await xOnline(); 
+        await xOnline();
         await session.start()
     } catch (error) {
         setWarning({ message: `Error occurred while starting XMPP session: ${error}` })

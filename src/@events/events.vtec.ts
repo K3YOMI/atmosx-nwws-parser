@@ -26,9 +26,9 @@ import { pvExtract } from "../@parsers/@pvtec/pvtec.extract";
 import { hvExtract } from "../@parsers/@hvtec/hvtec.extract";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";
 import { properties } from "../@building/building.properties";
-import { headers } from "../@building/building.headers";
-import { tracking } from "../@building/building.tracking";
-import { validate } from "../@building/building.validate";
+import { getEventHeader } from "../@building/building.headers";
+import { getEventTracking } from "../@building/building.tracking";
+import { validateEvents } from "../@building/building.validate";
 
 export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
     let processed: TypeEvent[] = [];
@@ -47,11 +47,15 @@ export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
             for (const pv of pVtec) {
                 const vtec = pv;
                 const props = properties({ message, attributes, ugc, pVtec: vtec })
-                const header = headers({properties: props, getType: stanza.getType, vtec: vtec})
+                const header = getEventHeader({properties: props, getType: stanza.getType, vtec: vtec})
                 const issued = new Date(attributes.issue)?? new Date()
                 const expires = new Date(vtec.expires)
                 processed.push({
                     type: `Feature`,
+                    geometry: {
+                        type: `Point`,
+                        coordinates: []
+                    },
                     properties: { 
                         event: pv.event,
                         parent: pv.event,
@@ -62,7 +66,7 @@ export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
                         metadata: {
                             ms: performance.now() - tick,
                             source: `events.vtec`,
-                            tracking: tracking({ type: `VTEC`, stanza, attributes, properties: props, vtec }),
+                            tracking: getEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec }),
                             header: header,
                             vtec: pv.vtec,
                             hvtec: hVtec,
@@ -79,5 +83,5 @@ export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
             }
         }
     }
-    validate(processed)
+    validateEvents(processed)
 }

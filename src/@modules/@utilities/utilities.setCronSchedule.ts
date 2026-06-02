@@ -15,15 +15,23 @@
 
     Internal Package: @atmosx/event-product-parser
 
+    
 */
 
+import { TypeSettings } from "../../@types/types.settings";
+import { xReconnect } from "../@xmpp/xmpp.xReconnect"
+import { callback } from "../../@core/core.callback"
 import { bootstrap } from "../../bootstrap";
 
-export const getLocations = async (zones: string[]): Promise<string[]> => {
-    const sites = Array.from(new Set(zones));
-    const placeholders = sites.map(() => '?').join(',');
-    const rows = await bootstrap.database
-        .prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`)
-        .all(...sites)
-    return rows.map((row: any) => row.location).sort();
+export const setCronSchedule = async (): Promise<void> => {
+    const settings = bootstrap.settings as TypeSettings;
+    if (settings.EnableWireService) {
+        if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
+            void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval)
+        }
+    } else { 
+        await callback();
+    }
 }
+
+

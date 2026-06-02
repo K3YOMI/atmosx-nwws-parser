@@ -17,13 +17,16 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
+import { bootstrap } from "../bootstrap";
 
-export const getLocations = async (zones: string[]): Promise<string[]> => {
-    const sites = Array.from(new Set(zones));
-    const placeholders = sites.map(() => '?').join(',');
-    const rows = await bootstrap.database
-        .prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`)
-        .all(...sites)
-    return rows.map((row: any) => row.location).sort();
+export const stop = async (): Promise<void> => {
+    if (bootstrap.isReady) {
+        bootstrap.isReady = false;
+        if (bootstrap.session_xmpp) {
+            try { await bootstrap.session_xmpp.stop(); } catch {}
+            bootstrap.cache.isConnected = false;
+            bootstrap.cache.sigHault = true;
+            bootstrap.session_xmpp = null;
+        }
+    }
 }

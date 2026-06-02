@@ -20,30 +20,31 @@ import { createHash } from "crypto"
 import { TypeEvent } from "../@types/type.event";
 import { TypeSettings } from "../@types/types.settings";
 import { bootstrap } from "../bootstrap"
-import { enhance } from "./building.enhance";
-import { signature } from "./building.signature"
+import { getEventEnhancedName } from "./building.enhance";
+import { getEventSignature } from "./building.signature"
 import { mkEvent } from "../@manager/manager.mkEvent";
 import { rmEvent } from "../@manager/manager.rmEvent";
+import { getEventGeometry } from "./building.geometry";
 
-export const validate = (events: TypeEvent[]): void => {
+export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
     if (events.length === 0) return;
     const configurations = bootstrap.settings as TypeSettings
     const sets = {} as Record<string, Set<string>>;
     const bools = {} as Record<string, boolean>;
-    const megered = {...configurations.global_settings, ...configurations.global_settings.filtering}
+    const megered = {...configurations.GlobalSettings, ...configurations.GlobalSettings.EventFiltering}
     for (const key in megered) {
         const setting = megered[key];
         if (Array.isArray(setting)) { sets[key] = new Set(setting.map(item => item.toLowerCase())); }
         if (typeof setting === 'boolean') { bools[key] = setting; }
     }
     const filterd = events.filter((event: TypeEvent) => {
-        const define = signature(event) as TypeEvent;
+        const define = getEventSignature(event) as TypeEvent;
         const properties = define.properties;
         const zones = properties.geocode.ugc;
         const icao = properties.geocode.office.office
-        const enhancedEventName = properties.event = enhance(event)
+        const enhancedEventName = properties.event = getEventEnhancedName(event)
         properties.metadata.hash = createHash("sha256").update(JSON.stringify(properties)).digest("hex")
-        if (properties.status_metadata.is_test) { bootstrap.listener.emit(`onTestProduct`, define); if (bools?.ignore_test_products) return false; }
+        if (properties.status_metadata.is_test) { bootstrap.listener.emit(`onTestProduct`, define); if (bools?.IgnoreTestProducts) return false; }
         if (properties.status_metadata.is_expired) { 
             bootstrap.listener.emit(`onExpiredProduct`, define); 
             rmEvent(define)
@@ -52,28 +53,33 @@ export const validate = (events: TypeEvent[]): void => {
         bootstrap.listener.emit(`onProductType${enhancedEventName.replace(/\s+/g, '')}`, define);
         for (const key in sets) {
             const setting = sets[key]
-            if (key === 'events' && setting.size > 0 && !setting.has(define.properties.event.toLowerCase())) { 
+            if (key === 'ListeningEvents' && setting.size > 0 && !setting.has(define.properties.event.toLowerCase())) { 
                 bootstrap.listener.emit(`onFilteredEvent`, define); return false 
             } 
-            if (key === 'ignored_events' && setting.size > 0 && setting.has(define.properties.event.toLowerCase())) { 
+            if (key === 'IgnoredEvents' && setting.size > 0 && setting.has(define.properties.event.toLowerCase())) { 
                 bootstrap.listener.emit(`onIgnoredEvent`, define); return false 
             } 
-            if (key === 'filtered_icao' && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) { 
+            if (key === 'ListeningICAO' && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) { 
                 bootstrap.listener.emit(`onFilteredICAO`, define); return false 
             }
-            if (key === 'ignored_icao' && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) { 
+            if (key === 'IgnoredICAO' && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) { 
                 bootstrap.listener.emit(`onIgnoredICAO`, define); return false 
             }
-            if (key === 'ugc_filter' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.toLowerCase()))) { 
+            if (key === 'ListeningUGC' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.toLowerCase()))) { 
                 bootstrap.listener.emit(`onFilteredUGC`, define); return false 
             }
-            if (key === 'state_filter' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.substring(0, 2).toLowerCase()))) { 
+            if (key === 'ListeningStates' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.substring(0, 2).toLowerCase()))) { 
                 bootstrap.listener.emit(`onFilteredState`, define); return false 
             }
         }
         return true;
     })
-    // TODO: In House Geometry
+    if (!configurations?.GlobalSettings?.DisableGeometryParsing) {
+        for (const event of filterd) {
+            event.geometry = await getEventGeometry(event)
+        }
+    }
+
     if (filterd.length > 0) {
         bootstrap.listener.emit(`onEventCreation`, filterd)
         for (const event of filterd) {

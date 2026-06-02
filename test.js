@@ -2,39 +2,39 @@ const { Manager, setSettings, getSettings, getListener } = require(`../dist/cjs/
 
 const NOAAWeatherWireService = new Manager({
     database: `shapefile-manager.db`,
-    wire: true,
-    journal: false,
-    noaa_weather_wire_service_settings: {
-        reconnection_settings: {
-            enabled: true,
-            interval: 60,
+    EnableWireService: true,
+    EnableJournal: false,
+    NOAAWeatherWireServiceSettings: {
+        ReconnectionSettings: {
+            Enabled: true,
+            ReconnectionInterval: 60,
         },
-        credentials: {
-            username: `username_here`,
-            password: `password_here`,
-            nickname: "nick_name_here (@atmosx/event-product-parser/3.0)",
+        CredentialSettings: {
+            Username: `username_here`,
+            Password: `password_here`,
+            Nickname: "nick_name_here (@atmosx/event-product-parser/3.0)",
         },   
-        cache: {
-            enabled: true,
-            max_db_history: 15000,
-            max_db_cache_size: 500,
+        CacheSettings: {
+            Enabled: true,
+            MaxDatabaseHistory: 15000,
+            MaxRetentionHistory: 500,
         },
-        preferences: {
-            disable_ugc: false,
-            disable_vtec: false,
-            disable_text: false,
+        StanzaSettings: {
+            DisableUGC: false,
+            DisableVTEC: false,
+            DisableText: false,
         }
     },
-    national_weather_service_settings: {
-        interval: 15,
-        endpoint: `https://api.weather.gov/alerts/active`,
+    NationalWeatherServiceSettings: {
+        CallbackInterval: 15,
+        EventsEndpoint: `https://api.weather.gov/alerts/active`,
     },
-    global_settings: {
-        better_event_parsing: true,
-        ignore_geometry_parsing: false,
-        shapefile_coordinates: true,
-        filtering: {
-            events: [
+    GlobalSettings: {
+        BetterEventNames: true,
+        DisableGeometryParsing: false,
+        UseShapefileCoordinates: true,
+        EventFiltering: {
+            ListeningEvents: [
                 "Tornado Emergency", "PDS Tornado Warning", "Tornado Warning",
                 "Confirmed Tornado Warning", "Radar Indicated Tornado Warning",
                 "Special Marine Warning (TPROB)", "PDS Tornado Watch", "Tornado Watch",
@@ -54,16 +54,16 @@ const NOAAWeatherWireService = new Manager({
                 "Ice Storm Warning", "Snow Squall Warning",
                 "Winter Weather Advisory", "Extreme Cold Watch"
             ],
-            filtered_icao: [],
-            ignored_icao: [],
-            ignored_events: [],
-            ugc_filter: [],
-            state_filter: [],
-            ignore_test_products: true,
+            ListeningICAO: [],
+            IgnoredICAO: [],
+            IgnoredEvents: [],
+            ListeningUGC: [],
+            ListeningStates: [],
+            IgnoreTestProducts: true,
         },
-        eas_settings: {
-            directory: null,
-            intro_wav: null,
+        EASSettings: {
+            ArchiveDirectory: null,
+            IntroWavFile: null,
         }
     }
 })

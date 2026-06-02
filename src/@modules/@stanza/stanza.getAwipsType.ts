@@ -33,8 +33,8 @@ export const getAwipsType = (options: ValidateOptions): ValidiateResponse => {
     const attributes = options.attributes;
     if (!attributes.awipsid) { 
         return { 
-            type: `Unknown Event`, 
-            prefix: `--`
+            type: null, 
+            prefix: null
         }
     }
     for (const [prefix, type] of Object.entries(eventAwipAbreviations)) {
@@ -42,5 +42,5 @@ export const getAwipsType = (options: ValidateOptions): ValidiateResponse => {
             return { type, prefix }
         }
     }
-    return { type: `Unknown Event`, prefix: `--` }
+    return { type: null, prefix: null }
 }

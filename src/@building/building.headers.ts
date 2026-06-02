@@ -29,7 +29,7 @@ interface GetHeaderOptions {
     }
 }
 
-export const headers = (options: GetHeaderOptions): string => {
+export const getEventHeader = (options: GetHeaderOptions): string => {
     const properties = options.properties
     const vtec = options.vtec ?? null
     const ugc = properties.geocode.ugc != null ? properties.geocode.ugc.join(`-`) : `0`;

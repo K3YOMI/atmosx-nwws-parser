@@ -32,7 +32,7 @@ export const importStanza = async (stanza: TypeStanzaCompiled): Promise<void> =>
         const count = bootstrap.database
             .prepare(`SELECT COUNT(*) as total FROM stanzas`)
             .get() as { total: number }
-        const max = settings.noaa_weather_wire_service_settings.cache.max_db_history;
+        const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxDatabaseHistory;
         if (count.total > max) { 
             const toDelete = count.total - max;
             if (toDelete > 0) {

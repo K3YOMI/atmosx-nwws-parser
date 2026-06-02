@@ -35,12 +35,13 @@ export const xOnline = () => {
         bootstrap.cache.sigHault = false;
         bootstrap.cache.isConnected = true;
         bootstrap.cache.lastConnect = tick;
+        const nickname = settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname;
         bootstrap.session_xmpp.send(xml('presence', {
-            to: `nwws@conference.nwws-oi.weather.gov/${settings.noaa_weather_wire_service_settings.credentials.nickname}`,
+            to: `nwws@conference.nwws-oi.weather.gov/${nickname}`,
             xmlns: 'http://jabber.org/protocol/muc',
         }))
         bootstrap.listener.emit(`onXMPPStatus`, {
-            message: `Succesfully connected to NOAA Weather Wire Service as "${settings.noaa_weather_wire_service_settings.credentials.nickname}"`,
+            message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
             data: {},
             type: `online`,
             error: false

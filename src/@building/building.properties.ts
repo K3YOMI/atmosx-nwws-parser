@@ -26,8 +26,8 @@ import { regExp } from "../@dictionaries/dictionaries.regExp";
 import { getDescriptionFromProduct } from "../@parsers/@text/text.getDescriptionFromProduct";
 import { getPolygonFromProduct } from "../@parsers/@text/text.getPolygonFromProduct";
 import { getTextFromProduct } from "../@parsers/@text/text.getTextFromProduct";
-import { office } from "./building.office";
-import { tags } from "./building.tags";
+import { getEventOffice } from "./building.office";
+import { getEventTags } from "./building.tags";
 
 interface GetPropertiesOptions { 
     message: string
@@ -45,14 +45,14 @@ export const properties = (options: GetPropertiesOptions): TypeEventProperties =
         description: getDescriptionFromProduct({ message: options.message, handle: options?.pVtec?.vtec ?? null }),
         attributes: options.attributes,
         geocode: {
-            office: office({ attributes: options.attributes, organization: organization, pVtec: options.pVtec }),
+            office: getEventOffice({ attributes: options.attributes, organization: organization, pVtec: options.pVtec }),
             organization: organization,
             ugc: options?.ugc?.zones ?? [],
             polygon: polygons.length > 0 ? Buffer.from(JSON.stringify([polygons])).toString('base64') : null,
             polygon_generated: polygons.length > 0 ? true : false
         },
         parameters: {
-            tags: tags(options.message),
+            tags: getEventTags(options.message),
             instructions: getTextFromProduct({ message: options.message, find: [`For your protection`, `do not`, `use extreme caution`], append: `...`, removal: [`.`]})  ?? null,
             source: getTextFromProduct({ message: options.message, find: [`SOURCE...`], removal: [`.`]}) ?? null,
             hazards: getTextFromProduct({ message: options.message, find: [`HAZARD...`], removal: [`.`]}) ?? null,

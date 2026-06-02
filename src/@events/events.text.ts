@@ -21,10 +21,10 @@ import { TypeAttributes } from "../@types/types.attributes";
 import { TypeStanzaCompiled } from "../@types/types.compiled"
 import { TypeEvent } from "../@types/type.event";
 import { properties } from "../@building/building.properties";
-import { headers } from "../@building/building.headers";
+import { getEventHeader } from "../@building/building.headers";
 import { eventsOffshore } from "../@dictionaries/dictionaries.eventsOffshore";
-import { tracking } from "../@building/building.tracking";
-import { validate } from "../@building/building.validate";
+import { getEventTracking } from "../@building/building.tracking";
+import { validateEvents } from "../@building/building.validate";
 
 export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
     let processed: TypeEvent[] = [];
@@ -37,7 +37,7 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
         const tick = performance.now();
         const attributes = stanza?.attributes as TypeAttributes
         const props = properties({ message, attributes })
-        const header = headers({properties: props, getType: stanza.getType})   
+        const header = getEventHeader({properties: props, getType: stanza.getType})   
         const issued = new Date(attributes.issue)
         const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1000)
         let event = Object.keys(eventsOffshore).find(event => message.toLowerCase().includes(event.toLowerCase()));
@@ -46,6 +46,10 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
         }
         processed.push({
             type: `Feature`,
+            geometry: {
+                type: `Point`,
+                coordinates: []
+            },
             properties: { 
                 event: event,
                 parent: event,
@@ -56,7 +60,7 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 metadata: {
                     ms: performance.now() - tick,
                     source: `events.text`,
-                    tracking: tracking({ type: `RAW`, stanza, attributes, properties: props }),
+                    tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
                     header: header,
                     vtec: null,
                     hvtec: null,
@@ -71,5 +75,5 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
             }
         })  
     }
-    validate(processed)
+    validateEvents(processed)
 }

@@ -38,7 +38,7 @@ export const xReconnect = async (interval: number): Promise<void> => {
                     message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
                     data: {
                         last_stanza: lastStanza,
-                        nickname: settings.noaa_weather_wire_service_settings.credentials.nickname
+                        nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
                     },
                     type: `reconnect`,
                     error: true

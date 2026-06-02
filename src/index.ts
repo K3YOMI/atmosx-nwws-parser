@@ -18,39 +18,21 @@
 */
 
 import { TypeSettings } from './@types/types.settings'
-import { bootstrap } from "./bootstrap";
-import { setWarning } from "./@modules/@utilities/utilities.setWarning";
 import { setSettings } from "./@modules/@utilities/utilities.setSettings"
 import { getSettings } from "./@modules/@utilities/utilities.getSettings";
-import { setListener } from "./@modules/@utilities/utilities.setListener"
-import { xDeploy } from "./@modules/@xmpp/xmpp.xDeploy"
-import { initializeDatabase } from "./@modules/@database/database.init";
-import { getCachedEvents } from "./@modules/@database/database.cache";
+import { getEventGeometry } from "./@building/building.geometry";
+import { start } from "./@core/core.start"
+import { stop } from "./@core/core.stop"
+import { listener } from "./@core/core.listener"
+
 
 export class Manager { 
-    constructor(settings: TypeSettings) {
-        this.start(settings)
-    }
+    constructor(settings: TypeSettings) { start(settings) }
 
-    public async start(settings: TypeSettings) {
-        if (!bootstrap.isReady) { 
-            return setWarning({ message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!` })
-        }
-        setSettings(settings);
-        bootstrap.isReady = true;
-        await initializeDatabase();
-        if (settings.wire) {
-            (async () => {
-                await getCachedEvents();
-                await xDeploy()
-            })();
-        }
-    }
-
-    public on(event: string, callback: () => void) {
-        setListener({event, callback})
+    on(event: string, callback: () => void) {
+        listener(event, callback)
     }
 }
 
 export default Manager;
-export { setSettings, getSettings }
+export { setSettings, getSettings, getEventGeometry, start, stop } 

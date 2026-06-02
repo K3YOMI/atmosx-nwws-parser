@@ -23,7 +23,7 @@ import { eventProducts } from "../../@dictionaries/dictionaries.eventProducts";
 import { eventTypes } from "../../@dictionaries/dictionaries.eventTypes";
 import { eventActions } from "../../@dictionaries/dictionaries.eventActions";
 import { eventStatus } from "../../@dictionaries/dictionaries.eventStatus";
-import { expires } from "./pvtec.expires";
+import { getExpiry } from "./pvtec.expires";
 
 export const pvExtract = (message: string): TypePVTEC[] | null => {
     const getVTECs = message.match(regExp.pvtec) ?? [];
@@ -39,7 +39,7 @@ export const pvExtract = (message: string): TypePVTEC[] | null => {
             event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
             status: eventStatus[sub[1]],
             organization: message.match(regExp.wmo)?.[0] ?? null,
-            expires: expires(dates),
+            expires: getExpiry(dates),
             prediction_center: 
                 (sub[4] == `A` || sub[4] == `Y`) &&
                 (sub[3] == `TO` || sub[3] == `SV`) 

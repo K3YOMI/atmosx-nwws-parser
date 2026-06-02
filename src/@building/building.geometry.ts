@@ -17,13 +17,26 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
+import { getSettings } from "../@modules/@utilities/utilities.getSettings";
+import { TypeSettings } from "../@types/types.settings"
+import { TypeEvent } from "../@types/type.event"
+import { getZonePolygon } from "../@parsers/@ugc/ugc.coordinates";
 
-export const getLocations = async (zones: string[]): Promise<string[]> => {
-    const sites = Array.from(new Set(zones));
-    const placeholders = sites.map(() => '?').join(',');
-    const rows = await bootstrap.database
-        .prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`)
-        .all(...sites)
-    return rows.map((row: any) => row.location).sort();
+interface GetGeometryResponse { 
+    type: `Polygon` | `MultiPolygon`
+    coordinates: any[]
+}
+
+export const getEventGeometry = async (event: TypeEvent): Promise<GetGeometryResponse> => {
+    const settings = getSettings() as TypeSettings
+    const generated = event?.properties?.geocode?.polygon ?? null;
+    const ugc = event?.properties?.geocode?.ugc ?? null;
+    let geo: GetGeometryResponse = {
+        type: `Polygon`,
+        coordinates: generated != null ? JSON.parse(Buffer.from(generated, 'base64').toString('utf-8')) : null
+    }
+    if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) { 
+        geo = await getZonePolygon({zones: ugc, isUnion: false})
+    }
+    return geo;
 }

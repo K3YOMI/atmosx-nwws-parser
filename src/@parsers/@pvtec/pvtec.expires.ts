@@ -17,7 +17,7 @@
 
 */
 
-export const expires = (dates: string[]): string => {
+export const getExpiry = (dates: string[]): string => {
     if (dates?.[1] == `000000T0000Z`) return 'Invalid Date Format'
     const expires = `${new Date().getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
     const local = new Date(new Date(expires).getTime() - 4 * 60 * 60000);

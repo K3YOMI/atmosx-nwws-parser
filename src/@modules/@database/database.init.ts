@@ -27,11 +27,11 @@ import { importShapefiles } from './database.shapefiles'
 export const initializeDatabase = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
     try { 
-        if (!fs.existsSync(settings.database)) { 
-            fs.writeFileSync(settings.database, '')
-            setWarning({ message: `Creating new database at ${settings.database}` })
+        if (!fs.existsSync(settings.Database)) { 
+            fs.writeFileSync(settings.Database, '')
+            setWarning({ message: `Creating new database at ${settings.Database}` })
         }
-        bootstrap.database = new sqlite3(settings.database);
+        bootstrap.database = new sqlite3(settings.Database);
         bootstrap.database
             .prepare(`CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )`)
             .run();
