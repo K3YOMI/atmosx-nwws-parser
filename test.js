@@ -1,23 +1,23 @@
 const { Manager, setSettings, getSettings, getListener } = require(`../dist/cjs/index.cjs`)
 
 const NOAAWeatherWireService = new Manager({
-    database: `shapefile-manager.db`,
-    EnableWireService: true,
-    EnableJournal: false,
+    Database: `shapefile-manager.db`,
+    EnableWireService: false,
+    EnableJournal: true,
     NOAAWeatherWireServiceSettings: {
         ReconnectionSettings: {
             Enabled: true,
             ReconnectionInterval: 60,
         },
         CredentialSettings: {
-            Username: `username_here`,
-            Password: `password_here`,
-            Nickname: "nick_name_here (@atmosx/event-product-parser/3.0)",
+            Username: `username`,
+            Password: `password`,
+            Nickname: "nickname (@atmosx/event-product-parser/3.0)",
         },   
         CacheSettings: {
             Enabled: true,
-            MaxDatabaseHistory: 15000,
-            MaxRetentionHistory: 500,
+            MaxDatabaseHistory: 5000,
+            MaxRetentionHistory: 555,
         },
         StanzaSettings: {
             DisableUGC: false,
@@ -26,13 +26,15 @@ const NOAAWeatherWireService = new Manager({
         }
     },
     NationalWeatherServiceSettings: {
-        CallbackInterval: 15,
+        CallbackInterval: 30,
         EventsEndpoint: `https://api.weather.gov/alerts/active`,
     },
     GlobalSettings: {
         BetterEventNames: true,
         DisableGeometryParsing: false,
         UseShapefileCoordinates: true,
+        NodeTTL: 60,
+        NodeMinDistance: 120,
         EventFiltering: {
             ListeningEvents: [
                 "Tornado Emergency", "PDS Tornado Warning", "Tornado Warning",
@@ -59,6 +61,7 @@ const NOAAWeatherWireService = new Manager({
             IgnoredEvents: [],
             ListeningUGC: [],
             ListeningStates: [],
+            NodeLocationFiltering: false,
             IgnoreTestProducts: true,
         },
         EASSettings: {
@@ -66,13 +69,4 @@ const NOAAWeatherWireService = new Manager({
             IntroWavFile: null,
         }
     }
-})
-
-
-NOAAWeatherWireService.on(`log`, (data) => {
-    console.log(data)
-})
-
-NOAAWeatherWireService.on(`onEventStatus`, (data) => { 
-    console.log(`[${data.type}]: ${data.event.properties.event} (${data.event.properties.status}) (${data.event.properties.metadata.tracking})`)
 })
