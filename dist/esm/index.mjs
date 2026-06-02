@@ -1178,7 +1178,7 @@ var bootstrap = {
         IgnoreTestProducts: true
       },
       EASSettings: {
-        ArchiveDirectory: null,
+        ArchiveDirectory: "eas",
         IntroWavFile: null
       }
     }
@@ -6574,6 +6574,394 @@ var stopService = () => __async(null, null, function* () {
   }
 });
 
+// src/@dictionaries/dictionaries.transcribedMessageReplacements.ts
+var transcribedMessageReplacements = [
+  { regex: /\*/g, replacement: "" },
+  { regex: /\.{3,}/g, replacement: "" },
+  { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
+  { regex: /\bGMT\b/g, replacement: "Greenwich Mean Time" },
+  { regex: /\bEST\b(?!\w)/g, replacement: "Eastern Standard Time" },
+  { regex: /\bEDT\b(?!\w)/g, replacement: "Eastern Daylight Time" },
+  { regex: /\bCST\b(?!\w)/g, replacement: "Central Standard Time" },
+  { regex: /\bCDT\b(?!\w)/g, replacement: "Central Daylight Time" },
+  { regex: /\bMST\b(?!\w)/g, replacement: "Mountain Standard Time" },
+  { regex: /\bMDT\b(?!\w)/g, replacement: "Mountain Daylight Time" },
+  { regex: /\bPST\b(?!\w)/g, replacement: "Pacific Standard Time" },
+  { regex: /\bPDT\b(?!\w)/g, replacement: "Pacific Daylight Time" },
+  { regex: /\bAKST\b(?!\w)/g, replacement: "Alaska Standard Time" },
+  { regex: /\bAKDT\b(?!\w)/g, replacement: "Alaska Daylight Time" },
+  { regex: /\bHST\b(?!\w)/g, replacement: "Hawaii Standard Time" },
+  { regex: /\bHDT\b(?!\w)/g, replacement: "Hawaii Daylight Time" },
+  { regex: /\bmph\b(?!\w)/g, replacement: "miles per hour" },
+  { regex: /\bkm\/h\b(?!\w)/g, replacement: "kilometers per hour" },
+  { regex: /\bkmh\b(?!\w)/g, replacement: "kilometers per hour" },
+  { regex: /\bkt\b(?!\w)/g, replacement: "knots" },
+  { regex: /\bNE\b(?!\w)/g, replacement: "northeast" },
+  { regex: /\bNW\b(?!\w)/g, replacement: "northwest" },
+  { regex: /\bSE\b(?!\w)/g, replacement: "southeast" },
+  { regex: /\bSW\b(?!\w)/g, replacement: "southwest" },
+  { regex: /\bNM\b(?!\w)/g, replacement: "nautical miles" },
+  { regex: /\bdeg\b(?!\w)/g, replacement: "degrees" },
+  { regex: /\btstm\b(?!\w)/g, replacement: "thunderstorm" },
+  { regex: /\bmm\b(?!\w)/g, replacement: "millimeters" },
+  { regex: /\bcm\b(?!\w)/g, replacement: "centimeters" },
+  { regex: /\bin.\b(?!\w)/g, replacement: "inches" },
+  { regex: /\bft\b(?!\w)/g, replacement: "feet" },
+  { regex: /\bmi\b(?!\w)/g, replacement: "miles" },
+  { regex: /\bhr\b(?!\w)/g, replacement: "hour" },
+  { regex: /\bhourly\b(?!\w)/g, replacement: "per hour" },
+  { regex: /\bkg\b(?!\w)/g, replacement: "kilograms" },
+  { regex: /\bg\/kg\b(?!\w)/g, replacement: "grams per kilogram" },
+  { regex: /\bmb\b(?!\w)/g, replacement: "millibars" },
+  { regex: /\bhPa\b(?!\w)/g, replacement: "hectopascals" },
+  { regex: /\bPa\b(?!\w)/g, replacement: "pascals" },
+  { regex: /\bKPa\b(?!\w)/g, replacement: "kilopascals" },
+  { regex: /\bC\/hr\b(?!\w)/g, replacement: "degrees Celsius per hour" },
+  { regex: /\bF\/hr\b(?!\w)/g, replacement: "degrees Fahrenheit per hour" },
+  { regex: /\bC\/min\b(?!\w)/g, replacement: "degrees Celsius per minute" },
+  { regex: /\bF\/min\b(?!\w)/g, replacement: "degrees Fahrenheit per minute" },
+  { regex: /\bC\b(?!\w)/g, replacement: "degrees Celsius" },
+  { regex: /\bF\b(?!\w)/g, replacement: "degrees Fahrenheit" }
+];
+
+// src/@modules/@eas/eas.getWavPCM16.ts
+var getWavPCM16 = (buffer) => {
+  if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
+    return null;
+  }
+  let fmt = null;
+  let data = null;
+  let i = 12;
+  while (i + 8 <= buffer.length) {
+    const id2 = buffer.toString("ascii", i, i + 4);
+    const size = buffer.readUInt32LE(i + 4);
+    const start = i + 8;
+    const end = start + size;
+    if (id2 === "fmt ") fmt = buffer.slice(start, end);
+    if (id2 === "data") data = buffer.slice(start, end);
+    i = end + size % 2;
+  }
+  if (!fmt || !data) return null;
+  const audioFormat = fmt.readUInt16LE(0);
+  const channels = fmt.readUInt16LE(2);
+  const sampleRate = fmt.readUInt32LE(4);
+  const bitsPerSample = fmt.readUInt16LE(14);
+  if (audioFormat !== 1 || bitsPerSample !== 16 || channels !== 1) {
+    return null;
+  }
+  const samples = new Int16Array(data.buffer, data.byteOffset, data.length / 2);
+  return { samples: new Int16Array(samples), sampleRate, channels, bitsPerSample };
+};
+
+// src/@modules/@eas/eas.getSampledPCM16.ts
+var getSampledPCM16 = (int16, originalRate, targetRate) => {
+  if (originalRate === targetRate) return int16;
+  const ratio = targetRate / originalRate;
+  const outLen = Math.max(1, Math.round(int16.length * ratio));
+  const out = new Int16Array(outLen);
+  for (let i = 0; i < outLen; i++) {
+    const pos = i / ratio;
+    const i0 = Math.floor(pos);
+    const i1 = Math.min(i0 + 1, int16.length - 1);
+    const frac = pos - i0;
+    const v = int16[i0] * (1 - frac) + int16[i1] * frac;
+    out[i] = Math.round(v);
+  }
+  return out;
+};
+
+// src/@modules/@eas/eas.getPCMToFloat.ts
+var getPCMToFloat = (int16) => {
+  const out = new Float32Array(int16.length);
+  for (let i = 0; i < int16.length; i++) out[i] = int16[i] / 32768;
+  return out;
+};
+
+// src/@modules/@eas/eas.getFloatPCM16.ts
+var getFloatPCM16 = (float32) => {
+  const out = new Int16Array(float32.length);
+  for (let i = 0; i < float32.length; i++) {
+    let v = Math.max(-1, Math.min(1, float32[i]));
+    out[i] = Math.round(v * 32767);
+  }
+  return out;
+};
+
+// src/@modules/@eas/eas.setRadioEffect.ts
+var setRadioEffect = (int16, sampleRate) => {
+  const hpCut = 3555;
+  const lpCut = 1600;
+  const x = getPCMToFloat(int16);
+  const dt = 1 / sampleRate;
+  const rcHP = 1 / (2 * Math.PI * hpCut);
+  const aHP = rcHP / (rcHP + dt);
+  let yHP = 0, xPrev = 0;
+  for (let i = 0; i < x.length; i++) {
+    const xi = x[i];
+    yHP = aHP * (yHP + xi - xPrev);
+    xPrev = xi;
+    x[i] = yHP;
+  }
+  const rcLP = 1 / (2 * Math.PI * lpCut);
+  const aLP = dt / (rcLP + dt);
+  let yLP = 0;
+  for (let i = 0; i < x.length; i++) {
+    yLP = yLP + aLP * (x[i] - yLP);
+    x[i] = yLP;
+  }
+  const compGain = 2;
+  const norm = Math.tanh(compGain);
+  for (let i = 0; i < x.length; i++) x[i] = Math.tanh(x[i] * compGain) / norm;
+  return getFloatPCM16(x);
+};
+
+// src/@modules/@eas/eas.setAFSK.ts
+var setAFSK = (bits, sampleRate) => {
+  const baud = 520.83;
+  const markFreq = 2083.3;
+  const spaceFreq = 1562.5;
+  const amplitude = 0.6;
+  const twoPi = Math.PI * 2;
+  const result = [];
+  let phase = 0;
+  let frac = 0;
+  for (let b = 0; b < bits.length; b++) {
+    const bit = bits[b];
+    const freq = bit ? markFreq : spaceFreq;
+    const samplesPerBit = sampleRate / baud + frac;
+    const n = Math.round(samplesPerBit);
+    frac = samplesPerBit - n;
+    const inc = twoPi * freq / sampleRate;
+    for (let i = 0; i < n; i++) {
+      result.push(Math.round(Math.sin(phase) * amplitude * 32767));
+      phase += inc;
+      if (phase > twoPi) phase -= twoPi;
+    }
+  }
+  const fadeSamples = Math.floor(sampleRate * 2e-3);
+  for (let i = 0; i < fadeSamples; i++) {
+    const gain = i / fadeSamples;
+    result[i] = Math.round(result[i] * gain);
+    result[result.length - 1 - i] = Math.round(result[result.length - 1 - i] * gain);
+  }
+  return Int16Array.from(result);
+};
+
+// src/@modules/@eas/eas.setAsciiToBits.ts
+var setAsciiToBits = (str) => {
+  const bits = [];
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i) & 255;
+    bits.push(0);
+    for (let b = 0; b < 8; b++) bits.push(c >> b & 1);
+    bits.push(1, 1);
+  }
+  return bits;
+};
+
+// src/@modules/@eas/eas.getMergedPCM16.ts
+var getMergedPCM16 = (arrays) => {
+  let total = 0;
+  for (const a of arrays) total += a.length;
+  const out = new Int16Array(total);
+  let o = 0;
+  for (const a of arrays) {
+    out.set(a, o);
+    o += a.length;
+  }
+  return out;
+};
+
+// src/@modules/@eas/eas.setSameHeader.ts
+var setSameHeader = (vtec2, repeats, sampleRate = 8e3, options = {}) => {
+  var _a, _b;
+  const preMarkSec = (_a = options.preMarkSec) != null ? _a : 0.3;
+  const gapSec = (_b = options.gapSec) != null ? _b : 0.1;
+  const bursts = [];
+  const gap = new Int16Array(Math.floor(gapSec * sampleRate));
+  for (let i = 0; i < repeats; i++) {
+    const bodyBits = setAsciiToBits(vtec2);
+    const body = setAFSK(bodyBits, sampleRate);
+    const extendedBodyDuration = Math.round(preMarkSec * sampleRate);
+    const extendedBody = new Int16Array(extendedBodyDuration + gap.length);
+    for (let j2 = 0; j2 < extendedBodyDuration; j2++) {
+      extendedBody[j2] = Math.round(body[j2 % body.length] * 0.2);
+    }
+    extendedBody.set(gap, extendedBodyDuration);
+    bursts.push(extendedBody);
+    if (i !== repeats - 1) bursts.push(gap);
+  }
+  return getMergedPCM16(bursts);
+};
+
+// src/@modules/@eas/eas.setAttentionTone.ts
+var setAttentionTone = (ms, sampleRate) => {
+  const len = Math.floor(ms * sampleRate);
+  const out = new Int16Array(len);
+  const f1 = 853;
+  const f2 = 960;
+  const twoPi = Math.PI * 2;
+  const amp = 0.1;
+  const fadeLen = Math.floor(sampleRate * 0);
+  for (let i = 0; i < len; i++) {
+    const t = i / sampleRate;
+    const s = Math.sin(twoPi * f1 * t) + Math.sin(twoPi * f2 * t);
+    let gain = 1;
+    if (i < fadeLen) gain = i / fadeLen;
+    else if (i > len - fadeLen) gain = (len - i) / fadeLen;
+    const v = Math.max(-1, Math.min(1, s / 2 * amp * gain));
+    out[i] = Math.round(v * 32767);
+  }
+  return out;
+};
+
+// src/@modules/@eas/eas.setNoise.ts
+var setNoise = (int16, noiseLevel = 0.02) => {
+  const x = getPCMToFloat(int16);
+  for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * noiseLevel;
+  let peak = 0;
+  for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
+  if (peak > 1) for (let i = 0; i < x.length; i++) x[i] *= 0.98 / peak;
+  return getFloatPCM16(x);
+};
+
+// src/@modules/@eas/eas.getPCM16.ts
+var getPCM16 = (samples, sampleRate) => {
+  let o = 0;
+  const bytesPerSample = 2;
+  const blockAlign = 1 * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const subchunk2Size = samples.length * bytesPerSample;
+  const chunkSize = 36 + subchunk2Size;
+  const buffer = Buffer.alloc(44 + subchunk2Size);
+  buffer.write("RIFF", o);
+  o += 4;
+  buffer.writeUInt32LE(chunkSize, o);
+  o += 4;
+  buffer.write("WAVE", o);
+  o += 4;
+  buffer.write("fmt ", o);
+  o += 4;
+  buffer.writeUInt32LE(16, o);
+  o += 4;
+  buffer.writeUInt16LE(1, o);
+  o += 2;
+  buffer.writeUInt16LE(1, o);
+  o += 2;
+  buffer.writeUInt32LE(sampleRate, o);
+  o += 4;
+  buffer.writeUInt32LE(byteRate, o);
+  o += 4;
+  buffer.writeUInt16LE(blockAlign, o);
+  o += 2;
+  buffer.writeUInt16LE(16, o);
+  o += 2;
+  buffer.write("data", o);
+  o += 4;
+  buffer.writeUInt32LE(subchunk2Size, o);
+  o += 4;
+  for (let i = 0; i < samples.length; i++, o += 2) {
+    buffer.writeInt16LE(samples[i].value, o);
+  }
+  return buffer;
+};
+
+// src/@modules/@eas/eas.setEasTone.ts
+import { join } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "fs";
+import { execSync } from "child_process";
+import { platform } from "os";
+import say from "say";
+var setEasTone = (options) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const directory = settings.GlobalSettings.EASSettings.ArchiveDirectory;
+  const prefix = settings.GlobalSettings.EASSettings.IntroWavFile;
+  let message = options.message;
+  let header = options.header;
+  let buffTTS;
+  let buffRadio;
+  let buffFull;
+  const tmpTTS = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const outTTS = join(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const vTTS = process.platform === `win32` ? `Microsoft David Desktop` : `en-US-GuyNerual`;
+  const vPlatform = platform();
+  if (!existsSync(directory)) {
+    mkdirSync(directory, { recursive: true });
+  }
+  if (!existsSync(join(directory, `/temp`))) {
+    mkdirSync(join(directory, `/temp`), { recursive: true });
+  }
+  if (!existsSync(join(directory, `/output`))) {
+    mkdirSync(join(directory, `/output`), { recursive: true });
+  }
+  for (const { regex, replacement } of transcribedMessageReplacements) {
+    message = message.replace(regex, replacement);
+  }
+  if (vPlatform != `win32`) {
+    setWarning({
+      title: `EAS`,
+      message: `Generation isn't supported with this OS. Please wait for further updates before trying again`
+    });
+    return null;
+  }
+  say.export(message, vTTS, 1, tmpTTS);
+  while (!existsSync(tmpTTS) || (buffTTS = readFileSync(tmpTTS)).length == 0) {
+    yield setSleep({ timeout: 25 });
+  }
+  const vWav = getWavPCM16(buffTTS);
+  const vSamples = getSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
+  const vRadio = setRadioEffect(vSamples, 8e3);
+  if (existsSync(prefix)) {
+    let tBuffer = readFileSync(prefix);
+    let tWav = getWavPCM16(tBuffer);
+    if (tWav == null) {
+      try {
+        const converted = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}.converted.wav`);
+        execSync(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
+        if (existsSync(converted)) {
+          tBuffer = readFileSync(converted);
+          tWav = getWavPCM16(tBuffer);
+          try {
+            unlinkSync(converted);
+          } catch (e) {
+          }
+        }
+      } catch (e) {
+      }
+    }
+    if (tWav == null) {
+      setWarning({ title: `EAS`, message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` });
+      return null;
+    }
+    const tSamples = tWav.sampleRate != 8e3 ? getSampledPCM16(tWav.samples, tWav.sampleRate, 8e3) : tWav.samples;
+    buffRadio = setRadioEffect(tSamples, 8e3);
+  }
+  buffFull = buffRadio != null ? [buffRadio, new Int16Array(Math.floor(0.5 * 8e3))] : [];
+  buffFull.push(
+    setSameHeader(header, 3, 8e3, {
+      preMarkSec: 1.1,
+      gapSec: 0.5
+    }),
+    new Int16Array(Math.floor(0.5 * 8e3)),
+    setAttentionTone(8, 8e3),
+    new Int16Array(Math.floor(0.5 * 8e3)),
+    vRadio
+  );
+  for (let i = 0; i < 3; i++) {
+    buffFull.push(setSameHeader(header, 1, 8e3, { preMarkSec: 0.5, gapSec: 0.1 }));
+    buffFull.push(new Int16Array(Math.floor(0.5 * 8e3)));
+  }
+  const aSamples = getMergedPCM16(buffFull);
+  const aFinal = setNoise(aSamples, 2e-3);
+  const aBuffer = getPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
+  writeFileSync(outTTS, aBuffer);
+  try {
+    unlinkSync(tmpTTS);
+  } catch (e) {
+  }
+  return outTTS;
+});
+
 // src/@core/core.setNode.ts
 var setNode = (options) => {
   const nodes = bootstrap.cache.nodes.features;
@@ -6674,6 +7062,7 @@ export {
   getEventGeometry,
   getEvents,
   getNodes,
+  setEasTone,
   setNode,
   setSettings,
   startService,

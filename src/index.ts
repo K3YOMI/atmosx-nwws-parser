@@ -26,6 +26,7 @@ import { setWarning } from './@modules/@utilities/utilities.setWarning';
 import { listener } from "./@core/core.listener"
 import { startService } from "./@core/core.start"
 import { stopService } from "./@core/core.stop"
+import { setEasTone } from './@modules/@eas/eas.setEasTone';
 import { setNode } from "./@core/core.setNode"
 import { getEvents } from "./@core/core.getEvents"
 import { getNodes } from "./@core/core.getNodes"
@@ -67,6 +68,7 @@ export {
     setNode,
     getEvents,
     getNodes,
+    setEasTone
 }
 
 export type { TypeSettings } from './@types/types.settings'

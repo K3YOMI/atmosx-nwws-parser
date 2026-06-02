@@ -64,8 +64,8 @@ export type TypeSettings = {
             IgnoreTestProducts: boolean
         },
         EASSettings: {
-            ArchiveDirectory: string | void,
-            IntroWavFile: string | void,
+            ArchiveDirectory: string,
+            IntroWavFile: string,
         }
     }
 }
