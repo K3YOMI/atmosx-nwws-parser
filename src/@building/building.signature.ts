@@ -67,7 +67,7 @@ export const getEventSignature = (event: TypeEvent): TypeEvent => {
             properties.status_metadata = { ...properties.status_metadata, is_test: true }
         }    
     }
-    if (new Date(properties.expires).getTime() < new Date().getTime()) {
+    if (new Date(properties.expires).getTime() < Date.now()) {
         properties.status_metadata = { ...properties.status_metadata, is_expired: true };
     }  
     properties.status_metadata = {

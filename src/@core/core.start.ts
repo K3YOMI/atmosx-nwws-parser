@@ -45,11 +45,10 @@ export const startService = async (settings: TypeSettings): Promise<void> => {
     }
     await setCronSchedule()
     const scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 5;
-    const nodeInterval = settings.GlobalSettings.NodeTTL ?? 30;
     bootstrap.cron = new Cron(`*/${scheduleInterval} * * * * *`, async () => {
         await setCronSchedule();
     })
-    bootstrap.cron = new Cron(`*/${nodeInterval} * * * * *`, async () => {
+    bootstrap.cron = new Cron(`*/1 * * * * *`, async () => {
         await updateNodes();
     })
 }

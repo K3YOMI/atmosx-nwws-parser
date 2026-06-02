@@ -1103,10 +1103,12 @@ var require_main3 = __commonJS({
 var index_exports = {};
 __export(index_exports, {
   Manager: () => Manager,
-  addNode: () => addNode,
   default: () => index_default,
   getCleanedEvent: () => getCleanedEvent,
   getEventGeometry: () => getEventGeometry,
+  getEvents: () => getEvents,
+  getNodes: () => getNodes,
+  setNode: () => setNode,
   setSettings: () => setSettings,
   startService: () => startService,
   stopService: () => stopService
@@ -1331,6 +1333,57 @@ var getCleanedEvent = (event) => {
   return event;
 };
 
+// src/@modules/@utilities/utilities.setTimeoutAction.ts
+var setTimeoutAction = (options) => {
+  var _a, _b;
+  let target = (_b = (_a = bootstrap) == null ? void 0 : _a.ratelimits) == null ? void 0 : _b[options == null ? void 0 : options.identifier];
+  if (!target) {
+    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = [];
+    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
+  }
+  if ((target == null ? void 0 : target.length) > 0) {
+    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = target.filter((ts) => Date.now() - ts < (options == null ? void 0 : options.interval) * 1e3);
+    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
+  }
+  const oldestTimestamp = target == null ? void 0 : target[0];
+  const getWait = oldestTimestamp ? Math.ceil((options == null ? void 0 : options.interval) * 1e3 - (Date.now() - oldestTimestamp)) : 0;
+  const max = (options == null ? void 0 : options.max) || 1;
+  if ((target == null ? void 0 : target.length) >= max && getWait > 0) {
+    return {
+      limited: true,
+      remaining: getWait,
+      response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
+    };
+  }
+  bootstrap.ratelimits[options == null ? void 0 : options.identifier].push(Date.now());
+  return { limited: false };
+};
+
+// src/@modules/@utilities/utilities.setWarning.ts
+var setWarning = (options) => {
+  var _a, _b;
+  const settings = bootstrap.settings;
+  bootstrap.listener.emit(`log`, `${(_a = options.title) != null ? _a : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
+  if (settings.EnableJournal) {
+    console.log(`${(_b = options.title) != null ? _b : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
+  }
+};
+
+// src/@modules/@utilities/utilities.setEventEmit.ts
+var setEventEmit = (options) => {
+  if (options.limited) {
+    const isTimeout = setTimeoutAction({ identifier: `event.${options.event}`, addTime: true, max: 1, interval: 1 });
+    if (isTimeout.limited) return;
+  }
+  bootstrap.listener.emit(options.event, options.metadata);
+  if (options.event != `log`) {
+    bootstrap.listener.emit(`*`, { event: options.event, data: options.metadata });
+  }
+  if (options.message) {
+    setWarning({ message: options.message });
+  }
+};
+
 // src/@modules/@utilities/utilities.setListener.ts
 var setListener = (options) => {
   bootstrap.listener.on(options.event, options.callback);
@@ -1342,16 +1395,6 @@ var setListener = (options) => {
 // src/@core/core.listener.ts
 var listener = (event, callback2) => {
   setListener({ event, callback: callback2 });
-};
-
-// src/@modules/@utilities/utilities.setWarning.ts
-var setWarning = (options) => {
-  var _a, _b;
-  const settings = bootstrap.settings;
-  bootstrap.listener.emit(`log`, `${(_a = options.title) != null ? _a : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
-  if (settings.EnableJournal) {
-    console.log(`${(_b = options.title) != null ? _b : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
-  }
 };
 
 // node_modules/@xmpp/xml/index.js
@@ -4118,47 +4161,6 @@ var setSleep = (options) => __async(null, null, function* () {
   });
 });
 
-// src/@modules/@utilities/utilities.setTimeoutAction.ts
-var setTimeoutAction = (options) => {
-  var _a, _b;
-  let target = (_b = (_a = bootstrap) == null ? void 0 : _a.ratelimits) == null ? void 0 : _b[options == null ? void 0 : options.identifier];
-  if (!target) {
-    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = [];
-    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
-  }
-  if ((target == null ? void 0 : target.length) > 0) {
-    bootstrap.ratelimits[options == null ? void 0 : options.identifier] = target.filter((ts) => Date.now() - ts < (options == null ? void 0 : options.interval) * 1e3);
-    target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
-  }
-  const oldestTimestamp = target == null ? void 0 : target[0];
-  const getWait = oldestTimestamp ? Math.ceil((options == null ? void 0 : options.interval) * 1e3 - (Date.now() - oldestTimestamp)) : 0;
-  const max = (options == null ? void 0 : options.max) || 1;
-  if ((target == null ? void 0 : target.length) >= max && getWait > 0) {
-    return {
-      limited: true,
-      remaining: getWait,
-      response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
-    };
-  }
-  bootstrap.ratelimits[options == null ? void 0 : options.identifier].push(Date.now());
-  return { limited: false };
-};
-
-// src/@modules/@utilities/utilities.setEventEmit.ts
-var setEventEmit = (options) => {
-  if (options.limited) {
-    const isTimeout = setTimeoutAction({ identifier: `event.${options.event}`, addTime: true, max: 1, interval: 1 });
-    if (isTimeout.limited) return;
-  }
-  bootstrap.listener.emit(options.event, options.metadata);
-  if (options.event != `log`) {
-    bootstrap.listener.emit(`*`, { event: options.event, data: options.metadata });
-  }
-  if (options.message) {
-    setWarning({ message: options.message });
-  }
-};
-
 // src/@modules/@xmpp/xmpp.xOnline.ts
 var xOnline = () => {
   const settings = bootstrap.settings;
@@ -5320,7 +5322,7 @@ var getEventSignature = (event) => {
       properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_test: true });
     }
   }
-  if (new Date(properties2.expires).getTime() < (/* @__PURE__ */ new Date()).getTime()) {
+  if (new Date(properties2.expires).getTime() < Date.now()) {
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
   }
   properties2.status_metadata = __spreadValues({}, properties2.status_metadata);
@@ -5410,6 +5412,7 @@ var rmEvent = (event) => {
       },
       message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
     });
+    setEventEmit({ event: `onExpiredProduct`, metadata: event });
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
   }
@@ -5604,25 +5607,19 @@ var validateEvents = (events) => __async(null, null, function* () {
     }
     filteredProperties.metadata = (_a2 = filteredProperties.metadata) != null ? _a2 : {};
     filteredProperties.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
-    if (properties2.status_metadata.is_test) {
-      setEventEmit({
-        event: `onTestProduct`,
-        metadata: define2
-      });
-      if (bools == null ? void 0 : bools.IgnoreTestProducts) return false;
-    }
-    if (properties2.status_metadata.is_expired) {
-      setEventEmit({
-        event: `onExpiredProduct`,
-        metadata: define2
-      });
-      rmEvent(define2);
-      return false;
-    }
     setEventEmit({
       event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`,
       metadata: define2
     });
+    if (properties2.status_metadata.is_test) {
+      setEventEmit({ event: `onTestProduct`, metadata: define2 });
+      if (bools == null ? void 0 : bools.IgnoreTestProducts) return false;
+    }
+    if (properties2.status_metadata.is_expired) {
+      setEventEmit({ event: `onExpiredProduct`, metadata: define2 });
+      rmEvent(define2);
+      return false;
+    }
     for (const key in sets) {
       const setting = sets[key];
       if (key === "ListeningEvents" && setting.size > 0 && !setting.has(define2.properties.event.toLowerCase())) {
@@ -6545,7 +6542,6 @@ var setCronSchedule = () => __async(null, null, function* () {
 // src/@core/core.start.ts
 var import_croner = require("croner");
 var startService = (settings) => __async(null, null, function* () {
-  var _a;
   if (!bootstrap.isReady) {
     return setWarning({
       message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!`
@@ -6562,11 +6558,10 @@ var startService = (settings) => __async(null, null, function* () {
   }
   yield setCronSchedule();
   const scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 5;
-  const nodeInterval = (_a = settings.GlobalSettings.NodeTTL) != null ? _a : 30;
   bootstrap.cron = new import_croner.Cron(`*/${scheduleInterval} * * * * *`, () => __async(null, null, function* () {
     yield setCronSchedule();
   }));
-  bootstrap.cron = new import_croner.Cron(`*/${nodeInterval} * * * * *`, () => __async(null, null, function* () {
+  bootstrap.cron = new import_croner.Cron(`*/1 * * * * *`, () => __async(null, null, function* () {
     yield updateNodes();
   }));
 });
@@ -6587,10 +6582,24 @@ var stopService = () => __async(null, null, function* () {
   }
 });
 
-// src/@core/core.addNode.ts
-var addNode = (options) => {
+// src/@core/core.setNode.ts
+var setNode = (options) => {
   const nodes = bootstrap.cache.nodes.features;
   const exists = nodes.find((node) => node.properties.identifier === options.identifier);
+  if (options.delete) {
+    if (exists) {
+      const index = nodes.indexOf(exists);
+      nodes.splice(index, 1);
+      return setEventEmit({
+        event: `onNodeDelete`,
+        metadata: {
+          type: `node-delete`,
+          node: exists
+        }
+      });
+    }
+    return setWarning({ message: `Node with identifier '${options.identifier}' not found.` });
+  }
   if (exists) {
     const index = nodes.indexOf(exists);
     nodes[index] = __spreadProps(__spreadValues({}, exists), {
@@ -6626,6 +6635,16 @@ var addNode = (options) => {
   });
 };
 
+// src/@core/core.getEvents.ts
+var getEvents = () => {
+  return bootstrap.cache.events;
+};
+
+// src/@core/core.getNodes.ts
+var getNodes = () => {
+  return bootstrap.cache.nodes;
+};
+
 // src/index.ts
 var Manager = class {
   constructor(settings) {
@@ -6659,9 +6678,11 @@ var index_default = Manager;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   Manager,
-  addNode,
   getCleanedEvent,
   getEventGeometry,
+  getEvents,
+  getNodes,
+  setNode,
   setSettings,
   startService,
   stopService

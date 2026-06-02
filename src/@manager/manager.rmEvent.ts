@@ -32,6 +32,7 @@ export const rmEvent = (event: TypeEvent): void => {
             },
             message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
         })
+        setEventEmit({ event: `onExpiredProduct`, metadata: event })
         bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
         bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
     }

@@ -52,66 +52,69 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         }
         filteredProperties.metadata = filteredProperties.metadata ?? {} as any;
         filteredProperties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex")
-        if (properties.status_metadata.is_test) { 
-            setEventEmit({
-                event: `onTestProduct`,
-                metadata: define
-            })
-            if (bools?.IgnoreTestProducts) return false; 
-        }
-        if (properties.status_metadata.is_expired) { 
-            setEventEmit({
-                event: `onExpiredProduct`,
-                metadata: define
-            })
-            rmEvent(define)
-            return false; 
-        }
+        
         setEventEmit({
             event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`,
             metadata: define
         });
+        if (properties.status_metadata.is_test) { 
+            setEventEmit({ event: `onTestProduct`, metadata: define })
+            if (bools?.IgnoreTestProducts) return false; 
+        }
+        if (properties.status_metadata.is_expired) { 
+            setEventEmit({ event: `onExpiredProduct`, metadata: define })
+            rmEvent(define)
+            return false; 
+        }
         for (const key in sets) {
             const setting = sets[key]
             if (key === 'ListeningEvents' && setting.size > 0 && !setting.has(define.properties.event.toLowerCase())) { 
                 setEventEmit({
                     event: `onFilteredEvent`,
                     metadata: define
-                }); return false 
+                }); 
+                return false 
             } 
             if (key === 'IgnoredEvents' && setting.size > 0 && setting.has(define.properties.event.toLowerCase())) { 
                 setEventEmit({
                     event: `onIgnoredEvent`,
                     metadata: define
-                }); return false 
+                }); 
+                return false 
             } 
             if (key === 'ListeningICAO' && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) { 
                 setEventEmit({
                     event: `onFilteredICAO`,
                     metadata: define
-                }); return false 
+                }); 
+                return false 
             }
             if (key === 'IgnoredICAO' && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) { 
                 setEventEmit({
                     event: `onIgnoredICAO`,
                     metadata: define
-                }); return false 
+                }); 
+                return false 
             }
             if (key === 'ListeningUGC' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.toLowerCase()))) { 
                 setEventEmit({
                     event: `onFilteredUGC`,
                     metadata: define
-                }); return false 
+                }); 
+                return false 
             }
             if (key === 'ListeningStates' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.substring(0, 2).toLowerCase()))) { 
                 setEventEmit({
                     event: `onFilteredState`,
                     metadata: define
-                }); return false 
+                }); 
+                return false 
             }
         }
         return true;
     })
+
+    
     if (!configurations?.GlobalSettings?.DisableGeometryParsing) {
         for (const event of filterd) {
             event.geometry = await getEventGeometry(event)

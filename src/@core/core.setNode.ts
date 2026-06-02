@@ -23,12 +23,27 @@ import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
 interface GetAddChaserOptions {
     identifier: string
+    delete?: boolean
     coordinates: { longitude: number; latitude: number }
 }
 
-export const addNode = (options: GetAddChaserOptions) => {
+export const setNode = (options: GetAddChaserOptions) => {
     const nodes = bootstrap.cache.nodes.features;
     const exists = nodes.find((node) => node.properties.identifier === options.identifier);
+    if (options.delete) {
+        if (exists) {
+            const index = nodes.indexOf(exists);
+            nodes.splice(index, 1);
+            return setEventEmit({
+                event: `onNodeDelete`,
+                metadata: {
+                    type: `node-delete`,
+                    node: exists
+                }
+            })
+        }
+        return setWarning({ message: `Node with identifier '${options.identifier}' not found.` })
+    }
     if (exists) {
         const index = nodes.indexOf(exists);
         nodes[index] = {
