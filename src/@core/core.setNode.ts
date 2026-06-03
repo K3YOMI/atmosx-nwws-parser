@@ -72,7 +72,7 @@ export const setNode = (options: GetAddChaserOptions) => {
         }
     });
     return setEventEmit({
-        event: `onNodeUpdate`,
+        event: `onNodeAdd`,
         metadata: {
             type: `node-add`,
             node: nodes[nodes.length - 1]

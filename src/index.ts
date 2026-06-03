@@ -32,7 +32,7 @@ import { getEvents } from "./@core/core.getEvents"
 import { getNodes } from "./@core/core.getNodes"
 
 export class Manager { 
-    constructor(settings: TypeSettings) { this.trycatch();startService(settings) }
+    constructor(settings: TypeSettings) { this.trycatch(); startService(settings) }
 
     on(event: string, callback: () => void) {
         listener(event, callback)
@@ -60,15 +60,8 @@ export class Manager {
 
 export default Manager;
 export { 
-    setSettings,
-    getEventGeometry,
-    getCleanedEvent,
-    stopService,
-    startService,
-    setNode,
-    getEvents,
-    getNodes,
-    setEasTone
+    setSettings, getEventGeometry,
+    getCleanedEvent, stopService,
+    startService, setNode,
+    getEvents, getNodes, setEasTone
 }
-
-export type { TypeSettings } from './@types/types.settings'
