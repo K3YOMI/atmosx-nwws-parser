@@ -94,36 +94,36 @@ const Client = new Manager({
 })
 ```
 ### General Settings
-**Database**: The database file name and location, please make sure to include the `.db` extension.\
-**EnableWireService**: Whether to enable `NOAA Weather Wire Service` within the parser. This requires credentials from [NOAA Weather Wire Service](https://www.weather.gov/nwws/).\
-**EnableJournal**: Whether to output logs without requiring event `listeners`.
+- **Database**: The database file name and location, please make sure to include the `.db` extension.
+- **EnableWireService**: Whether to enable `NOAA Weather Wire Service` within the parser. This requires credentials from [NOAA Weather Wire Service](https://www.weather.gov/nwws/).
+- **EnableJournal**: Whether to output logs without requiring event `listeners`.
 
 ### NOAAWeatherWireServiceSettings
-**ReconnectionSettings**: When the XMPP client gets disconnected or has an error, choose to reconnect to the service again. This contains a reconnection check interval.\
-**CredentialSettings**: The username (nickname) and password that is required for using `NOAA Weather Wire Service`.\
-**CacheSettings**: The ability to use the cache system so when you relaunch the parser, it will have a event retention history of all the stanzas collected.\
-**StanzaSettings**: Modify what type of products metadata you'd like to receive. (UGC, VTEC, RawText)
+- **ReconnectionSettings**: When the XMPP client gets disconnected or has an error, choose to reconnect to the service again. This contains a reconnection check interval.
+- **CredentialSettings**: The username (nickname) and password that is required for using `NOAA Weather Wire Service`.
+- **CacheSettings**: The ability to use the cache system so when you relaunch the parser, it will have a event retention history of all the stanzas collected.
+- **StanzaSettings**: Modify what type of products metadata you'd like to receive. (UGC, VTEC, RawText)
 
 ### NationalWeatherServiceSettings
-**CallbackInterval**: The interval at which the parser will check for new alerts from the National Weather Service API.\
-**EventsEndpoint**: The URL that directs to the API.
+- **CallbackInterval**: The interval at which the parser will check for new alerts from the National Weather Service API.
+- **EventsEndpoint**: The URL that directs to the API.
 
 ### GlobalSettings
-**BetterEventNames**: Changes events to a more specific version depending on parameters, message types, etc. `(Ex. "Tornado Warning" -> "Observed Tornado Warning")`\
-**DisableGeometryParsing**: Disable automatically appending GeoJSON geometry data to the events to save on memory consumption.\
-**UseShapefileCoordinates**: Whether to use the shapefile database to obtain the coordinates for events with specified UGC zones.\
-**NodeTTL**: How often nodes should be checked per event. (Tracking/Filtering)\
-**NodeMinDistance**: The minimum distance to filter events from the node (Miles)\
-**ListeningEvents**: Events you'd like to listen for. If this array is left empty, it will listen for **ALL** events and products.\
-**ListeningICAO**: ICAO codes for the weather stations you'd like to listen for. Filtering all events that do not contain the codes. `(Ex. ["KLOT", "TORD"])`\
-**IgnoredICAO**: Ignored ICAO codes `(Ex. ["KWNS"])`
-**IgnoredEvents**: Ignored events / products.\
-**ListeningUGC**: Zones you'd like to listen to `(Ex. ["ILZ001"])`\
-**ListeningStates**: States you'd like to listen to `(Ex. ["IL"])`\
-**NodeLocationFiltering**: If you want tracking nodes to filter out events based on radius. (Miles)\
-**IgnoreTextProducts**: If you want to ignore test products and events.\
-**ArchiveDirectory**: The directory you'd like to store generated EAS audio files.\
-**IntroWavFile**: The PCM16 bit WAV audio file to append to the EAS message.
+- **BetterEventNames**: Changes events to a more specific version depending on parameters, message types, etc. `(Ex. "Tornado Warning" -> "Observed Tornado Warning")`
+- **DisableGeometryParsing**: Disable automatically appending GeoJSON geometry data to the events to save on memory consumption.
+- **UseShapefileCoordinates**: Whether to use the shapefile database to obtain the coordinates for events with specified UGC zones.
+- **NodeTTL**: How often nodes should be checked per event. (Tracking/Filtering)
+- **NodeMinDistance**: The minimum distance to filter events from the node (Miles)
+- **ListeningEvents**: Events you'd like to listen for. If this array is left empty, it will listen for **ALL** events and products.
+- **ListeningICAO**: ICAO codes for the weather stations you'd like to listen for. Filtering all events that do not contain the codes. `(Ex. ["KLOT", "TORD"])`
+- **IgnoredICAO**: Ignored ICAO codes `(Ex. ["KWNS"])`
+- **IgnoredEvents**: Ignored events / products.
+- **ListeningUGC**: Zones you'd like to listen to `(Ex. ["ILZ001"])`
+- **ListeningStates**: States you'd like to listen to `(Ex. ["IL"])`
+- **NodeLocationFiltering**: If you want tracking nodes to filter out events based on radius. (Miles)\
+- **IgnoreTextProducts**: If you want to ignore test products and events.
+- **ArchiveDirectory**: The directory you'd like to store generated EAS audio files.
+- **IntroWavFile**: The PCM16 bit WAV audio file to append to the EAS message.
 
 
 
