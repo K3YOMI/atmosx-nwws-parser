@@ -129,10 +129,10 @@ const Client = new Manager({
 
 ## Events and Listeners
 
-### Event `onXMPPStatus`
-Triggers when an update to the XMPP client gets made.
+### Event `onServiceStatus`
+Triggers when an update to the XMPP / API service status occurs.
 ```ts
-Client.on(`onXMPPStatus`, (xmpp) => {
+Client.on(`onServiceStatus`, (xmpp) => {
 	/*
 		message: string
 		data: object

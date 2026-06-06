@@ -49,10 +49,9 @@ export const importShapefiles = async (): Promise<void> => {
                         const data = await content.files[file].async(`nodebuffer`)
                         const output = resolve(directory, `${shapefile?.name ?? ``}_${shapefile?.id ?? ``}${extname(file)}`)
                         fs.writeFileSync(output, data)
-                        setWarning({ message: `Successfully downloaded and extracted ${file}` })
                     }
                 }
-                const filepath = resolve(__dirname, '../../shapefiles', shapefile.name + '_' + shapefile.id);
+                const filepath = resolve(__dirname, '../../shapefiles', shapefile.name + '_' + shapefile.id)
                 const { features } = await read(
                     filepath,
                     filepath,

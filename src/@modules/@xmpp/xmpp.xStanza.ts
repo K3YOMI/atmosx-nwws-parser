@@ -29,7 +29,7 @@ export const xStanza = () => {
         const msgFrom = stanza?.attrs?.from ?? ``
         const msgType = stanza?.attrs?.type ?? ``
         setEventEmit({
-            event: `onXMPPStatus`,
+            event: `onServiceStatus`,
             metadata: {
                 message: stanza,
                 from: msgFrom,
@@ -50,7 +50,7 @@ export const xStanza = () => {
             const getOccupant = msgFrom.split(`/`).slice(1).join(`/`)
             const getAvailability = msgType === `unavailable`
             setEventEmit({
-                event: `onXMPPStatus`,
+                event: `onServiceStatus`,
                 metadata: {
                     message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
                     data: {},

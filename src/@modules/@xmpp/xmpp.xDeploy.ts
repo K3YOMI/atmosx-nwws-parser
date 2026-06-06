@@ -46,7 +46,7 @@ export const xDeploy = async (): Promise<void> => {
         await session.start()
     } catch (error) {
         setEventEmit({
-            event: `onXMPPStatus`,
+            event: `onServiceStatus`,
             metadata: {
                 message: `Error occured while starting XMPP Session: ${error}`,
                 data: {},

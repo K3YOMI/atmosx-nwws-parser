@@ -23,6 +23,7 @@ import { xReconnect } from "../@xmpp/xmpp.xReconnect"
 import { bootstrap } from "../../bootstrap";
 import { createHttp } from "./utilities.createHttp";
 import { createEvent } from "../../@building/building.create";
+import { setEventEmit } from "./utilities.setEventEmit";
 
 export const setCronSchedule = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
@@ -37,11 +38,27 @@ export const setCronSchedule = async (): Promise<void> => {
                 "User-Agent": "@atmosx/event-product-parser"
             }
         })
-        if (response.error) return;
-        createEvent({
-            message: response.message,
-            isNWWS: false
+        if (response.error) {
+            return  setEventEmit({
+                event: `onServiceStatus`,
+                metadata: {
+                    type: "fetch-api",
+                    message: `Failed to fetch latest events from National Weather Service API - ${response.message}`,
+                    data: {},
+                    error: true
+                },
+            })
+        }
+        setEventEmit({
+            event: `onServiceStatus`,
+            metadata: {
+                message: `Fetched latest events from National Weather Service API`,
+                data: {},
+                type: "fetch-api",
+                error: false
+            },
         })
+        createEvent({ message: response.message, isNWWS: false })
     }
 }
 

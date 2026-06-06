@@ -25,14 +25,5 @@ export const xError = () => {
     bootstrap.session_xmpp.on(`error`, async (error: Error) => {
         bootstrap.cache.isConnected = false;
         bootstrap.cache.sigHault = true;
-        setEventEmit({
-            event: `onXMPPStatus`,
-            metadata: {
-                message: `Client has recieved an error`,
-                data: {},
-                type: `error`,
-                error: true 
-            },
-        })
     })
 }

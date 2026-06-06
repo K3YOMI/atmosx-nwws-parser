@@ -43,7 +43,7 @@ export class Manager {
             const ignored = ['ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'STARTTLS_FAILURE'];
             if (ignored.includes(err?.code)) { 
                 setEventEmit({
-                    event: `onXMPPStatus`,
+                    event: `onServiceStatus`,
                     metadata: {
                         message: `XMPP Critical Error: ${err?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
                         data: {},

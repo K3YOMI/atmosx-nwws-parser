@@ -33,7 +33,7 @@
 	"homepage": "https://github.com/AtmosphericX/event-product-parser#readme",
 	"dependencies": {
 		"@xmpp/client": "0.14.0",
-		"better-sqlite3": "11.10.0",
+		"better-sqlite3": "12.10.0",
 		"croner": "10.0.1",
 		"jszip": "3.10.1",
 		"polygon-clipping": "0.15.7",

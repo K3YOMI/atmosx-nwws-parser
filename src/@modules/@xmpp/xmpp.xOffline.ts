@@ -26,7 +26,7 @@ export const xOffline = () => {
         bootstrap.cache.isConnected = false;
         bootstrap.cache.sigHault = true;
         setEventEmit({
-            event: `onXMPPStatus`,
+            event: `onServiceStatus`,
             metadata: {
                 message: `Client has gone offline`,
                 data: {},

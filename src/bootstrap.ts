@@ -34,7 +34,6 @@ export const bootstrap = {
     },
     cache: {
         lastStanza: null,
-        lastConnect: null,
         isConnected: false,
         isReconnecting: false,
         tReconnects: 0,

@@ -25,6 +25,11 @@ import { setWarning } from "../@utilities/utilities.setWarning";
 export const xReconnect = async (interval: number): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
     const lastStanza = Date.now() - bootstrap.cache.lastStanza
+    if (interval < 15) { 
+        setWarning({ message: `Reconnection Interval of ${interval} seconds is too low, setting to 15 seconds` })
+        interval = 15;
+        bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
+    }
     const reconnectThreshold = interval * 1e3
     if ((!bootstrap.cache.isConnected && !bootstrap.cache.sigHault) || !bootstrap.session_xmpp) { 
         return; 
@@ -36,7 +41,7 @@ export const xReconnect = async (interval: number): Promise<void> => {
             bootstrap.cache.tReconnects += 1;
             try { 
                 setEventEmit({
-                    event: `onXMPPStatus`,
+                    event: `onServiceStatus`,
                     metadata: {
                         message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
                         data: {

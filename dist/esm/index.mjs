@@ -1122,7 +1122,6 @@ var bootstrap = {
   },
   cache: {
     lastStanza: null,
-    lastConnect: null,
     isConnected: false,
     isReconnecting: false,
     tReconnects: 0,
@@ -4137,46 +4136,20 @@ function setupIfAvailable(module, ...args) {
   return module(...args);
 }
 
-// src/@modules/@utilities/utilities.setSleep.ts
-var setSleep = (options) => __async(null, null, function* () {
-  return new Promise((resolve6) => {
-    setTimeout(() => {
-      resolve6();
-    }, options.timeout);
-  });
-});
-
 // src/@modules/@xmpp/xmpp.xOnline.ts
 var xOnline = () => {
   const settings = bootstrap.settings;
   bootstrap.session_xmpp.on(`online`, (address) => __async(null, null, function* () {
-    const tick = Date.now();
-    if (bootstrap.cache.lastConnect && tick - bootstrap.cache.lastConnect > 1e4) {
-      bootstrap.cache.sigHault = true;
-      setEventEmit({
-        event: `onXMPPStatus`,
-        metadata: {
-          message: `The XMPP Client is attempting to reconnect too fast, this may be due to network instability and this reconnect request has been throttled. We will attempt to reconnect when all connections have been killed`,
-          data: {},
-          type: `offline`,
-          error: true
-        }
-      });
-      yield setSleep({ timeout: 2e3 });
-      bootstrap.session_xmpp.stop().catch(() => {
-      });
-      return;
-    }
     bootstrap.cache.sigHault = false;
     bootstrap.cache.isConnected = true;
-    bootstrap.cache.lastConnect = tick;
+    bootstrap.cache.tReconnects = 0;
     const nickname = settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname;
     bootstrap.session_xmpp.send(xml("presence", {
       to: `nwws@conference.nwws-oi.weather.gov/${nickname}`,
       xmlns: "http://jabber.org/protocol/muc"
     }));
     setEventEmit({
-      event: `onXMPPStatus`,
+      event: `onServiceStatus`,
       metadata: {
         message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
         data: {},
@@ -4193,7 +4166,7 @@ var xOffline = () => {
     bootstrap.cache.isConnected = false;
     bootstrap.cache.sigHault = true;
     setEventEmit({
-      event: `onXMPPStatus`,
+      event: `onServiceStatus`,
       metadata: {
         message: `Client has gone offline`,
         data: {},
@@ -4209,15 +4182,6 @@ var xError = () => {
   bootstrap.session_xmpp.on(`error`, (error) => __async(null, null, function* () {
     bootstrap.cache.isConnected = false;
     bootstrap.cache.sigHault = true;
-    setEventEmit({
-      event: `onXMPPStatus`,
-      metadata: {
-        message: `Client has recieved an error`,
-        data: {},
-        type: `error`,
-        error: true
-      }
-    });
   }));
 };
 
@@ -6215,7 +6179,7 @@ var xStanza = () => {
     const msgFrom = (_b = (_a = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _a.from) != null ? _b : ``;
     const msgType = (_d = (_c = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _c.type) != null ? _d : ``;
     setEventEmit({
-      event: `onXMPPStatus`,
+      event: `onServiceStatus`,
       metadata: {
         message: stanza,
         from: msgFrom,
@@ -6236,7 +6200,7 @@ var xStanza = () => {
       const getOccupant = msgFrom.split(`/`).slice(1).join(`/`);
       const getAvailability = msgType === `unavailable`;
       setEventEmit({
-        event: `onXMPPStatus`,
+        event: `onServiceStatus`,
         metadata: {
           message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
           data: {},
@@ -6268,7 +6232,7 @@ var xDeploy = () => __async(null, null, function* () {
     yield session.start();
   } catch (error) {
     setEventEmit({
-      event: `onXMPPStatus`,
+      event: `onServiceStatus`,
       metadata: {
         message: `Error occured while starting XMPP Session: ${error}`,
         data: {},
@@ -6288,6 +6252,15 @@ import fs from "fs";
 import { resolve as resolve5, extname } from "path";
 import { loadAsync } from "jszip";
 import { read } from "shapefile";
+
+// src/@modules/@utilities/utilities.setSleep.ts
+var setSleep = (options) => __async(null, null, function* () {
+  return new Promise((resolve6) => {
+    setTimeout(() => {
+      resolve6();
+    }, options.timeout);
+  });
+});
 
 // src/@dictionaries/dictionaries.shapefileLinks.ts
 var shapefileLinks = [
@@ -6324,7 +6297,6 @@ var importShapefiles = () => __async(null, null, function* () {
             const data = yield content.files[file].async(`nodebuffer`);
             const output = resolve5(directory, `${(_a = shapefile == null ? void 0 : shapefile.name) != null ? _a : ``}_${(_b = shapefile == null ? void 0 : shapefile.id) != null ? _b : ``}${extname(file)}`);
             fs.writeFileSync(output, data);
-            setWarning({ message: `Successfully downloaded and extracted ${file}` });
           }
         }
         const filepath = resolve5(__dirname, "../../shapefiles", shapefile.name + "_" + shapefile.id);
@@ -6416,6 +6388,11 @@ var getCachedEvents = () => __async(null, null, function* () {
 var xReconnect = (interval) => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const lastStanza = Date.now() - bootstrap.cache.lastStanza;
+  if (interval < 15) {
+    setWarning({ message: `Reconnection Interval of ${interval} seconds is too low, setting to 15 seconds` });
+    interval = 15;
+    bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
+  }
   const reconnectThreshold = interval * 1e3;
   if (!bootstrap.cache.isConnected && !bootstrap.cache.sigHault || !bootstrap.session_xmpp) {
     return;
@@ -6427,7 +6404,7 @@ var xReconnect = (interval) => __async(null, null, function* () {
       bootstrap.cache.tReconnects += 1;
       try {
         setEventEmit({
-          event: `onXMPPStatus`,
+          event: `onServiceStatus`,
           metadata: {
             message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
             data: {
@@ -6517,11 +6494,27 @@ var setCronSchedule = () => __async(null, null, function* () {
         "User-Agent": "@atmosx/event-product-parser"
       }
     });
-    if (response2.error) return;
-    createEvent({
-      message: response2.message,
-      isNWWS: false
+    if (response2.error) {
+      return setEventEmit({
+        event: `onServiceStatus`,
+        metadata: {
+          type: "fetch-api",
+          message: `Failed to fetch latest events from National Weather Service API - ${response2.message}`,
+          data: {},
+          error: true
+        }
+      });
+    }
+    setEventEmit({
+      event: `onServiceStatus`,
+      metadata: {
+        message: `Fetched latest events from National Weather Service API`,
+        data: {},
+        type: "fetch-api",
+        error: false
+      }
     });
+    createEvent({ message: response2.message, isNWWS: false });
   }
 });
 
@@ -6543,7 +6536,12 @@ var startService = (settings) => __async(null, null, function* () {
     }))();
   }
   yield setCronSchedule();
-  const scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 5;
+  let scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 1;
+  if (!settings.EnableWireService && scheduleInterval < 15) {
+    setWarning({ message: `Schedule Interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` });
+    bootstrap.settings.NationalWeatherServiceSettings.CallbackInterval = 15;
+    scheduleInterval = 15;
+  }
   bootstrap.cron = new Cron(`*/${scheduleInterval} * * * * *`, () => __async(null, null, function* () {
     yield setCronSchedule();
   }));
@@ -7001,7 +6999,7 @@ var setNode = (options) => {
     }
   });
   return setEventEmit({
-    event: `onNodeUpdate`,
+    event: `onNodeAdd`,
     metadata: {
       type: `node-add`,
       node: nodes[nodes.length - 1]
@@ -7034,7 +7032,7 @@ var Manager = class {
       const ignored = ["ETIMEDOUT", "ECONNRESET", "EHOSTUNREACH", "STARTTLS_FAILURE"];
       if (ignored.includes(err == null ? void 0 : err.code)) {
         setEventEmit({
-          event: `onXMPPStatus`,
+          event: `onServiceStatus`,
           metadata: {
             message: `XMPP Critical Error: ${(_a = err == null ? void 0 : err.code) != null ? _a : "Unknown error code"}. This may indicate a connection issue. Attempting to continue...`,
             data: {},
