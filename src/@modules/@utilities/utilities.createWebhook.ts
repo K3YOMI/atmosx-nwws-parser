@@ -32,6 +32,7 @@ interface CreateWebhookOptions {
 export const createWebhook = async (options: CreateWebhookOptions): Promise<void> => {
     const event = options.event.properties;
     const settings = options.webhook;
+    
     let body = [
         event.locations ? `**Locations**: ${event.locations.slice(0,100)}` : null,
         event.issued ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime()/1000)}:R>` : null,
@@ -50,6 +51,20 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
         event.parameters.damage_threat ? `**Damage Threat**: ${event.parameters.damage_threat}` : null,
         event.parameters.flood_threat ? `**Flood Threat**: ${event.parameters.flood_threat}` : null,
         event.parameters.tornado_threat ? `**Tornado Threat**: ${event.parameters.tornado_threat}` : null,
+        event.spc_parameters.spc_max_tornado ? `**Max Tornado Threat**: ${event.spc_parameters.spc_max_tornado}` : null,
+        event.spc_parameters.spc_max_hail ? `**Max Hail Threat**: ${event.spc_parameters.spc_max_hail}` : null,
+        event.spc_parameters.spc_max_wind ? `**Max Wind Threat**: ${event.spc_parameters.spc_max_wind}` : null,
+        event.spc_parameters.spc_watch_issuance ? `**Watch Issuance**: ${event.spc_parameters.spc_watch_issuance}%` : null,
+        event.watch_parameters.watch_number ? `**Watch Number**: ${event.watch_parameters.watch_number}` : null,
+        event.watch_parameters.strong_tornadoes_probability ? `**Strong Tornadoes Probability**: ${event.watch_parameters.strong_tornadoes_probability}%` : null,
+        event.watch_parameters.additional_tornadoes_probability ? `**Additional Tornadoes Probability**: ${event.watch_parameters.additional_tornadoes_probability}%` : null,
+        event.watch_parameters.combined_hail_wind_probability ? `**Combined Hail/Wind Probability**: ${event.watch_parameters.combined_hail_wind_probability}%` : null,        
+        event.watch_parameters.severe_hail_probability ? `**Severe Hail Probability**: ${event.watch_parameters.severe_hail_probability}%` : null,
+        event.watch_parameters.hail_2in_probability ? `**Hail ≥2in Probability**: ${event.watch_parameters.hail_2in_probability}%` : null,
+        event.watch_parameters.max_hail_in ? `**Max Hail Inches**: ${event.watch_parameters.max_hail_in}` : null,
+        event.watch_parameters.severe_wind_probability ? `**Severe Wind Probability**: ${event.watch_parameters.severe_wind_probability}%` : null,
+        event.watch_parameters.max_wind_surface ? `**Max Surface Wind**: ${event.watch_parameters.max_wind_surface}` : null,
+        event.watch_parameters.max_tops_x100feet ? `**Max Tops (x100 feet)**: ${event.watch_parameters.max_tops_x100feet}` : null,
         (event.parameters.tags?.length > 0) ? `**Tags**: ${event.parameters.tags.join(', ')}` : null,
         (() => {
             const val = event.geocode?.office?.name ?? `N/A`
@@ -57,8 +72,6 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             return (val || th) ? `**Sender**: ${val} ${th ? `(${th})` : ''}` : null;
         })(),
         event.metadata?.tracking ? `**Tracking**: ${event.metadata.tracking}` : null,
-        event.metadata?.vtec?.vtec ? `**VTEC**: ${event.metadata.vtec?.vtec}` : null,
-        event.metadata?.filtered_proximity != null ? `**Currently in polygon (Node)**: ${event.metadata.filtered_proximity ? 'Yes' : 'No'}` : null,
         (() => {
             const desc = (event.description || '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
             return desc ? '```' + '\n' + desc + '\n' + '```' : null;
