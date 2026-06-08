@@ -204,6 +204,11 @@ Client.on(`onNodeAdd`, (cache) => {
 })
 ```
 
+### Event `onStormPredictionWatch`, `onNonStormPredictionWatch`
+Triggers when a SPC watch gets added, updated, or cancelled. This will also add a custom message if using jorunal or the `log` listener.
+```ts
+Client.on(`onProductTypeRadarIndicatedTornadoWarning`, (product: TypeEvent) => {})
+```
 
 ### Event `onEventStatus`
 Triggers when a single event gets added, updated, or cancelled. This will also add a custom message if using jorunal or the `log` listener.
@@ -232,6 +237,21 @@ import { getEventGeometry } from "@atmosx/event-product-parser"
 const event = {...}
 const geometry = await getEventGeometry(event); // Returns GeoJSON 
 ```
+
+### Function `getRandomEvent`
+Fetches a random event from the cache
+```ts
+import { getRandomEvent } from "@atmosx/event-product-parser"
+const event = getRandomEvent(event); // Returns GeoJSON of an event.
+```
+
+### Function `getVersion`
+Returns the current version of the parser.
+```ts
+import { getVersion } from "@atmosx/event-product-parser"
+const version = getVersion(); // Returns the current version of the parser.
+```
+
 
 ### Function `getCleanedEvent`
 Removed any `NULL` values from the event itself. Therefore cleaning it up from any properties that are `NULL`.
