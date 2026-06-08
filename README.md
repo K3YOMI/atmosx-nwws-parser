@@ -23,7 +23,7 @@ const { Manager } = require(`@atmosx/event-product-parser`) // CJS Importing
 import { Manager } from '@atmosx/event-product-parser' // EJS Importing
 
 const Client = new Manager({
-    Database: `shapefile-manager.db`,
+    Database: `shapefiles.db`,
     EnableWireService: false,
     EnableJournal: true,
     NOAAWeatherWireServiceSettings: {
@@ -51,10 +51,20 @@ const Client = new Manager({
         CallbackInterval: 30,
         EventsEndpoint: `https://api.weather.gov/alerts/active`,
     },
+    WebhookSettings: [
+        {
+            webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
+            title: "AtmosphericX - (@atmosx/event-product-parser)", 
+            message: ``, 
+            events: [`Severe Thunderstorm Warning`, `Radar Indicated Tornado Warning`],
+            rate: 5,
+        }
+    ],
     GlobalSettings: {
         BetterEventNames: true,
         DisableGeometryParsing: false,
         UseShapefileCoordinates: true,
+        SPCWatchesOnly: true,
         NodeTTL: 60,
         NodeMinDistance: 120,
         EventFiltering: {
@@ -108,10 +118,19 @@ const Client = new Manager({
 - **CallbackInterval**: The interval at which the parser will check for new alerts from the National Weather Service API.
 - **EventsEndpoint**: The URL that directs to the API.
 
+### WebhookSettings
+- **webhook**: The URL of the webhook you want to send messages to.
+- **title**: The title of the message you want to send.
+- **message**: The message content you want to send. You can use placeholders like `<@&role_id>` to mention roles in Discord.
+- **events**: An array of event types that will trigger the webhook when they are received by the parser. If this array is empty, the webhook will be triggered for all events.
+- **rate**: The rate limit in seconds for how often the webhook can be triggered. This is to prevent spamming the webhook with too many messages in a short period of time.
+
 ### GlobalSettings
+- **EventManagement**: Whether to enable the event management system which includes filtering, tracking nodes, and custom messages.
 - **BetterEventNames**: Changes events to a more specific version depending on parameters, message types, etc. `(Ex. "Tornado Warning" -> "Observed Tornado Warning")`
 - **DisableGeometryParsing**: Disable automatically appending GeoJSON geometry data to the events to save on memory consumption.
 - **UseShapefileCoordinates**: Whether to use the shapefile database to obtain the coordinates for events with specified UGC zones.
+- **SPCWatchesOnly**: Whether to only listen for SPC watches only (TOR/SVR) (If using the API, this is ignored).
 - **NodeTTL**: How often nodes should be checked per event. (Tracking/Filtering)
 - **NodeMinDistance**: The minimum distance to filter events from the node (Miles)
 - **ListeningEvents**: Events you'd like to listen for. If this array is left empty, it will listen for **ALL** events and products.

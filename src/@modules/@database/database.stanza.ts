@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -26,6 +26,7 @@ import { TypeStanzaCompiled } from '../../@types/types.compiled';
 export const importStanza = async (stanza: TypeStanzaCompiled): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
     try { 
+        if (!settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) { return }
         bootstrap.database
             .prepare(`INSERT OR IGNORE INTO stanzas (type, stanza, issued) VALUES (?, ?, ?)`)
             .run(stanza.getType.type, JSON.stringify(stanza), stanza.attributes.issue)

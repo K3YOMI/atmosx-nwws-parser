@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -19,15 +19,17 @@
 
 import { getEventNodes } from "../@building/building.polygon";
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
+import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
 
 
-export const updateNodes = async (): Promise<void> => {
+export const updateNode = async (selectedEvent?: TypeEvent): Promise<void> => {
     const events = bootstrap.cache.events.features;
     const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
     let total = 0;
-    await Promise.all(events.map(async (evt) => {
-        const lastUpdate = evt?.properties?.metadata?.nodes_updated ?? null;
+
+    async function update(evt: TypeEvent) {
+        const lastUpdate = evt?.properties?.metadata?.updated ?? null;
         if (lastUpdate != null && (Date.now() - lastUpdate) < ttl) {
             return evt;
         }
@@ -37,8 +39,10 @@ export const updateNodes = async (): Promise<void> => {
         }
         evt.properties.metadata.nodes = node.nodes
         evt.properties.metadata.filtered_proximity = node.filtered
-        evt.properties.metadata.nodes_updated = node.updated
-    }))
+        evt.properties.metadata.updated = node.updated
+    }
+    if (!selectedEvent) { await Promise.all(events.map(async (evt) => { await update(evt) })) } 
+    if (selectedEvent) { await update(selectedEvent) }
     if (total > 0) {
         setEventEmit({
             event: `onNodeUpdate`,

@@ -17,12 +17,9 @@
 
 */
 
+import { bootstrap } from "../bootstrap";
 
-export type TypeAttributes = {
-    xmlns: string 
-    id: string
-    issue: string
-    ttaaii: string
-    cccc: string
-    awipsid: string
+
+export const getVersion = (): any => {
+    return bootstrap.version
 }

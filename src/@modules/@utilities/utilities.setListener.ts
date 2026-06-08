@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -19,12 +19,12 @@
 
 import { bootstrap } from "../../bootstrap"
 
-interface ImportOptions { 
+interface SetListenerOptions { 
     event: string,
     callback: () => void
 }
 
-export const setListener = (options: ImportOptions): (() => void) => {
+export const setListener = (options: SetListenerOptions): (() => void) => {
     bootstrap.listener.on(options.event, options.callback)
     return () => { void bootstrap.listener.off(options.event, options.callback) };
 }

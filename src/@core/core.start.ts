@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -26,7 +26,7 @@ import { initializeDatabase } from "../@modules/@database/database.init";
 import { getCachedEvents } from "../@modules/@database/database.cache";
 import { setCronSchedule } from "../@modules/@utilities/utilities.setCronSchedule";
 import { Cron } from "croner";
-import { updateNodes } from "../@manager/manager.updateNodes";
+import { updateNode } from "../@manager/manager.updateNodes";
 
 export const startService = async (settings: TypeSettings): Promise<void> => {
     if (!bootstrap.isReady) { 
@@ -54,6 +54,6 @@ export const startService = async (settings: TypeSettings): Promise<void> => {
         await setCronSchedule();
     })
     bootstrap.cron = new Cron(`*/1 * * * * *`, async () => {
-        await updateNodes();
+        await updateNode();
     })
 }

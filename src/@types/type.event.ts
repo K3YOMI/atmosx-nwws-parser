@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -19,6 +19,7 @@
 
 import { TypeEventProperties as BaseTypeEventProperties } from "./type.properties";
 import { TypeHVTEC } from "../@types/types.hvtec";
+import { TypePVTEC } from "./types.pvtec";
 
 export type TypeEvent = {
     type: string
@@ -44,19 +45,18 @@ export type TypeEvent = {
             tracking: string
             hash?: string
             header: string
-            vtec: string
+            vtec: TypePVTEC | null
             hvtec: TypeHVTEC[]
             nodes?: {
-               updated: number
-               node: {
-                    id?: string | number
-                    coordinates: [number, number]
-                    nearest: [number, number]
-                    miles: number | null
-                    kilometers: number | null
-                    proximity: boolean
-               }[]
-            }
+                id?: string | number
+                coordinates: [number, number]
+                nearest: [number, number]
+                miles: number | null
+                kilometers: number | null
+                proximity: boolean
+            }[],
+            filtered_proximity?: boolean
+            updated?: number
             history: {
                 description: string
                 issued: string

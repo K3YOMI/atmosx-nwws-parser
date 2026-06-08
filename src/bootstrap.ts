@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -21,6 +21,7 @@ import path from 'path'
 import { EventEmitter } from 'node:events';
 
 export const bootstrap = {
+    version: `3.0.1`,
     isReady: true,
     ratelimits: {},
     session_xmpp: null,
@@ -71,20 +72,23 @@ export const bootstrap = {
             CallbackInterval: 15,
             EventsEndpoint: `https://api.weather.gov/alerts/active`,
         },
+        WebhookSettings: [],
         GlobalSettings: {
+            EventManagement: true,
             BetterEventNames: true,
             DisableGeometryParsing: false,
             UseShapefileCoordinates: false,
+            SPCWatchesOnly: true,
             ShapefileSkipPoints: 15,
             NodeTTL: 60,
             NodeMinDistance: 120,
             EventFiltering: {
                 ListeningEvents: [],
                 ListeningICAO: [],
-                IgnoredICAO: [],
-                IgnoredEvents: [`Xx`, `Test Message`],
                 ListeningUGC: [],
                 ListeningStates: [],
+                IgnoredICAO: [],
+                IgnoredEvents: [`Test Message`],
                 NodeLocationFiltering: false,
                 IgnoreTestProducts: true,
             },

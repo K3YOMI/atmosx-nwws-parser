@@ -17,12 +17,10 @@
 
 */
 
-
-export type TypeAttributes = {
-    xmlns: string 
-    id: string
-    issue: string
-    ttaaii: string
-    cccc: string
-    awipsid: string
+export type TypeWebhook = { 
+    webhook: string
+    title: string
+    message: string
+    rate: number
+    events: string[]
 }

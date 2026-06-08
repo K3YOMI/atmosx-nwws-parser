@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -18,11 +18,11 @@
     
 */
 
-interface ImportOptions { 
+interface SetSleepOptions { 
     timeout: number
 }
 
-export const setSleep = async (options: ImportOptions): Promise<void> => {
+export const setSleep = async (options: SetSleepOptions): Promise<void> => {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve();

@@ -29,10 +29,27 @@ const NOAAWeatherWireService = new Manager({
         CallbackInterval: 30,
         EventsEndpoint: `https://api.weather.gov/alerts/active`,
     },
+    WebhookSettings: [
+        {
+            webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
+            title: "AtmosphericX - (Severe Weather Events)", 
+            message: `<@user_id>`, 
+            events: [`Severe Thunderstorm Warning`, `Radar Indicated Tornado Warning`],
+            rate: 1,
+        },
+        {
+            webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
+            title: "AtmosphericX - (All Events)", 
+            message: `<@user_id>`, 
+            events: [],
+            rate: 5,
+        }
+    ],
     GlobalSettings: {
         BetterEventNames: true,
         DisableGeometryParsing: false,
         UseShapefileCoordinates: true,
+        SPCWatchesOnly: true,
         NodeTTL: 60,
         NodeMinDistance: 120,
         EventFiltering: {

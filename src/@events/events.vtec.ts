@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -40,8 +40,8 @@ export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
     for (const message of getMessages) {
         const tick = performance.now();
         const attributes = stanza?.attributes as TypeAttributes
-        const pVtec = await pvExtract(message) as TypePVTEC[];
-        const hVtec = await hvExtract(message) as TypeHVTEC[];
+        const pVtec = pvExtract(message) as TypePVTEC[];
+        const hVtec = hvExtract(message) as TypeHVTEC[];
         const ugc = await ugcExtract(message)
         if (pVtec != null && ugc != null ) {
             for (const pv of pVtec) {
@@ -61,14 +61,14 @@ export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
                         parent: pv.event,
                         status: pv.status,
                         issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
-                        expires: (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                        expires: (!isNaN(expires.getTime())) ? expires.toISOString() : ugc.expires ??  new Date(issued.getTime() + 60 * 60 * 1000).toISOString(),
                         ...props,
                         metadata: {
                             ms: performance.now() - tick,
                             source: `events.vtec`,
                             tracking: getEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec }),
                             header: header,
-                            vtec: pv.vtec,
+                            vtec: pv,
                             hvtec: hVtec,
                             history: [
                                 {

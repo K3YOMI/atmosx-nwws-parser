@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -26,7 +26,7 @@ import { getEventSignature } from "./building.signature"
 import { mkEvent } from "../@manager/manager.mkEvent";
 import { rmEvent } from "../@manager/manager.rmEvent";
 import { getEventGeometry } from "./building.geometry";
-import { updateNodes } from "../@manager/manager.updateNodes";
+import { updateNode } from "../@manager/manager.updateNodes";
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
 export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
@@ -53,16 +53,31 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         filteredProperties.metadata = filteredProperties.metadata ?? {} as any;
         filteredProperties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex")
         
+        setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`, metadata: define });
+        
         if (properties.status_metadata.is_test) { 
             setEventEmit({ event: `onTestProduct`, metadata: define })
             if (bools?.IgnoreTestProducts) return false; 
         }
+        
         if (properties.status_metadata.is_expired) { 
             setEventEmit({ event: `onExpiredProduct`, metadata: define })
             rmEvent(define)
             return false; 
         }
-        setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`, metadata: define });
+        
+        if (properties.metadata?.vtec?.is_watch) {
+            const isSPC = properties.metadata?.vtec?.prediction_center;
+            setEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define })
+            if (bools?.SPCWatchesOnly && !isSPC) {
+                return false;
+            }
+            if ((!bools?.SPCWatchesOnly) && isSPC) {
+                return false 
+             }
+        }
+        
+
         for (const key in sets) {
             const setting = sets[key]
             if (key === 'ListeningEvents' && setting.size > 0 && !setting.has(define.properties.event.toLowerCase())) { 
@@ -123,7 +138,7 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
             await mkEvent(event)
         }
     }
-    await updateNodes()
+    await updateNode()
     setEventEmit({
         event: `onEventCache`,
         metadata: bootstrap.cache.events,

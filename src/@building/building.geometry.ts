@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -37,6 +37,12 @@ export const getEventGeometry = async (event: TypeEvent): Promise<GetGeometryRes
     }
     if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) { 
         geo = await getZonePolygon({zones: ugc, isUnion: false})
+        if (geo == null) {
+            geo = {
+                type: `Polygon`,
+                coordinates: []
+            }
+        }
     }
     return geo;
 }

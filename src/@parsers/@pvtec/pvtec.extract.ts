@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -40,9 +40,8 @@ export const pvExtract = (message: string): TypePVTEC[] | null => {
             status: eventStatus[sub[1]],
             organization: message.match(regExp.wmo)?.[0] ?? null,
             expires: getExpiry(dates),
-            prediction_center: 
-                (sub[4] == `A` || sub[4] == `Y`) &&
-                (sub[3] == `TO` || sub[3] == `SV`) 
+            is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
+            prediction_center: sub[2] == `KWNS`
             ? true : false
         })
     }

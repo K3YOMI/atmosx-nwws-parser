@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -19,20 +19,20 @@
 
 import { bootstrap } from "../../bootstrap"
 
-interface ImportOptions {
+interface SetTimeoutActionOptions {
     identifier: string
     addTime?: boolean
     max?: number
     interval: number
 }
 
-type ExportOptions = {
+type SetTimeoutActionResponse = {
     limited: boolean
     remaining?: number
     response?: string
 }
 
-export const setTimeoutAction = (options: ImportOptions): ExportOptions =>  {
+export const setTimeoutAction = (options: SetTimeoutActionOptions): SetTimeoutActionResponse =>  {
     let target = bootstrap?.ratelimits?.[options?.identifier];
     if (!target) {
         bootstrap.ratelimits[options?.identifier] = [];

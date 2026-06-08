@@ -8,17 +8,16 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
 
     Internal Package: @atmosx/event-product-parser
 
-    
 */
 
-import { TypeSettings } from "../..";
+import { TypeSettings } from "../../@types/types.settings";
 import { transcribedMessageReplacements } from "../../@dictionaries/dictionaries.transcribedMessageReplacements";
 import { bootstrap } from "../../bootstrap";
 import { setSleep } from "../@utilities/utilities.setSleep"
@@ -49,8 +48,8 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     let message = options.message;
     let header = options.header;
     let buffTTS: Buffer;
-    let buffRadio;
-    let buffFull;
+    let buffRadio: any;
+    let buffFull: any[] = [];
 
 
     const tmpTTS = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}.wav`)

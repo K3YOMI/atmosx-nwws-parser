@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -32,6 +32,10 @@ export const betterEventNames: Record<string, Record<string, EnhancedEventType>>
         "PDS Tornado Warning": { 
             description: "particularly dangerous situation", 
             damage: `CONSIDERABLE`
+        },
+        "Radar Confirmed Tornado Warning": {
+            description: "source...radar confirmed tornado.",
+            tornado: `OBSERVED`
         },
         "Confirmed Tornado Warning": { 
             tornado: `OBSERVED`

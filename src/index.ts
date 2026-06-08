@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -30,6 +30,7 @@ import { setEasTone } from './@modules/@eas/eas.setEasTone';
 import { setNode } from "./@core/core.setNode"
 import { getEvents } from "./@core/core.getEvents"
 import { getNodes } from "./@core/core.getNodes"
+import { getRandomEvent } from './@core/core.getRandomEvent';
 
 export class Manager { 
     constructor(settings: TypeSettings) { this.trycatch(); startService(settings) }
@@ -59,9 +60,12 @@ export class Manager {
 }
 
 export default Manager;
+export type { TypeEvent } from './@types/type.event';
 export { 
     setSettings, getEventGeometry,
     getCleanedEvent, stopService,
-    startService, setNode,
+    startService, setNode, getRandomEvent,
     getEvents, getNodes, setEasTone
 }
+
+

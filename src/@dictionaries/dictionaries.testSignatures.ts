@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -17,7 +17,8 @@
 
 */
 
-export const test_signatures: string[] = [
+export const testSignatures: string[] = [
     `This is a test message`, 
+    `Monitoring message only.`,
     `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`
 ]

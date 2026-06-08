@@ -17,21 +17,34 @@
 
 */
 
+import { createWebhook } from "../@modules/@utilities/utilities.createWebhook";
 import { TypeEvent } from "../@types/type.event";
-import { TypeHash } from "../@types/types.hash"
+import { TypeWebhook } from "../@types/types.webhook";
 import { bootstrap } from "../bootstrap"
 
 
-export const setHash = async (event: TypeEvent, entry: TypeHash): Promise<void> => {
-    if (entry) {
-        entry.hashes.push(event.properties.metadata.hash);
-        entry.expires = event.properties.expires;
-    } else { 
-        bootstrap.cache.hashes.push({
-            tracking: event.properties.metadata.tracking,
-            hashes: [event.properties.metadata.hash],
-            expires: event.properties.expires
+export const updateWebhooks = async (event: TypeEvent): Promise<void> => {
+    const settings = bootstrap.settings;
+    const webhooks = settings.WebhookSettings as TypeWebhook[];
+    const eventName = event.properties.event;
+    for (const socket of webhooks) {
+        const events = socket.events;
+        if (!events || events.length === 0) {
+            await createWebhook({ webhook: socket, event });
+            continue;
+        }
+        const matched = events.some(pattern => {
+            if (!pattern) return false;
+            if (pattern === "*" || pattern === eventName) return true;
+            if (pattern.includes("*")) {
+                const regex = "^" +
+                    pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
+                return new RegExp(regex).test(eventName);
+            }
+            return false;
         });
+        if (matched) {
+            await createWebhook({ webhook: socket, event });
+        }
     }
-    
-}
+};

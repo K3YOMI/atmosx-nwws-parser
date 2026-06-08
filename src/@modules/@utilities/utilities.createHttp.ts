@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -19,14 +19,17 @@
 
 import request from 'request'
 
-interface ImportOptions { 
+interface CreateHttpOptions { 
     proxy?: string
-    url?: string
+    url: string
     headers?: any
-    timeout?: number 
+    timeout?: number
+    method?: `GET` | `POST` | `PUT` | `DELETE`
+    body?: any;
+    formData?: any;
 }
 
-export const createHttp = async (options: ImportOptions): Promise<any> => {
+export const createHttp = async (options: CreateHttpOptions): Promise<any> => {
     return new Promise((resolve, reject) => {
         const requestOptions = { 
             url: options.url ?? `https://api.weather.gov/alerts/active`,
@@ -35,10 +38,17 @@ export const createHttp = async (options: ImportOptions): Promise<any> => {
                 "Accept": "application/geo+json, text/plain, */*; q=0.9",
                 "Accept-Language": "en-US,en;q=0.9"
             }, 
+            method: options.method ?? `GET`,
             timeout: options.timeout ?? 10e3,
             proxy: options.proxy ?? null,
             maxRedirects: 1, 
         };
+        if (options.formData) {
+            requestOptions['formData'] = options.formData;
+        } else if (options.body) {
+            requestOptions['body'] = options.body;
+        }
+        
         request(requestOptions, (error, response, body) => {
             if (error) { 
                 return resolve({
@@ -48,12 +58,12 @@ export const createHttp = async (options: ImportOptions): Promise<any> => {
                     message: error.message ?? `Unknown Error`
                 })
             }
-            if (response.statusCode !== 200) { 
+            if (response.statusCode < 200 || response.statusCode >= 300) {
                 return resolve({
                     error: true,
                     options: requestOptions,
                     status: response.statusCode ?? -1,
-                    message: `HTTP Status Code ${response.statusCode ?? `Unknown Status Code`}`
+                    message: `HTTP Status Code ${response.statusCode ?? `Unknown Status Code`} (${body})`
                 })
             }
             if (body == undefined || body == null) { 

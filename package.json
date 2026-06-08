@@ -1,6 +1,6 @@
 {
 	"name": "@atmosx/event-product-parser",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "NOAA Weather Wire & NWS API Parser - Built for standalone and Project AtmosphericX Integration.",
 	"main": "dist/cjs/index.cjs",
 	"module": "dist/esm/index.mjs",
@@ -12,8 +12,9 @@
 	"scripts": {
 		"start": "cd ./test && node ./index.js",
 		"build": "tsup && cd ./test && node ./index.js",
+		"heap-memory-errors": "node --heap-prof --heap-prof-name=heap-profile-%p.heapsnapshot ./test/index.js",
 		"publish": "tsup && npm publish --access public",
-		"publish-beta": "tsup && npm publish --tag beta --access public"
+		"publish-beta-branch": "tsup && npm publish --tag v3-beta-branch --access public"
 	},
 	"keywords": [
 		"NWWS",

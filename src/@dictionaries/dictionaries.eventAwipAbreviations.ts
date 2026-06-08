@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -318,7 +318,7 @@ export const eventAwipAbreviations: Record<string, string> = {
     TOE: `telephone-outage-emergency`,
     TOR: `tornado-warning`,
     TPT: `temperature-precipitation-table`,
-    TSU: `tsunami-watch-warning`,
+    TSU: `tsunami-watch`,
     TUV: `ultraviolet-index`,
     TVL: `travelers-forecast`,
     TWB: `transcribed-weather-broadcast`,

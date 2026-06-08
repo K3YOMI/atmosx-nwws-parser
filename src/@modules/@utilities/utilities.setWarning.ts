@@ -8,7 +8,7 @@
                                      | |                            
                                      |_|                                                                                                                
 
-    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, Everwatch1, & CJ Ziegler)
+    Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
@@ -20,12 +20,12 @@
 import { bootstrap } from "../../bootstrap"
 import { TypeSettings } from "../../@types/types.settings";
 
-interface ImportOptions { 
+interface SetWarningOptions { 
     title?: string
     message: string
 }
 
-export const setWarning = (options: ImportOptions): void => {
+export const setWarning = (options: SetWarningOptions): void => {
     const settings = bootstrap.settings as TypeSettings;
     bootstrap.listener.emit(`log`, `${options.title ?? `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
     if (settings.EnableJournal) { 
