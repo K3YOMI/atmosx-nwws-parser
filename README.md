@@ -56,11 +56,12 @@ const Client = new Manager({
             webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
             title: "AtmosphericX - (@atmosx/event-product-parser)", 
             message: ``, 
-            events: [`Severe Thunderstorm Warning`, `Radar Indicated Tornado Warning`],
+            events: [`Severe Thunderstorm Warning`, `Radar Indicated Tornado Warning`, `*Warning`, `*Thunderstorm*`],
             rate: 5,
         }
     ],
     GlobalSettings: {
+        EventManagement: true,
         BetterEventNames: true,
         DisableGeometryParsing: false,
         UseShapefileCoordinates: true,
