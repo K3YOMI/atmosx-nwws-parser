@@ -15089,6 +15089,7 @@ var rmEvent = (event) => {
     var _a, _b, _c, _d;
     return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === ((_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.metadata) == null ? void 0 : _d.tracking);
   });
+  event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
   if (getEvent) {
     setEventEmit({
       event: `onEventStatus`,

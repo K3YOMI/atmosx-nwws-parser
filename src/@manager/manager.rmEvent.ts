@@ -24,6 +24,7 @@ import { updateWebhooks } from "./manager.updateWebhooks";
 
 export const rmEvent = (event: TypeEvent): void => {
     const getEvent = bootstrap.cache.events.features.find(f => f?.properties?.metadata?.tracking === event?.properties?.metadata?.tracking);
+    event.properties.expires = new Date().toISOString();
     if (getEvent) {
         setEventEmit({
             event: `onEventStatus`,

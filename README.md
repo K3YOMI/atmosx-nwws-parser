@@ -66,6 +66,7 @@ const Client = new Manager({
         DisableGeometryParsing: false,
         UseShapefileCoordinates: true,
         SPCWatchesOnly: true,
+        ShapefileSkipPoints: 0,
         NodeTTL: 60,
         NodeMinDistance: 120,
         EventFiltering: {
@@ -132,6 +133,7 @@ const Client = new Manager({
 - **DisableGeometryParsing**: Disable automatically appending GeoJSON geometry data to the events to save on memory consumption.
 - **UseShapefileCoordinates**: Whether to use the shapefile database to obtain the coordinates for events with specified UGC zones.
 - **SPCWatchesOnly**: Whether to only listen for SPC watches only (TOR/SVR) (If using the API, this is ignored).
+- **ShapefileSkipPoints**: When using the shapefile database to obtain coordinates, you can choose to skip a certain amount of points to reduce the number of coordinates for large events. (Ex. If an event has 1000 coordinates and you set this to `2`, it will only use every other coordinate, therefore using 500 coordinates instead of 1000).
 - **NodeTTL**: How often nodes should be checked per event. (Tracking/Filtering)
 - **NodeMinDistance**: The minimum distance to filter events from the node (Miles)
 - **ListeningEvents**: Events you'd like to listen for. If this array is left empty, it will listen for **ALL** events and products.
