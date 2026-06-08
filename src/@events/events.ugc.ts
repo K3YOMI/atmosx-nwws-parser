@@ -20,7 +20,7 @@
 import { TypeAttributes } from "../@types/types.attributes";
 import { TypeStanzaCompiled } from "../@types/types.compiled"
 import { TypeEvent } from "../@types/type.event";
-import { eventsOffshore } from "../@dictionaries/dictionaries.eventsOffshore";
+import { eventsMatchText } from "../@dictionaries/dictionaries.eventsMatchText";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";
 import { properties } from "../@building/building.properties";
 import { getEventHeader } from "../@building/building.headers";
@@ -41,11 +41,13 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
         if (ugc != null ) {
             const props = properties({ message, attributes, ugc: ugc })
             const issued = new Date(attributes.issue)
-            const expires = new Date(ugc.expires).toISOString()
+            const expires = new Date(ugc.expires)
             const header = getEventHeader({properties: props, getType: stanza.getType })
-            let event = Object.keys(eventsOffshore).find(event => message.toLowerCase().includes(event.toLowerCase()));
+            let event = Object.keys(eventsMatchText).find(event => message.toLowerCase().includes(event.toLowerCase()));
+            let isStatement = false;
             if (!event) { 
                 event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
+                isStatement = true;
             }
             processed.push({
                 type: `Feature`,
@@ -56,9 +58,9 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 properties: { 
                     event: event,
                     parent: event,
-                    status: `Issued`,
+                    status: isStatement ? `Statement` : `Issued`,
                     issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
-                    expires: (!isNaN(new Date(ugc.expires).getTime())) ? expires : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                    expires: isStatement ? new Date(issued.getTime() + 120 * 1000).toISOString() : (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
                     ...props,
                     metadata: {
                         ms: performance.now() - tick,

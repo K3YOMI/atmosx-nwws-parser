@@ -17,7 +17,7 @@
 
 */
 
-export const eventsOffshore: Record<string, string> = {
+export const eventsMatchText: Record<string, string> = {
     "Special Weather Statement": "Special Weather Statement",
     "Hurricane Warning": "Hurricane Warning",
     "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
@@ -28,4 +28,9 @@ export const eventsOffshore: Record<string, string> = {
     "Gale Warning": "Gale Warning",
     "Small Craft Advisory": "Small Craft Advisory",
     "Small Craft Warning": "Small Craft Warning",
+    "Tsunami Warning": "Tsunami Warning",
+    "Tsunami Watch": "Tsunami Watch",
+    "Tsunami Advisory": "Tsunami Advisory",
+    "Tsunami Information Statement": "Tsunami Information Statement",
+    "Subscribers:": "National Weather Service Policy",
 };

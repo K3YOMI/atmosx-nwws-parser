@@ -10509,7 +10509,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.1`,
+  version: `3.0.2`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -14469,7 +14469,12 @@ var eventsOffshore = {
   "High Wind Warning": "High Wind Warning",
   "Gale Warning": "Gale Warning",
   "Small Craft Advisory": "Small Craft Advisory",
-  "Small Craft Warning": "Small Craft Warning"
+  "Small Craft Warning": "Small Craft Warning",
+  "Tsunami Warning": "Tsunami Warning",
+  "Tsunami Watch": "Tsunami Watch",
+  "Tsunami Advisory": "Tsunami Advisory",
+  "Tsunami Information Statement": "Tsunami Information Statement",
+  "To:      Subscribers:": "National Weather Service Policy"
 };
 
 // src/@building/building.tracking.ts
@@ -14527,6 +14532,16 @@ var betterEventNames = {
       tornado: `OBSERVED`
     },
     "Radar Indicated Tornado Warning": {}
+  },
+  "Blizzard Warning": {
+    "PDS Blizzard Warning": {
+      description: "particularly dangerous situation"
+    }
+  },
+  "Ice Storm Warning": {
+    "PDS Ice Storm Warning": {
+      description: "particularly dangerous situation"
+    }
   },
   "Special Marine Warning": {
     "Special Marine Warning (TPROB)": {
@@ -15277,7 +15292,7 @@ var text = (stanza) => __async(null, null, function* () {
         parent: event,
         status: isStatement ? `Statement` : `Issued`,
         issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-        expires: isStatement ? new Date(issued.getTime() + 5 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+        expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
       }, props), {
         metadata: {
           ms: performance.now() - tick,
@@ -15394,11 +15409,13 @@ var ugc = (stanza) => __async(null, null, function* () {
     if (ugc2 != null) {
       const props = properties({ message, attributes, ugc: ugc2 });
       const issued = new Date(attributes.issue);
-      const expires = new Date(ugc2.expires).toISOString();
+      const expires = new Date(ugc2.expires);
       const header = getEventHeader({ properties: props, getType: stanza.getType });
       let event = Object.keys(eventsOffshore).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+      let isStatement = false;
       if (!event) {
         event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
+        isStatement = true;
       }
       processed.push({
         type: `Feature`,
@@ -15409,9 +15426,9 @@ var ugc = (stanza) => __async(null, null, function* () {
         properties: __spreadProps(__spreadValues({
           event,
           parent: event,
-          status: `Issued`,
+          status: isStatement ? `Statement` : `Issued`,
           issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-          expires: !isNaN(new Date(ugc2.expires).getTime()) ? expires : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+          expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
         }, props), {
           metadata: {
             ms: performance.now() - tick,
