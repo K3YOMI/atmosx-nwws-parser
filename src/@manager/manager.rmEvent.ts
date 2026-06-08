@@ -24,7 +24,9 @@ import { updateWebhooks } from "./manager.updateWebhooks";
 
 export const rmEvent = (event: TypeEvent): void => {
     const getEvent = bootstrap.cache.events.features.find(f => f?.properties?.metadata?.tracking === event?.properties?.metadata?.tracking);
+    const cachedStatus = event.properties.status;
     event.properties.expires = new Date().toISOString();
+    event.properties.status = `Expired`;
     if (getEvent) {
         setEventEmit({
             event: `onEventStatus`,
@@ -35,7 +37,7 @@ export const rmEvent = (event: TypeEvent): void => {
             message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
         })
         setEventEmit({ event: `onExpiredProduct`, metadata: event })
-        updateWebhooks(event)
+        if (cachedStatus != `Statement`) updateWebhooks(event)
         bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
         bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
     }

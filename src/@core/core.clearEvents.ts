@@ -17,8 +17,16 @@
 
 */
 
-import { setListener } from "../@modules/@utilities/utilities.setListener";
+import { bootstrap } from "../bootstrap";
+import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
-export const listener = (event: string, callback: () => void) => {
-    setListener({event, callback})
+
+export const clearEvents = (): void => {
+    bootstrap.cache.events.features = [];
+    bootstrap.cache.hashes = [];
+    setEventEmit({
+        event: `onEventCache`,
+        metadata: bootstrap.cache.events,
+        message: `Manually cleared event cache.`
+    })
 }

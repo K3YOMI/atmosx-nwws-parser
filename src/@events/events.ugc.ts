@@ -41,7 +41,7 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
         if (ugc != null ) {
             const props = properties({ message, attributes, ugc: ugc })
             const issued = new Date(attributes.issue)
-            const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1000)
+            const expires = new Date(ugc.expires).toISOString()
             const header = getEventHeader({properties: props, getType: stanza.getType })
             let event = Object.keys(eventsOffshore).find(event => message.toLowerCase().includes(event.toLowerCase()));
             if (!event) { 
@@ -58,7 +58,7 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     parent: event,
                     status: `Issued`,
                     issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
-                    expires: (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                    expires: (!isNaN(new Date(ugc.expires).getTime())) ? expires : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
                     ...props,
                     metadata: {
                         ms: performance.now() - tick,

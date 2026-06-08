@@ -25,8 +25,9 @@ import { xDeploy } from "../@modules/@xmpp/xmpp.xDeploy"
 import { initializeDatabase } from "../@modules/@database/database.init";
 import { getCachedEvents } from "../@modules/@database/database.cache";
 import { setCronSchedule } from "../@modules/@utilities/utilities.setCronSchedule";
-import { Cron } from "croner";
 import { updateNode } from "../@manager/manager.updateNodes";
+import { updateEvents } from "../@manager/manager.updateEvents";
+import { Cron } from "croner";
 
 export const startService = async (settings: TypeSettings): Promise<void> => {
     if (!bootstrap.isReady) { 
@@ -53,7 +54,8 @@ export const startService = async (settings: TypeSettings): Promise<void> => {
     bootstrap.cron = new Cron(`*/${scheduleInterval} * * * * *`, async () => {
         await setCronSchedule();
     })
-    bootstrap.cron = new Cron(`*/1 * * * * *`, async () => {
+    bootstrap.cron = new Cron(`* * * * * *`, async () => {
         await updateNode();
+        await updateEvents();
     })
 }

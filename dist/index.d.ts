@@ -164,6 +164,7 @@ type TypeEvent = {
             is_updated?: boolean;
             is_expired?: boolean;
             is_test?: boolean;
+            is_statement?: boolean;
         };
         metadata: {
             ms: number;
@@ -226,10 +227,12 @@ declare const getNodes: () => any;
 
 declare const getRandomEvent: () => any;
 
+declare const clearEvents: () => void;
+
 declare class Manager {
     constructor(settings: TypeSettings);
     on(event: string, callback: () => void): void;
     trycatch(): void;
 }
 
-export { Manager, type TypeEvent, Manager as default, getCleanedEvent, getEventGeometry, getEvents, getNodes, getRandomEvent, setEasTone, setNode, setSettings, startService, stopService };
+export { Manager, type TypeEvent, clearEvents, Manager as default, getCleanedEvent, getEventGeometry, getEvents, getNodes, getRandomEvent, setEasTone, setNode, setSettings, startService, stopService };

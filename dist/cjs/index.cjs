@@ -10490,6 +10490,7 @@ var require_form_data = __commonJS({
 var index_exports = {};
 __export(index_exports, {
   Manager: () => Manager,
+  clearEvents: () => clearEvents,
   default: () => index_default,
   getCleanedEvent: () => getCleanedEvent,
   getEventGeometry: () => getEventGeometry,
@@ -10790,8 +10791,8 @@ var setListener = (options) => {
   };
 };
 
-// src/@core/core.listener.ts
-var listener = (event, callback) => {
+// src/@core/core.createListener.ts
+var createListener = (event, callback) => {
   setListener({ event, callback });
 };
 
@@ -10901,14 +10902,14 @@ function Deferred() {
 function procedure(entity, stanza = null, handler) {
   return new Promise((resolve6, reject) => {
     function onError(err) {
-      entity.removeListener("nonza", listener3);
+      entity.removeListener("nonza", listener2);
       reject(err);
     }
     function done(...args) {
-      entity.removeListener("nonza", listener3);
+      entity.removeListener("nonza", listener2);
       resolve6(...args);
     }
-    function listener3(element) {
+    function listener2(element) {
       return __async(this, null, function* () {
         try {
           yield handler(element, done);
@@ -10918,7 +10919,7 @@ function procedure(entity, stanza = null, handler) {
       });
     }
     stanza && entity.send(stanza).catch(onError);
-    entity.on("nonza", listener3);
+    entity.on("nonza", listener2);
   });
 }
 
@@ -12062,7 +12063,7 @@ var OutgoingContext = class extends Context {
 };
 
 // node_modules/@xmpp/middleware/index.js
-function listener2(entity, middleware2, Context2) {
+function listener(entity, middleware2, Context2) {
   return (stanza) => {
     const ctx = new Context2(entity, stanza);
     return (0, import_koa_compose.default)(middleware2)(ctx);
@@ -12076,8 +12077,8 @@ function errorHandler(entity) {
 function middleware({ entity }) {
   const incoming = [errorHandler(entity)];
   const outgoing = [];
-  const incomingListener = listener2(entity, incoming, IncomingContext);
-  const outgoingListener = listener2(entity, outgoing, OutgoingContext);
+  const incomingListener = listener(entity, incoming, IncomingContext);
+  const outgoingListener = listener(entity, outgoing, OutgoingContext);
   entity.on("element", incomingListener);
   entity.on("send", outgoingListener);
   return {
@@ -14608,17 +14609,18 @@ var getEventEnhancedName = (event) => {
 
 // src/@dictionaries/dictionaries.statusCorrelationText.ts
 var statusCorrelationText = [
-  { type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false },
-  { type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false },
-  { type: "Alert", name: "Issued", isCancel: false, isUpdate: false, isIssued: true },
-  { type: "Updated", name: "Updated", isCancel: false, isUpdate: true, isIssued: false },
-  { type: "Expired", name: "Expired", isCancel: true, isUpdate: false, isIssued: false },
-  { type: "Issued", name: "Issued", isCancel: false, isUpdate: false, isIssued: true },
-  { type: "Extended", name: "Extended", isCancel: false, isUpdate: true, isIssued: false },
-  { type: "Correction", name: "Correction", isCancel: false, isUpdate: true, isIssued: false },
-  { type: "Upgraded", name: "Upgraded", isCancel: false, isUpdate: true, isIssued: false },
-  { type: "Cancelled", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false },
-  { type: "Routine", name: "Routine", isCancel: false, isUpdate: true, isIssued: false }
+  { type: "Statement", name: "Statement", isCancel: false, isUpdate: false, isIssued: true, isStatement: true },
+  { type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
+  { type: "Alert", name: "Issued", isCancel: false, isUpdate: false, isIssued: true, isStatement: false },
+  { type: "Updated", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Expired", name: "Expired", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
+  { type: "Issued", name: "Issued", isCancel: false, isUpdate: false, isIssued: true, isStatement: false },
+  { type: "Extended", name: "Extended", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Correction", name: "Correction", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Upgraded", name: "Upgraded", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Cancelled", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
+  { type: "Routine", name: "Routine", isCancel: false, isUpdate: true, isIssued: false, isStatement: false }
 ];
 
 // src/@dictionaries/dictionaries.eventCancelMessages.ts
@@ -14678,7 +14680,7 @@ var getEventSignature = (event) => {
   }
   if (status) {
     properties2.status = (_d = status.name) != null ? _d : properties2.status;
-    properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel });
+    properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel, is_statement: !!status.isStatement });
   }
   if (csig) {
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
@@ -15106,7 +15108,9 @@ var rmEvent = (event) => {
     var _a, _b, _c, _d;
     return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === ((_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.metadata) == null ? void 0 : _d.tracking);
   });
+  const cachedStatus = event.properties.status;
   event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
+  event.properties.status = `Expired`;
   if (getEvent) {
     setEventEmit({
       event: `onEventStatus`,
@@ -15117,7 +15121,7 @@ var rmEvent = (event) => {
       message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
     });
     setEventEmit({ event: `onExpiredProduct`, metadata: event });
-    updateWebhooks(event);
+    if (cachedStatus != `Statement`) updateWebhooks(event);
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
   }
@@ -15257,8 +15261,10 @@ var text = (stanza) => __async(null, null, function* () {
     const issued = new Date(attributes.issue);
     const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
     let event = Object.keys(eventsOffshore).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+    let isStatement = false;
     if (!event) {
       event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
+      isStatement = true;
     }
     processed.push({
       type: `Feature`,
@@ -15269,9 +15275,9 @@ var text = (stanza) => __async(null, null, function* () {
       properties: __spreadProps(__spreadValues({
         event,
         parent: event,
-        status: `Issued`,
+        status: isStatement ? `Statement` : `Issued`,
         issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-        expires: !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+        expires: isStatement ? new Date(issued.getTime() + 5 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
       }, props), {
         metadata: {
           ms: performance.now() - tick,
@@ -15388,7 +15394,7 @@ var ugc = (stanza) => __async(null, null, function* () {
     if (ugc2 != null) {
       const props = properties({ message, attributes, ugc: ugc2 });
       const issued = new Date(attributes.issue);
-      const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
+      const expires = new Date(ugc2.expires).toISOString();
       const header = getEventHeader({ properties: props, getType: stanza.getType });
       let event = Object.keys(eventsOffshore).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
       if (!event) {
@@ -15405,7 +15411,7 @@ var ugc = (stanza) => __async(null, null, function* () {
           parent: event,
           status: `Issued`,
           issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-          expires: !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+          expires: !isNaN(new Date(ugc2.expires).getTime()) ? expires : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
         }, props), {
           metadata: {
             ms: performance.now() - tick,
@@ -16080,6 +16086,26 @@ var setCronSchedule = () => __async(null, null, function* () {
   }
 });
 
+// src/@manager/manager.updateEvents.ts
+var updateEvents = (selectedEvent) => __async(null, null, function* () {
+  const events = bootstrap.cache.events.features;
+  function update(evt) {
+    return __async(this, null, function* () {
+      if (new Date(evt.properties.expires) < /* @__PURE__ */ new Date()) {
+        rmEvent(evt);
+      }
+    });
+  }
+  if (!selectedEvent) {
+    yield Promise.all(events.map((evt) => __async(null, null, function* () {
+      yield update(evt);
+    })));
+  }
+  if (selectedEvent) {
+    yield update(selectedEvent);
+  }
+});
+
 // src/@core/core.start.ts
 var import_croner = require("croner");
 var startService = (settings) => __async(null, null, function* () {
@@ -16107,8 +16133,9 @@ var startService = (settings) => __async(null, null, function* () {
   bootstrap.cron = new import_croner.Cron(`*/${scheduleInterval} * * * * *`, () => __async(null, null, function* () {
     yield setCronSchedule();
   }));
-  bootstrap.cron = new import_croner.Cron(`*/1 * * * * *`, () => __async(null, null, function* () {
+  bootstrap.cron = new import_croner.Cron(`* * * * * *`, () => __async(null, null, function* () {
     yield updateNode();
+    yield updateEvents();
   }));
 });
 
@@ -16584,6 +16611,17 @@ var getRandomEvent = () => {
   return bootstrap.cache.events.features[Math.floor(Math.random() * bootstrap.cache.events.features.length)];
 };
 
+// src/@core/core.clearEvents.ts
+var clearEvents = () => {
+  bootstrap.cache.events.features = [];
+  bootstrap.cache.hashes = [];
+  setEventEmit({
+    event: `onEventCache`,
+    metadata: bootstrap.cache.events,
+    message: `Manually cleared event cache.`
+  });
+};
+
 // src/index.ts
 var Manager = class {
   constructor(settings) {
@@ -16591,7 +16629,7 @@ var Manager = class {
     startService(settings);
   }
   on(event, callback) {
-    listener(event, callback);
+    createListener(event, callback);
   }
   trycatch() {
     process.on("uncaughtException", (err) => {
@@ -16617,6 +16655,7 @@ var index_default = Manager;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   Manager,
+  clearEvents,
   getCleanedEvent,
   getEventGeometry,
   getEvents,

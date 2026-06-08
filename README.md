@@ -292,6 +292,12 @@ const events = getEvents() // Returns in GeoJSON (Similar to the onEventCache li
 console.log(events)
 ```
 
+### Function `clearEvents`
+Clears the event cache of all events.
+```ts
+import { clearEvents } from "@atmosx/event-product-parser"
+clearEvents() // Clears the event cache of all events.
+```
 
 ### Function `getNodes`
 Fetches the list of tracking nodes from the parser.

@@ -39,11 +39,12 @@ export const getEventSignature = (event: TypeEvent): TypeEvent => {
 
     if (status) { 
         properties.status = status.name ?? properties.status; 
-        properties.status_metadata = { ...properties.status_metadata, is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel };
+        properties.status_metadata = { ...properties.status_metadata, is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel, is_statement: !!status.isStatement };
     }
     if (csig) {
         properties.status_metadata = { ...properties.status_metadata, is_expired: true };
     }
+    
     const getProduct = vtec?.vtec?.split(`.`)[0]?.replace(`/`, ``)
     const isTestProduct = eventProducts[getProduct] == `Test Product`
     if (isTestProduct || testSignatures.some(sig => properties.description?.toLowerCase().includes(sig.toLowerCase()) || properties?.parameters?.instructions?.toLowerCase().includes(sig.toLowerCase()))) {

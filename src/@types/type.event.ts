@@ -38,6 +38,7 @@ export type TypeEvent = {
             is_updated?: boolean
             is_expired?: boolean
             is_test?: boolean
+            is_statement?: boolean
         }
         metadata: {
             ms: number

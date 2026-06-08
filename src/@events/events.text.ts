@@ -41,8 +41,10 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
         const issued = new Date(attributes.issue)
         const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1000)
         let event = Object.keys(eventsOffshore).find(event => message.toLowerCase().includes(event.toLowerCase()));
+        let isStatement = false;
         if (!event) { 
             event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
+            isStatement = true;
         }
         processed.push({
             type: `Feature`,
@@ -53,9 +55,9 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
             properties: { 
                 event: event,
                 parent: event,
-                status: `Issued`,
+                status: isStatement ? `Statement` : `Issued`,
                 issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
-                expires: (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                expires: isStatement ? new Date(issued.getTime() + 5 * 1000).toISOString() : (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
                 ...props,
                 metadata: {
                     ms: performance.now() - tick,

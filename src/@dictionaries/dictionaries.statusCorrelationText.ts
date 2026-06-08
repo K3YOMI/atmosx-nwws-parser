@@ -23,18 +23,20 @@ type TypeCorrelations = {
     isCancel: boolean
     isUpdate: boolean
     isIssued: boolean
+    isStatement: boolean
 }
 
 export const statusCorrelationText: TypeCorrelations[] = [
-    {type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false},
-    {type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false},
-    {type: "Alert", name: "Issued", isCancel: false, isUpdate: false, isIssued: true},
-    {type: "Updated", name: "Updated", isCancel: false, isUpdate: true, isIssued: false},
-    {type: "Expired", name: "Expired", isCancel: true, isUpdate: false, isIssued: false},
-    {type: "Issued", name: "Issued", isCancel: false, isUpdate: false, isIssued: true},
-    {type: "Extended", name: "Extended", isCancel: false, isUpdate: true, isIssued: false},
-    {type: "Correction", name: "Correction", isCancel: false, isUpdate: true, isIssued: false},
-    {type: "Upgraded", name: "Upgraded", isCancel: false, isUpdate: true, isIssued: false},
-    {type: "Cancelled", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false},
-    {type: "Routine", name: "Routine", isCancel: false, isUpdate: true, isIssued: false},
+    {type: "Statement", name: "Statement", isCancel: false, isUpdate: false, isIssued: true, isStatement: true},
+    {type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false},
+    {type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false},
+    {type: "Alert", name: "Issued", isCancel: false, isUpdate: false, isIssued: true, isStatement: false},
+    {type: "Updated", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false},
+    {type: "Expired", name: "Expired", isCancel: true, isUpdate: false, isIssued: false, isStatement: false},
+    {type: "Issued", name: "Issued", isCancel: false, isUpdate: false, isIssued: true, isStatement: false},
+    {type: "Extended", name: "Extended", isCancel: false, isUpdate: true, isIssued: false, isStatement: false},
+    {type: "Correction", name: "Correction", isCancel: false, isUpdate: true, isIssued: false, isStatement: false},
+    {type: "Upgraded", name: "Upgraded", isCancel: false, isUpdate: true, isIssued: false, isStatement: false},
+    {type: "Cancelled", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false},
+    {type: "Routine", name: "Routine", isCancel: false, isUpdate: true, isIssued: false, isStatement: false},
 ]

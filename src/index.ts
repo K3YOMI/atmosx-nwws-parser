@@ -23,7 +23,7 @@ import { getEventGeometry } from "./@building/building.geometry";
 import { getCleanedEvent } from "./@building/building.clean"
 import { setEventEmit } from './@modules/@utilities/utilities.setEventEmit';
 import { setWarning } from './@modules/@utilities/utilities.setWarning';
-import { listener } from "./@core/core.listener"
+import { createListener } from "./@core/core.createListener"
 import { startService } from "./@core/core.start"
 import { stopService } from "./@core/core.stop"
 import { setEasTone } from './@modules/@eas/eas.setEasTone';
@@ -31,12 +31,13 @@ import { setNode } from "./@core/core.setNode"
 import { getEvents } from "./@core/core.getEvents"
 import { getNodes } from "./@core/core.getNodes"
 import { getRandomEvent } from './@core/core.getRandomEvent';
+import { clearEvents } from './@core/core.clearEvents';
 
 export class Manager { 
     constructor(settings: TypeSettings) { this.trycatch(); startService(settings) }
 
     on(event: string, callback: () => void) {
-        listener(event, callback)
+        createListener(event, callback)
     }
 
     trycatch() {
@@ -62,8 +63,8 @@ export class Manager {
 export default Manager;
 export type { TypeEvent } from './@types/type.event';
 export { 
-    setSettings, getEventGeometry,
-    getCleanedEvent, stopService,
+    setSettings, getEventGeometry, 
+    getCleanedEvent, stopService, clearEvents,
     startService, setNode, getRandomEvent,
     getEvents, getNodes, setEasTone
 }
