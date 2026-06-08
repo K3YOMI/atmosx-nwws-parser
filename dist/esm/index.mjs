@@ -14370,7 +14370,16 @@ var eventTags = {
   "SLOW DOWN AND ALLOW EXTRA TIME": "Slow Down and Allow Extra Time",
   "SHOULD EXERCISE CAUTION": "Should Exercise Caution",
   "LAKE EFFECT SNOW EXPECTED": "Lake Effect Snow Expected",
-  "MODERATE LAKE EFFECT SNOWFALL RATES AND BLOWING SNOW": "Moderate Lake Effect Snowfall and Blowing Snow"
+  "MODERATE LAKE EFFECT SNOWFALL RATES AND BLOWING SNOW": "Moderate Lake Effect Snowfall and Blowing Snow",
+  "NO TSUNAMI THREAT": "No Active Tsunami Threat",
+  "NO SIGNIFICANT TSUNAMI THREAT": "No Significant Tsunami Threat",
+  "NO TSUNAMI IMPACTS ARE EXPECTED": "No Tsunami Impacts Expected",
+  "A TSUNAMI THREAT EXISTS": "Tsunami Threat Exists",
+  "TSUNAMI THREAT": "Active Tsunami Threat",
+  "HEAT ILLNESSES": "Can cause heat illness",
+  "WATCH POSSIBLE": "Watch Possible",
+  "INTENSIFYING": "Intensifying",
+  "CAPABLE OF PRODUCING A LANDSPOUT": "Landspout Possible"
 };
 
 // src/@building/building.tags.ts
