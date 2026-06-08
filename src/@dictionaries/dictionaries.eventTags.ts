@@ -81,4 +81,9 @@ export const eventTags: Record<string, string> = {
     "SHOULD EXERCISE CAUTION": "Should Exercise Caution",
     "LAKE EFFECT SNOW EXPECTED": "Lake Effect Snow Expected",
     "MODERATE LAKE EFFECT SNOWFALL RATES AND BLOWING SNOW": "Moderate Lake Effect Snowfall and Blowing Snow",
+    "NO TSUNAMI THREAT": "No Active Tsunami Threat",
+    "HEAT ILLNESSES": "Can cause heat illness",
+    "WATCH POSSIBLE": "Watch Possible",
+    "INTENSIFYING": "Intensifying",
+    "CAPABLE OF PRODUCING A LANDSPOUT": "Landspout Possible",
 }
