@@ -35,7 +35,7 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
     let body = [
         event.locations ? `**Locations**: ${event.locations.slice(0,100)}` : null,
         event.issued ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime()/1000)}:R>` : null,
-        event.expires ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime()/1000)}:R>` : null,
+        event.expires && event.status != `Statement` ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime()/1000)}:R>` : null,
         (() => {
             const val = event.parameters.estimated_wind_gusts ?? null
             const th = event.parameters.wind_threat ?? null

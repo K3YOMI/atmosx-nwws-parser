@@ -14787,7 +14787,7 @@ var createWebhook = (options) => __async(null, null, function* () {
   let body = [
     event.locations ? `**Locations**: ${event.locations.slice(0, 100)}` : null,
     event.issued ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>` : null,
-    event.expires ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>` : null,
+    event.expires && event.status != `Statement` ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>` : null,
     (() => {
       var _a2, _b2;
       const val = (_a2 = event.parameters.estimated_wind_gusts) != null ? _a2 : null;
