@@ -2,6 +2,7 @@ type TypeWebhook = {
     webhook: string;
     title: string;
     message: string;
+    upload: boolean;
     rate: number;
     events: string[];
 };

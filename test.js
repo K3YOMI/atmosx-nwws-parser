@@ -34,6 +34,7 @@ const NOAAWeatherWireService = new Manager({
             webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
             title: "AtmosphericX - (Severe Weather Events)", 
             message: `<@user_id>`, 
+            upload: true,
             events: [`Severe Thunderstorm Warning`, `Radar Indicated Tornado Warning`],
             rate: 1,
         },
@@ -41,6 +42,7 @@ const NOAAWeatherWireService = new Manager({
             webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
             title: "AtmosphericX - (All Events)", 
             message: `<@user_id>`, 
+            upload: false,
             events: [],
             rate: 5,
         }

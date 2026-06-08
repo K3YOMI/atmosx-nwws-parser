@@ -86,10 +86,12 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
         content: settings.message ?? "",
         embeds: [embed]
     }));
-    form.append("file", Buffer.from(JSON.stringify({ type: "FeatureCollection", features: [(getCleanedEvent(options.event))] }, null, 2)), {
-        filename: `${event.event}_${event.status}_${event.metadata.tracking}.json`,
-        contentType: "application/json"
-    });
+    if (settings.upload) {
+        form.append("file", Buffer.from(JSON.stringify((getCleanedEvent(event)), null, 2)), {
+            filename: `${event.event}_${event.status}_${event.metadata.tracking}.json`,
+            contentType: "application/json"
+        });
+    }
     await createHttp({
         url: settings.webhook,
         timeout: 2000,

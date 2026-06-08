@@ -14440,8 +14440,8 @@ var getEventHeader = (options) => {
   return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc2}-${(_b = vtec2 == null ? void 0 : vtec2.status) != null ? _b : `Issued`}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[-:]/g, "").split(".")[0]}-${(_c = properties2.geocode.office.office) != null ? _c : `KWNS`}`;
 };
 
-// src/@dictionaries/dictionaries.eventsOffshore.ts
-var eventsOffshore = {
+// src/@dictionaries/dictionaries.eventsMatchText.ts
+var eventsMatchText = {
   "Special Weather Statement": "Special Weather Statement",
   "Hurricane Warning": "Hurricane Warning",
   "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
@@ -14456,7 +14456,7 @@ var eventsOffshore = {
   "Tsunami Watch": "Tsunami Watch",
   "Tsunami Advisory": "Tsunami Advisory",
   "Tsunami Information Statement": "Tsunami Information Statement",
-  "To:      Subscribers:": "National Weather Service Policy"
+  "Subscribers:": "National Weather Service Policy"
 };
 
 // src/@building/building.tracking.ts
@@ -14832,10 +14832,12 @@ var createWebhook = (options) => __async(null, null, function* () {
     content: (_h = settings.message) != null ? _h : "",
     embeds: [embed]
   }));
-  form.append("file", Buffer.from(JSON.stringify({ type: "FeatureCollection", features: [getCleanedEvent(options.event)] }, null, 2)), {
-    filename: `${event.event}_${event.status}_${event.metadata.tracking}.json`,
-    contentType: "application/json"
-  });
+  if (settings.upload) {
+    form.append("file", Buffer.from(JSON.stringify(getCleanedEvent(event), null, 2)), {
+      filename: `${event.event}_${event.status}_${event.metadata.tracking}.json`,
+      contentType: "application/json"
+    });
+  }
   yield createHttp({
     url: settings.webhook,
     timeout: 2e3,
@@ -15257,7 +15259,7 @@ var text = (stanza) => __async(null, null, function* () {
     const header = getEventHeader({ properties: props, getType: stanza.getType });
     const issued = new Date(attributes.issue);
     const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
-    let event = Object.keys(eventsOffshore).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+    let event = Object.keys(eventsMatchText).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
     let isStatement = false;
     if (!event) {
       event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
@@ -15393,7 +15395,7 @@ var ugc = (stanza) => __async(null, null, function* () {
       const issued = new Date(attributes.issue);
       const expires = new Date(ugc2.expires);
       const header = getEventHeader({ properties: props, getType: stanza.getType });
-      let event = Object.keys(eventsOffshore).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+      let event = Object.keys(eventsMatchText).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
       let isStatement = false;
       if (!event) {
         event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);

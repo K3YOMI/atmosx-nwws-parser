@@ -56,6 +56,7 @@ const Client = new Manager({
             webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
             title: "AtmosphericX - (@atmosx/event-product-parser)", 
             message: ``, 
+            upload: true,
             events: [`Severe Thunderstorm Warning`, `Radar Indicated Tornado Warning`, `*Warning`, `*Thunderstorm*`],
             rate: 5,
         }
@@ -124,6 +125,7 @@ const Client = new Manager({
 - **webhook**: The URL of the webhook you want to send messages to.
 - **title**: The title of the message you want to send.
 - **message**: The message content you want to send. You can use placeholders like `<@&role_id>` to mention roles in Discord.
+- **upload**: Whether to upload a JSON file as well with the message containing the event data.
 - **events**: An array of event types that will trigger the webhook when they are received by the parser. If this array is empty, the webhook will be triggered for all events.
 - **rate**: The rate limit in seconds for how often the webhook can be triggered. This is to prevent spamming the webhook with too many messages in a short period of time.
 
