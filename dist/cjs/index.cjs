@@ -14799,7 +14799,7 @@ var createHttp = (options) => __async(null, null, function* () {
 // src/@modules/@utilities/utilities.createWebhook.ts
 var import_form_data = __toESM(require_form_data());
 var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h;
+  var _a, _b, _c, _d;
   const event = options.event.properties;
   const settings = options.webhook;
   let body = [
@@ -14836,17 +14836,14 @@ var createWebhook = (options) => __async(null, null, function* () {
     event.watch_parameters.severe_wind_probability ? `**Severe Wind Probability**: ${event.watch_parameters.severe_wind_probability}%` : null,
     event.watch_parameters.max_wind_surface ? `**Max Surface Wind**: ${event.watch_parameters.max_wind_surface}` : null,
     event.watch_parameters.max_tops_x100feet ? `**Max Tops (x100 feet)**: ${event.watch_parameters.max_tops_x100feet}` : null,
-    event.watch_parameters.pds_watch ? `**PDS Watch**: ${event.watch_parameters.pds_watch ? "Yes" : "No"}` : null,
     ((_a = event.parameters.tags) == null ? void 0 : _a.length) > 0 ? `**Tags**: ${event.parameters.tags.join(", ")}` : null,
     (() => {
-      var _a2, _b2, _c2, _d2, _e2, _f2;
+      var _a2, _b2, _c2, _d2, _e, _f;
       const val = (_c2 = (_b2 = (_a2 = event.geocode) == null ? void 0 : _a2.office) == null ? void 0 : _b2.name) != null ? _c2 : `N/A`;
-      const th = (_f2 = (_e2 = (_d2 = event.geocode) == null ? void 0 : _d2.office) == null ? void 0 : _e2.office) != null ? _f2 : null;
+      const th = (_f = (_e = (_d2 = event.geocode) == null ? void 0 : _d2.office) == null ? void 0 : _e.office) != null ? _f : null;
       return val || th ? `**Sender**: ${val} ${th ? `(${th})` : ""}` : null;
     })(),
     ((_b = event.metadata) == null ? void 0 : _b.tracking) ? `**Tracking**: ${event.metadata.tracking}` : null,
-    ((_d = (_c = event.metadata) == null ? void 0 : _c.vtec) == null ? void 0 : _d.vtec) ? `**VTEC**: ${(_e = event.metadata.vtec) == null ? void 0 : _e.vtec}` : null,
-    ((_f = event.metadata) == null ? void 0 : _f.filtered_proximity) != null ? `**Currently in polygon (Node)**: ${event.metadata.filtered_proximity ? "Yes" : "No"}` : null,
     (() => {
       const desc = (event.description || "").split("\n").map((l) => l.trim()).filter(Boolean).join("\n");
       return desc ? "```\n" + desc + "\n```" : null;
@@ -14870,8 +14867,8 @@ var createWebhook = (options) => __async(null, null, function* () {
     footer: { text: settings.title }
   };
   form.append("payload_json", JSON.stringify({
-    username: (_g = settings.title) != null ? _g : "AtmosphericX",
-    content: (_h = settings.message) != null ? _h : "",
+    username: (_c = settings.title) != null ? _c : "AtmosphericX",
+    content: (_d = settings.message) != null ? _d : "",
     embeds: [embed]
   }));
   if (settings.upload) {
