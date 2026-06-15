@@ -86,10 +86,11 @@ export const mkEvent = async (event: TypeEvent): Promise<void> => {
                         },
                     }
                 };
+                updateWebhooks(bootstrap.cache.events.features[getIndex])
             } else { 
                 features.push(event)
+                updateWebhooks(event)
             }
         }
     }
-    updateWebhooks(event)
 }

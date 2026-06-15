@@ -42,12 +42,12 @@ export class Manager {
 
     trycatch() {
         process.on('uncaughtException', (err: any) => {
-            const ignored = ['ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'STARTTLS_FAILURE'];
+            const ignored = ['ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENOTFOUND', 'ECONNREFUSED', 'EPIPE', 'EADDRINUSE', 'EALREADY', 'EACCES', 'EAGAIN', 'EHOSTDOWN', 'STARTTLS_FAILURE'];
             if (ignored.includes(err?.code)) { 
                 setEventEmit({
                     event: `onServiceStatus`,
                     metadata: {
-                        message: `XMPP Critical Error: ${err?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
+                        message: `Ignored Critical Error: ${err?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
                         data: {},
                         type: `error`,
                         error: true 

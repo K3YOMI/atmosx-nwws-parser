@@ -29,13 +29,13 @@ import { updateNode } from "../@manager/manager.updateNodes";
 import { updateEvents } from "../@manager/manager.updateEvents";
 import { Cron } from "croner";
 
-export const startService = async (settings: TypeSettings): Promise<void> => {
+export const startService = async (configurations: TypeSettings): Promise<void> => {
     if (!bootstrap.isReady) { 
         return setWarning({ 
             message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!` 
         })
     }
-    setSettings(settings);
+    const settings = setSettings(configurations);
     bootstrap.isReady = true;
     await initializeDatabase();
     if (settings.EnableWireService) {

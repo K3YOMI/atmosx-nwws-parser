@@ -202,7 +202,7 @@ declare const getEventGeometry: (event: TypeEvent) => Promise<GetGeometryRespons
 
 declare const getCleanedEvent: <T extends Record<string, any>>(event: T) => T;
 
-declare const startService: (settings: TypeSettings) => Promise<void>;
+declare const startService: (configurations: TypeSettings) => Promise<void>;
 
 declare const stopService: () => Promise<void>;
 

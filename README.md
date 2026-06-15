@@ -153,6 +153,17 @@ const Client = new Manager({
 
 ## Events and Listeners
 
+### Event `*`
+Triggers for every event and product received by the parser. This is useful if you want to handle all events with a single listener.
+```ts
+Client.on(`*`, (data: any) => {
+   	/*
+		event: string
+		data: object
+	*/
+})
+```
+
 ### Event `onServiceStatus`
 Triggers when an update to the XMPP / API service status occurs.
 ```ts
@@ -333,7 +344,6 @@ await setEasTone(event.properties.description, event.properties.metadata.header)
 [Contributing](/CONTRIBUTING.md) |
 [License](/LICENSE) | 
 [Security](/SECURITY.md) | 
-[Changelogs](/CHANGELOGS.md) |
 
 ## Acknowledgements
 - [k3yomi](https://github.com/k3yomi)

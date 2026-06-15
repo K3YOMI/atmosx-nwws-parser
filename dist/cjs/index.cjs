@@ -10509,7 +10509,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.2`,
+  version: `3.0.3`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -10762,9 +10762,9 @@ var setTimeoutAction = (options) => {
 var setWarning = (options) => {
   var _a, _b;
   const settings = bootstrap.settings;
-  bootstrap.listener.emit(`log`, `${(_a = options.title) != null ? _a : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
+  bootstrap.listener.emit(`log`, `${(_a = options.title) != null ? _a : `[${bootstrap.ansi_colors.YELLOW}@atmosx/product-parser${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
   if (settings.EnableJournal) {
-    console.log(`${(_b = options.title) != null ? _b : `[${bootstrap.ansi_colors.YELLOW}ATMOSX-PARSER${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
+    console.log(`${(_b = options.title) != null ? _b : `[${bootstrap.ansi_colors.YELLOW}@atmosx/product-parser${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
   }
 };
 
@@ -15132,12 +15132,13 @@ var mkEvent = (event) => __async(null, null, function* () {
             })
           })
         });
+        updateWebhooks(bootstrap.cache.events.features[getIndex]);
       } else {
         features.push(event);
+        updateWebhooks(event);
       }
     }
   }
-  updateWebhooks(event);
 });
 
 // src/@manager/manager.rmEvent.ts
@@ -16148,13 +16149,13 @@ var updateEvents = (selectedEvent) => __async(null, null, function* () {
 
 // src/@core/core.start.ts
 var import_croner = require("croner");
-var startService = (settings) => __async(null, null, function* () {
+var startService = (configurations) => __async(null, null, function* () {
   if (!bootstrap.isReady) {
     return setWarning({
       message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!`
     });
   }
-  setSettings(settings);
+  const settings = setSettings(configurations);
   bootstrap.isReady = true;
   yield initializeDatabase();
   if (settings.EnableWireService) {
@@ -16674,12 +16675,12 @@ var Manager = class {
   trycatch() {
     process.on("uncaughtException", (err) => {
       var _a;
-      const ignored = ["ETIMEDOUT", "ECONNRESET", "EHOSTUNREACH", "STARTTLS_FAILURE"];
+      const ignored = ["ETIMEDOUT", "ECONNRESET", "EHOSTUNREACH", "ENOTFOUND", "ECONNREFUSED", "EPIPE", "EADDRINUSE", "EALREADY", "EACCES", "EAGAIN", "EHOSTDOWN", "STARTTLS_FAILURE"];
       if (ignored.includes(err == null ? void 0 : err.code)) {
         setEventEmit({
           event: `onServiceStatus`,
           metadata: {
-            message: `XMPP Critical Error: ${(_a = err == null ? void 0 : err.code) != null ? _a : "Unknown error code"}. This may indicate a connection issue. Attempting to continue...`,
+            message: `Ignored Critical Error: ${(_a = err == null ? void 0 : err.code) != null ? _a : "Unknown error code"}. This may indicate a connection issue. Attempting to continue...`,
             data: {},
             type: `error`,
             error: true
