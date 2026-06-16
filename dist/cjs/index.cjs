@@ -14079,6 +14079,7 @@ var getTextFromProduct = (options) => {
 
 // src/@dictionaries/dictionaries.officeICAOs.ts
 var officeICAOs = {
+  "KLUB": "Lubbock, TX",
   "KLCH": "Lake Charles, LA",
   "TSTL": "St. Louis, MO",
   "PABC": "Bethel, AK",
@@ -14314,6 +14315,7 @@ var officeICAOs = {
   "KCAR": "Caribou, ME",
   "KMFR": "Medford, OR",
   "PGUM": "Guam, GU",
+  "PACR": "Cordova, AK",
   "PAJK": "Juneau, AK"
 };
 
