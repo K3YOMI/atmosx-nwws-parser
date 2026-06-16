@@ -42,9 +42,9 @@ export const getEventTracking = (options: GetTrackingOptions): string => {
     if (options.type === `RAW`) { 
         const getWatchNumber = proprties.watch_parameters.watch_number ?? null
         if (getWatchNumber) {
-            return `${proprties.geocode.office.office}-${stanza.getType.prefix}-A-${getWatchNumber}`
+            return `${proprties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`
         }
-        return `${proprties.geocode.office.office}-${attributes.ttaaii}-${attributes.id.slice(-4).replace(`.`, ``) ?? '0'}`
+        return `${proprties.geocode.office.office}.${attributes.ttaaii}.${attributes.id.slice(-4).replace(`.`, ``) ?? '0'}`
     }
     if (options.type === `VTEC`) {
         return vtec.tracking;
@@ -54,15 +54,15 @@ export const getEventTracking = (options: GetTrackingOptions): string => {
             const vtecValue = Array.isArray(options.vtec) 
                 ? options.vtec[0] : options.vtec;
             const splitPVTEC = vtecValue.split('.');
-            return `${splitPVTEC[2]}-${splitPVTEC[3]}-${splitPVTEC[4]}-${splitPVTEC[5]}`;
+            return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
         }
         const wmoMatch = options.organization?.wmoidentifier?.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
         const station = wmoMatch?.[2] ?? 'N/A';
         if (options.organization.featureId) {
             const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
-            return `${station}-${idMatch?.[1] ?? 'N/A'}`;
+            return `${station}.${idMatch?.[1] ?? 'N/A'}`;
         }
         const id = wmoMatch?.[1] ?? 'N/A';
-        return `${station}-${id}`;
+        return `${station}.${id}`;
     }
 }

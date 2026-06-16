@@ -75,7 +75,6 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
                 return false 
              }
         }
-        
 
         for (const key in sets) {
             const setting = sets[key]

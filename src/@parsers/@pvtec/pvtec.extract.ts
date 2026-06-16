@@ -35,7 +35,7 @@ export const pvExtract = (message: string): TypePVTEC[] | null => {
         vtecs.push({
             vtec: vtec,
             product: eventProducts[sub[0]],
-            tracking: `${sub[2]}-${sub[3]}-${sub[4]}-${sub[5]}`,
+            tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
             event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
             status: eventStatus[sub[1]],
             organization: message.match(regExp.wmo)?.[0] ?? null,

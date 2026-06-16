@@ -26,7 +26,7 @@ export const xReconnect = async (interval: number): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
     const lastStanza = Date.now() - bootstrap.cache.lastStanza
     if (interval < 15) { 
-        setWarning({ message: `Reconnection Interval of ${interval} seconds is too low, setting to 15 seconds` })
+        setWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` })
         interval = 15;
         bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
     }

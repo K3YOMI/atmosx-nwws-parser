@@ -47,7 +47,7 @@ export const startService = async (configurations: TypeSettings): Promise<void> 
     await setCronSchedule()
     let scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 1;
     if (!settings.EnableWireService && scheduleInterval < 15) {
-        setWarning({ message: `Schedule Interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` })
+        setWarning({ message: `Schedule interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` })
         bootstrap.settings.NationalWeatherServiceSettings.CallbackInterval = 15;
         scheduleInterval = 15;
     }

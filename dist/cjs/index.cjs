@@ -14497,9 +14497,9 @@ var getEventTracking = (options) => {
   if (options.type === `RAW`) {
     const getWatchNumber = (_a = proprties.watch_parameters.watch_number) != null ? _a : null;
     if (getWatchNumber) {
-      return `${proprties.geocode.office.office}-${stanza.getType.prefix}-A-${getWatchNumber}`;
+      return `${proprties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`;
     }
-    return `${proprties.geocode.office.office}-${attributes.ttaaii}-${(_b = attributes.id.slice(-4).replace(`.`, ``)) != null ? _b : "0"}`;
+    return `${proprties.geocode.office.office}.${attributes.ttaaii}.${(_b = attributes.id.slice(-4).replace(`.`, ``)) != null ? _b : "0"}`;
   }
   if (options.type === `VTEC`) {
     return vtec2.tracking;
@@ -14508,16 +14508,16 @@ var getEventTracking = (options) => {
     if (options.vtec) {
       const vtecValue = Array.isArray(options.vtec) ? options.vtec[0] : options.vtec;
       const splitPVTEC = vtecValue.split(".");
-      return `${splitPVTEC[2]}-${splitPVTEC[3]}-${splitPVTEC[4]}-${splitPVTEC[5]}`;
+      return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
     }
     const wmoMatch = (_d = (_c = options.organization) == null ? void 0 : _c.wmoidentifier) == null ? void 0 : _d.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
     const station = (_e = wmoMatch == null ? void 0 : wmoMatch[2]) != null ? _e : "N/A";
     if (options.organization.featureId) {
       const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
-      return `${station}-${(_f = idMatch == null ? void 0 : idMatch[1]) != null ? _f : "N/A"}`;
+      return `${station}.${(_f = idMatch == null ? void 0 : idMatch[1]) != null ? _f : "N/A"}`;
     }
     const id2 = (_g = wmoMatch == null ? void 0 : wmoMatch[1]) != null ? _g : "N/A";
-    return `${station}-${id2}`;
+    return `${station}.${id2}`;
   }
 };
 
@@ -15587,7 +15587,7 @@ var pvExtract = (message) => {
     vtecs.push({
       vtec: vtec2,
       product: eventProducts[sub[0]],
-      tracking: `${sub[2]}-${sub[3]}-${sub[4]}-${sub[5]}`,
+      tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
       event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
       status: eventStatus[sub[1]],
       organization: (_d = (_c = message.match(regExp.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
@@ -16050,7 +16050,7 @@ var xReconnect = (interval) => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const lastStanza = Date.now() - bootstrap.cache.lastStanza;
   if (interval < 15) {
-    setWarning({ message: `Reconnection Interval of ${interval} seconds is too low, setting to 15 seconds` });
+    setWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` });
     interval = 15;
     bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
   }
@@ -16167,7 +16167,7 @@ var startService = (configurations) => __async(null, null, function* () {
   yield setCronSchedule();
   let scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 1;
   if (!settings.EnableWireService && scheduleInterval < 15) {
-    setWarning({ message: `Schedule Interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` });
+    setWarning({ message: `Schedule interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` });
     bootstrap.settings.NationalWeatherServiceSettings.CallbackInterval = 15;
     scheduleInterval = 15;
   }
