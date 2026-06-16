@@ -14812,7 +14812,7 @@ var createWebhook = (options) => __async(null, null, function* () {
   const settings = options.webhook;
   let body = [
     event.locations ? `**Locations**: ${event.locations.slice(0, 100)}` : null,
-    event.issued ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>` : null,
+    event.issued && event.status != `Expired` ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>` : null,
     event.expires && event.status != `Statement` ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>` : null,
     (() => {
       var _a2, _b2;
@@ -14852,7 +14852,7 @@ var createWebhook = (options) => __async(null, null, function* () {
       return (val != null ? val : th) ? `**Sender**: ${val} ${th ? `(${th})` : ""}` : null;
     })(),
     ((_b = event.metadata) == null ? void 0 : _b.tracking) ? `**Tracking**: ${event.metadata.tracking}` : null,
-    ((_c = event.metadata.history) == null ? void 0 : _c.length) > 0 ? `**Updates**: ${event.metadata.history.length}` : null,
+    ((_c = event.metadata.history) == null ? void 0 : _c.length) > 0 ? `**Logs**: ${event.metadata.history.length}` : null,
     (() => {
       var _a2;
       if (event.status == `Expired`) {
@@ -15125,7 +15125,7 @@ var mkEvent = (event) => __async(null, null, function* () {
         const iHistory = (_o = (_n = (_m = event.properties) == null ? void 0 : _m.metadata) == null ? void 0 : _n.history) != null ? _o : [];
         const iLocations = (_r = (_q = (_p = event.properties) == null ? void 0 : _p.locations) == null ? void 0 : _q.split(";").map((l) => l.trim())) != null ? _r : [];
         const iUgc = (_u = (_t = (_s = event.properties) == null ? void 0 : _s.geocode) == null ? void 0 : _t.ugc) != null ? _u : [];
-        const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i);
+        const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i).filter((v, i, a) => a.findIndex((h) => h.description === v.description && h.issued === v.issued) === i);
         const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join("; ");
         const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
         bootstrap.cache.events.features[getIndex] = __spreadProps(__spreadValues({}, event), {

@@ -35,7 +35,7 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
     
     let body = [
         event.locations ? `**Locations**: ${event.locations.slice(0,100)}` : null,
-        event.issued ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime()/1000)}:R>` : null,
+        event.issued && event.status != `Expired` ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime()/1000)}:R>` : null,
         event.expires && event.status != `Statement` ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime()/1000)}:R>` : null,
         (() => {
             const val = event.parameters.estimated_wind_gusts ?? null
@@ -72,7 +72,7 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             return (val ?? th) ? `**Sender**: ${val} ${th ? `(${th})` : ''}` : null;
         })(),
         event.metadata?.tracking ? `**Tracking**: ${event.metadata.tracking}` : null,
-        event.metadata.history?.length > 0 ? `**Updates**: ${event.metadata.history.length}` : null,
+        event.metadata.history?.length > 0 ? `**Logs**: ${event.metadata.history.length}` : null,
         (() => {
             if (event.status == `Expired`) { return null }
             const desc = (event.description ?? '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');

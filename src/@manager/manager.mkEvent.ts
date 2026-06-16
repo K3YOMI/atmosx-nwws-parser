@@ -60,7 +60,7 @@ export const mkEvent = async (event: TypeEvent): Promise<void> => {
                 const iLocations = event.properties?.locations?.split(";").map((l: string) => l.trim()) ?? [];
                 const iUgc = event.properties?.geocode?.ugc ?? [];
     
-                const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i);
+                const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i).filter((v, i, a) => a.findIndex(h => h.description === v.description && h.issued === v.issued) === i);
                 const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join('; ');
                 const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
     
