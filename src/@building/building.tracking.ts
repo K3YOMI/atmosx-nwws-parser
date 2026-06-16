@@ -35,16 +35,16 @@ interface GetTrackingOptions {
 }
 
 export const getEventTracking = (options: GetTrackingOptions): string => {
-    const proprties = options.properties
+    const properties = options.properties
     const attributes = options.attributes
     const stanza = options.stanza
     const vtec = options.vtec
     if (options.type === `RAW`) { 
-        const getWatchNumber = proprties.watch_parameters.watch_number ?? null
+        const getWatchNumber = properties.watch_parameters.watch_number ?? null
         if (getWatchNumber) {
-            return `${proprties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`
+            return `${properties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`
         }
-        return `${proprties.geocode.office.office}.${attributes.ttaaii}.${attributes.id.slice(-4).replace(`.`, ``) ?? '0'}`
+        return `${properties.geocode.office.office}.${attributes.ttaaii}.${attributes.id.slice(-4).replace(`.`, ``) ?? '0'}`
     }
     if (options.type === `VTEC`) {
         return vtec.tracking;

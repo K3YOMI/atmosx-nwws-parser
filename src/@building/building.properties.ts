@@ -40,7 +40,7 @@ interface GetPropertiesOptions {
 export const properties = (options: GetPropertiesOptions): TypeEventProperties => {
     const organization = options.message.match(regExp.wmo)?.[0] ?? null
     const polygons = getPolygonFromProduct(options.message)
-    return { 
+    const properties = {
         locations: options?.ugc?.locations?.join(`; `) ?? null,
         description: getDescriptionFromProduct({ message: options.message, handle: options?.pVtec?.vtec ?? null }),
         attributes: options.attributes,
@@ -86,4 +86,8 @@ export const properties = (options: GetPropertiesOptions): TypeEventProperties =
             pds_watch: (getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`)
         }
     }
+    if (isNaN(Number(properties.watch_parameters.watch_number))) {
+        properties.watch_parameters.watch_number = null
+    }
+    return properties;
 }

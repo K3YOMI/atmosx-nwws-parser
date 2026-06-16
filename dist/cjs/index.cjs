@@ -14414,7 +14414,7 @@ var properties = (options) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J;
   const organization = (_b = (_a = options.message.match(regExp.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
   const polygons = getPolygonFromProduct(options.message);
-  return {
+  const properties2 = {
     locations: (_e = (_d = (_c = options == null ? void 0 : options.ugc) == null ? void 0 : _c.locations) == null ? void 0 : _d.join(`; `)) != null ? _e : null,
     description: getDescriptionFromProduct({ message: options.message, handle: (_g = (_f = options == null ? void 0 : options.pVtec) == null ? void 0 : _f.vtec) != null ? _g : null }),
     attributes: options.attributes,
@@ -14460,6 +14460,10 @@ var properties = (options) => {
       pds_watch: getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
     }
   };
+  if (isNaN(Number(properties2.watch_parameters.watch_number))) {
+    properties2.watch_parameters.watch_number = null;
+  }
+  return properties2;
 };
 
 // src/@building/building.headers.ts
@@ -14493,16 +14497,16 @@ var eventsMatchText = {
 // src/@building/building.tracking.ts
 var getEventTracking = (options) => {
   var _a, _b, _c, _d, _e, _f, _g;
-  const proprties = options.properties;
+  const properties2 = options.properties;
   const attributes = options.attributes;
   const stanza = options.stanza;
   const vtec2 = options.vtec;
   if (options.type === `RAW`) {
-    const getWatchNumber = (_a = proprties.watch_parameters.watch_number) != null ? _a : null;
+    const getWatchNumber = (_a = properties2.watch_parameters.watch_number) != null ? _a : null;
     if (getWatchNumber) {
-      return `${proprties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`;
+      return `${properties2.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`;
     }
-    return `${proprties.geocode.office.office}.${attributes.ttaaii}.${(_b = attributes.id.slice(-4).replace(`.`, ``)) != null ? _b : "0"}`;
+    return `${properties2.geocode.office.office}.${attributes.ttaaii}.${(_b = attributes.id.slice(-4).replace(`.`, ``)) != null ? _b : "0"}`;
   }
   if (options.type === `VTEC`) {
     return vtec2.tracking;
