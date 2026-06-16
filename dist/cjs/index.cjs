@@ -14322,7 +14322,7 @@ var officeICAOs = {
 // src/@building/building.office.ts
 var getEventOffice = (options) => {
   var _a, _b, _c, _d, _e, _f, _g;
-  const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`-`)[0] : (_e = (_c = options.attributes) == null ? void 0 : _c.cccc) != null ? _e : options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null;
+  const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`.`)[0] : (_e = (_c = options.attributes) == null ? void 0 : _c.cccc) != null ? _e : options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null;
   const name = (_g = (_f = officeICAOs) == null ? void 0 : _f[office]) != null ? _g : null;
   return { office, name };
 };
