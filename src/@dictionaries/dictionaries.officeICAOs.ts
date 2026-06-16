@@ -18,6 +18,7 @@
 */
 
 export const officeICAOs: Record<string, string> = {
+    "KLUB": "Lubbock, TX",
     "KLCH": "Lake Charles, LA",
     "TSTL": "St. Louis, MO", 
     "PABC": "Bethel, AK", 
@@ -253,5 +254,6 @@ export const officeICAOs: Record<string, string> = {
     "KCAR": "Caribou, ME",
     "KMFR": "Medford, OR",
     "PGUM": "Guam, GU",
+    "PACR": "Cordova, AK",
     "PAJK": "Juneau, AK"
 };
