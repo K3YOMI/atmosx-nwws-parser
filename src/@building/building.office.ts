@@ -34,7 +34,7 @@ interface GetOfficeResponse {
 
 export const getEventOffice = (options: GetOfficeOptions): GetOfficeResponse => {
     const office = options.pVtec != null 
-        ? options.pVtec?.tracking?.split(`-`)[0] : (options.attributes?.cccc || 
+        ? options.pVtec?.tracking?.split(`-`)[0] : (options.attributes?.cccc ??
             (options.organization != null ? 
                 (Array.isArray(options.organization) ? options.organization?.[0] : options.organization) 
         : null));

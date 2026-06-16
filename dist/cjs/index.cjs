@@ -10623,6 +10623,7 @@ var getSettings = () => {
 // src/@parsers/@ugc/ugc.coordinates.ts
 var import_polygon_clipping = require("polygon-clipping");
 var getZonePolygon = (options) => {
+  var _a, _b;
   const list = [...new Set(options.zones.map((z) => z.trim()))].filter((z) => z === "XX000" ? false : true);
   if (list.length === 0) return null;
   const placeholders = list.map(() => "?").join(",");
@@ -10658,7 +10659,7 @@ var getZonePolygon = (options) => {
     }
     if (!bestPoly || bestPoly.length === 0) return null;
     const outerRing = bestPoly[0];
-    const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) || 1);
+    const skip = Math.max(1, (_a = parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10)) != null ? _a : 1);
     let skipped = outerRing.filter((_, idx) => idx % skip === 0);
     if (skipped.length < 4) {
       skipped = outerRing.slice();
@@ -10677,7 +10678,7 @@ var getZonePolygon = (options) => {
       }
     }
     if (multi.length === 0) return null;
-    const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) || 1);
+    const skip = Math.max(1, (_b = parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10)) != null ? _b : 1);
     if (skip > 1) {
       for (let p = 0; p < multi.length; p++) {
         for (let r = 0; r < multi[p].length; r++) {
@@ -10734,7 +10735,7 @@ var getCleanedEvent = (event) => {
 
 // src/@modules/@utilities/utilities.setTimeoutAction.ts
 var setTimeoutAction = (options) => {
-  var _a, _b;
+  var _a, _b, _c;
   let target = (_b = (_a = bootstrap) == null ? void 0 : _a.ratelimits) == null ? void 0 : _b[options == null ? void 0 : options.identifier];
   if (!target) {
     bootstrap.ratelimits[options == null ? void 0 : options.identifier] = [];
@@ -10746,7 +10747,7 @@ var setTimeoutAction = (options) => {
   }
   const oldestTimestamp = target == null ? void 0 : target[0];
   const getWait = oldestTimestamp ? Math.ceil((options == null ? void 0 : options.interval) * 1e3 - (Date.now() - oldestTimestamp)) : 0;
-  const max = (options == null ? void 0 : options.max) || 1;
+  const max = (_c = options == null ? void 0 : options.max) != null ? _c : 1;
   if ((target == null ? void 0 : target.length) >= max && getWait > 0) {
     return {
       limited: true,
@@ -14318,9 +14319,9 @@ var officeICAOs = {
 
 // src/@building/building.office.ts
 var getEventOffice = (options) => {
-  var _a, _b, _c, _d, _e, _f;
-  const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`-`)[0] : ((_c = options.attributes) == null ? void 0 : _c.cccc) || (options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null);
-  const name = (_f = (_e = officeICAOs) == null ? void 0 : _e[office]) != null ? _f : null;
+  var _a, _b, _c, _d, _e, _f, _g;
+  const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`-`)[0] : (_e = (_c = options.attributes) == null ? void 0 : _c.cccc) != null ? _e : options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null;
+  const name = (_g = (_f = officeICAOs) == null ? void 0 : _f[office]) != null ? _g : null;
   return { office, name };
 };
 
@@ -14712,8 +14713,8 @@ var getEventSignature = (event) => {
   const getProduct = (_f = (_e = vtec2 == null ? void 0 : vtec2.vtec) == null ? void 0 : _e.split(`.`)[0]) == null ? void 0 : _f.replace(`/`, ``);
   const isTestProduct = eventProducts[getProduct] == `Test Product`;
   if (isTestProduct || testSignatures.some((sig) => {
-    var _a2, _b2, _c2;
-    return ((_a2 = properties2.description) == null ? void 0 : _a2.toLowerCase().includes(sig.toLowerCase())) || ((_c2 = (_b2 = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _b2.instructions) == null ? void 0 : _c2.toLowerCase().includes(sig.toLowerCase()));
+    var _a2, _b2, _c2, _d2;
+    return (_d2 = (_a2 = properties2.description) == null ? void 0 : _a2.toLowerCase().includes(sig.toLowerCase())) != null ? _d2 : (_c2 = (_b2 = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _b2.instructions) == null ? void 0 : _c2.toLowerCase().includes(sig.toLowerCase());
   })) {
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_test: true });
   }
@@ -14796,10 +14797,10 @@ var createHttp = (options) => __async(null, null, function* () {
   });
 });
 
-// src/@modules/@utilities/utilities.createWebhook.ts
+// src/@manager/manager.createWebhook.ts
 var import_form_data = __toESM(require_form_data());
 var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e, _f;
   const event = options.event.properties;
   const settings = options.webhook;
   let body = [
@@ -14817,7 +14818,7 @@ var createWebhook = (options) => __async(null, null, function* () {
       var _a2, _b2;
       const val = (_a2 = event.parameters.estimated_hail_size) != null ? _a2 : null;
       const th = (_b2 = event.parameters.hail_threat) != null ? _b2 : null;
-      return val || th ? `**Hail Threat**: ${val} ${th ? `(${th})` : ""}` : null;
+      return (val != null ? val : th) ? `**Hail Threat**: ${val} ${th ? `(${th})` : ""}` : null;
     })(),
     event.parameters.damage_threat ? `**Damage Threat**: ${event.parameters.damage_threat}` : null,
     event.parameters.flood_threat ? `**Flood Threat**: ${event.parameters.flood_threat}` : null,
@@ -14838,14 +14839,19 @@ var createWebhook = (options) => __async(null, null, function* () {
     event.watch_parameters.max_tops_x100feet ? `**Max Tops (x100 feet)**: ${event.watch_parameters.max_tops_x100feet}` : null,
     ((_a = event.parameters.tags) == null ? void 0 : _a.length) > 0 ? `**Tags**: ${event.parameters.tags.join(", ")}` : null,
     (() => {
-      var _a2, _b2, _c2, _d2, _e, _f;
+      var _a2, _b2, _c2, _d2, _e2, _f2;
       const val = (_c2 = (_b2 = (_a2 = event.geocode) == null ? void 0 : _a2.office) == null ? void 0 : _b2.name) != null ? _c2 : `N/A`;
-      const th = (_f = (_e = (_d2 = event.geocode) == null ? void 0 : _d2.office) == null ? void 0 : _e.office) != null ? _f : null;
-      return val || th ? `**Sender**: ${val} ${th ? `(${th})` : ""}` : null;
+      const th = (_f2 = (_e2 = (_d2 = event.geocode) == null ? void 0 : _d2.office) == null ? void 0 : _e2.office) != null ? _f2 : null;
+      return (val != null ? val : th) ? `**Sender**: ${val} ${th ? `(${th})` : ""}` : null;
     })(),
     ((_b = event.metadata) == null ? void 0 : _b.tracking) ? `**Tracking**: ${event.metadata.tracking}` : null,
+    ((_c = event.metadata.history) == null ? void 0 : _c.length) > 0 ? `**Updates**: ${event.metadata.history.length}` : null,
     (() => {
-      const desc = (event.description || "").split("\n").map((l) => l.trim()).filter(Boolean).join("\n");
+      var _a2;
+      if (event.status == `expires`) {
+        return null;
+      }
+      const desc = ((_a2 = event.description) != null ? _a2 : "").split("\n").map((l) => l.trim()).filter(Boolean).join("\n");
       return desc ? "```\n" + desc + "\n```" : null;
     })()
   ].filter(Boolean).join("\n");
@@ -14855,7 +14861,7 @@ var createWebhook = (options) => __async(null, null, function* () {
   }
   if (body.length > 1900) {
     body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-    const blocks = (body.match(/```/g) || []).length;
+    const blocks = ((_d = body.match(/```/g)) != null ? _d : []).length;
     if (blocks % 2 !== 0) body += "```";
   }
   const form = new import_form_data.default();
@@ -14867,8 +14873,8 @@ var createWebhook = (options) => __async(null, null, function* () {
     footer: { text: settings.title }
   };
   form.append("payload_json", JSON.stringify({
-    username: (_c = settings.title) != null ? _c : "AtmosphericX",
-    content: (_d = settings.message) != null ? _d : "",
+    username: (_e = settings.title) != null ? _e : "AtmosphericX",
+    content: (_f = settings.message) != null ? _f : "",
     embeds: [embed]
   }));
   if (settings.upload) {
@@ -16668,7 +16674,7 @@ var Manager = class {
   }
   trycatch() {
     process.on("uncaughtException", (err) => {
-      var _a;
+      var _a, _b;
       const ignored = ["ETIMEDOUT", "ECONNRESET", "EHOSTUNREACH", "ENOTFOUND", "ECONNREFUSED", "EPIPE", "EADDRINUSE", "EALREADY", "EACCES", "EAGAIN", "EHOSTDOWN", "STARTTLS_FAILURE"];
       if (ignored.includes(err == null ? void 0 : err.code)) {
         setEventEmit({
@@ -16682,7 +16688,7 @@ var Manager = class {
         });
         return;
       }
-      setWarning({ message: `Uncaught Exception: ${err instanceof Error ? err.stack || err.message : String(err)}` });
+      setWarning({ message: `Uncaught Exception: ${err instanceof Error ? (_b = err.stack) != null ? _b : err.message : String(err)}` });
     });
   }
 };

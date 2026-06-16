@@ -55,7 +55,7 @@ export class Manager {
                 })
                 return; 
             }
-            setWarning({message: `Uncaught Exception: ${err instanceof Error ? err.stack || err.message : String(err)}`})
+            setWarning({message: `Uncaught Exception: ${err instanceof Error ? err.stack ?? err.message : String(err)}`})
         })
     }
 }

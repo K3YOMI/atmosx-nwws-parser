@@ -45,7 +45,7 @@ export const setTimeoutAction = (options: SetTimeoutActionOptions): SetTimeoutAc
 
     const oldestTimestamp = target?.[0];
     const getWait = oldestTimestamp ? Math.ceil((options?.interval * 1000) - (Date.now() - oldestTimestamp)) : 0;
-    const max = options?.max || 1;
+    const max = options?.max ?? 1;
     
     if (target?.length >= max && getWait > 0) {
         return {

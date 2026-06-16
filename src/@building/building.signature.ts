@@ -47,7 +47,7 @@ export const getEventSignature = (event: TypeEvent): TypeEvent => {
     
     const getProduct = vtec?.vtec?.split(`.`)[0]?.replace(`/`, ``)
     const isTestProduct = eventProducts[getProduct] == `Test Product`
-    if (isTestProduct || testSignatures.some(sig => properties.description?.toLowerCase().includes(sig.toLowerCase()) || properties?.parameters?.instructions?.toLowerCase().includes(sig.toLowerCase()))) {
+    if (isTestProduct || testSignatures.some(sig => properties.description?.toLowerCase().includes(sig.toLowerCase()) ?? properties?.parameters?.instructions?.toLowerCase().includes(sig.toLowerCase()))) {
         properties.status_metadata = { ...properties.status_metadata, is_test: true }
     }    
     

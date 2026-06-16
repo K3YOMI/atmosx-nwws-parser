@@ -17,11 +17,11 @@
 
 */
 
-import { TypeEvent } from "../../@types/type.event";
-import { setTimeoutAction } from "./utilities.setTimeoutAction"
-import { createHttp } from "./utilities.createHttp"
-import { TypeWebhook } from "../../@types/types.webhook";
-import { getCleanedEvent } from "../../@building/building.clean";
+import { TypeEvent } from "../@types/type.event";
+import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction"
+import { createHttp } from "../@modules/@utilities/utilities.createHttp"
+import { TypeWebhook } from "../@types/types.webhook";
+import { getCleanedEvent } from "../@building/building.clean";
 import FormData from "form-data";
 
 interface CreateWebhookOptions { 
@@ -46,7 +46,7 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
         (() => {
             const val = event.parameters.estimated_hail_size ?? null
             const th = event.parameters.hail_threat ?? null
-            return (val || th) ? `**Hail Threat**: ${val} ${th ? `(${th})` : ''}` : null;
+            return (val ?? th) ? `**Hail Threat**: ${val} ${th ? `(${th})` : ''}` : null;
         })(),
         event.parameters.damage_threat ? `**Damage Threat**: ${event.parameters.damage_threat}` : null,
         event.parameters.flood_threat ? `**Flood Threat**: ${event.parameters.flood_threat}` : null,
@@ -69,11 +69,13 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
         (() => {
             const val = event.geocode?.office?.name ?? `N/A`
             const th = event.geocode?.office?.office ?? null
-            return (val || th) ? `**Sender**: ${val} ${th ? `(${th})` : ''}` : null;
+            return (val ?? th) ? `**Sender**: ${val} ${th ? `(${th})` : ''}` : null;
         })(),
         event.metadata?.tracking ? `**Tracking**: ${event.metadata.tracking}` : null,
+        event.metadata.history?.length > 0 ? `**Updates**: ${event.metadata.history.length}` : null,
         (() => {
-            const desc = (event.description || '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+            if (event.status == `expires`) { return null }
+            const desc = (event.description ?? '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
             return desc ? '```' + '\n' + desc + '\n' + '```' : null;
         })(),
     ].filter(Boolean).join('\n');
@@ -83,7 +85,7 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
 
     if (body.length > 1900) {   
         body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-        const blocks = (body.match(/```/g) || []).length;
+        const blocks = (body.match(/```/g) ?? []).length;
         if (blocks % 2 !== 0) body += "```";
     }
     const form = new FormData();

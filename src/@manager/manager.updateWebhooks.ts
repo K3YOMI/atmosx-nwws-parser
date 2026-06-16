@@ -17,7 +17,7 @@
 
 */
 
-import { createWebhook } from "../@modules/@utilities/utilities.createWebhook";
+import { createWebhook } from "./manager.createWebhook";
 import { TypeEvent } from "../@types/type.event";
 import { TypeWebhook } from "../@types/types.webhook";
 import { bootstrap } from "../bootstrap"

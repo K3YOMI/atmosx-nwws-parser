@@ -70,7 +70,7 @@ export const getZonePolygon = (options: CoordinatesOptions): CoordinatesResponse
         }
         if (!bestPoly || bestPoly.length === 0) return null;
         const outerRing = bestPoly[0];
-        const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) || 1);
+        const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
         let skipped = outerRing.filter((_: any, idx: number) => idx % skip === 0);
         if (skipped.length < 4) {
             skipped = outerRing.slice();
@@ -89,7 +89,7 @@ export const getZonePolygon = (options: CoordinatesOptions): CoordinatesResponse
             }
         }
         if (multi.length === 0) return null;
-        const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) || 1);
+        const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
         if (skip > 1) {
             for (let p = 0; p < multi.length; p++) {
                 for (let r = 0; r < multi[p].length; r++) {
