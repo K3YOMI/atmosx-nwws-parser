@@ -28,22 +28,14 @@ import { TypeSettings } from "../@types/types.settings";
 export const mkEvent = async (event: TypeEvent): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
     const features = bootstrap.cache.events.features;
-    const map = new Map<string, typeof features[0]>();
-    
-    for (const f of features) {
-        const key = f?.properties?.metadata?.tracking;
-        if (!key) continue;
-        map.set(key, f);
-    }
-    
+ 
     const getHash = event.properties.metadata.hash;
     const getTracking = event.properties.metadata.tracking;
     const isEntry = bootstrap.cache.hashes?.find(hash => hash.tracking === getTracking)
     const isHashed = isEntry?.hashes?.includes(getHash) ?? false;
-    const getFeature = map.get(getTracking);
-    
+    const getFeature = features.find(feature => feature.properties.metadata.tracking === getTracking);    
     if (isHashed || event.properties.status_metadata.is_expired) return
-    await setHash(event, isEntry)
+    setHash(event, isEntry)
     const isFilteredLocation = await updateNode(event).then(() => event.properties.metadata.filtered_proximity);
     if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) { return }
 

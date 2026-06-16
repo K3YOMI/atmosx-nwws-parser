@@ -22,7 +22,7 @@ import { TypeHash } from "../@types/types.hash"
 import { bootstrap } from "../bootstrap"
 
 
-export const setHash = async (event: TypeEvent, entry: TypeHash): Promise<void> => {
+export const setHash = (event: TypeEvent, entry: TypeHash): void => {
     if (entry) {
         entry.hashes.push(event.properties.metadata.hash);
         entry.expires = event.properties.expires;

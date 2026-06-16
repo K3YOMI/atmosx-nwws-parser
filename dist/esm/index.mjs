@@ -14700,14 +14700,13 @@ var getEventSignature = (event) => {
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_test: true });
   }
   if (new Date(properties2.expires).getTime() < Date.now()) {
-    properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
   }
   properties2.status_metadata = __spreadValues({}, properties2.status_metadata);
   return event;
 };
 
 // src/@manager/manager.setHash.ts
-var setHash = (event, entry) => __async(null, null, function* () {
+var setHash = (event, entry) => {
   if (entry) {
     entry.hashes.push(event.properties.metadata.hash);
     entry.expires = event.properties.expires;
@@ -14718,7 +14717,7 @@ var setHash = (event, entry) => __async(null, null, function* () {
       expires: event.properties.expires
     });
   }
-});
+};
 
 // src/@modules/@utilities/utilities.createHttp.ts
 import request from "request";
@@ -15062,22 +15061,16 @@ var updateNode = (selectedEvent) => __async(null, null, function* () {
 
 // src/@manager/manager.mkEvent.ts
 var mkEvent = (event) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
   const settings = bootstrap.settings;
   const features = bootstrap.cache.events.features;
-  const map2 = /* @__PURE__ */ new Map();
-  for (const f of features) {
-    const key = (_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking;
-    if (!key) continue;
-    map2.set(key, f);
-  }
   const getHash = event.properties.metadata.hash;
   const getTracking = event.properties.metadata.tracking;
-  const isEntry = (_c = bootstrap.cache.hashes) == null ? void 0 : _c.find((hash) => hash.tracking === getTracking);
-  const isHashed = (_e = (_d = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _d.includes(getHash)) != null ? _e : false;
-  const getFeature = map2.get(getTracking);
+  const isEntry = (_a = bootstrap.cache.hashes) == null ? void 0 : _a.find((hash) => hash.tracking === getTracking);
+  const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
+  const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
   if (isHashed || event.properties.status_metadata.is_expired) return;
-  yield setHash(event, isEntry);
+  setHash(event, isEntry);
   const isFilteredLocation = yield updateNode(event).then(() => event.properties.metadata.filtered_proximity);
   if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
     return;
@@ -15094,22 +15087,22 @@ var mkEvent = (event) => __async(null, null, function* () {
     if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
       if (getFeature) {
         const getIndex = features.indexOf(getFeature);
-        const cHistory = (_h = (_g = (_f = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _f.metadata) == null ? void 0 : _g.history) != null ? _h : [];
-        const cLocations = (_k = (_j = (_i = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _i.locations) == null ? void 0 : _j.split(";").map((l) => l.trim())) != null ? _k : [];
-        const cUgc = (_n = (_m = (_l = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _l.geocode) == null ? void 0 : _m.ugc) != null ? _n : [];
-        const iHistory = (_q = (_p = (_o = event.properties) == null ? void 0 : _o.metadata) == null ? void 0 : _p.history) != null ? _q : [];
-        const iLocations = (_t = (_s = (_r = event.properties) == null ? void 0 : _r.locations) == null ? void 0 : _s.split(";").map((l) => l.trim())) != null ? _t : [];
-        const iUgc = (_w = (_v = (_u = event.properties) == null ? void 0 : _u.geocode) == null ? void 0 : _v.ugc) != null ? _w : [];
+        const cHistory = (_f = (_e = (_d = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _d.metadata) == null ? void 0 : _e.history) != null ? _f : [];
+        const cLocations = (_i = (_h = (_g = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _g.locations) == null ? void 0 : _h.split(";").map((l) => l.trim())) != null ? _i : [];
+        const cUgc = (_l = (_k = (_j = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _j.geocode) == null ? void 0 : _k.ugc) != null ? _l : [];
+        const iHistory = (_o = (_n = (_m = event.properties) == null ? void 0 : _m.metadata) == null ? void 0 : _n.history) != null ? _o : [];
+        const iLocations = (_r = (_q = (_p = event.properties) == null ? void 0 : _p.locations) == null ? void 0 : _q.split(";").map((l) => l.trim())) != null ? _r : [];
+        const iUgc = (_u = (_t = (_s = event.properties) == null ? void 0 : _s.geocode) == null ? void 0 : _t.ugc) != null ? _u : [];
         const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i);
         const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join("; ");
         const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
         bootstrap.cache.events.features[getIndex] = __spreadProps(__spreadValues({}, event), {
           properties: __spreadProps(__spreadValues({}, event.properties), {
-            metadata: __spreadProps(__spreadValues({}, (_x = event == null ? void 0 : event.properties) == null ? void 0 : _x.metadata), {
+            metadata: __spreadProps(__spreadValues({}, (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.metadata), {
               history: mHistory
             }),
             locations: mLocations,
-            geocode: __spreadProps(__spreadValues({}, (_y = event == null ? void 0 : event.properties) == null ? void 0 : _y.geocode), {
+            geocode: __spreadProps(__spreadValues({}, (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.geocode), {
               ugc: mUgc
             })
           })
@@ -15182,7 +15175,7 @@ var validateEvents = (events) => __async(null, null, function* () {
       delete filteredProperties.metadata.ms;
     }
     filteredProperties.metadata = (_a2 = filteredProperties.metadata) != null ? _a2 : {};
-    filteredProperties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
+    properties2.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
     setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`, metadata: define2 });
     if (properties2.status_metadata.is_test) {
       setEventEmit({ event: `onTestProduct`, metadata: define2 });
