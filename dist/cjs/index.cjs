@@ -14718,6 +14718,7 @@ var getEventSignature = (event) => {
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_test: true });
   }
   if (new Date(properties2.expires).getTime() < Date.now()) {
+    properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
   }
   properties2.status_metadata = __spreadValues({}, properties2.status_metadata);
   return event;
