@@ -31,6 +31,7 @@ import { setNode } from "./@core/core.setNode"
 import { getEvents } from "./@core/core.getEvents"
 import { getNodes } from "./@core/core.getNodes"
 import { getRandomEvent } from './@core/core.getRandomEvent';
+import { query } from './@core/core.query';
 import { clearEvents } from './@core/core.clearEvents';
 
 export class Manager { 
@@ -66,7 +67,7 @@ export {
     setSettings, getEventGeometry, 
     getCleanedEvent, stopService, clearEvents,
     startService, setNode, getRandomEvent,
-    getEvents, getNodes, setEasTone
+    getEvents, getNodes, setEasTone, query
 }
 
 

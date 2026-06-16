@@ -228,6 +228,31 @@ declare const getNodes: () => any;
 
 declare const getRandomEvent: () => any;
 
+type TypeStanza = {
+    getChild(arg0: string): unknown;
+    is(arg0: string): unknown;
+    name: string;
+    parent: TypeStanza | null;
+    children: any;
+    attrs: {
+        xmlns: string;
+        id: string;
+        issue: string;
+        ttaaii: string;
+        cccc: string;
+        awipsid: string;
+        from: string;
+        to: string;
+        type: string;
+    };
+};
+
+interface QueryOptions {
+    search: string;
+    max?: number;
+}
+declare const query: (options: QueryOptions) => Promise<TypeStanza[]>;
+
 declare const clearEvents: () => void;
 
 declare class Manager {
@@ -236,4 +261,4 @@ declare class Manager {
     trycatch(): void;
 }
 
-export { Manager, type TypeEvent, clearEvents, Manager as default, getCleanedEvent, getEventGeometry, getEvents, getNodes, getRandomEvent, setEasTone, setNode, setSettings, startService, stopService };
+export { Manager, type TypeEvent, clearEvents, Manager as default, getCleanedEvent, getEventGeometry, getEvents, getNodes, getRandomEvent, query, setEasTone, setNode, setSettings, startService, stopService };

@@ -10497,6 +10497,7 @@ __export(index_exports, {
   getEvents: () => getEvents,
   getNodes: () => getNodes,
   getRandomEvent: () => getRandomEvent,
+  query: () => query,
   setEasTone: () => setEasTone,
   setNode: () => setNode,
   setSettings: () => setSettings,
@@ -16654,6 +16655,16 @@ var getRandomEvent = () => {
   return bootstrap.cache.events.features[Math.floor(Math.random() * bootstrap.cache.events.features.length)];
 };
 
+// src/@core/core.query.ts
+var query = (options) => __async(null, null, function* () {
+  var _a;
+  const get = yield bootstrap.database.prepare(
+    `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`
+  ).all(`%${options.search}%`, (_a = options.max) != null ? _a : 100);
+  const events = get.map((row) => JSON.parse(row.stanza));
+  return events;
+});
+
 // src/@core/core.clearEvents.ts
 var clearEvents = () => {
   bootstrap.cache.events.features = [];
@@ -16704,6 +16715,7 @@ var index_default = Manager;
   getEvents,
   getNodes,
   getRandomEvent,
+  query,
   setEasTone,
   setNode,
   setSettings,

@@ -320,6 +320,15 @@ const nodes = getNodes()
 console.log(nodes)
 ```
 
+### Function `query`
+Queries the event cache (datbase) for specific events based on text.
+```ts 
+import { query } from "@atmosx/event-product-parser"
+query({search: "Tornado Warning", limit: 3}).then(results => {
+    console.log(results)
+})
+````
+
 ### Function `setEasTone`
 Fetches an EAS audio message for an event (Simulated)
 ```ts
