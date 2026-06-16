@@ -10510,7 +10510,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.41`,
+  version: `3.0.42`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
