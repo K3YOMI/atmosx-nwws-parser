@@ -212,7 +212,7 @@ interface GenerateEASOptions {
 }
 declare const setEasTone: (options: GenerateEASOptions) => Promise<string>;
 
-interface GetAddChaserOptions {
+interface GetNodeOptions {
     identifier: string;
     delete?: boolean;
     coordinates: {
@@ -220,7 +220,7 @@ interface GetAddChaserOptions {
         latitude: number;
     };
 }
-declare const setNode: (options: GetAddChaserOptions) => void;
+declare const setNode: (options: GetNodeOptions) => void;
 
 declare const getEvents: () => any;
 

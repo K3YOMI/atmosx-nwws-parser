@@ -21,13 +21,13 @@ import { bootstrap } from "../bootstrap";
 import { setWarning } from "../@modules/@utilities/utilities.setWarning"
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
-interface GetAddChaserOptions {
+interface GetNodeOptions {
     identifier: string
     delete?: boolean
     coordinates: { longitude: number; latitude: number }
 }
 
-export const setNode = (options: GetAddChaserOptions) => {
+export const setNode = (options: GetNodeOptions) => {
     const nodes = bootstrap.cache.nodes.features;
     const exists = nodes.find((node) => node.properties.identifier === options.identifier);
     if (options.delete) {

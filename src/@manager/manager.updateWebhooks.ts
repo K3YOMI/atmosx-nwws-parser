@@ -22,7 +22,6 @@ import { TypeEvent } from "../@types/type.event";
 import { TypeWebhook } from "../@types/types.webhook";
 import { bootstrap } from "../bootstrap"
 
-
 export const updateWebhooks = async (event: TypeEvent): Promise<void> => {
     const settings = bootstrap.settings;
     const webhooks = settings.WebhookSettings as TypeWebhook[];
