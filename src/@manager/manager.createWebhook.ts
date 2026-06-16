@@ -74,7 +74,7 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
         event.metadata?.tracking ? `**Tracking**: ${event.metadata.tracking}` : null,
         event.metadata.history?.length > 0 ? `**Updates**: ${event.metadata.history.length}` : null,
         (() => {
-            if (event.status == `expires`) { return null }
+            if (event.status == `Expired`) { return null }
             const desc = (event.description ?? '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
             return desc ? '```' + '\n' + desc + '\n' + '```' : null;
         })(),

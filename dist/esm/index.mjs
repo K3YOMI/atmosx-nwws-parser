@@ -14832,7 +14832,7 @@ var createWebhook = (options) => __async(null, null, function* () {
     ((_c = event.metadata.history) == null ? void 0 : _c.length) > 0 ? `**Updates**: ${event.metadata.history.length}` : null,
     (() => {
       var _a2;
-      if (event.status == `expires`) {
+      if (event.status == `Expired`) {
         return null;
       }
       const desc = ((_a2 = event.description) != null ? _a2 : "").split("\n").map((l) => l.trim()).filter(Boolean).join("\n");

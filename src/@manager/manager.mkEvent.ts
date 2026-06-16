@@ -36,6 +36,7 @@ export const mkEvent = async (event: TypeEvent): Promise<void> => {
     const getFeature = features.find(feature => feature.properties.metadata.tracking === getTracking);    
     if (isHashed || event.properties.status_metadata.is_expired) return
     setHash(event, isEntry)
+    
     const isFilteredLocation = await updateNode(event).then(() => event.properties.metadata.filtered_proximity);
     if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) { return }
 
