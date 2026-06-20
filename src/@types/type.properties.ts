@@ -67,6 +67,8 @@ export type TypeEventProperties = {
         pds_watch: boolean
     }
     spc_parameters: {
+        spc_number: string
+        spc_concerning: string
         spc_max_tornado: string
         spc_max_hail: string
         spc_max_wind: string

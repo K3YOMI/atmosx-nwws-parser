@@ -21,7 +21,7 @@ import path from 'path'
 import { EventEmitter } from 'node:events';
 
 export const bootstrap = {
-    version: `3.0.42`,
+    version: `3.0.43`,
     isReady: true,
     ratelimits: {},
     session_xmpp: null,
@@ -93,6 +93,7 @@ export const bootstrap = {
                 IgnoreTestProducts: true,
             },
             EASSettings: {
+                ArchiveTTL: 60,
                 ArchiveDirectory: null,
                 IntroWavFile: null,
             }

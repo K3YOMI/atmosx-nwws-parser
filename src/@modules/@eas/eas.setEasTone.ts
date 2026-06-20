@@ -35,6 +35,7 @@ import { execSync } from 'child_process'
 import { platform } from 'os'
 import { setWarning } from "../@utilities/utilities.setWarning";
 import say from 'say'
+import { buffer } from "stream/consumers";
 
 interface GenerateEASOptions { 
     message: string
@@ -47,6 +48,13 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     const prefix = settings.GlobalSettings.EASSettings.IntroWavFile;
     let message = options.message;
     let header = options.header;
+    if (!message || !header) {
+        setWarning({
+            title: `EAS`,
+            message: `Message and header are required to generate an EAS tone.`
+        })
+        return null;
+    }
     let buffTTS: Buffer;
     let buffRadio: any;
     let buffFull: any[] = [];
@@ -78,10 +86,13 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
         return null;
     }
     
-    say.export(message, vTTS, 1.0, tmpTTS)
-    while (!existsSync(tmpTTS) || (buffTTS = readFileSync(tmpTTS)).length == 0) { 
-        await setSleep({timeout: 25});
-    }
+    await new Promise<void>((resolve, reject) => {
+        const tMsg = message.replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+        say.export(tMsg, vTTS, 1.0, tmpTTS, (err: any) => {
+            buffTTS = readFileSync(tmpTTS);
+            resolve();
+        });
+    });
     const vWav = getWavPCM16(buffTTS);
     const vSamples = getSampledPCM16(vWav.samples, vWav.sampleRate, 8000)
     const vRadio = setRadioEffect(vSamples, 8000)
@@ -130,7 +141,7 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     const aFinal = setNoise(aSamples, 0.002);
     const aBuffer = getPCM16(Array.from(aFinal).map(v => ({ value: v })), 8000);
     writeFileSync(outTTS, aBuffer)
-    try{unlinkSync(tmpTTS)} catch {}
+    try{ unlinkSync(tmpTTS) } catch {}
     return outTTS;
 }
 

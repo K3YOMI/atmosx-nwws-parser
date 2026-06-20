@@ -66,6 +66,7 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     header: header,
                     vtec: null,
                     hvtec: null,
+                    raw: message,
                     history: [
                         {
                             description: props.description,

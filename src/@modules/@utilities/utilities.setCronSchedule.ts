@@ -24,9 +24,26 @@ import { bootstrap } from "../../bootstrap";
 import { createHttp } from "./utilities.createHttp";
 import { createEvent } from "../../@building/building.create";
 import { setEventEmit } from "./utilities.setEventEmit";
+import { readdirSync, unlink } from "fs";
 
 export const setCronSchedule = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
+
+    if (settings.GlobalSettings.EASSettings.ArchiveDirectory) { 
+        const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL;
+        if (TTL) {
+            const files = readdirSync(settings.GlobalSettings.EASSettings.ArchiveDirectory);
+            for (const file of files) {
+                const filePath = `${settings.GlobalSettings.EASSettings.ArchiveDirectory}/${file}`;
+                const stats = await new Promise<{ mtime: Date }>((resolve, reject) => {})
+                const time = Date.now() - TTL * 1000;
+                if (stats.mtime.getTime() < time) {
+                    unlink(filePath, (err) => {});
+                }
+            }    
+        }
+    }
+    
     if (settings.EnableWireService) {
         if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
             void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval)

@@ -3,6 +3,7 @@ type TypeWebhook = {
     title: string;
     message: string;
     upload: boolean;
+    eas: boolean;
     rate: number;
     events: string[];
 };
@@ -57,6 +58,7 @@ type TypeSettings = {
             IgnoreTestProducts: boolean;
         };
         EASSettings: {
+            ArchiveTTL: number;
             ArchiveDirectory: string;
             IntroWavFile: string;
         };
@@ -122,6 +124,8 @@ type TypeEventProperties = {
         pds_watch: boolean;
     };
     spc_parameters: {
+        spc_number: string;
+        spc_concerning: string;
         spc_max_tornado: string;
         spc_max_hail: string;
         spc_max_wind: string;
@@ -190,6 +194,8 @@ type TypeEvent = {
                 issued: string;
                 status: string;
             }[];
+            attachments?: string[];
+            raw: string;
         };
     } & TypeEventProperties;
 };

@@ -125,6 +125,7 @@ const Client = new Manager({
 - **webhook**: The URL of the webhook you want to send messages to.
 - **title**: The title of the message you want to send.
 - **message**: The message content you want to send. You can use placeholders like `<@&role_id>` to mention roles in Discord.
+- **eas**: Whether to generate and upload an EAS audio file for the event.
 - **upload**: Whether to upload a JSON file as well with the message containing the event data.
 - **events**: An array of event types that will trigger the webhook when they are received by the parser. If this array is empty, the webhook will be triggered for all events.
 - **rate**: The rate limit in seconds for how often the webhook can be triggered. This is to prevent spamming the webhook with too many messages in a short period of time.
@@ -146,6 +147,7 @@ const Client = new Manager({
 - **ListeningStates**: States you'd like to listen to `(Ex. ["IL"])`
 - **NodeLocationFiltering**: If you want tracking nodes to filter out events based on radius. (Miles)\
 - **IgnoreTextProducts**: If you want to ignore test products and events.
+- **ArchiveTTL**: The time to live for archived events. After this time, the events will be automatically deleted from the eas archive.
 - **ArchiveDirectory**: The directory you'd like to store generated EAS audio files.
 - **IntroWavFile**: The PCM16 bit WAV audio file to append to the EAS message.
 

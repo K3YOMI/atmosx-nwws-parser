@@ -15,14 +15,18 @@
 
     Internal Package: @atmosx/event-product-parser
 
+    
 */
 
-export type TypeWebhook = { 
-    webhook: string
-    title: string
-    message: string
-    upload: boolean
-    eas: boolean
-    rate: number
-    events: string[]
+export const getLatestIssuance = (): string => {
+    const now = new Date();
+    const current = now.getUTCHours() * 100 + now.getUTCMinutes();
+    const issuances = [100, 600, 1300, 1630, 2000];
+    let latest = issuances[0];
+    for (const issuance of issuances) {
+        if (current >= issuance) {
+            latest = issuance;
+        }
+    }
+    return latest.toString().padStart(4, "0");
 }

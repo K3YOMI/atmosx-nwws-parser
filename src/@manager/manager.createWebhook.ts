@@ -22,6 +22,8 @@ import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAct
 import { createHttp } from "../@modules/@utilities/utilities.createHttp"
 import { TypeWebhook } from "../@types/types.webhook";
 import { getCleanedEvent } from "../@building/building.clean";
+import { setEasTone } from "../@modules/@eas/eas.setEasTone";
+import { readFileSync } from "fs";
 import FormData from "form-data";
 
 interface CreateWebhookOptions { 
@@ -32,86 +34,85 @@ interface CreateWebhookOptions {
 export const createWebhook = async (options: CreateWebhookOptions): Promise<void> => {
     const event = options.event.properties;
     const settings = options.webhook;
-    
-    let body = [
-        event.locations ? `**Locations**: ${event.locations.slice(0,100)}` : null,
-        event.issued && event.status != `Expired` ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime()/1000)}:R>` : null,
-        event.expires && event.status != `Statement` ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime()/1000)}:R>` : null,
-        (() => {
-            const val = event.parameters.estimated_wind_gusts ?? null
-            const th = event.parameters.wind_threat ?? null
-            const combined = [val, th].filter(Boolean).join(' ');
-            return combined ? `**Wind Gusts**: ${val} ${th ? `(${th})` : ''}` : null;
-        })(),
-        (() => {
-            const val = event.parameters.estimated_hail_size ?? null
-            const th = event.parameters.hail_threat ?? null
-            return (val ?? th) ? `**Hail Threat**: ${val} ${th ? `(${th})` : ''}` : null;
-        })(),
-        event.parameters.damage_threat ? `**Damage Threat**: ${event.parameters.damage_threat}` : null,
-        event.parameters.flood_threat ? `**Flood Threat**: ${event.parameters.flood_threat}` : null,
-        event.parameters.tornado_threat ? `**Tornado Threat**: ${event.parameters.tornado_threat}` : null,
-        event.spc_parameters.spc_max_tornado ? `**Max Tornado Threat**: ${event.spc_parameters.spc_max_tornado}` : null,
-        event.spc_parameters.spc_max_hail ? `**Max Hail Threat**: ${event.spc_parameters.spc_max_hail}` : null,
-        event.spc_parameters.spc_max_wind ? `**Max Wind Threat**: ${event.spc_parameters.spc_max_wind}` : null,
-        event.spc_parameters.spc_watch_issuance ? `**Watch Issuance**: ${event.spc_parameters.spc_watch_issuance}%` : null,
-        event.watch_parameters.watch_number ? `**Watch Number**: ${event.watch_parameters.watch_number}` : null,
-        event.watch_parameters.strong_tornadoes_probability ? `**Strong Tornadoes Probability**: ${event.watch_parameters.strong_tornadoes_probability}%` : null,
-        event.watch_parameters.additional_tornadoes_probability ? `**Additional Tornadoes Probability**: ${event.watch_parameters.additional_tornadoes_probability}%` : null,
-        event.watch_parameters.combined_hail_wind_probability ? `**Combined Hail/Wind Probability**: ${event.watch_parameters.combined_hail_wind_probability}%` : null,        
-        event.watch_parameters.severe_hail_probability ? `**Severe Hail Probability**: ${event.watch_parameters.severe_hail_probability}%` : null,
-        event.watch_parameters.hail_2in_probability ? `**Hail ≥2in Probability**: ${event.watch_parameters.hail_2in_probability}%` : null,
-        event.watch_parameters.max_hail_in ? `**Max Hail Inches**: ${event.watch_parameters.max_hail_in}` : null,
-        event.watch_parameters.severe_wind_probability ? `**Severe Wind Probability**: ${event.watch_parameters.severe_wind_probability}%` : null,
-        event.watch_parameters.max_wind_surface ? `**Max Surface Wind**: ${event.watch_parameters.max_wind_surface}` : null,
-        event.watch_parameters.max_tops_x100feet ? `**Max Tops (x100 feet)**: ${event.watch_parameters.max_tops_x100feet}` : null,
-        (event.parameters.tags?.length > 0) ? `**Tags**: ${event.parameters.tags.join(', ')}` : null,
-        (() => {
-            const val = event.geocode?.office?.name ?? `N/A`
-            const th = event.geocode?.office?.office ?? null
-            return (val ?? th) ? `**Sender**: ${val} ${th ? `(${th})` : ''}` : null;
-        })(),
-        event.metadata?.tracking ? `**Tracking**: ${event.metadata.tracking}` : null,
-        event.metadata.history?.length > 0 ? `**Logs**: ${event.metadata.history.length}` : null,
-        (() => {
-            if (event.status == `Expired`) { return null }
-            const desc = (event.description ?? '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
-            return desc ? '```' + '\n' + desc + '\n' + '```' : null;
-        })(),
-    ].filter(Boolean).join('\n');
-
+    const line = (label: string, value: unknown, condition = true) => condition && value ? `${label} ${value}` : null;
     const isLimited = setTimeoutAction({ identifier: options.webhook.webhook, interval: options.webhook.rate, max: options.webhook.rate, addTime: true })
-    if (isLimited.limited) { return }
-
-    if (body.length > 1900) {   
-        body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-        const blocks = (body.match(/```/g) ?? []).length;
-        if (blocks % 2 !== 0) body += "```";
+    if (!isLimited.limited) {
+        const isStatement = event.status_metadata.is_statement;
+        const isExpired = event.status_metadata.is_expired;
+        let body = [
+            line(`**Locations:**`, event?.locations?.slice(0, 100)),
+            line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1000)}:R>`),
+            line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1000)}:R>`, !isExpired && !isStatement),
+            line(`**Damage Threat:**`, event.parameters.damage_threat, !isExpired),
+            line(`**Flood Threat:**`, event.parameters.flood_threat, !isExpired),
+            line(`**Tornado Threat:**`, event.parameters.tornado_threat, !isExpired),
+            line(`**Estimated Wind Gusts:**`, `${event.parameters.estimated_wind_gusts} ${event.parameters.wind_threat ? ` (${event.parameters.wind_threat})` : ''}`, !isExpired && event.parameters.estimated_wind_gusts != null),
+            line(`**Estimated Hail Size:**`, `${event.parameters.estimated_hail_size} ${event.parameters.hail_threat ? ` (${event.parameters.hail_threat})` : ''}`, !isExpired && event.parameters.estimated_hail_size != null),
+            line(`**Discussion:**`, event.spc_parameters.spc_number, !isExpired),
+            line(`**Concern:**`, event.spc_parameters.spc_concerning, !isExpired),
+            line(`**SPC Max Tornado Threat:**`, event.spc_parameters.spc_max_tornado, !isExpired),
+            line(`**SPC Max Hail Threat:**`, event.spc_parameters.spc_max_hail, !isExpired),
+            line(`**SPC Max Wind Threat:**`, event.spc_parameters.spc_max_wind, !isExpired),
+            line(`**SPC Watch Issuance Probability:**`, event.spc_parameters.spc_watch_issuance ? `${event.spc_parameters.spc_watch_issuance}%` : null, !isExpired),
+            line(`**Watch Number:**`, event.watch_parameters.watch_number, !isExpired),
+            line(`**Strong Tornadoes Probability:**`, event.watch_parameters.strong_tornadoes_probability ? `${event.watch_parameters.strong_tornadoes_probability}%` : null, !isExpired),
+            line(`**Additional Tornadoes Probability:**`, event.watch_parameters.additional_tornadoes_probability ? `${event.watch_parameters.additional_tornadoes_probability}%` : null, !isExpired),
+            line(`**Combined Hail/Wind Probability:**`, event.watch_parameters.combined_hail_wind_probability ? `${event.watch_parameters.combined_hail_wind_probability}%` : null, !isExpired),
+            line(`**Severe Hail Probability:**`, event.watch_parameters.severe_hail_probability ? `${event.watch_parameters.severe_hail_probability}%` : null, !isExpired),
+            line(`**Hail >2in Probability:**`, event.watch_parameters.hail_2in_probability ? `${event.watch_parameters.hail_2in_probability}%` : null, !isExpired),
+            line(`**Max Hail Inches:**`, event.watch_parameters.max_hail_in, !isExpired),
+            line(`**Severe Wind Probability:**`, event.watch_parameters.severe_wind_probability ? `${event.watch_parameters.severe_wind_probability}%` : null, !isExpired),
+            line(`**Max Surface Wind:**`, event.watch_parameters.max_wind_surface, !isExpired),
+            line(`**Max Tops (x100 feet):**`, event.watch_parameters.max_tops_x100feet, !isExpired), 
+            line(`**Tags:**`, event.parameters.tags?.length > 0 ? event.parameters.tags.join(', ') : null, !isExpired),
+            line(`**Sender:**`, event.geocode?.office?.name ? `${event.geocode.office.name} (${event.geocode.office.office})` : event.geocode?.office?.office),
+            line(`**Tracking:**`, event.metadata?.tracking),
+            line(`**Logs:**`, event.metadata.history?.length > 0 ? event.metadata.history.length : null),
+            line(``, event.description ? '```' + '\n' + event.description.split('\n').map(l => l.trim()).filter(Boolean).join('\n') + '\n' + '```' : null, !isExpired)
+        ].filter(Boolean).join('\n');
+    
+        if (body.length > 1900) {   
+            body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
+            const blocks = (body.match(/```/g) ?? []).length;
+            if (blocks % 2 !== 0) body += "```";
+        }
+        
+        const form = new FormData();
+        const embed = {
+            title: `${event.event} (${event.status})`,
+            description: body,
+            color: 16711680,
+            timestamp: new Date().toISOString(),
+            image: {},
+            footer: { text: settings.title }
+        };
+        if (event.metadata.attachments && event.metadata.attachments.length > 0) {
+            embed.image = { url: event.metadata.attachments[0] }
+        }
+        form.append("payload_json", JSON.stringify({
+            username: settings.title ?? "AtmosphericX",
+            content: settings.message ?? "",
+            embeds: [embed]
+        }));
+        if (settings.upload) {
+            form.append("fUpload", Buffer.from(`${event.metadata.raw}\n\n${JSON.stringify((getCleanedEvent(event)), null, 2)}`), { filename: `${event.event}_${event.status}_${event.metadata.tracking}.txt`, contentType: "application/text" });
+        }
+        if (settings.eas) { 
+            const audio = await setEasTone({
+                message: event.description,
+                header: event.metadata.header
+            });
+            const file = readFileSync(audio)
+            if (audio) {
+                form.append("fEas", Buffer.from(file), { filename: `${event.event}_${event.status}_${event.metadata.tracking}_eas.mp3`, contentType: "audio/mpeg" });
+            }
+        }
+        await createHttp({
+            url: settings.webhook,
+            timeout: 2000,
+            method: `POST`,
+            headers: form.getHeaders(),
+            body: form
+        })
     }
-    const form = new FormData();
-    const embed = {
-        title: `${event.event} (${event.status})`,
-        description: body,
-        color: 16711680,
-        timestamp: new Date().toISOString(),
-        footer: { text: settings.title }
-    };
-    form.append("payload_json", JSON.stringify({
-        username: settings.title ?? "AtmosphericX",
-        content: settings.message ?? "",
-        embeds: [embed]
-    }));
-    if (settings.upload) {
-        form.append("file", Buffer.from(JSON.stringify((getCleanedEvent(event)), null, 2)), {
-            filename: `${event.event}_${event.status}_${event.metadata.tracking}.json`,
-            contentType: "application/json"
-        });
-    }
-    await createHttp({
-        url: settings.webhook,
-        timeout: 2000,
-        method: `POST`,
-        headers: form.getHeaders(),
-        body: form
-    })
 }

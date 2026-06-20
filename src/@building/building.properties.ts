@@ -66,6 +66,8 @@ export const properties = (options: GetPropertiesOptions): TypeEventProperties =
             hail_threat: getTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: []}) ?? null,
         },
         spc_parameters: {
+            spc_number: getTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] }) ?? null,
+            spc_concerning: getTextFromProduct({ message: options.message, find: [`Concerning...`] }) ?? null,
             spc_max_tornado: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
             spc_max_hail: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
             spc_max_wind: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,

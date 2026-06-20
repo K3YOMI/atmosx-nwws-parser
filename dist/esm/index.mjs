@@ -10491,7 +10491,7 @@ var require_form_data = __commonJS({
 import path from "path";
 import { EventEmitter } from "events";
 var bootstrap = {
-  version: `3.0.42`,
+  version: `3.0.43`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -10568,6 +10568,7 @@ var bootstrap = {
         IgnoreTestProducts: true
       },
       EASSettings: {
+        ArchiveTTL: 60,
         ArchiveDirectory: null,
         IntroWavFile: null
       }
@@ -14392,7 +14393,7 @@ var getEventTags = (message) => {
 
 // src/@building/building.properties.ts
 var properties = (options) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L;
   const organization = (_b = (_a = options.message.match(regExp.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
   const polygons = getPolygonFromProduct(options.message);
   const properties2 = {
@@ -14421,23 +14422,25 @@ var properties = (options) => {
       hail_threat: (_t = getTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: [] })) != null ? _t : null
     },
     spc_parameters: {
-      spc_max_tornado: (_u = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _u : null,
-      spc_max_hail: (_v = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _v : null,
-      spc_max_wind: (_w = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _w : null,
-      spc_watch_issuance: (_x = getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _x : null
+      spc_number: (_u = getTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) != null ? _u : null,
+      spc_concerning: (_v = getTextFromProduct({ message: options.message, find: [`Concerning...`] })) != null ? _v : null,
+      spc_max_tornado: (_w = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _w : null,
+      spc_max_hail: (_x = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _x : null,
+      spc_max_wind: (_y = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _y : null,
+      spc_watch_issuance: (_z = getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _z : null
     },
     watch_parameters: {
-      watch_number: (_A = (_z = (_y = getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _y.replace(/(WT|WS|)/g, "")) == null ? void 0 : _z.trim()) != null ? _A : null,
+      watch_number: (_C = (_B = (_A = getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _A.replace(/(WT|WS|)/g, "")) == null ? void 0 : _B.trim()) != null ? _C : null,
       watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : (options == null ? void 0 : options.message.includes(`SEVERE`)) ? `Severe` : null,
-      additional_tornadoes_probability: (_B = getTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _B : null,
-      strong_tornadoes_probability: (_C = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _C : null,
-      severe_wind_probability: (_D = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _D : null,
-      severe_hail_probability: (_E = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _E : null,
-      hail_2in_probability: (_F = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _F : null,
-      combined_hail_wind_probability: (_G = getTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _G : null,
-      max_hail_in: (_H = getTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _H : null,
-      max_wind_surface: (_I = getTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _I : null,
-      max_tops_x100feet: (_J = getTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _J : null,
+      additional_tornadoes_probability: (_D = getTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _D : null,
+      strong_tornadoes_probability: (_E = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _E : null,
+      severe_wind_probability: (_F = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _F : null,
+      severe_hail_probability: (_G = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _G : null,
+      hail_2in_probability: (_H = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _H : null,
+      combined_hail_wind_probability: (_I = getTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _I : null,
+      max_hail_in: (_J = getTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _J : null,
+      max_wind_surface: (_K = getTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _K : null,
+      max_tops_x100feet: (_L = getTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _L : null,
       pds_watch: getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
     }
   };
@@ -14785,99 +14788,491 @@ var createHttp = (options) => __async(null, null, function* () {
   });
 });
 
+// src/@dictionaries/dictionaries.transcribedMessageReplacements.ts
+var transcribedMessageReplacements = [
+  { regex: /\.{3,}/g, replacement: ". " },
+  { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
+  { regex: /\bGMT\b/g, replacement: "Greenwich Mean Time" },
+  { regex: /\bEST\b(?!\w)/g, replacement: "Eastern Standard Time" },
+  { regex: /\bEDT\b(?!\w)/g, replacement: "Eastern Daylight Time" },
+  { regex: /\bCST\b(?!\w)/g, replacement: "Central Standard Time" },
+  { regex: /\bCDT\b(?!\w)/g, replacement: "Central Daylight Time" },
+  { regex: /\bMST\b(?!\w)/g, replacement: "Mountain Standard Time" },
+  { regex: /\bMDT\b(?!\w)/g, replacement: "Mountain Daylight Time" },
+  { regex: /\bPST\b(?!\w)/g, replacement: "Pacific Standard Time" },
+  { regex: /\bPDT\b(?!\w)/g, replacement: "Pacific Daylight Time" },
+  { regex: /\bAKST\b(?!\w)/g, replacement: "Alaska Standard Time" },
+  { regex: /\bAKDT\b(?!\w)/g, replacement: "Alaska Daylight Time" },
+  { regex: /\bHST\b(?!\w)/g, replacement: "Hawaii Standard Time" },
+  { regex: /\bHDT\b(?!\w)/g, replacement: "Hawaii Daylight Time" },
+  { regex: /\bmph\b(?!\w)/g, replacement: "miles per hour" },
+  { regex: /\bkm\/h\b(?!\w)/g, replacement: "kilometers per hour" },
+  { regex: /\bkmh\b(?!\w)/g, replacement: "kilometers per hour" },
+  { regex: /\bkt\b(?!\w)/g, replacement: "knots" },
+  { regex: /\bNE\b(?!\w)/g, replacement: "northeast" },
+  { regex: /\bNW\b(?!\w)/g, replacement: "northwest" },
+  { regex: /\bSE\b(?!\w)/g, replacement: "southeast" },
+  { regex: /\bSW\b(?!\w)/g, replacement: "southwest" },
+  { regex: /\bNM\b(?!\w)/g, replacement: "nautical miles" },
+  { regex: /\bdeg\b(?!\w)/g, replacement: "degrees" },
+  { regex: /\btstm\b(?!\w)/g, replacement: "thunderstorm" },
+  { regex: /\bmm\b(?!\w)/g, replacement: "millimeters" },
+  { regex: /\bcm\b(?!\w)/g, replacement: "centimeters" },
+  { regex: /\bin.\b(?!\w)/g, replacement: "inches" },
+  { regex: /\bft\b(?!\w)/g, replacement: "feet" },
+  { regex: /\bmi\b(?!\w)/g, replacement: "miles" },
+  { regex: /\bhr\b(?!\w)/g, replacement: "hour" },
+  { regex: /\bhourly\b(?!\w)/g, replacement: "per hour" },
+  { regex: /\bkg\b(?!\w)/g, replacement: "kilograms" },
+  { regex: /\bg\/kg\b(?!\w)/g, replacement: "grams per kilogram" },
+  { regex: /\bmb\b(?!\w)/g, replacement: "millibars" },
+  { regex: /\bhPa\b(?!\w)/g, replacement: "hectopascals" },
+  { regex: /\bPa\b(?!\w)/g, replacement: "pascals" },
+  { regex: /\bKPa\b(?!\w)/g, replacement: "kilopascals" },
+  { regex: /\bC\/hr\b(?!\w)/g, replacement: "degrees Celsius per hour" },
+  { regex: /\bF\/hr\b(?!\w)/g, replacement: "degrees Fahrenheit per hour" },
+  { regex: /\bC\/min\b(?!\w)/g, replacement: "degrees Celsius per minute" },
+  { regex: /\bF\/min\b(?!\w)/g, replacement: "degrees Fahrenheit per minute" },
+  { regex: /\bC\b(?!\w)/g, replacement: "degrees Celsius" },
+  { regex: /\bF\b(?!\w)/g, replacement: "degrees Fahrenheit" }
+];
+
+// src/@modules/@eas/eas.getWavPCM16.ts
+var getWavPCM16 = (buffer) => {
+  if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
+    return null;
+  }
+  let fmt = null;
+  let data = null;
+  let i = 12;
+  while (i + 8 <= buffer.length) {
+    const id2 = buffer.toString("ascii", i, i + 4);
+    const size = buffer.readUInt32LE(i + 4);
+    const start = i + 8;
+    const end = start + size;
+    if (id2 === "fmt ") fmt = buffer.slice(start, end);
+    if (id2 === "data") data = buffer.slice(start, end);
+    i = end + size % 2;
+  }
+  if (!fmt || !data) return null;
+  const audioFormat = fmt.readUInt16LE(0);
+  const channels = fmt.readUInt16LE(2);
+  const sampleRate = fmt.readUInt32LE(4);
+  const bitsPerSample = fmt.readUInt16LE(14);
+  if (audioFormat !== 1 || bitsPerSample !== 16 || channels !== 1) {
+    return null;
+  }
+  const samples = new Int16Array(data.buffer, data.byteOffset, data.length / 2);
+  return { samples: new Int16Array(samples), sampleRate, channels, bitsPerSample };
+};
+
+// src/@modules/@eas/eas.getSampledPCM16.ts
+var getSampledPCM16 = (int16, originalRate, targetRate) => {
+  if (originalRate === targetRate) return int16;
+  const ratio = targetRate / originalRate;
+  const outLen = Math.max(1, Math.round(int16.length * ratio));
+  const out = new Int16Array(outLen);
+  for (let i = 0; i < outLen; i++) {
+    const pos = i / ratio;
+    const i0 = Math.floor(pos);
+    const i1 = Math.min(i0 + 1, int16.length - 1);
+    const frac = pos - i0;
+    const v = int16[i0] * (1 - frac) + int16[i1] * frac;
+    out[i] = Math.round(v);
+  }
+  return out;
+};
+
+// src/@modules/@eas/eas.getPCMToFloat.ts
+var getPCMToFloat = (int16) => {
+  const out = new Float32Array(int16.length);
+  for (let i = 0; i < int16.length; i++) out[i] = int16[i] / 32768;
+  return out;
+};
+
+// src/@modules/@eas/eas.getFloatPCM16.ts
+var getFloatPCM16 = (float32) => {
+  const out = new Int16Array(float32.length);
+  for (let i = 0; i < float32.length; i++) {
+    let v = Math.max(-1, Math.min(1, float32[i]));
+    out[i] = Math.round(v * 32767);
+  }
+  return out;
+};
+
+// src/@modules/@eas/eas.setRadioEffect.ts
+var setRadioEffect = (int16, sampleRate) => {
+  const hpCut = 3555;
+  const lpCut = 1600;
+  const x = getPCMToFloat(int16);
+  const dt = 1 / sampleRate;
+  const rcHP = 1 / (2 * Math.PI * hpCut);
+  const aHP = rcHP / (rcHP + dt);
+  let yHP = 0, xPrev = 0;
+  for (let i = 0; i < x.length; i++) {
+    const xi = x[i];
+    yHP = aHP * (yHP + xi - xPrev);
+    xPrev = xi;
+    x[i] = yHP;
+  }
+  const rcLP = 1 / (2 * Math.PI * lpCut);
+  const aLP = dt / (rcLP + dt);
+  let yLP = 0;
+  for (let i = 0; i < x.length; i++) {
+    yLP = yLP + aLP * (x[i] - yLP);
+    x[i] = yLP;
+  }
+  const compGain = 2;
+  const norm = Math.tanh(compGain);
+  for (let i = 0; i < x.length; i++) x[i] = Math.tanh(x[i] * compGain) / norm;
+  return getFloatPCM16(x);
+};
+
+// src/@modules/@eas/eas.setAFSK.ts
+var setAFSK = (bits, sampleRate) => {
+  const baud = 520.83;
+  const markFreq = 2083.3;
+  const spaceFreq = 1562.5;
+  const amplitude = 0.6;
+  const twoPi = Math.PI * 2;
+  const result = [];
+  let phase = 0;
+  let frac = 0;
+  for (let b = 0; b < bits.length; b++) {
+    const bit = bits[b];
+    const freq = bit ? markFreq : spaceFreq;
+    const samplesPerBit = sampleRate / baud + frac;
+    const n = Math.round(samplesPerBit);
+    frac = samplesPerBit - n;
+    const inc = twoPi * freq / sampleRate;
+    for (let i = 0; i < n; i++) {
+      result.push(Math.round(Math.sin(phase) * amplitude * 32767));
+      phase += inc;
+      if (phase > twoPi) phase -= twoPi;
+    }
+  }
+  const fadeSamples = Math.floor(sampleRate * 2e-3);
+  for (let i = 0; i < fadeSamples; i++) {
+    const gain = i / fadeSamples;
+    result[i] = Math.round(result[i] * gain);
+    result[result.length - 1 - i] = Math.round(result[result.length - 1 - i] * gain);
+  }
+  return Int16Array.from(result);
+};
+
+// src/@modules/@eas/eas.setAsciiToBits.ts
+var setAsciiToBits = (str) => {
+  const bits = [];
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i) & 255;
+    bits.push(0);
+    for (let b = 0; b < 8; b++) bits.push(c >> b & 1);
+    bits.push(1, 1);
+  }
+  return bits;
+};
+
+// src/@modules/@eas/eas.getMergedPCM16.ts
+var getMergedPCM16 = (arrays) => {
+  let total = 0;
+  for (const a of arrays) total += a.length;
+  const out = new Int16Array(total);
+  let o = 0;
+  for (const a of arrays) {
+    out.set(a, o);
+    o += a.length;
+  }
+  return out;
+};
+
+// src/@modules/@eas/eas.setSameHeader.ts
+var setSameHeader = (vtec2, repeats, sampleRate = 8e3, options = {}) => {
+  var _a, _b;
+  const preMarkSec = (_a = options.preMarkSec) != null ? _a : 0.3;
+  const gapSec = (_b = options.gapSec) != null ? _b : 0.1;
+  const bursts = [];
+  const gap = new Int16Array(Math.floor(gapSec * sampleRate));
+  for (let i = 0; i < repeats; i++) {
+    const bodyBits = setAsciiToBits(vtec2);
+    const body = setAFSK(bodyBits, sampleRate);
+    const extendedBodyDuration = Math.round(preMarkSec * sampleRate);
+    const extendedBody = new Int16Array(extendedBodyDuration + gap.length);
+    for (let j2 = 0; j2 < extendedBodyDuration; j2++) {
+      extendedBody[j2] = Math.round(body[j2 % body.length] * 0.2);
+    }
+    extendedBody.set(gap, extendedBodyDuration);
+    bursts.push(extendedBody);
+    if (i !== repeats - 1) bursts.push(gap);
+  }
+  return getMergedPCM16(bursts);
+};
+
+// src/@modules/@eas/eas.setAttentionTone.ts
+var setAttentionTone = (ms, sampleRate) => {
+  const len = Math.floor(ms * sampleRate);
+  const out = new Int16Array(len);
+  const f1 = 853;
+  const f2 = 960;
+  const twoPi = Math.PI * 2;
+  const amp = 0.1;
+  const fadeLen = Math.floor(sampleRate * 0);
+  for (let i = 0; i < len; i++) {
+    const t = i / sampleRate;
+    const s = Math.sin(twoPi * f1 * t) + Math.sin(twoPi * f2 * t);
+    let gain = 1;
+    if (i < fadeLen) gain = i / fadeLen;
+    else if (i > len - fadeLen) gain = (len - i) / fadeLen;
+    const v = Math.max(-1, Math.min(1, s / 2 * amp * gain));
+    out[i] = Math.round(v * 32767);
+  }
+  return out;
+};
+
+// src/@modules/@eas/eas.setNoise.ts
+var setNoise = (int16, noiseLevel = 0.02) => {
+  const x = getPCMToFloat(int16);
+  for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * noiseLevel;
+  let peak = 0;
+  for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
+  if (peak > 1) for (let i = 0; i < x.length; i++) x[i] *= 0.98 / peak;
+  return getFloatPCM16(x);
+};
+
+// src/@modules/@eas/eas.getPCM16.ts
+var getPCM16 = (samples, sampleRate) => {
+  let o = 0;
+  const bytesPerSample = 2;
+  const blockAlign = 1 * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const subchunk2Size = samples.length * bytesPerSample;
+  const chunkSize = 36 + subchunk2Size;
+  const buffer = Buffer.alloc(44 + subchunk2Size);
+  buffer.write("RIFF", o);
+  o += 4;
+  buffer.writeUInt32LE(chunkSize, o);
+  o += 4;
+  buffer.write("WAVE", o);
+  o += 4;
+  buffer.write("fmt ", o);
+  o += 4;
+  buffer.writeUInt32LE(16, o);
+  o += 4;
+  buffer.writeUInt16LE(1, o);
+  o += 2;
+  buffer.writeUInt16LE(1, o);
+  o += 2;
+  buffer.writeUInt32LE(sampleRate, o);
+  o += 4;
+  buffer.writeUInt32LE(byteRate, o);
+  o += 4;
+  buffer.writeUInt16LE(blockAlign, o);
+  o += 2;
+  buffer.writeUInt16LE(16, o);
+  o += 2;
+  buffer.write("data", o);
+  o += 4;
+  buffer.writeUInt32LE(subchunk2Size, o);
+  o += 4;
+  for (let i = 0; i < samples.length; i++, o += 2) {
+    buffer.writeInt16LE(samples[i].value, o);
+  }
+  return buffer;
+};
+
+// src/@modules/@eas/eas.setEasTone.ts
+import { join } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "fs";
+import { execSync } from "child_process";
+import { platform } from "os";
+import say from "say";
+var setEasTone = (options) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const directory = settings.GlobalSettings.EASSettings.ArchiveDirectory;
+  const prefix = settings.GlobalSettings.EASSettings.IntroWavFile;
+  let message = options.message;
+  let header = options.header;
+  if (!message || !header) {
+    setWarning({
+      title: `EAS`,
+      message: `Message and header are required to generate an EAS tone.`
+    });
+    return null;
+  }
+  let buffTTS;
+  let buffRadio;
+  let buffFull = [];
+  const tmpTTS = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const outTTS = join(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const vTTS = process.platform === `win32` ? `Microsoft David Desktop` : `en-US-GuyNerual`;
+  const vPlatform = platform();
+  if (!existsSync(directory)) {
+    mkdirSync(directory, { recursive: true });
+  }
+  if (!existsSync(join(directory, `/temp`))) {
+    mkdirSync(join(directory, `/temp`), { recursive: true });
+  }
+  if (!existsSync(join(directory, `/output`))) {
+    mkdirSync(join(directory, `/output`), { recursive: true });
+  }
+  for (const { regex, replacement } of transcribedMessageReplacements) {
+    message = message.replace(regex, replacement);
+  }
+  if (vPlatform != `win32`) {
+    setWarning({
+      title: `EAS`,
+      message: `Generation isn't supported with this OS. Please wait for further updates before trying again`
+    });
+    return null;
+  }
+  yield new Promise((resolve6, reject) => {
+    const tMsg = message.replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+    say.export(tMsg, vTTS, 1, tmpTTS, (err) => {
+      buffTTS = readFileSync(tmpTTS);
+      resolve6();
+    });
+  });
+  const vWav = getWavPCM16(buffTTS);
+  const vSamples = getSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
+  const vRadio = setRadioEffect(vSamples, 8e3);
+  if (existsSync(prefix)) {
+    let tBuffer = readFileSync(prefix);
+    let tWav = getWavPCM16(tBuffer);
+    if (tWav == null) {
+      try {
+        const converted = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}.converted.wav`);
+        execSync(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
+        if (existsSync(converted)) {
+          tBuffer = readFileSync(converted);
+          tWav = getWavPCM16(tBuffer);
+          try {
+            unlinkSync(converted);
+          } catch (e) {
+          }
+        }
+      } catch (e) {
+      }
+    }
+    if (tWav == null) {
+      setWarning({ title: `EAS`, message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` });
+      return null;
+    }
+    const tSamples = tWav.sampleRate != 8e3 ? getSampledPCM16(tWav.samples, tWav.sampleRate, 8e3) : tWav.samples;
+    buffRadio = setRadioEffect(tSamples, 8e3);
+  }
+  buffFull = buffRadio != null ? [buffRadio, new Int16Array(Math.floor(0.5 * 8e3))] : [];
+  buffFull.push(
+    setSameHeader(header, 3, 8e3, {
+      preMarkSec: 1.1,
+      gapSec: 0.5
+    }),
+    new Int16Array(Math.floor(0.5 * 8e3)),
+    setAttentionTone(8, 8e3),
+    new Int16Array(Math.floor(0.5 * 8e3)),
+    vRadio
+  );
+  for (let i = 0; i < 3; i++) {
+    buffFull.push(setSameHeader(header, 1, 8e3, { preMarkSec: 0.5, gapSec: 0.1 }));
+    buffFull.push(new Int16Array(Math.floor(0.5 * 8e3)));
+  }
+  const aSamples = getMergedPCM16(buffFull);
+  const aFinal = setNoise(aSamples, 2e-3);
+  const aBuffer = getPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
+  writeFileSync(outTTS, aBuffer);
+  try {
+    unlinkSync(tmpTTS);
+  } catch (e) {
+  }
+  return outTTS;
+});
+
 // src/@manager/manager.createWebhook.ts
 var import_form_data = __toESM(require_form_data());
+import { readFileSync as readFileSync2 } from "fs";
 var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
   const event = options.event.properties;
   const settings = options.webhook;
-  let body = [
-    event.locations ? `**Locations**: ${event.locations.slice(0, 100)}` : null,
-    event.issued && event.status != `Expired` ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>` : null,
-    event.expires && event.status != `Statement` ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>` : null,
-    (() => {
-      var _a2, _b2;
-      const val = (_a2 = event.parameters.estimated_wind_gusts) != null ? _a2 : null;
-      const th = (_b2 = event.parameters.wind_threat) != null ? _b2 : null;
-      const combined = [val, th].filter(Boolean).join(" ");
-      return combined ? `**Wind Gusts**: ${val} ${th ? `(${th})` : ""}` : null;
-    })(),
-    (() => {
-      var _a2, _b2;
-      const val = (_a2 = event.parameters.estimated_hail_size) != null ? _a2 : null;
-      const th = (_b2 = event.parameters.hail_threat) != null ? _b2 : null;
-      return (val != null ? val : th) ? `**Hail Threat**: ${val} ${th ? `(${th})` : ""}` : null;
-    })(),
-    event.parameters.damage_threat ? `**Damage Threat**: ${event.parameters.damage_threat}` : null,
-    event.parameters.flood_threat ? `**Flood Threat**: ${event.parameters.flood_threat}` : null,
-    event.parameters.tornado_threat ? `**Tornado Threat**: ${event.parameters.tornado_threat}` : null,
-    event.spc_parameters.spc_max_tornado ? `**Max Tornado Threat**: ${event.spc_parameters.spc_max_tornado}` : null,
-    event.spc_parameters.spc_max_hail ? `**Max Hail Threat**: ${event.spc_parameters.spc_max_hail}` : null,
-    event.spc_parameters.spc_max_wind ? `**Max Wind Threat**: ${event.spc_parameters.spc_max_wind}` : null,
-    event.spc_parameters.spc_watch_issuance ? `**Watch Issuance**: ${event.spc_parameters.spc_watch_issuance}%` : null,
-    event.watch_parameters.watch_number ? `**Watch Number**: ${event.watch_parameters.watch_number}` : null,
-    event.watch_parameters.strong_tornadoes_probability ? `**Strong Tornadoes Probability**: ${event.watch_parameters.strong_tornadoes_probability}%` : null,
-    event.watch_parameters.additional_tornadoes_probability ? `**Additional Tornadoes Probability**: ${event.watch_parameters.additional_tornadoes_probability}%` : null,
-    event.watch_parameters.combined_hail_wind_probability ? `**Combined Hail/Wind Probability**: ${event.watch_parameters.combined_hail_wind_probability}%` : null,
-    event.watch_parameters.severe_hail_probability ? `**Severe Hail Probability**: ${event.watch_parameters.severe_hail_probability}%` : null,
-    event.watch_parameters.hail_2in_probability ? `**Hail \u22652in Probability**: ${event.watch_parameters.hail_2in_probability}%` : null,
-    event.watch_parameters.max_hail_in ? `**Max Hail Inches**: ${event.watch_parameters.max_hail_in}` : null,
-    event.watch_parameters.severe_wind_probability ? `**Severe Wind Probability**: ${event.watch_parameters.severe_wind_probability}%` : null,
-    event.watch_parameters.max_wind_surface ? `**Max Surface Wind**: ${event.watch_parameters.max_wind_surface}` : null,
-    event.watch_parameters.max_tops_x100feet ? `**Max Tops (x100 feet)**: ${event.watch_parameters.max_tops_x100feet}` : null,
-    ((_a = event.parameters.tags) == null ? void 0 : _a.length) > 0 ? `**Tags**: ${event.parameters.tags.join(", ")}` : null,
-    (() => {
-      var _a2, _b2, _c2, _d2, _e2, _f2;
-      const val = (_c2 = (_b2 = (_a2 = event.geocode) == null ? void 0 : _a2.office) == null ? void 0 : _b2.name) != null ? _c2 : `N/A`;
-      const th = (_f2 = (_e2 = (_d2 = event.geocode) == null ? void 0 : _d2.office) == null ? void 0 : _e2.office) != null ? _f2 : null;
-      return (val != null ? val : th) ? `**Sender**: ${val} ${th ? `(${th})` : ""}` : null;
-    })(),
-    ((_b = event.metadata) == null ? void 0 : _b.tracking) ? `**Tracking**: ${event.metadata.tracking}` : null,
-    ((_c = event.metadata.history) == null ? void 0 : _c.length) > 0 ? `**Logs**: ${event.metadata.history.length}` : null,
-    (() => {
-      var _a2;
-      if (event.status == `Expired`) {
-        return null;
-      }
-      const desc = ((_a2 = event.description) != null ? _a2 : "").split("\n").map((l) => l.trim()).filter(Boolean).join("\n");
-      return desc ? "```\n" + desc + "\n```" : null;
-    })()
-  ].filter(Boolean).join("\n");
+  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
   const isLimited = setTimeoutAction({ identifier: options.webhook.webhook, interval: options.webhook.rate, max: options.webhook.rate, addTime: true });
-  if (isLimited.limited) {
-    return;
-  }
-  if (body.length > 1900) {
-    body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-    const blocks = ((_d = body.match(/```/g)) != null ? _d : []).length;
-    if (blocks % 2 !== 0) body += "```";
-  }
-  const form = new import_form_data.default();
-  const embed = {
-    title: `${event.event} (${event.status})`,
-    description: body,
-    color: 16711680,
-    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    footer: { text: settings.title }
-  };
-  form.append("payload_json", JSON.stringify({
-    username: (_e = settings.title) != null ? _e : "AtmosphericX",
-    content: (_f = settings.message) != null ? _f : "",
-    embeds: [embed]
-  }));
-  if (settings.upload) {
-    form.append("file", Buffer.from(JSON.stringify(getCleanedEvent(event), null, 2)), {
-      filename: `${event.event}_${event.status}_${event.metadata.tracking}.json`,
-      contentType: "application/json"
+  if (!isLimited.limited) {
+    const isStatement = event.status_metadata.is_statement;
+    const isExpired = event.status_metadata.is_expired;
+    let body = [
+      line(`**Locations:**`, (_a = event == null ? void 0 : event.locations) == null ? void 0 : _a.slice(0, 100)),
+      line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>`),
+      line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>`, !isExpired && !isStatement),
+      line(`**Damage Threat:**`, event.parameters.damage_threat, !isExpired),
+      line(`**Flood Threat:**`, event.parameters.flood_threat, !isExpired),
+      line(`**Tornado Threat:**`, event.parameters.tornado_threat, !isExpired),
+      line(`**Estimated Wind Gusts:**`, `${event.parameters.estimated_wind_gusts} ${event.parameters.wind_threat ? ` (${event.parameters.wind_threat})` : ""}`, !isExpired && event.parameters.estimated_wind_gusts != null),
+      line(`**Estimated Hail Size:**`, `${event.parameters.estimated_hail_size} ${event.parameters.hail_threat ? ` (${event.parameters.hail_threat})` : ""}`, !isExpired && event.parameters.estimated_hail_size != null),
+      line(`**Discussion:**`, event.spc_parameters.spc_number, !isExpired),
+      line(`**Concern:**`, event.spc_parameters.spc_concerning, !isExpired),
+      line(`**SPC Max Tornado Threat:**`, event.spc_parameters.spc_max_tornado, !isExpired),
+      line(`**SPC Max Hail Threat:**`, event.spc_parameters.spc_max_hail, !isExpired),
+      line(`**SPC Max Wind Threat:**`, event.spc_parameters.spc_max_wind, !isExpired),
+      line(`**SPC Watch Issuance Probability:**`, event.spc_parameters.spc_watch_issuance ? `${event.spc_parameters.spc_watch_issuance}%` : null, !isExpired),
+      line(`**Watch Number:**`, event.watch_parameters.watch_number, !isExpired),
+      line(`**Strong Tornadoes Probability:**`, event.watch_parameters.strong_tornadoes_probability ? `${event.watch_parameters.strong_tornadoes_probability}%` : null, !isExpired),
+      line(`**Additional Tornadoes Probability:**`, event.watch_parameters.additional_tornadoes_probability ? `${event.watch_parameters.additional_tornadoes_probability}%` : null, !isExpired),
+      line(`**Combined Hail/Wind Probability:**`, event.watch_parameters.combined_hail_wind_probability ? `${event.watch_parameters.combined_hail_wind_probability}%` : null, !isExpired),
+      line(`**Severe Hail Probability:**`, event.watch_parameters.severe_hail_probability ? `${event.watch_parameters.severe_hail_probability}%` : null, !isExpired),
+      line(`**Hail >2in Probability:**`, event.watch_parameters.hail_2in_probability ? `${event.watch_parameters.hail_2in_probability}%` : null, !isExpired),
+      line(`**Max Hail Inches:**`, event.watch_parameters.max_hail_in, !isExpired),
+      line(`**Severe Wind Probability:**`, event.watch_parameters.severe_wind_probability ? `${event.watch_parameters.severe_wind_probability}%` : null, !isExpired),
+      line(`**Max Surface Wind:**`, event.watch_parameters.max_wind_surface, !isExpired),
+      line(`**Max Tops (x100 feet):**`, event.watch_parameters.max_tops_x100feet, !isExpired),
+      line(`**Tags:**`, ((_b = event.parameters.tags) == null ? void 0 : _b.length) > 0 ? event.parameters.tags.join(", ") : null, !isExpired),
+      line(`**Sender:**`, ((_d = (_c = event.geocode) == null ? void 0 : _c.office) == null ? void 0 : _d.name) ? `${event.geocode.office.name} (${event.geocode.office.office})` : (_f = (_e = event.geocode) == null ? void 0 : _e.office) == null ? void 0 : _f.office),
+      line(`**Tracking:**`, (_g = event.metadata) == null ? void 0 : _g.tracking),
+      line(`**Logs:**`, ((_h = event.metadata.history) == null ? void 0 : _h.length) > 0 ? event.metadata.history.length : null),
+      line(``, event.description ? "```\n" + event.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : null, !isExpired)
+    ].filter(Boolean).join("\n");
+    if (body.length > 1900) {
+      body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
+      const blocks = ((_i = body.match(/```/g)) != null ? _i : []).length;
+      if (blocks % 2 !== 0) body += "```";
+    }
+    const form = new import_form_data.default();
+    const embed = {
+      title: `${event.event} (${event.status})`,
+      description: body,
+      color: 16711680,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      image: {},
+      footer: { text: settings.title }
+    };
+    if (event.metadata.attachments && event.metadata.attachments.length > 0) {
+      embed.image = { url: event.metadata.attachments[0] };
+    }
+    form.append("payload_json", JSON.stringify({
+      username: (_j = settings.title) != null ? _j : "AtmosphericX",
+      content: (_k = settings.message) != null ? _k : "",
+      embeds: [embed]
+    }));
+    if (settings.upload) {
+      form.append("fUpload", Buffer.from(`${event.metadata.raw}
+
+${JSON.stringify(getCleanedEvent(event), null, 2)}`), { filename: `${event.event}_${event.status}_${event.metadata.tracking}.txt`, contentType: "application/text" });
+    }
+    if (settings.eas) {
+      const audio = yield setEasTone({
+        message: event.description,
+        header: event.metadata.header
+      });
+      const file = readFileSync2(audio);
+      if (audio) {
+        form.append("fEas", Buffer.from(file), { filename: `${event.event}_${event.status}_${event.metadata.tracking}_eas.mp3`, contentType: "audio/mpeg" });
+      }
+    }
+    yield createHttp({
+      url: settings.webhook,
+      timeout: 2e3,
+      method: `POST`,
+      headers: form.getHeaders(),
+      body: form
     });
   }
-  yield createHttp({
-    url: settings.webhook,
-    timeout: 2e3,
-    method: `POST`,
-    headers: form.getHeaders(),
-    body: form
-  });
 });
 
 // src/@manager/manager.updateWebhooks.ts
@@ -15159,6 +15554,37 @@ var rmEvent = (event) => {
   });
 };
 
+// src/@modules/@utilities/utilities.getLatestIssuance.ts
+var getLatestIssuance = () => {
+  const now = /* @__PURE__ */ new Date();
+  const current = now.getUTCHours() * 100 + now.getUTCMinutes();
+  const issuances = [100, 600, 1300, 1630, 2e3];
+  let latest = issuances[0];
+  for (const issuance of issuances) {
+    if (current >= issuance) {
+      latest = issuance;
+    }
+  }
+  return latest.toString().padStart(4, "0");
+};
+
+// src/@building/building.outlooks.ts
+var getEventAttachments = (event) => {
+  var _a, _b;
+  const latestTime = getLatestIssuance();
+  const validEvents = [
+    { target: "Day 1", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${latestTime}.png` },
+    { target: "Day 2", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
+    { target: "Day 3", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
+    { target: "Mesoscale Discussion", attachment: `https://www.spc.noaa.gov/products/md/mcd${(_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.spc_parameters) == null ? void 0 : _b.spc_number}.png` }
+  ];
+  const isValid = validEvents.find((outlook) => outlook.target == event.properties.event);
+  if (isValid) {
+    return (isValid == null ? void 0 : isValid.attachment) ? [isValid.attachment] : [];
+  }
+  return null;
+};
+
 // src/@building/building.validate.ts
 var validateEvents = (events) => __async(null, null, function* () {
   var _a;
@@ -15189,6 +15615,7 @@ var validateEvents = (events) => __async(null, null, function* () {
     }
     filteredProperties.metadata = (_a2 = filteredProperties.metadata) != null ? _a2 : {};
     properties2.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
+    properties2.metadata.attachments = getEventAttachments(event);
     setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`, metadata: define2 });
     if (properties2.status_metadata.is_test) {
       setEventEmit({ event: `onTestProduct`, metadata: define2 });
@@ -15313,6 +15740,7 @@ var text = (stanza) => __async(null, null, function* () {
           header,
           vtec: null,
           hvtec: null,
+          raw: message,
           history: [
             {
               description: props.description,
@@ -15449,6 +15877,7 @@ var ugc = (stanza) => __async(null, null, function* () {
             header,
             vtec: null,
             hvtec: null,
+            raw: message,
             history: [
               {
                 description: props.description,
@@ -15681,6 +16110,7 @@ var vtec = (stanza) => __async(null, null, function* () {
               header,
               vtec: pv,
               hvtec: hVtec,
+              raw: message,
               history: [
                 {
                   description: props.description,
@@ -15699,7 +16129,7 @@ var vtec = (stanza) => __async(null, null, function* () {
 
 // src/@events/events.api.ts
 var api = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb;
   let processed = [];
   const messages = Object.values(JSON.parse(stanza.message).features);
   for (const feature of messages) {
@@ -15745,37 +16175,40 @@ var api = (stanza) => __async(null, null, function* () {
           hail_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.hailThreat) == null ? void 0 : _la[0]) != null ? _ma : null
         },
         spc_parameters: {
-          spc_max_tornado: (_oa = getTextFromProduct({ message: (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _oa : null,
-          spc_max_hail: (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _qa : null,
-          spc_max_wind: (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _sa : null,
-          spc_watch_issuance: (_ua = getTextFromProduct({ message: (_ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _ta.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _ua : null
+          spc_number: (_oa = getTextFromProduct({ message: (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) != null ? _oa : null,
+          spc_concerning: (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`Concerning...`] })) != null ? _qa : null,
+          spc_max_tornado: (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _sa : null,
+          spc_max_hail: (_ua = getTextFromProduct({ message: (_ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _ta.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _ua : null,
+          spc_max_wind: (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _wa : null,
+          spc_watch_issuance: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _ya : null
         },
         watch_parameters: {
-          watch_number: (_ya = (_xa = (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _wa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _xa.trim()) != null ? _ya : null,
-          watch_type: ((_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Aa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Aa.description.includes(`SEVERE`)) ? `Severe` : null,
-          additional_tornadoes_probability: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ca : null,
-          strong_tornadoes_probability: (_Ea = getTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ea : null,
-          severe_wind_probability: (_Ga = getTextFromProduct({ message: (_Fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Fa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ga : null,
-          severe_hail_probability: (_Ia = getTextFromProduct({ message: (_Ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ha.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ia : null,
-          hail_2in_probability: (_Ka = getTextFromProduct({ message: (_Ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ja.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _Ka : null,
-          combined_hail_wind_probability: (_Ma = getTextFromProduct({ message: (_La = feature == null ? void 0 : feature.properties) == null ? void 0 : _La.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ma : null,
-          max_hail_in: (_Oa = getTextFromProduct({ message: (_Na = feature == null ? void 0 : feature.properties) == null ? void 0 : _Na.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _Oa : null,
-          max_wind_surface: (_Qa = getTextFromProduct({ message: (_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _Qa : null,
-          max_tops_x100feet: (_Sa = getTextFromProduct({ message: (_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _Sa : null,
-          pds_watch: getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+          watch_number: (_Ca = (_Ba = (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Aa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ba.trim()) != null ? _Ca : null,
+          watch_type: ((_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Ea = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ea.description.includes(`SEVERE`)) ? `Severe` : null,
+          additional_tornadoes_probability: (_Ga = getTextFromProduct({ message: (_Fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Fa.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ga : null,
+          strong_tornadoes_probability: (_Ia = getTextFromProduct({ message: (_Ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ha.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ia : null,
+          severe_wind_probability: (_Ka = getTextFromProduct({ message: (_Ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ja.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ka : null,
+          severe_hail_probability: (_Ma = getTextFromProduct({ message: (_La = feature == null ? void 0 : feature.properties) == null ? void 0 : _La.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ma : null,
+          hail_2in_probability: (_Oa = getTextFromProduct({ message: (_Na = feature == null ? void 0 : feature.properties) == null ? void 0 : _Na.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _Oa : null,
+          combined_hail_wind_probability: (_Qa = getTextFromProduct({ message: (_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Qa : null,
+          max_hail_in: (_Sa = getTextFromProduct({ message: (_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _Sa : null,
+          max_wind_surface: (_Ua = getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
+          max_tops_x100feet: (_Wa = getTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
+          pds_watch: getTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
         },
         metadata: {
           ms: performance.now() - tick,
           source: `events.api`,
-          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_Wa = (_Va = (_Ua = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ua.parameters) == null ? void 0 : _Va.WMOidentifier) == null ? void 0 : _Wa[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec }),
-          header: `ZCZC-ATMOSX-${(_Ya = (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.parameters) == null ? void 0 : _Ya.WMOidentifier}`,
+          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (__a = (_Za = (_Ya = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ya.parameters) == null ? void 0 : _Za.WMOidentifier) == null ? void 0 : __a[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec }),
+          header: `ZCZC-ATMOSX-${(_ab = (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.parameters) == null ? void 0 : _ab.WMOidentifier}`,
           vtec: pVtec,
           hvtec: null,
+          raw: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description,
           history: [
             {
-              description: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description,
-              issued: ((__a = feature == null ? void 0 : feature.properties) == null ? void 0 : __a.sent) ? new Date((_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.sent).toISOString() : null,
-              status: (_bb = (_ab = feature == null ? void 0 : feature.properties) == null ? void 0 : _ab.messageType) != null ? _bb : null
+              description: (_cb = feature == null ? void 0 : feature.properties) == null ? void 0 : _cb.description,
+              issued: ((_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.sent) ? new Date((_eb = feature == null ? void 0 : feature.properties) == null ? void 0 : _eb.sent).toISOString() : null,
+              status: (_gb = (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.messageType) != null ? _gb : null
             }
           ]
         }
@@ -16078,8 +16511,25 @@ var xReconnect = (interval) => __async(null, null, function* () {
 });
 
 // src/@modules/@utilities/utilities.setCronSchedule.ts
+import { readdirSync, unlink } from "fs";
 var setCronSchedule = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
+  if (settings.GlobalSettings.EASSettings.ArchiveDirectory) {
+    const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL;
+    if (TTL) {
+      const files = readdirSync(settings.GlobalSettings.EASSettings.ArchiveDirectory);
+      for (const file of files) {
+        const filePath = `${settings.GlobalSettings.EASSettings.ArchiveDirectory}/${file}`;
+        const stats = yield new Promise((resolve6, reject) => {
+        });
+        const time = Date.now() - TTL * 1e3;
+        if (stats.mtime.getTime() < time) {
+          unlink(filePath, (err) => {
+          });
+        }
+      }
+    }
+  }
   if (settings.EnableWireService) {
     if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
       void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
@@ -16182,394 +16632,6 @@ var stopService = () => __async(null, null, function* () {
       bootstrap.session_xmpp = null;
     }
   }
-});
-
-// src/@dictionaries/dictionaries.transcribedMessageReplacements.ts
-var transcribedMessageReplacements = [
-  { regex: /\*/g, replacement: "" },
-  { regex: /\.{3,}/g, replacement: "" },
-  { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
-  { regex: /\bGMT\b/g, replacement: "Greenwich Mean Time" },
-  { regex: /\bEST\b(?!\w)/g, replacement: "Eastern Standard Time" },
-  { regex: /\bEDT\b(?!\w)/g, replacement: "Eastern Daylight Time" },
-  { regex: /\bCST\b(?!\w)/g, replacement: "Central Standard Time" },
-  { regex: /\bCDT\b(?!\w)/g, replacement: "Central Daylight Time" },
-  { regex: /\bMST\b(?!\w)/g, replacement: "Mountain Standard Time" },
-  { regex: /\bMDT\b(?!\w)/g, replacement: "Mountain Daylight Time" },
-  { regex: /\bPST\b(?!\w)/g, replacement: "Pacific Standard Time" },
-  { regex: /\bPDT\b(?!\w)/g, replacement: "Pacific Daylight Time" },
-  { regex: /\bAKST\b(?!\w)/g, replacement: "Alaska Standard Time" },
-  { regex: /\bAKDT\b(?!\w)/g, replacement: "Alaska Daylight Time" },
-  { regex: /\bHST\b(?!\w)/g, replacement: "Hawaii Standard Time" },
-  { regex: /\bHDT\b(?!\w)/g, replacement: "Hawaii Daylight Time" },
-  { regex: /\bmph\b(?!\w)/g, replacement: "miles per hour" },
-  { regex: /\bkm\/h\b(?!\w)/g, replacement: "kilometers per hour" },
-  { regex: /\bkmh\b(?!\w)/g, replacement: "kilometers per hour" },
-  { regex: /\bkt\b(?!\w)/g, replacement: "knots" },
-  { regex: /\bNE\b(?!\w)/g, replacement: "northeast" },
-  { regex: /\bNW\b(?!\w)/g, replacement: "northwest" },
-  { regex: /\bSE\b(?!\w)/g, replacement: "southeast" },
-  { regex: /\bSW\b(?!\w)/g, replacement: "southwest" },
-  { regex: /\bNM\b(?!\w)/g, replacement: "nautical miles" },
-  { regex: /\bdeg\b(?!\w)/g, replacement: "degrees" },
-  { regex: /\btstm\b(?!\w)/g, replacement: "thunderstorm" },
-  { regex: /\bmm\b(?!\w)/g, replacement: "millimeters" },
-  { regex: /\bcm\b(?!\w)/g, replacement: "centimeters" },
-  { regex: /\bin.\b(?!\w)/g, replacement: "inches" },
-  { regex: /\bft\b(?!\w)/g, replacement: "feet" },
-  { regex: /\bmi\b(?!\w)/g, replacement: "miles" },
-  { regex: /\bhr\b(?!\w)/g, replacement: "hour" },
-  { regex: /\bhourly\b(?!\w)/g, replacement: "per hour" },
-  { regex: /\bkg\b(?!\w)/g, replacement: "kilograms" },
-  { regex: /\bg\/kg\b(?!\w)/g, replacement: "grams per kilogram" },
-  { regex: /\bmb\b(?!\w)/g, replacement: "millibars" },
-  { regex: /\bhPa\b(?!\w)/g, replacement: "hectopascals" },
-  { regex: /\bPa\b(?!\w)/g, replacement: "pascals" },
-  { regex: /\bKPa\b(?!\w)/g, replacement: "kilopascals" },
-  { regex: /\bC\/hr\b(?!\w)/g, replacement: "degrees Celsius per hour" },
-  { regex: /\bF\/hr\b(?!\w)/g, replacement: "degrees Fahrenheit per hour" },
-  { regex: /\bC\/min\b(?!\w)/g, replacement: "degrees Celsius per minute" },
-  { regex: /\bF\/min\b(?!\w)/g, replacement: "degrees Fahrenheit per minute" },
-  { regex: /\bC\b(?!\w)/g, replacement: "degrees Celsius" },
-  { regex: /\bF\b(?!\w)/g, replacement: "degrees Fahrenheit" }
-];
-
-// src/@modules/@eas/eas.getWavPCM16.ts
-var getWavPCM16 = (buffer) => {
-  if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
-    return null;
-  }
-  let fmt = null;
-  let data = null;
-  let i = 12;
-  while (i + 8 <= buffer.length) {
-    const id2 = buffer.toString("ascii", i, i + 4);
-    const size = buffer.readUInt32LE(i + 4);
-    const start = i + 8;
-    const end = start + size;
-    if (id2 === "fmt ") fmt = buffer.slice(start, end);
-    if (id2 === "data") data = buffer.slice(start, end);
-    i = end + size % 2;
-  }
-  if (!fmt || !data) return null;
-  const audioFormat = fmt.readUInt16LE(0);
-  const channels = fmt.readUInt16LE(2);
-  const sampleRate = fmt.readUInt32LE(4);
-  const bitsPerSample = fmt.readUInt16LE(14);
-  if (audioFormat !== 1 || bitsPerSample !== 16 || channels !== 1) {
-    return null;
-  }
-  const samples = new Int16Array(data.buffer, data.byteOffset, data.length / 2);
-  return { samples: new Int16Array(samples), sampleRate, channels, bitsPerSample };
-};
-
-// src/@modules/@eas/eas.getSampledPCM16.ts
-var getSampledPCM16 = (int16, originalRate, targetRate) => {
-  if (originalRate === targetRate) return int16;
-  const ratio = targetRate / originalRate;
-  const outLen = Math.max(1, Math.round(int16.length * ratio));
-  const out = new Int16Array(outLen);
-  for (let i = 0; i < outLen; i++) {
-    const pos = i / ratio;
-    const i0 = Math.floor(pos);
-    const i1 = Math.min(i0 + 1, int16.length - 1);
-    const frac = pos - i0;
-    const v = int16[i0] * (1 - frac) + int16[i1] * frac;
-    out[i] = Math.round(v);
-  }
-  return out;
-};
-
-// src/@modules/@eas/eas.getPCMToFloat.ts
-var getPCMToFloat = (int16) => {
-  const out = new Float32Array(int16.length);
-  for (let i = 0; i < int16.length; i++) out[i] = int16[i] / 32768;
-  return out;
-};
-
-// src/@modules/@eas/eas.getFloatPCM16.ts
-var getFloatPCM16 = (float32) => {
-  const out = new Int16Array(float32.length);
-  for (let i = 0; i < float32.length; i++) {
-    let v = Math.max(-1, Math.min(1, float32[i]));
-    out[i] = Math.round(v * 32767);
-  }
-  return out;
-};
-
-// src/@modules/@eas/eas.setRadioEffect.ts
-var setRadioEffect = (int16, sampleRate) => {
-  const hpCut = 3555;
-  const lpCut = 1600;
-  const x = getPCMToFloat(int16);
-  const dt = 1 / sampleRate;
-  const rcHP = 1 / (2 * Math.PI * hpCut);
-  const aHP = rcHP / (rcHP + dt);
-  let yHP = 0, xPrev = 0;
-  for (let i = 0; i < x.length; i++) {
-    const xi = x[i];
-    yHP = aHP * (yHP + xi - xPrev);
-    xPrev = xi;
-    x[i] = yHP;
-  }
-  const rcLP = 1 / (2 * Math.PI * lpCut);
-  const aLP = dt / (rcLP + dt);
-  let yLP = 0;
-  for (let i = 0; i < x.length; i++) {
-    yLP = yLP + aLP * (x[i] - yLP);
-    x[i] = yLP;
-  }
-  const compGain = 2;
-  const norm = Math.tanh(compGain);
-  for (let i = 0; i < x.length; i++) x[i] = Math.tanh(x[i] * compGain) / norm;
-  return getFloatPCM16(x);
-};
-
-// src/@modules/@eas/eas.setAFSK.ts
-var setAFSK = (bits, sampleRate) => {
-  const baud = 520.83;
-  const markFreq = 2083.3;
-  const spaceFreq = 1562.5;
-  const amplitude = 0.6;
-  const twoPi = Math.PI * 2;
-  const result = [];
-  let phase = 0;
-  let frac = 0;
-  for (let b = 0; b < bits.length; b++) {
-    const bit = bits[b];
-    const freq = bit ? markFreq : spaceFreq;
-    const samplesPerBit = sampleRate / baud + frac;
-    const n = Math.round(samplesPerBit);
-    frac = samplesPerBit - n;
-    const inc = twoPi * freq / sampleRate;
-    for (let i = 0; i < n; i++) {
-      result.push(Math.round(Math.sin(phase) * amplitude * 32767));
-      phase += inc;
-      if (phase > twoPi) phase -= twoPi;
-    }
-  }
-  const fadeSamples = Math.floor(sampleRate * 2e-3);
-  for (let i = 0; i < fadeSamples; i++) {
-    const gain = i / fadeSamples;
-    result[i] = Math.round(result[i] * gain);
-    result[result.length - 1 - i] = Math.round(result[result.length - 1 - i] * gain);
-  }
-  return Int16Array.from(result);
-};
-
-// src/@modules/@eas/eas.setAsciiToBits.ts
-var setAsciiToBits = (str) => {
-  const bits = [];
-  for (let i = 0; i < str.length; i++) {
-    const c = str.charCodeAt(i) & 255;
-    bits.push(0);
-    for (let b = 0; b < 8; b++) bits.push(c >> b & 1);
-    bits.push(1, 1);
-  }
-  return bits;
-};
-
-// src/@modules/@eas/eas.getMergedPCM16.ts
-var getMergedPCM16 = (arrays) => {
-  let total = 0;
-  for (const a of arrays) total += a.length;
-  const out = new Int16Array(total);
-  let o = 0;
-  for (const a of arrays) {
-    out.set(a, o);
-    o += a.length;
-  }
-  return out;
-};
-
-// src/@modules/@eas/eas.setSameHeader.ts
-var setSameHeader = (vtec2, repeats, sampleRate = 8e3, options = {}) => {
-  var _a, _b;
-  const preMarkSec = (_a = options.preMarkSec) != null ? _a : 0.3;
-  const gapSec = (_b = options.gapSec) != null ? _b : 0.1;
-  const bursts = [];
-  const gap = new Int16Array(Math.floor(gapSec * sampleRate));
-  for (let i = 0; i < repeats; i++) {
-    const bodyBits = setAsciiToBits(vtec2);
-    const body = setAFSK(bodyBits, sampleRate);
-    const extendedBodyDuration = Math.round(preMarkSec * sampleRate);
-    const extendedBody = new Int16Array(extendedBodyDuration + gap.length);
-    for (let j2 = 0; j2 < extendedBodyDuration; j2++) {
-      extendedBody[j2] = Math.round(body[j2 % body.length] * 0.2);
-    }
-    extendedBody.set(gap, extendedBodyDuration);
-    bursts.push(extendedBody);
-    if (i !== repeats - 1) bursts.push(gap);
-  }
-  return getMergedPCM16(bursts);
-};
-
-// src/@modules/@eas/eas.setAttentionTone.ts
-var setAttentionTone = (ms, sampleRate) => {
-  const len = Math.floor(ms * sampleRate);
-  const out = new Int16Array(len);
-  const f1 = 853;
-  const f2 = 960;
-  const twoPi = Math.PI * 2;
-  const amp = 0.1;
-  const fadeLen = Math.floor(sampleRate * 0);
-  for (let i = 0; i < len; i++) {
-    const t = i / sampleRate;
-    const s = Math.sin(twoPi * f1 * t) + Math.sin(twoPi * f2 * t);
-    let gain = 1;
-    if (i < fadeLen) gain = i / fadeLen;
-    else if (i > len - fadeLen) gain = (len - i) / fadeLen;
-    const v = Math.max(-1, Math.min(1, s / 2 * amp * gain));
-    out[i] = Math.round(v * 32767);
-  }
-  return out;
-};
-
-// src/@modules/@eas/eas.setNoise.ts
-var setNoise = (int16, noiseLevel = 0.02) => {
-  const x = getPCMToFloat(int16);
-  for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * noiseLevel;
-  let peak = 0;
-  for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
-  if (peak > 1) for (let i = 0; i < x.length; i++) x[i] *= 0.98 / peak;
-  return getFloatPCM16(x);
-};
-
-// src/@modules/@eas/eas.getPCM16.ts
-var getPCM16 = (samples, sampleRate) => {
-  let o = 0;
-  const bytesPerSample = 2;
-  const blockAlign = 1 * bytesPerSample;
-  const byteRate = sampleRate * blockAlign;
-  const subchunk2Size = samples.length * bytesPerSample;
-  const chunkSize = 36 + subchunk2Size;
-  const buffer = Buffer.alloc(44 + subchunk2Size);
-  buffer.write("RIFF", o);
-  o += 4;
-  buffer.writeUInt32LE(chunkSize, o);
-  o += 4;
-  buffer.write("WAVE", o);
-  o += 4;
-  buffer.write("fmt ", o);
-  o += 4;
-  buffer.writeUInt32LE(16, o);
-  o += 4;
-  buffer.writeUInt16LE(1, o);
-  o += 2;
-  buffer.writeUInt16LE(1, o);
-  o += 2;
-  buffer.writeUInt32LE(sampleRate, o);
-  o += 4;
-  buffer.writeUInt32LE(byteRate, o);
-  o += 4;
-  buffer.writeUInt16LE(blockAlign, o);
-  o += 2;
-  buffer.writeUInt16LE(16, o);
-  o += 2;
-  buffer.write("data", o);
-  o += 4;
-  buffer.writeUInt32LE(subchunk2Size, o);
-  o += 4;
-  for (let i = 0; i < samples.length; i++, o += 2) {
-    buffer.writeInt16LE(samples[i].value, o);
-  }
-  return buffer;
-};
-
-// src/@modules/@eas/eas.setEasTone.ts
-import { join } from "path";
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "fs";
-import { execSync } from "child_process";
-import { platform } from "os";
-import say from "say";
-var setEasTone = (options) => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  const directory = settings.GlobalSettings.EASSettings.ArchiveDirectory;
-  const prefix = settings.GlobalSettings.EASSettings.IntroWavFile;
-  let message = options.message;
-  let header = options.header;
-  let buffTTS;
-  let buffRadio;
-  let buffFull = [];
-  const tmpTTS = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
-  const outTTS = join(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
-  const vTTS = process.platform === `win32` ? `Microsoft David Desktop` : `en-US-GuyNerual`;
-  const vPlatform = platform();
-  if (!existsSync(directory)) {
-    mkdirSync(directory, { recursive: true });
-  }
-  if (!existsSync(join(directory, `/temp`))) {
-    mkdirSync(join(directory, `/temp`), { recursive: true });
-  }
-  if (!existsSync(join(directory, `/output`))) {
-    mkdirSync(join(directory, `/output`), { recursive: true });
-  }
-  for (const { regex, replacement } of transcribedMessageReplacements) {
-    message = message.replace(regex, replacement);
-  }
-  if (vPlatform != `win32`) {
-    setWarning({
-      title: `EAS`,
-      message: `Generation isn't supported with this OS. Please wait for further updates before trying again`
-    });
-    return null;
-  }
-  say.export(message, vTTS, 1, tmpTTS);
-  while (!existsSync(tmpTTS) || (buffTTS = readFileSync(tmpTTS)).length == 0) {
-    yield setSleep({ timeout: 25 });
-  }
-  const vWav = getWavPCM16(buffTTS);
-  const vSamples = getSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
-  const vRadio = setRadioEffect(vSamples, 8e3);
-  if (existsSync(prefix)) {
-    let tBuffer = readFileSync(prefix);
-    let tWav = getWavPCM16(tBuffer);
-    if (tWav == null) {
-      try {
-        const converted = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}.converted.wav`);
-        execSync(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
-        if (existsSync(converted)) {
-          tBuffer = readFileSync(converted);
-          tWav = getWavPCM16(tBuffer);
-          try {
-            unlinkSync(converted);
-          } catch (e) {
-          }
-        }
-      } catch (e) {
-      }
-    }
-    if (tWav == null) {
-      setWarning({ title: `EAS`, message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` });
-      return null;
-    }
-    const tSamples = tWav.sampleRate != 8e3 ? getSampledPCM16(tWav.samples, tWav.sampleRate, 8e3) : tWav.samples;
-    buffRadio = setRadioEffect(tSamples, 8e3);
-  }
-  buffFull = buffRadio != null ? [buffRadio, new Int16Array(Math.floor(0.5 * 8e3))] : [];
-  buffFull.push(
-    setSameHeader(header, 3, 8e3, {
-      preMarkSec: 1.1,
-      gapSec: 0.5
-    }),
-    new Int16Array(Math.floor(0.5 * 8e3)),
-    setAttentionTone(8, 8e3),
-    new Int16Array(Math.floor(0.5 * 8e3)),
-    vRadio
-  );
-  for (let i = 0; i < 3; i++) {
-    buffFull.push(setSameHeader(header, 1, 8e3, { preMarkSec: 0.5, gapSec: 0.1 }));
-    buffFull.push(new Int16Array(Math.floor(0.5 * 8e3)));
-  }
-  const aSamples = getMergedPCM16(buffFull);
-  const aFinal = setNoise(aSamples, 2e-3);
-  const aBuffer = getPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
-  writeFileSync(outTTS, aBuffer);
-  try {
-    unlinkSync(tmpTTS);
-  } catch (e) {
-  }
-  return outTTS;
 });
 
 // src/@core/core.setNode.ts

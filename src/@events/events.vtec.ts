@@ -70,6 +70,7 @@ export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
                             header: header,
                             vtec: pv,
                             hvtec: hVtec,
+                            raw: message,
                             history: [
                                 {
                                     description: props.description,

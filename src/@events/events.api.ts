@@ -72,6 +72,8 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     hail_threat: feature?.properties?.parameters?.hailThreat?.[0] ?? null,
                 },
                 spc_parameters: {
+                    spc_number: getTextFromProduct({ message: feature?.properties?.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] }) ?? null,
+                    spc_concerning: getTextFromProduct({ message: feature?.properties?.description, find: [`Concerning...`] }) ?? null,
                     spc_max_tornado: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
                     spc_max_hail: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
                     spc_max_wind: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
@@ -98,6 +100,7 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     header: `ZCZC-ATMOSX-${feature?.properties?.parameters?.WMOidentifier}`,
                     vtec: pVtec,
                     hvtec: null,
+                    raw: feature?.properties?.description,
                     history: [
                         {
                             description: feature?.properties?.description,

@@ -26,6 +26,7 @@ import { getEventSignature } from "./building.signature"
 import { mkEvent } from "../@manager/manager.mkEvent";
 import { rmEvent } from "../@manager/manager.rmEvent";
 import { getEventGeometry } from "./building.geometry";
+import { getEventAttachments } from "./building.outlooks";
 import { updateNode } from "../@manager/manager.updateNodes";
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
@@ -51,7 +52,8 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
             delete filteredProperties.metadata.ms;
         }
         filteredProperties.metadata = filteredProperties.metadata ?? {} as any;
-        properties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex")        
+        properties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex")  
+        properties.metadata.attachments = getEventAttachments(event)
         setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`, metadata: define });
         
         if (properties.status_metadata.is_test) { 

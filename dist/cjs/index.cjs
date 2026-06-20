@@ -10510,7 +10510,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.42`,
+  version: `3.0.43`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -10587,6 +10587,7 @@ var bootstrap = {
         IgnoreTestProducts: true
       },
       EASSettings: {
+        ArchiveTTL: 60,
         ArchiveDirectory: null,
         IntroWavFile: null
       }
@@ -14411,7 +14412,7 @@ var getEventTags = (message) => {
 
 // src/@building/building.properties.ts
 var properties = (options) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L;
   const organization = (_b = (_a = options.message.match(regExp.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
   const polygons = getPolygonFromProduct(options.message);
   const properties2 = {
@@ -14440,23 +14441,25 @@ var properties = (options) => {
       hail_threat: (_t = getTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: [] })) != null ? _t : null
     },
     spc_parameters: {
-      spc_max_tornado: (_u = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _u : null,
-      spc_max_hail: (_v = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _v : null,
-      spc_max_wind: (_w = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _w : null,
-      spc_watch_issuance: (_x = getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _x : null
+      spc_number: (_u = getTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) != null ? _u : null,
+      spc_concerning: (_v = getTextFromProduct({ message: options.message, find: [`Concerning...`] })) != null ? _v : null,
+      spc_max_tornado: (_w = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _w : null,
+      spc_max_hail: (_x = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _x : null,
+      spc_max_wind: (_y = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _y : null,
+      spc_watch_issuance: (_z = getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _z : null
     },
     watch_parameters: {
-      watch_number: (_A = (_z = (_y = getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _y.replace(/(WT|WS|)/g, "")) == null ? void 0 : _z.trim()) != null ? _A : null,
+      watch_number: (_C = (_B = (_A = getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _A.replace(/(WT|WS|)/g, "")) == null ? void 0 : _B.trim()) != null ? _C : null,
       watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : (options == null ? void 0 : options.message.includes(`SEVERE`)) ? `Severe` : null,
-      additional_tornadoes_probability: (_B = getTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _B : null,
-      strong_tornadoes_probability: (_C = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _C : null,
-      severe_wind_probability: (_D = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _D : null,
-      severe_hail_probability: (_E = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _E : null,
-      hail_2in_probability: (_F = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _F : null,
-      combined_hail_wind_probability: (_G = getTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _G : null,
-      max_hail_in: (_H = getTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _H : null,
-      max_wind_surface: (_I = getTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _I : null,
-      max_tops_x100feet: (_J = getTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _J : null,
+      additional_tornadoes_probability: (_D = getTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _D : null,
+      strong_tornadoes_probability: (_E = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _E : null,
+      severe_wind_probability: (_F = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _F : null,
+      severe_hail_probability: (_G = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _G : null,
+      hail_2in_probability: (_H = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _H : null,
+      combined_hail_wind_probability: (_I = getTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _I : null,
+      max_hail_in: (_J = getTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _J : null,
+      max_wind_surface: (_K = getTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _K : null,
+      max_tops_x100feet: (_L = getTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _L : null,
       pds_watch: getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
     }
   };
@@ -14804,1409 +14807,9 @@ var createHttp = (options) => __async(null, null, function* () {
   });
 });
 
-// src/@manager/manager.createWebhook.ts
-var import_form_data = __toESM(require_form_data());
-var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f;
-  const event = options.event.properties;
-  const settings = options.webhook;
-  let body = [
-    event.locations ? `**Locations**: ${event.locations.slice(0, 100)}` : null,
-    event.issued && event.status != `Expired` ? `**Issued**: <t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>` : null,
-    event.expires && event.status != `Statement` ? `**Expires**: <t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>` : null,
-    (() => {
-      var _a2, _b2;
-      const val = (_a2 = event.parameters.estimated_wind_gusts) != null ? _a2 : null;
-      const th = (_b2 = event.parameters.wind_threat) != null ? _b2 : null;
-      const combined = [val, th].filter(Boolean).join(" ");
-      return combined ? `**Wind Gusts**: ${val} ${th ? `(${th})` : ""}` : null;
-    })(),
-    (() => {
-      var _a2, _b2;
-      const val = (_a2 = event.parameters.estimated_hail_size) != null ? _a2 : null;
-      const th = (_b2 = event.parameters.hail_threat) != null ? _b2 : null;
-      return (val != null ? val : th) ? `**Hail Threat**: ${val} ${th ? `(${th})` : ""}` : null;
-    })(),
-    event.parameters.damage_threat ? `**Damage Threat**: ${event.parameters.damage_threat}` : null,
-    event.parameters.flood_threat ? `**Flood Threat**: ${event.parameters.flood_threat}` : null,
-    event.parameters.tornado_threat ? `**Tornado Threat**: ${event.parameters.tornado_threat}` : null,
-    event.spc_parameters.spc_max_tornado ? `**Max Tornado Threat**: ${event.spc_parameters.spc_max_tornado}` : null,
-    event.spc_parameters.spc_max_hail ? `**Max Hail Threat**: ${event.spc_parameters.spc_max_hail}` : null,
-    event.spc_parameters.spc_max_wind ? `**Max Wind Threat**: ${event.spc_parameters.spc_max_wind}` : null,
-    event.spc_parameters.spc_watch_issuance ? `**Watch Issuance**: ${event.spc_parameters.spc_watch_issuance}%` : null,
-    event.watch_parameters.watch_number ? `**Watch Number**: ${event.watch_parameters.watch_number}` : null,
-    event.watch_parameters.strong_tornadoes_probability ? `**Strong Tornadoes Probability**: ${event.watch_parameters.strong_tornadoes_probability}%` : null,
-    event.watch_parameters.additional_tornadoes_probability ? `**Additional Tornadoes Probability**: ${event.watch_parameters.additional_tornadoes_probability}%` : null,
-    event.watch_parameters.combined_hail_wind_probability ? `**Combined Hail/Wind Probability**: ${event.watch_parameters.combined_hail_wind_probability}%` : null,
-    event.watch_parameters.severe_hail_probability ? `**Severe Hail Probability**: ${event.watch_parameters.severe_hail_probability}%` : null,
-    event.watch_parameters.hail_2in_probability ? `**Hail \u22652in Probability**: ${event.watch_parameters.hail_2in_probability}%` : null,
-    event.watch_parameters.max_hail_in ? `**Max Hail Inches**: ${event.watch_parameters.max_hail_in}` : null,
-    event.watch_parameters.severe_wind_probability ? `**Severe Wind Probability**: ${event.watch_parameters.severe_wind_probability}%` : null,
-    event.watch_parameters.max_wind_surface ? `**Max Surface Wind**: ${event.watch_parameters.max_wind_surface}` : null,
-    event.watch_parameters.max_tops_x100feet ? `**Max Tops (x100 feet)**: ${event.watch_parameters.max_tops_x100feet}` : null,
-    ((_a = event.parameters.tags) == null ? void 0 : _a.length) > 0 ? `**Tags**: ${event.parameters.tags.join(", ")}` : null,
-    (() => {
-      var _a2, _b2, _c2, _d2, _e2, _f2;
-      const val = (_c2 = (_b2 = (_a2 = event.geocode) == null ? void 0 : _a2.office) == null ? void 0 : _b2.name) != null ? _c2 : `N/A`;
-      const th = (_f2 = (_e2 = (_d2 = event.geocode) == null ? void 0 : _d2.office) == null ? void 0 : _e2.office) != null ? _f2 : null;
-      return (val != null ? val : th) ? `**Sender**: ${val} ${th ? `(${th})` : ""}` : null;
-    })(),
-    ((_b = event.metadata) == null ? void 0 : _b.tracking) ? `**Tracking**: ${event.metadata.tracking}` : null,
-    ((_c = event.metadata.history) == null ? void 0 : _c.length) > 0 ? `**Logs**: ${event.metadata.history.length}` : null,
-    (() => {
-      var _a2;
-      if (event.status == `Expired`) {
-        return null;
-      }
-      const desc = ((_a2 = event.description) != null ? _a2 : "").split("\n").map((l) => l.trim()).filter(Boolean).join("\n");
-      return desc ? "```\n" + desc + "\n```" : null;
-    })()
-  ].filter(Boolean).join("\n");
-  const isLimited = setTimeoutAction({ identifier: options.webhook.webhook, interval: options.webhook.rate, max: options.webhook.rate, addTime: true });
-  if (isLimited.limited) {
-    return;
-  }
-  if (body.length > 1900) {
-    body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-    const blocks = ((_d = body.match(/```/g)) != null ? _d : []).length;
-    if (blocks % 2 !== 0) body += "```";
-  }
-  const form = new import_form_data.default();
-  const embed = {
-    title: `${event.event} (${event.status})`,
-    description: body,
-    color: 16711680,
-    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    footer: { text: settings.title }
-  };
-  form.append("payload_json", JSON.stringify({
-    username: (_e = settings.title) != null ? _e : "AtmosphericX",
-    content: (_f = settings.message) != null ? _f : "",
-    embeds: [embed]
-  }));
-  if (settings.upload) {
-    form.append("file", Buffer.from(JSON.stringify(getCleanedEvent(event), null, 2)), {
-      filename: `${event.event}_${event.status}_${event.metadata.tracking}.json`,
-      contentType: "application/json"
-    });
-  }
-  yield createHttp({
-    url: settings.webhook,
-    timeout: 2e3,
-    method: `POST`,
-    headers: form.getHeaders(),
-    body: form
-  });
-});
-
-// src/@manager/manager.updateWebhooks.ts
-var updateWebhooks = (event) => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  const webhooks = settings.WebhookSettings;
-  const eventName = event.properties.event;
-  for (const socket of webhooks) {
-    const events = socket.events;
-    if (!events || events.length === 0) {
-      yield createWebhook({ webhook: socket, event });
-      continue;
-    }
-    const matched = events.some((pattern) => {
-      if (!pattern) return false;
-      if (pattern === "*" || pattern === eventName) return true;
-      if (pattern.includes("*")) {
-        const regex = "^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
-        return new RegExp(regex).test(eventName);
-      }
-      return false;
-    });
-    if (matched) {
-      yield createWebhook({ webhook: socket, event });
-    }
-  }
-});
-
-// src/@modules/@utilities/utilities.getShapeNearestPoint.ts
-var getShapeNearestPoint = (coordinates, point) => {
-  if (!coordinates || !point) {
-    return { proximity: false, point: [0, 0], distance: null };
-  }
-  const normalize = (coords) => {
-    if (!Array.isArray(coords)) return [];
-    if (typeof coords[0] === "number" && typeof coords[1] === "number") return [];
-    if (Array.isArray(coords[0]) && typeof coords[0][0] === "number") {
-      return [[coords]];
-    }
-    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && typeof coords[0][0][0] === "number") {
-      return [coords];
-    }
-    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && Array.isArray(coords[0][0][0]) && typeof coords[0][0][0][0] === "number") {
-      return coords;
-    }
-    return [];
-  };
-  const polys = normalize(coordinates);
-  if (polys.length === 0) return { proximity: false, point: [0, 0], distance: null };
-  const lon = point[0];
-  const lat = point[1];
-  const pointInRing = (pt, ring) => {
-    let x = pt[0], y = pt[1];
-    let inside = false;
-    for (let i = 0, j2 = ring.length - 1; i < ring.length; j2 = i++) {
-      const xi = ring[i][0], yi = ring[i][1];
-      const xj = ring[j2][0], yj = ring[j2][1];
-      const intersect = yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi + 0) + xi;
-      if (intersect) inside = !inside;
-    }
-    return inside;
-  };
-  const toRadians = (deg) => deg * Math.PI / 180;
-  const haversineMiles = (a, b) => {
-    const R = 3958.8;
-    const dLat = toRadians(b[1] - a[1]);
-    const dLon = toRadians(b[0] - a[0]);
-    const lat1 = toRadians(a[1]);
-    const lat2 = toRadians(b[1]);
-    const sinDLat = Math.sin(dLat / 2);
-    const sinDLon = Math.sin(dLon / 2);
-    const c = 2 * Math.asin(Math.sqrt(sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon));
-    return R * c;
-  };
-  let minDistance = Infinity;
-  let closestPoint = null;
-  for (const poly of polys) {
-    const outer = poly[0];
-    const holes = poly.slice(1);
-    if (pointInRing(point, outer)) {
-      let inHole = false;
-      for (const hole of holes) {
-        if (pointInRing(point, hole)) {
-          inHole = true;
-          break;
-        }
-      }
-      if (!inHole) {
-        return { proximity: true, point, distance: 0 };
-      }
-    }
-    for (const ring of poly) {
-      for (let i = 0; i < ring.length - 1; i++) {
-        const start = [ring[i][0], ring[i][1]];
-        const end = [ring[i + 1][0], ring[i + 1][1]];
-        const A = lon - start[0];
-        const B = lat - start[1];
-        const C = end[0] - start[0];
-        const D = end[1] - start[1];
-        const lenSq = C * C + D * D;
-        const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, (A * C + B * D) / lenSq));
-        const candidate = [start[0] + t * C, start[1] + t * D];
-        const dist = haversineMiles([lon, lat], candidate);
-        if (!isNaN(dist) && dist < minDistance) {
-          minDistance = Number(dist.toFixed(3));
-          closestPoint = candidate;
-        }
-      }
-    }
-  }
-  if (!isFinite(minDistance) || closestPoint == null) {
-    return { proximity: false, point: [0, 0], distance: null };
-  }
-  const distanceMiles = minDistance;
-  const distanceKm = Number((distanceMiles * 1.609344).toFixed(3));
-  const distanceMeters = Math.round(distanceKm * 1e3);
-  return { proximity: distanceMiles === 0, point: closestPoint, distance: distanceMiles, distanceKm, distanceMeters };
-};
-
-// src/@building/building.polygon.ts
-var getEventNodes = (event) => __async(null, null, function* () {
-  var _a, _b;
-  const metadata = { nodes: [], proximity: false, filtered: false };
-  const geometry = yield getEventGeometry(event);
-  if (!geometry || !geometry.coordinates) {
-    return { nodes: [], filtered: false, updated: Date.now() };
-  }
-  const nodes = bootstrap.cache.nodes.features;
-  for (const node of nodes) {
-    const [longitude, latitude] = node.geometry.coordinates;
-    const getPoint = getShapeNearestPoint(geometry.coordinates, [longitude, latitude]);
-    const miles = (_a = getPoint.distance) != null ? _a : null;
-    const kilometers = Number((miles * 1.609344).toFixed(3));
-    const info = {
-      id: (_b = node.properties) == null ? void 0 : _b.identifier,
-      coordinates: [longitude, latitude],
-      nearest: getPoint.point,
-      miles,
-      kilometers,
-      proximity: getPoint.proximity
-    };
-    metadata.nodes.push(info);
-    if (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMinDistance) {
-      metadata.proximity = true;
-      info.proximity = true;
-    }
-  }
-  return {
-    nodes: metadata.nodes,
-    filtered: metadata.proximity,
-    updated: Date.now()
-  };
-});
-
-// src/@manager/manager.updateNodes.ts
-var updateNode = (selectedEvent) => __async(null, null, function* () {
-  const events = bootstrap.cache.events.features;
-  const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
-  let total = 0;
-  function update(evt) {
-    return __async(this, null, function* () {
-      var _a, _b, _c;
-      const lastUpdate = (_c = (_b = (_a = evt == null ? void 0 : evt.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.updated) != null ? _c : null;
-      if (lastUpdate != null && Date.now() - lastUpdate < ttl) {
-        return evt;
-      }
-      const node = yield getEventNodes(evt);
-      if (node.nodes.length > 0) {
-        total++;
-      }
-      evt.properties.metadata.nodes = node.nodes;
-      evt.properties.metadata.filtered_proximity = node.filtered;
-      evt.properties.metadata.updated = node.updated;
-    });
-  }
-  if (!selectedEvent) {
-    yield Promise.all(events.map((evt) => __async(null, null, function* () {
-      yield update(evt);
-    })));
-  }
-  if (selectedEvent) {
-    yield update(selectedEvent);
-  }
-  if (total > 0) {
-    setEventEmit({
-      event: `onNodeUpdate`,
-      metadata: {
-        type: `global-update`,
-        updated: total
-      }
-    });
-  }
-});
-
-// src/@manager/manager.mkEvent.ts
-var mkEvent = (event) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
-  const settings = bootstrap.settings;
-  const features = bootstrap.cache.events.features;
-  const getHash = event.properties.metadata.hash;
-  const getTracking = event.properties.metadata.tracking;
-  const isEntry = (_a = bootstrap.cache.hashes) == null ? void 0 : _a.find((hash) => hash.tracking === getTracking);
-  const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
-  const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
-  if (isHashed || event.properties.status_metadata.is_expired) return;
-  setHash(event, isEntry);
-  const isFilteredLocation = yield updateNode(event).then(() => event.properties.metadata.filtered_proximity);
-  if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
-    return;
-  }
-  setEventEmit({
-    event: `onEventStatus`,
-    metadata: {
-      type: getFeature ? `Updated` : `New`,
-      event
-    },
-    message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
-  });
-  if (settings.GlobalSettings.EventManagement) {
-    if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
-      if (getFeature) {
-        const getIndex = features.indexOf(getFeature);
-        const cHistory = (_f = (_e = (_d = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _d.metadata) == null ? void 0 : _e.history) != null ? _f : [];
-        const cLocations = (_i = (_h = (_g = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _g.locations) == null ? void 0 : _h.split(";").map((l) => l.trim())) != null ? _i : [];
-        const cUgc = (_l = (_k = (_j = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _j.geocode) == null ? void 0 : _k.ugc) != null ? _l : [];
-        const iHistory = (_o = (_n = (_m = event.properties) == null ? void 0 : _m.metadata) == null ? void 0 : _n.history) != null ? _o : [];
-        const iLocations = (_r = (_q = (_p = event.properties) == null ? void 0 : _p.locations) == null ? void 0 : _q.split(";").map((l) => l.trim())) != null ? _r : [];
-        const iUgc = (_u = (_t = (_s = event.properties) == null ? void 0 : _s.geocode) == null ? void 0 : _t.ugc) != null ? _u : [];
-        const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i).filter((v, i, a) => a.findIndex((h) => h.description === v.description && h.issued === v.issued) === i);
-        const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join("; ");
-        const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
-        bootstrap.cache.events.features[getIndex] = __spreadProps(__spreadValues({}, event), {
-          properties: __spreadProps(__spreadValues({}, event.properties), {
-            metadata: __spreadProps(__spreadValues({}, (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.metadata), {
-              history: mHistory
-            }),
-            locations: mLocations,
-            geocode: __spreadProps(__spreadValues({}, (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.geocode), {
-              ugc: mUgc
-            })
-          })
-        });
-        updateWebhooks(bootstrap.cache.events.features[getIndex]);
-      } else {
-        features.push(event);
-        updateWebhooks(event);
-      }
-    }
-  }
-});
-
-// src/@manager/manager.rmEvent.ts
-var rmEvent = (event) => {
-  const getEvent = bootstrap.cache.events.features.find((f) => {
-    var _a, _b, _c, _d;
-    return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === ((_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.metadata) == null ? void 0 : _d.tracking);
-  });
-  const cachedStatus = event.properties.status;
-  event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
-  event.properties.status = `Expired`;
-  if (getEvent) {
-    setEventEmit({
-      event: `onEventStatus`,
-      metadata: {
-        type: `Removed`,
-        event
-      },
-      message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
-    });
-    setEventEmit({ event: `onExpiredProduct`, metadata: event });
-    if (cachedStatus != `Statement`) updateWebhooks(event);
-    bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
-    bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
-  }
-  setEventEmit({
-    event: `onEventCache`,
-    metadata: bootstrap.cache.events,
-    limited: true
-  });
-};
-
-// src/@building/building.validate.ts
-var validateEvents = (events) => __async(null, null, function* () {
-  var _a;
-  if (events.length === 0) return;
-  const configurations = bootstrap.settings;
-  const sets = {};
-  const bools = {};
-  const megered = __spreadValues(__spreadValues({}, configurations.GlobalSettings), configurations.GlobalSettings.EventFiltering);
-  for (const key in megered) {
-    const setting = megered[key];
-    if (Array.isArray(setting)) {
-      sets[key] = new Set(setting.map((item) => item.toLowerCase()));
-    }
-    if (typeof setting === "boolean") {
-      bools[key] = setting;
-    }
-  }
-  const filterd = events.filter((event) => {
-    var _a2, _b, _c, _d, _e;
-    const define2 = getEventSignature(event);
-    const properties2 = define2.properties;
-    const zones = properties2.geocode.ugc;
-    const icao = properties2.geocode.office.office;
-    const enhancedEventName = properties2.event = getEventEnhancedName(event);
-    const filteredProperties = JSON.parse(JSON.stringify(properties2));
-    if ((filteredProperties == null ? void 0 : filteredProperties.metadata) && "ms" in filteredProperties.metadata) {
-      delete filteredProperties.metadata.ms;
-    }
-    filteredProperties.metadata = (_a2 = filteredProperties.metadata) != null ? _a2 : {};
-    properties2.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
-    setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`, metadata: define2 });
-    if (properties2.status_metadata.is_test) {
-      setEventEmit({ event: `onTestProduct`, metadata: define2 });
-      if (bools == null ? void 0 : bools.IgnoreTestProducts) return false;
-    }
-    if (properties2.status_metadata.is_expired) {
-      setEventEmit({ event: `onExpiredProduct`, metadata: define2 });
-      rmEvent(define2);
-      return false;
-    }
-    if ((_c = (_b = properties2.metadata) == null ? void 0 : _b.vtec) == null ? void 0 : _c.is_watch) {
-      const isSPC = (_e = (_d = properties2.metadata) == null ? void 0 : _d.vtec) == null ? void 0 : _e.prediction_center;
-      setEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define2 });
-      if ((bools == null ? void 0 : bools.SPCWatchesOnly) && !isSPC) {
-        return false;
-      }
-      if (!(bools == null ? void 0 : bools.SPCWatchesOnly) && isSPC) {
-        return false;
-      }
-    }
-    for (const key in sets) {
-      const setting = sets[key];
-      if (key === "ListeningEvents" && setting.size > 0 && !setting.has(define2.properties.event.toLowerCase())) {
-        setEventEmit({
-          event: `onFilteredEvent`,
-          metadata: define2
-        });
-        return false;
-      }
-      if (key === "IgnoredEvents" && setting.size > 0 && setting.has(define2.properties.event.toLowerCase())) {
-        setEventEmit({
-          event: `onIgnoredEvent`,
-          metadata: define2
-        });
-        return false;
-      }
-      if (key === "ListeningICAO" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
-        setEventEmit({
-          event: `onFilteredICAO`,
-          metadata: define2
-        });
-        return false;
-      }
-      if (key === "IgnoredICAO" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
-        setEventEmit({
-          event: `onIgnoredICAO`,
-          metadata: define2
-        });
-        return false;
-      }
-      if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.toLowerCase()))) {
-        setEventEmit({
-          event: `onFilteredUGC`,
-          metadata: define2
-        });
-        return false;
-      }
-      if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.substring(0, 2).toLowerCase()))) {
-        setEventEmit({
-          event: `onFilteredState`,
-          metadata: define2
-        });
-        return false;
-      }
-    }
-    return true;
-  });
-  if (!((_a = configurations == null ? void 0 : configurations.GlobalSettings) == null ? void 0 : _a.DisableGeometryParsing)) {
-    for (const event of filterd) {
-      event.geometry = yield getEventGeometry(event);
-    }
-  }
-  if (filterd.length > 0) {
-    for (const event of filterd) {
-      yield mkEvent(event);
-    }
-  }
-  yield updateNode();
-  setEventEmit({
-    event: `onEventCache`,
-    metadata: bootstrap.cache.events,
-    limited: true
-  });
-});
-
-// src/@events/events.text.ts
-var text = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c;
-  let processed = [];
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const props = properties({ message, attributes });
-    const header = getEventHeader({ properties: props, getType: stanza.getType });
-    const issued = new Date(attributes.issue);
-    const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
-    let event = Object.keys(eventsMatchText).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
-    let isStatement = false;
-    if (!event) {
-      event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
-      isStatement = true;
-    }
-    processed.push({
-      type: `Feature`,
-      geometry: {
-        type: `Point`,
-        coordinates: []
-      },
-      properties: __spreadProps(__spreadValues({
-        event,
-        parent: event,
-        status: isStatement ? `Statement` : `Issued`,
-        issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-        expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
-      }, props), {
-        metadata: {
-          ms: performance.now() - tick,
-          source: `events.text`,
-          tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
-          header,
-          vtec: null,
-          hvtec: null,
-          history: [
-            {
-              description: props.description,
-              issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-              status: `Issued`
-            }
-          ]
-        }
-      })
-    });
-  }
-  validateEvents(processed);
-});
-
-// src/@parsers/@ugc/ugc.header.ts
-var getUGCHeader = (message) => {
-  const start = message.search(regExp.ugc1);
-  const sub = message.substring(start);
-  const end = sub.search(regExp.ugc2);
-  const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
-  return fin != null ? fin : null;
-};
-
-// src/@parsers/@ugc/ugc.zones.ts
-var getZones = (header) => {
-  const splits = header.split("-");
-  const zones = [];
-  let state = splits[0].substring(0, 2);
-  const format = splits[0].substring(2, 3);
-  for (const part of splits) {
-    if (/^[A-Z]/.test(part)) {
-      state = part.substring(0, 2);
-      if (part.includes(">")) {
-        const [start, end] = part.split(">");
-        const startNum = parseInt(start.substring(3), 10);
-        const endNum = parseInt(end, 10);
-        for (let j2 = startNum; j2 <= endNum; j2++) {
-          zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
-        }
-      } else {
-        zones.push(part);
-      }
-      continue;
-    }
-    if (part.includes(">")) {
-      const [start, end] = part.split(">");
-      const startNum = parseInt(start, 10);
-      const endNum = parseInt(end, 10);
-      for (let j2 = startNum; j2 <= endNum; j2++) {
-        zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
-      }
-    } else {
-      zones.push(`${state}${format}${part}`);
-    }
-  }
-  return zones.filter((item) => item !== "");
-};
-
-// src/@parsers/@ugc/ugc.expiry.ts
-var getExpiry = (message) => {
-  const match = message.match(/\b(\d{6})-/);
-  if (!match) {
-    return null;
-  }
-  const date = match == null ? void 0 : match[1];
-  const day = parseInt(date == null ? void 0 : date.slice(0, 2), 10);
-  const hour = parseInt(date == null ? void 0 : date.slice(2, 4), 10);
-  const minute = parseInt(date == null ? void 0 : date.slice(4, 6), 10);
-  const now = /* @__PURE__ */ new Date();
-  const expires = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
-  return expires.toISOString();
-};
-
-// src/@parsers/@ugc/ugc.locations.ts
-var getLocations = (zones) => __async(null, null, function* () {
-  const sites = Array.from(new Set(zones));
-  const placeholders = sites.map(() => "?").join(",");
-  const rows = yield bootstrap.database.prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`).all(...sites);
-  return rows.map((row) => row.location).sort();
-});
-
-// src/@parsers/@ugc/ugc.extract.ts
-var ugcExtract = (message) => __async(null, null, function* () {
-  const head = getUGCHeader(message);
-  const ugcs = getZones(head);
-  const expires = getExpiry(message);
-  const areas = yield getLocations(ugcs);
-  if (!head || (ugcs == null ? void 0 : ugcs.length) == 0) return;
-  return {
-    zones: ugcs,
-    locations: areas,
-    expires
-  };
-});
-
-// src/@events/events.ugc.ts
-var ugc = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c;
-  let processed = [];
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const ugc2 = yield ugcExtract(message);
-    if (ugc2 != null) {
-      const props = properties({ message, attributes, ugc: ugc2 });
-      const issued = new Date(attributes.issue);
-      const expires = new Date(ugc2.expires);
-      const header = getEventHeader({ properties: props, getType: stanza.getType });
-      let event = Object.keys(eventsMatchText).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
-      let isStatement = false;
-      if (!event) {
-        event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
-        isStatement = true;
-      }
-      processed.push({
-        type: `Feature`,
-        geometry: {
-          type: `Point`,
-          coordinates: []
-        },
-        properties: __spreadProps(__spreadValues({
-          event,
-          parent: event,
-          status: isStatement ? `Statement` : `Issued`,
-          issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-          expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
-        }, props), {
-          metadata: {
-            ms: performance.now() - tick,
-            source: `events.ugc`,
-            tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
-            header,
-            vtec: null,
-            hvtec: null,
-            history: [
-              {
-                description: props.description,
-                issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-                status: `Issued`
-              }
-            ]
-          }
-        })
-      });
-    }
-  }
-  validateEvents(processed);
-});
-
-// src/@dictionaries/dictionaries.eventTypes.ts
-var eventTypes = {
-  "AF": "Ashfall",
-  "AS": "Air Stagnation",
-  "BH": "Beach Hazard",
-  "BW": "Brisk Wind",
-  "BZ": "Blizzard",
-  "CF": "Coastal Flood",
-  "DF": "Debris Flow",
-  "DS": "Dust Storm",
-  "EC": "Extreme Cold",
-  "EH": "Excessive Heat",
-  "XH": "Extreme Heat",
-  "EW": "Extreme Wind",
-  "FA": "Areal Flood",
-  "FF": "Flash Flood",
-  "FG": "Dense Fog",
-  "FL": "Flood",
-  "FR": "Frost",
-  "FW": "Fire Weather",
-  "FZ": "Freeze",
-  "GL": "Gale",
-  "HF": "Hurricane Force Wind",
-  "HT": "Heat",
-  "HU": "Hurricane",
-  "HW": "High Wind",
-  "HY": "Hydrologic",
-  "HZ": "Hard Freeze",
-  "IS": "Ice Storm",
-  "LE": "Lake Effect Snow",
-  "LO": "Low Water",
-  "LS": "Lakeshore Flood",
-  "LW": "Lake Wind",
-  "MA": "Special Marine",
-  "EQ": "Earthquake",
-  "MF": "Dense Fog",
-  "MH": "Ashfall",
-  "MS": "Dense Smoke",
-  "RB": "Small Craft for Rough Bar",
-  "RP": "Rip Current Risk",
-  "SC": "Small Craft",
-  "SE": "Hazardous Seas",
-  "SI": "Small Craft for Winds",
-  "SM": "Dense Smoke",
-  "SQ": "Snow Squall",
-  "SR": "Storm",
-  "SS": "Storm Surge",
-  "SU": "High Surf",
-  "SV": "Severe Thunderstorm",
-  "SW": "Small Craft for Hazardous Seas",
-  "TO": "Tornado",
-  "TR": "Tropical Storm",
-  "TS": "Tsunami",
-  "TY": "Typhoon",
-  "SP": "Special Weather",
-  "UP": "Heavy Freezing Spray",
-  "WC": "Wind Chill",
-  "WI": "Wind",
-  "WS": "Winter Storm",
-  "WW": "Winter Weather",
-  "ZF": "Freezing Fog",
-  "ZR": "Freezing Rain",
-  "ZY": "Freezing Spray"
-};
-
-// src/@dictionaries/dictionaries.eventActions.ts
-var eventActions = {
-  "W": "Warning",
-  "F": "Forecast",
-  "A": "Watch",
-  "O": "Outlook",
-  "Y": "Advisory",
-  "N": "Synopsis",
-  "S": "Statement"
-};
-
-// src/@dictionaries/dictionaries.eventStatus.ts
-var eventStatus = {
-  "NEW": "Issued",
-  "CON": "Updated",
-  "EXT": "Extended",
-  "EXA": "Extended",
-  "EXB": "Extended",
-  "UPG": "Upgraded",
-  "COR": "Correction",
-  "ROU": "Routine",
-  "CAN": "Cancelled",
-  "EXP": "Expired"
-};
-
-// src/@parsers/@pvtec/pvtec.expires.ts
-var getExpiry2 = (dates) => {
-  if ((dates == null ? void 0 : dates[1]) == `000000T0000Z`) return "Invalid Date Format";
-  const expires = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
-  const local = new Date(new Date(expires).getTime() - 4 * 60 * 6e4);
-  const pad = (n) => n.toString().padStart(2, "0");
-  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}:00.000-04:00`;
-};
-
-// src/@parsers/@pvtec/pvtec.extract.ts
-var pvExtract = (message) => {
-  var _a, _b, _c, _d;
-  const getVTECs = (_a = message.match(regExp.pvtec)) != null ? _a : [];
-  const vtecs = [];
-  for (const vtec2 of getVTECs) {
-    const sub = vtec2.split(`.`);
-    if ((sub == null ? void 0 : sub.length) < 7) continue;
-    const dates = (_b = sub[6]) == null ? void 0 : _b.split(`-`);
-    vtecs.push({
-      vtec: vtec2,
-      product: eventProducts[sub[0]],
-      tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
-      event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
-      status: eventStatus[sub[1]],
-      organization: (_d = (_c = message.match(regExp.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
-      expires: getExpiry2(dates),
-      is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
-      prediction_center: sub[2] == `KWNS` ? true : false
-    });
-  }
-  return vtecs.length > 0 ? vtecs : null;
-};
-
-// src/@dictionaries/dictionaries.eventCauses.ts
-var eventCauses = {
-  "SM": "Snow Melt",
-  "RS": "Rain/Snow Melt",
-  "ER": "Excessive Rain",
-  "DM": "Dam/Levee Failure",
-  "IJ": "Ice Jam",
-  "GO": "Glacier Lake Outburst",
-  "IC": "Ice",
-  "FS": "Flash Flood / Storm Surge",
-  "FT": "Tidal Effects",
-  "ET": "Elevated Upstream Flow",
-  "MC": "Other Multiple Causes",
-  "WT": "Wind and/or Tidal Effects",
-  "DR": "Reservoir Release",
-  "UU": "Unknown",
-  "OT": "Other Effects"
-};
-
-// src/@dictionaries/dictionaries.eventRecords.ts
-var eventRecords = {
-  "NO": "No Record Expected",
-  "NR": "Near Record or possible record",
-  "UU": "Unknown history of records",
-  "OO": "Other"
-};
-
-// src/@dictionaries/dictionaries.eventSeverity.ts
-var eventSeverity = {
-  N: "Not Expected",
-  0: "Areal Flood or FF Product",
-  1: "Minor",
-  2: "Moderate",
-  3: "Major",
-  U: "Unknown"
-};
-
-// src/@parsers/@hvtec/hvtec.extract.ts
-var hvExtract = (message) => {
-  var _a;
-  const getHVTECs = (_a = message.match(regExp.hvtec)) != null ? _a : [];
-  const vtecs = [];
-  for (const vtec2 of getHVTECs) {
-    const sub = vtec2.split(`.`);
-    if (sub.length < 7) continue;
-    vtecs.push({
-      hvtec: vtec2,
-      severity: eventSeverity[sub[1]],
-      cause: eventCauses[sub[2]],
-      record: eventRecords[sub[6]]
-    });
-  }
-  return vtecs.length > 0 ? vtecs : null;
-};
-
-// src/@events/events.vtec.ts
-var vtec = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e;
-  let processed = [];
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const pVtec = pvExtract(message);
-    const hVtec = hvExtract(message);
-    const ugc2 = yield ugcExtract(message);
-    if (pVtec != null && ugc2 != null) {
-      for (const pv of pVtec) {
-        const vtec2 = pv;
-        const props = properties({ message, attributes, ugc: ugc2, pVtec: vtec2 });
-        const header = getEventHeader({ properties: props, getType: stanza.getType, vtec: vtec2 });
-        const issued = (_d = new Date(attributes.issue)) != null ? _d : /* @__PURE__ */ new Date();
-        const expires = new Date(vtec2.expires);
-        processed.push({
-          type: `Feature`,
-          geometry: {
-            type: `Point`,
-            coordinates: []
-          },
-          properties: __spreadProps(__spreadValues({
-            event: pv.event,
-            parent: pv.event,
-            status: pv.status,
-            issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-            expires: !isNaN(expires.getTime()) ? expires.toISOString() : (_e = ugc2.expires) != null ? _e : new Date(issued.getTime() + 60 * 60 * 1e3).toISOString()
-          }, props), {
-            metadata: {
-              ms: performance.now() - tick,
-              source: `events.vtec`,
-              tracking: getEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec: vtec2 }),
-              header,
-              vtec: pv,
-              hvtec: hVtec,
-              history: [
-                {
-                  description: props.description,
-                  issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-                  status: pv.status
-                }
-              ]
-            }
-          })
-        });
-      }
-    }
-  }
-  validateEvents(processed);
-});
-
-// src/@events/events.api.ts
-var api = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb;
-  let processed = [];
-  const messages = Object.values(JSON.parse(stanza.message).features);
-  for (const feature of messages) {
-    const tick = performance.now();
-    const pVtec = (_d = (_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0]) != null ? _d : null;
-    processed.push({
-      type: `Feature`,
-      geometry: {
-        type: `Point`,
-        coordinates: []
-      },
-      properties: {
-        event: (_f = (_e = feature == null ? void 0 : feature.properties) == null ? void 0 : _e.event) != null ? _f : null,
-        parent: (_h = (_g = feature == null ? void 0 : feature.properties) == null ? void 0 : _g.event) != null ? _h : null,
-        status: (_j = (_i = feature == null ? void 0 : feature.properties) == null ? void 0 : _i.messageType) != null ? _j : null,
-        issued: ((_k = feature == null ? void 0 : feature.properties) == null ? void 0 : _k.sent) ? new Date((_l = feature == null ? void 0 : feature.properties) == null ? void 0 : _l.sent).toISOString() : null,
-        expires: ((_m = feature == null ? void 0 : feature.properties) == null ? void 0 : _m.expires) ? new Date((_n = feature == null ? void 0 : feature.properties) == null ? void 0 : _n.expires).toISOString() : null,
-        locations: (_p = (_o = feature == null ? void 0 : feature.properties) == null ? void 0 : _o.areaDesc) != null ? _p : null,
-        description: (_r = (_q = feature == null ? void 0 : feature.properties) == null ? void 0 : _q.description) != null ? _r : null,
-        attributes: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.attributes) != null ? _t : {},
-        geocode: {
-          office: {
-            office: pVtec ? pVtec.split(`.`)[2] : null,
-            name: (_u = officeICAOs[pVtec ? pVtec.split(`.`)[2] : null]) != null ? _u : null
-          },
-          organization: (_x = (_w = (_v = feature == null ? void 0 : feature.properties) == null ? void 0 : _v.parameters) == null ? void 0 : _w.WMOidentifier) == null ? void 0 : _x[0],
-          ugc: (_A = (_z = (_y = feature == null ? void 0 : feature.properties) == null ? void 0 : _y.geocode) == null ? void 0 : _z.UGC) != null ? _A : [],
-          polygon: ((_B = feature == null ? void 0 : feature.geometry) == null ? void 0 : _B.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_C = feature == null ? void 0 : feature.geometry) == null ? void 0 : _C.coordinates[0]])).toString("base64") : null,
-          polygon_generated: ((_D = feature == null ? void 0 : feature.geometry) == null ? void 0 : _D.coordinates.length) > 0 ? true : false
-        },
-        parameters: {
-          tags: getEventTags((_E = feature == null ? void 0 : feature.properties) == null ? void 0 : _E.description),
-          instructions: (_G = (_F = feature == null ? void 0 : feature.properties) == null ? void 0 : _F.instruction) != null ? _G : null,
-          source: (_I = getTextFromProduct({ message: (_H = feature == null ? void 0 : feature.properties) == null ? void 0 : _H.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _I : null,
-          hazards: (_K = getTextFromProduct({ message: (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _K : null,
-          impacts: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _M : null,
-          estimated_hail_size: (_Q = (_P = (_O = (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.parameters) == null ? void 0 : _O.maxHailSize) == null ? void 0 : _P[0]) != null ? _Q : null,
-          estimated_wind_gusts: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxWindGust) == null ? void 0 : _T[0]) != null ? _U : null,
-          damage_threat: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.thunderstormDamageThreat) == null ? void 0 : _X[0]) != null ? _Y : null,
-          tornado_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.tornadoDetection) == null ? void 0 : _$[0]) != null ? _aa : null,
-          flood_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.floodDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
-          wind_threat: (_ia = (_ha = (_ga = (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.parameters) == null ? void 0 : _ga.windThreat) == null ? void 0 : _ha[0]) != null ? _ia : null,
-          hail_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.hailThreat) == null ? void 0 : _la[0]) != null ? _ma : null
-        },
-        spc_parameters: {
-          spc_max_tornado: (_oa = getTextFromProduct({ message: (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _oa : null,
-          spc_max_hail: (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _qa : null,
-          spc_max_wind: (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _sa : null,
-          spc_watch_issuance: (_ua = getTextFromProduct({ message: (_ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _ta.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _ua : null
-        },
-        watch_parameters: {
-          watch_number: (_ya = (_xa = (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _wa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _xa.trim()) != null ? _ya : null,
-          watch_type: ((_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Aa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Aa.description.includes(`SEVERE`)) ? `Severe` : null,
-          additional_tornadoes_probability: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ca : null,
-          strong_tornadoes_probability: (_Ea = getTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ea : null,
-          severe_wind_probability: (_Ga = getTextFromProduct({ message: (_Fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Fa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ga : null,
-          severe_hail_probability: (_Ia = getTextFromProduct({ message: (_Ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ha.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ia : null,
-          hail_2in_probability: (_Ka = getTextFromProduct({ message: (_Ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ja.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _Ka : null,
-          combined_hail_wind_probability: (_Ma = getTextFromProduct({ message: (_La = feature == null ? void 0 : feature.properties) == null ? void 0 : _La.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ma : null,
-          max_hail_in: (_Oa = getTextFromProduct({ message: (_Na = feature == null ? void 0 : feature.properties) == null ? void 0 : _Na.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _Oa : null,
-          max_wind_surface: (_Qa = getTextFromProduct({ message: (_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _Qa : null,
-          max_tops_x100feet: (_Sa = getTextFromProduct({ message: (_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _Sa : null,
-          pds_watch: getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
-        },
-        metadata: {
-          ms: performance.now() - tick,
-          source: `events.api`,
-          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_Wa = (_Va = (_Ua = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ua.parameters) == null ? void 0 : _Va.WMOidentifier) == null ? void 0 : _Wa[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec }),
-          header: `ZCZC-ATMOSX-${(_Ya = (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.parameters) == null ? void 0 : _Ya.WMOidentifier}`,
-          vtec: pVtec,
-          hvtec: null,
-          history: [
-            {
-              description: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description,
-              issued: ((__a = feature == null ? void 0 : feature.properties) == null ? void 0 : __a.sent) ? new Date((_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.sent).toISOString() : null,
-              status: (_bb = (_ab = feature == null ? void 0 : feature.properties) == null ? void 0 : _ab.messageType) != null ? _bb : null
-            }
-          ]
-        }
-      }
-    });
-  }
-  validateEvents(processed);
-});
-
-// src/@building/building.create.ts
-var createEvent = (stanza) => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
-  const isVtecEvent = stanza.isVTEC && stanza.isUGC;
-  const isUgcEvent = !stanza.isVTEC && stanza.isUGC;
-  const isTextEvent = !stanza.isVTEC && !stanza.isUGC;
-  const isNWWS = stanza.isNWWS;
-  if (!isNWWS) return yield api(stanza);
-  if (!StanzaSettings.DisableVTEC && isVtecEvent) return yield vtec(stanza);
-  if (!StanzaSettings.DisableUGC && isUgcEvent) return yield ugc(stanza);
-  if (!StanzaSettings.DisableText && isTextEvent) return yield text(stanza);
-  return "nothing picked";
-});
-
-// src/@modules/@database/database.stanza.ts
-var importStanza = (stanza) => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  try {
-    if (!settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
-      return;
-    }
-    bootstrap.database.prepare(`INSERT OR IGNORE INTO stanzas (type, stanza, issued) VALUES (?, ?, ?)`).run(stanza.getType.type, JSON.stringify(stanza), stanza.attributes.issue);
-    const count = bootstrap.database.prepare(`SELECT COUNT(*) as total FROM stanzas`).get();
-    const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxDatabaseHistory;
-    if (count.total > max) {
-      const toDelete = count.total - max;
-      if (toDelete > 0) {
-        bootstrap.database.prepare(`DELETE FROM stanzas WHERE id IN (SELECT id FROM stanzas ORDER BY issued ASC LIMIT ?)`).run(toDelete);
-      }
-    }
-  } catch (error) {
-    setWarning({ message: `An error occurred while importing stanza: ${error.message}` });
-  }
-});
-
-// src/@modules/@xmpp/xmpp.xStanza.ts
-var xStanza = () => {
-  bootstrap.session_xmpp.on(`stanza`, (stanza) => __async(null, null, function* () {
-    var _a, _b, _c, _d;
-    const msgFrom = (_b = (_a = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _a.from) != null ? _b : ``;
-    const msgType = (_d = (_c = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _c.type) != null ? _d : ``;
-    setEventEmit({
-      event: `onServiceStatus`,
-      metadata: {
-        message: stanza,
-        from: msgFrom,
-        type: `stanza`
-      }
-    });
-    bootstrap.cache.lastStanza = Date.now();
-    if (stanza.is(`message`)) {
-      const result = validate({ stanza });
-      const isSkippable = result.isIgnored || result.isCapEvent || result.isCapEvent && !result.isCapAreaDescription;
-      if (isSkippable) {
-        return;
-      }
-      yield createEvent(result);
-      yield importStanza(result);
-    }
-    if (stanza.is(`presence`) && msgFrom.startsWith("nwws@conference.nwws-oi.weather.gov/")) {
-      const getOccupant = msgFrom.split(`/`).slice(1).join(`/`);
-      const getAvailability = msgType === `unavailable`;
-      setEventEmit({
-        event: `onServiceStatus`,
-        metadata: {
-          message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
-          data: {},
-          type: `occupant`,
-          error: false
-        }
-      });
-    }
-  }));
-};
-
-// src/@modules/@xmpp/xmpp.xDeploy.ts
-var xDeploy = () => __async(null, null, function* () {
-  var _a, _b;
-  let session;
-  const settings = bootstrap.settings;
-  (_b = (_a = settings.NOAAWeatherWireServiceSettings.CredentialSettings).Nickname) != null ? _b : _a.Nickname = settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username;
-  session = bootstrap.session_xmpp = client({
-    service: "xmpp://nwws-oi.weather.gov",
-    domain: "nwws-oi.weather.gov",
-    username: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username,
-    password: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Password
-  });
-  try {
-    yield xOffline();
-    yield xError();
-    yield xStanza();
-    yield xOnline();
-    yield session.start();
-  } catch (error) {
-    setEventEmit({
-      event: `onServiceStatus`,
-      metadata: {
-        message: `Error occured while starting XMPP Session: ${error}`,
-        data: {},
-        type: `error`,
-        error: true
-      }
-    });
-  }
-});
-
-// src/@modules/@database/database.init.ts
-var import_fs2 = __toESM(require("fs"));
-var import_better_sqlite3 = __toESM(require("better-sqlite3"));
-
-// src/@modules/@database/database.shapefiles.ts
-var import_fs = __toESM(require("fs"));
-var import_path2 = require("path");
-var import_jszip = require("jszip");
-var import_shapefile = require("shapefile");
-
-// src/@modules/@utilities/utilities.setSleep.ts
-var setSleep = (options) => __async(null, null, function* () {
-  return new Promise((resolve6) => {
-    setTimeout(() => {
-      resolve6();
-    }, options.timeout);
-  });
-});
-
-// src/@dictionaries/dictionaries.shapefileLinks.ts
-var shapefileLinks = [
-  { name: "us_counties", id: "C", link: "https://www.weather.gov/source/gis/Shapefiles/County/c_16ap26.zip" },
-  { name: "us_states_territories", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/County/s_16ap26.zip" },
-  { name: "fire_weather_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/fz16ap26.zip" },
-  { name: "costal_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/mz16ap26.zip" },
-  { name: "offshore_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/oz16ap26.zip" },
-  { name: "public_forecast_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/z_16ap26.zip" },
-  { name: "county_warning_areas", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/w_16ap26.zip" },
-  { name: "river_forecast_boundaries", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/Misc/rf05mr24.zip" },
-  { name: "high_seas_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/hz17fe26.zip" }
-];
-
-// src/@modules/@database/database.shapefiles.ts
-var importShapefiles = () => __async(null, null, function* () {
-  var _a, _b;
-  const settings = bootstrap.settings;
-  try {
-    const tShapefiles = bootstrap.database.prepare(`SELECT COUNT(*) AS count FROM shapefiles`).get().count;
-    if (tShapefiles === 0) {
-      yield setSleep({ timeout: 1e3 });
-      setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` });
-      for (const shapefile of shapefileLinks) {
-        const response2 = yield fetch(shapefile.link);
-        const arrayBuff = yield response2.arrayBuffer();
-        const content = yield (0, import_jszip.loadAsync)(arrayBuff);
-        const directory = (0, import_path2.resolve)(__dirname, `../../shapefiles`);
-        if (!import_fs.default.existsSync(directory)) {
-          import_fs.default.mkdirSync(directory, { recursive: true });
-        }
-        for (const file of Object.keys(content.files)) {
-          if (file.endsWith(".shp") || file.endsWith(".dbf")) {
-            const data = yield content.files[file].async(`nodebuffer`);
-            const output = (0, import_path2.resolve)(directory, `${(_a = shapefile == null ? void 0 : shapefile.name) != null ? _a : ``}_${(_b = shapefile == null ? void 0 : shapefile.id) != null ? _b : ``}${(0, import_path2.extname)(file)}`);
-            import_fs.default.writeFileSync(output, data);
-          }
-        }
-        const filepath = (0, import_path2.resolve)(__dirname, "../../shapefiles", shapefile.name + "_" + shapefile.id);
-        const { features } = yield (0, import_shapefile.read)(
-          filepath,
-          filepath
-        );
-        setWarning({ message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id}` });
-        const insert = bootstrap.database.prepare(`INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`);
-        const transaction = bootstrap.database.transaction((entries) => {
-          var _a2, _b2, _c;
-          for (const entry of entries) {
-            const { properties: properties2, geometry } = entry;
-            let final2, location;
-            if (properties2.FIPS) {
-              final2 = `${properties2.STATE}${shapefile.id}${properties2.FIPS.substring(2)}`;
-              location = `${properties2.COUNTYNAME}, ${properties2.STATE}`;
-            } else if (properties2.FULLSTAID) {
-              final2 = `${properties2.ST}${shapefile.id}${properties2.WFO}`;
-              location = `${properties2.CITY}, ${properties2.STATE}`;
-            } else if (properties2.STATE) {
-              final2 = `${properties2.STATE}${shapefile.id}${(_a2 = properties2.ZONE) != null ? _a2 : properties2.SITE_ID}`;
-              location = `${(_b2 = properties2.NAME) != null ? _b2 : `${properties2.RFC_NAME} ${properties2.RFC_CITY}`}, ${properties2.STATE}`;
-            } else {
-              final2 = (_c = properties2.ID) != null ? _c : properties2.WFO;
-              location = properties2.NAME;
-            }
-            insert.run(final2, location, JSON.stringify(geometry));
-          }
-        });
-        import_fs.default.unlinkSync(`${filepath}.shp`);
-        import_fs.default.unlinkSync(`${filepath}.dbf`);
-        setWarning({ message: `Cleaned up temporary files for ${shapefile.name}_${shapefile.id}` });
-        transaction(features);
-      }
-      setWarning({ message: `Shapefiles have finished compiling, you can now continue and close this terminal` });
-      import_fs.default.rm((0, import_path2.resolve)(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
-      });
-    }
-  } catch (error) {
-    setWarning({ message: `An error occurred while compiling shapefiles: ${error.message}` });
-  }
-});
-
-// src/@modules/@database/database.init.ts
-var initializeDatabase = () => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  try {
-    if (!import_fs2.default.existsSync(settings.Database)) {
-      import_fs2.default.writeFileSync(settings.Database, "");
-      setWarning({ message: `Creating new database at ${settings.Database}` });
-    }
-    bootstrap.database = new import_better_sqlite3.default(settings.Database);
-    bootstrap.database.prepare(`CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )`).run();
-    bootstrap.database.prepare(`CREATE TABLE IF NOT EXISTS shapefiles (id TEXT PRIMARY KEY, location TEXT, geometry TEXT)`).run();
-    yield importShapefiles();
-  } catch (error) {
-    setWarning({ message: `An error occurred while initializing the database: ${error.message}` });
-  }
-});
-
-// src/@modules/@database/database.cache.ts
-var getCachedEvents = () => __async(null, null, function* () {
-  var _a;
-  try {
-    const settings = bootstrap.settings;
-    const tick = performance.now();
-    if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
-      const max = (_a = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory) != null ? _a : 500;
-      const get = yield bootstrap.database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max);
-      setWarning({ message: `Fetched ${get.length} cached events from the database in ${Math.floor(performance.now() - tick)} ms` });
-      let events = get.map((row) => JSON.parse(row.stanza)).filter((stanza) => {
-        if (!stanza) {
-          return;
-        }
-        const isSkippable = stanza.isIgnored || stanza.isCapEvent || stanza.isCapEvent && !stanza.isCapAreaDescription;
-        return !isSkippable;
-      });
-      events = events.sort((a, b) => b.issued - a.issued);
-      yield Promise.all(events.map((event) => createEvent(event)));
-      setWarning({ message: `Processed ${events.length} cached events in ${Math.floor(performance.now() - tick)} ms` });
-    }
-  } catch (error) {
-    setWarning({ message: `An error occurred while fetching cached events: ${error.message} -> ${error.stack}` });
-  }
-});
-
-// src/@modules/@xmpp/xmpp.xReconnect.ts
-var xReconnect = (interval) => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  const lastStanza = Date.now() - bootstrap.cache.lastStanza;
-  if (interval < 15) {
-    setWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` });
-    interval = 15;
-    bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
-  }
-  const reconnectThreshold = interval * 1e3;
-  if (!bootstrap.cache.isConnected && !bootstrap.cache.sigHault || !bootstrap.session_xmpp) {
-    return;
-  }
-  if (lastStanza > reconnectThreshold) {
-    if (!bootstrap.cache.isReconnecting) {
-      bootstrap.cache.isReconnecting = true;
-      bootstrap.cache.isConnected = false;
-      bootstrap.cache.tReconnects += 1;
-      try {
-        setEventEmit({
-          event: `onServiceStatus`,
-          metadata: {
-            message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
-            data: {
-              last_stanza: lastStanza,
-              nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
-            },
-            type: `reconnect`,
-            error: true
-          }
-        });
-        yield bootstrap.session_xmpp.stop().catch(() => {
-        });
-        yield bootstrap.session_xmpp.start().catch(() => {
-        });
-      } catch (error) {
-        setWarning({ message: `XMPP Reconnect Failed - ${error.message}` });
-      } finally {
-        bootstrap.cache.isReconnecting = false;
-      }
-    }
-  }
-});
-
-// src/@modules/@utilities/utilities.setCronSchedule.ts
-var setCronSchedule = () => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  if (settings.EnableWireService) {
-    if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
-      void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
-    }
-  } else {
-    const response2 = yield createHttp({
-      url: settings.NationalWeatherServiceSettings.EventsEndpoint,
-      headers: {
-        "User-Agent": "@atmosx/event-product-parser"
-      }
-    });
-    if (response2.error) {
-      return setEventEmit({
-        event: `onServiceStatus`,
-        metadata: {
-          type: "fetch-api",
-          message: `Failed to fetch latest events from National Weather Service API - ${response2.message}`,
-          data: {},
-          error: true
-        }
-      });
-    }
-    setEventEmit({
-      event: `onServiceStatus`,
-      metadata: {
-        message: `Fetched latest events from National Weather Service API`,
-        data: {},
-        type: "fetch-api",
-        error: false
-      }
-    });
-    createEvent({ message: response2.message, isNWWS: false });
-  }
-});
-
-// src/@manager/manager.updateEvents.ts
-var updateEvents = (selectedEvent) => __async(null, null, function* () {
-  const events = bootstrap.cache.events.features;
-  function update(evt) {
-    return __async(this, null, function* () {
-      if (new Date(evt.properties.expires) < /* @__PURE__ */ new Date()) {
-        rmEvent(evt);
-      }
-    });
-  }
-  if (!selectedEvent) {
-    yield Promise.all(events.map((evt) => __async(null, null, function* () {
-      yield update(evt);
-    })));
-  }
-  if (selectedEvent) {
-    yield update(selectedEvent);
-  }
-});
-
-// src/@core/core.start.ts
-var import_croner = require("croner");
-var startService = (configurations) => __async(null, null, function* () {
-  if (!bootstrap.isReady) {
-    return setWarning({
-      message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!`
-    });
-  }
-  const settings = setSettings(configurations);
-  bootstrap.isReady = true;
-  yield initializeDatabase();
-  if (settings.EnableWireService) {
-    (() => __async(null, null, function* () {
-      yield getCachedEvents();
-      yield xDeploy();
-    }))();
-  }
-  yield setCronSchedule();
-  let scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 1;
-  if (!settings.EnableWireService && scheduleInterval < 15) {
-    setWarning({ message: `Schedule interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` });
-    bootstrap.settings.NationalWeatherServiceSettings.CallbackInterval = 15;
-    scheduleInterval = 15;
-  }
-  bootstrap.cron = new import_croner.Cron(`*/${scheduleInterval} * * * * *`, () => __async(null, null, function* () {
-    yield setCronSchedule();
-  }));
-  bootstrap.cron = new import_croner.Cron(`* * * * * *`, () => __async(null, null, function* () {
-    yield updateNode();
-    yield updateEvents();
-  }));
-});
-
-// src/@core/core.stop.ts
-var stopService = () => __async(null, null, function* () {
-  if (bootstrap.isReady) {
-    bootstrap.isReady = false;
-    if (bootstrap.session_xmpp) {
-      try {
-        yield bootstrap.session_xmpp.stop();
-      } catch (e) {
-      }
-      bootstrap.cache.isConnected = false;
-      bootstrap.cache.sigHault = true;
-      bootstrap.session_xmpp = null;
-    }
-  }
-});
-
 // src/@dictionaries/dictionaries.transcribedMessageReplacements.ts
 var transcribedMessageReplacements = [
-  { regex: /\*/g, replacement: "" },
-  { regex: /\.{3,}/g, replacement: "" },
+  { regex: /\.{3,}/g, replacement: ". " },
   { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
   { regex: /\bGMT\b/g, replacement: "Greenwich Mean Time" },
   { regex: /\bEST\b(?!\w)/g, replacement: "Eastern Standard Time" },
@@ -16496,8 +15099,8 @@ var getPCM16 = (samples, sampleRate) => {
 };
 
 // src/@modules/@eas/eas.setEasTone.ts
-var import_path3 = require("path");
-var import_fs3 = require("fs");
+var import_path2 = require("path");
+var import_fs = require("fs");
 var import_child_process = require("child_process");
 var import_os = require("os");
 var import_say = __toESM(require("say"));
@@ -16507,21 +15110,28 @@ var setEasTone = (options) => __async(null, null, function* () {
   const prefix = settings.GlobalSettings.EASSettings.IntroWavFile;
   let message = options.message;
   let header = options.header;
+  if (!message || !header) {
+    setWarning({
+      title: `EAS`,
+      message: `Message and header are required to generate an EAS tone.`
+    });
+    return null;
+  }
   let buffTTS;
   let buffRadio;
   let buffFull = [];
-  const tmpTTS = (0, import_path3.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
-  const outTTS = (0, import_path3.join)(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const tmpTTS = (0, import_path2.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const outTTS = (0, import_path2.join)(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
   const vTTS = process.platform === `win32` ? `Microsoft David Desktop` : `en-US-GuyNerual`;
   const vPlatform = (0, import_os.platform)();
-  if (!(0, import_fs3.existsSync)(directory)) {
-    (0, import_fs3.mkdirSync)(directory, { recursive: true });
+  if (!(0, import_fs.existsSync)(directory)) {
+    (0, import_fs.mkdirSync)(directory, { recursive: true });
   }
-  if (!(0, import_fs3.existsSync)((0, import_path3.join)(directory, `/temp`))) {
-    (0, import_fs3.mkdirSync)((0, import_path3.join)(directory, `/temp`), { recursive: true });
+  if (!(0, import_fs.existsSync)((0, import_path2.join)(directory, `/temp`))) {
+    (0, import_fs.mkdirSync)((0, import_path2.join)(directory, `/temp`), { recursive: true });
   }
-  if (!(0, import_fs3.existsSync)((0, import_path3.join)(directory, `/output`))) {
-    (0, import_fs3.mkdirSync)((0, import_path3.join)(directory, `/output`), { recursive: true });
+  if (!(0, import_fs.existsSync)((0, import_path2.join)(directory, `/output`))) {
+    (0, import_fs.mkdirSync)((0, import_path2.join)(directory, `/output`), { recursive: true });
   }
   for (const { regex, replacement } of transcribedMessageReplacements) {
     message = message.replace(regex, replacement);
@@ -16533,25 +15143,28 @@ var setEasTone = (options) => __async(null, null, function* () {
     });
     return null;
   }
-  import_say.default.export(message, vTTS, 1, tmpTTS);
-  while (!(0, import_fs3.existsSync)(tmpTTS) || (buffTTS = (0, import_fs3.readFileSync)(tmpTTS)).length == 0) {
-    yield setSleep({ timeout: 25 });
-  }
+  yield new Promise((resolve6, reject) => {
+    const tMsg = message.replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+    import_say.default.export(tMsg, vTTS, 1, tmpTTS, (err) => {
+      buffTTS = (0, import_fs.readFileSync)(tmpTTS);
+      resolve6();
+    });
+  });
   const vWav = getWavPCM16(buffTTS);
   const vSamples = getSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
   const vRadio = setRadioEffect(vSamples, 8e3);
-  if ((0, import_fs3.existsSync)(prefix)) {
-    let tBuffer = (0, import_fs3.readFileSync)(prefix);
+  if ((0, import_fs.existsSync)(prefix)) {
+    let tBuffer = (0, import_fs.readFileSync)(prefix);
     let tWav = getWavPCM16(tBuffer);
     if (tWav == null) {
       try {
-        const converted = (0, import_path3.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}.converted.wav`);
+        const converted = (0, import_path2.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}.converted.wav`);
         (0, import_child_process.execSync)(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
-        if ((0, import_fs3.existsSync)(converted)) {
-          tBuffer = (0, import_fs3.readFileSync)(converted);
+        if ((0, import_fs.existsSync)(converted)) {
+          tBuffer = (0, import_fs.readFileSync)(converted);
           tWav = getWavPCM16(tBuffer);
           try {
-            (0, import_fs3.unlinkSync)(converted);
+            (0, import_fs.unlinkSync)(converted);
           } catch (e) {
           }
         }
@@ -16583,12 +15196,1461 @@ var setEasTone = (options) => __async(null, null, function* () {
   const aSamples = getMergedPCM16(buffFull);
   const aFinal = setNoise(aSamples, 2e-3);
   const aBuffer = getPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
-  (0, import_fs3.writeFileSync)(outTTS, aBuffer);
+  (0, import_fs.writeFileSync)(outTTS, aBuffer);
   try {
-    (0, import_fs3.unlinkSync)(tmpTTS);
+    (0, import_fs.unlinkSync)(tmpTTS);
   } catch (e) {
   }
   return outTTS;
+});
+
+// src/@manager/manager.createWebhook.ts
+var import_fs2 = require("fs");
+var import_form_data = __toESM(require_form_data());
+var createWebhook = (options) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+  const event = options.event.properties;
+  const settings = options.webhook;
+  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
+  const isLimited = setTimeoutAction({ identifier: options.webhook.webhook, interval: options.webhook.rate, max: options.webhook.rate, addTime: true });
+  if (!isLimited.limited) {
+    const isStatement = event.status_metadata.is_statement;
+    const isExpired = event.status_metadata.is_expired;
+    let body = [
+      line(`**Locations:**`, (_a = event == null ? void 0 : event.locations) == null ? void 0 : _a.slice(0, 100)),
+      line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>`),
+      line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>`, !isExpired && !isStatement),
+      line(`**Damage Threat:**`, event.parameters.damage_threat, !isExpired),
+      line(`**Flood Threat:**`, event.parameters.flood_threat, !isExpired),
+      line(`**Tornado Threat:**`, event.parameters.tornado_threat, !isExpired),
+      line(`**Estimated Wind Gusts:**`, `${event.parameters.estimated_wind_gusts} ${event.parameters.wind_threat ? ` (${event.parameters.wind_threat})` : ""}`, !isExpired && event.parameters.estimated_wind_gusts != null),
+      line(`**Estimated Hail Size:**`, `${event.parameters.estimated_hail_size} ${event.parameters.hail_threat ? ` (${event.parameters.hail_threat})` : ""}`, !isExpired && event.parameters.estimated_hail_size != null),
+      line(`**Discussion:**`, event.spc_parameters.spc_number, !isExpired),
+      line(`**Concern:**`, event.spc_parameters.spc_concerning, !isExpired),
+      line(`**SPC Max Tornado Threat:**`, event.spc_parameters.spc_max_tornado, !isExpired),
+      line(`**SPC Max Hail Threat:**`, event.spc_parameters.spc_max_hail, !isExpired),
+      line(`**SPC Max Wind Threat:**`, event.spc_parameters.spc_max_wind, !isExpired),
+      line(`**SPC Watch Issuance Probability:**`, event.spc_parameters.spc_watch_issuance ? `${event.spc_parameters.spc_watch_issuance}%` : null, !isExpired),
+      line(`**Watch Number:**`, event.watch_parameters.watch_number, !isExpired),
+      line(`**Strong Tornadoes Probability:**`, event.watch_parameters.strong_tornadoes_probability ? `${event.watch_parameters.strong_tornadoes_probability}%` : null, !isExpired),
+      line(`**Additional Tornadoes Probability:**`, event.watch_parameters.additional_tornadoes_probability ? `${event.watch_parameters.additional_tornadoes_probability}%` : null, !isExpired),
+      line(`**Combined Hail/Wind Probability:**`, event.watch_parameters.combined_hail_wind_probability ? `${event.watch_parameters.combined_hail_wind_probability}%` : null, !isExpired),
+      line(`**Severe Hail Probability:**`, event.watch_parameters.severe_hail_probability ? `${event.watch_parameters.severe_hail_probability}%` : null, !isExpired),
+      line(`**Hail >2in Probability:**`, event.watch_parameters.hail_2in_probability ? `${event.watch_parameters.hail_2in_probability}%` : null, !isExpired),
+      line(`**Max Hail Inches:**`, event.watch_parameters.max_hail_in, !isExpired),
+      line(`**Severe Wind Probability:**`, event.watch_parameters.severe_wind_probability ? `${event.watch_parameters.severe_wind_probability}%` : null, !isExpired),
+      line(`**Max Surface Wind:**`, event.watch_parameters.max_wind_surface, !isExpired),
+      line(`**Max Tops (x100 feet):**`, event.watch_parameters.max_tops_x100feet, !isExpired),
+      line(`**Tags:**`, ((_b = event.parameters.tags) == null ? void 0 : _b.length) > 0 ? event.parameters.tags.join(", ") : null, !isExpired),
+      line(`**Sender:**`, ((_d = (_c = event.geocode) == null ? void 0 : _c.office) == null ? void 0 : _d.name) ? `${event.geocode.office.name} (${event.geocode.office.office})` : (_f = (_e = event.geocode) == null ? void 0 : _e.office) == null ? void 0 : _f.office),
+      line(`**Tracking:**`, (_g = event.metadata) == null ? void 0 : _g.tracking),
+      line(`**Logs:**`, ((_h = event.metadata.history) == null ? void 0 : _h.length) > 0 ? event.metadata.history.length : null),
+      line(``, event.description ? "```\n" + event.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : null, !isExpired)
+    ].filter(Boolean).join("\n");
+    if (body.length > 1900) {
+      body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
+      const blocks = ((_i = body.match(/```/g)) != null ? _i : []).length;
+      if (blocks % 2 !== 0) body += "```";
+    }
+    const form = new import_form_data.default();
+    const embed = {
+      title: `${event.event} (${event.status})`,
+      description: body,
+      color: 16711680,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      image: {},
+      footer: { text: settings.title }
+    };
+    if (event.metadata.attachments && event.metadata.attachments.length > 0) {
+      embed.image = { url: event.metadata.attachments[0] };
+    }
+    form.append("payload_json", JSON.stringify({
+      username: (_j = settings.title) != null ? _j : "AtmosphericX",
+      content: (_k = settings.message) != null ? _k : "",
+      embeds: [embed]
+    }));
+    if (settings.upload) {
+      form.append("fUpload", Buffer.from(`${event.metadata.raw}
+
+${JSON.stringify(getCleanedEvent(event), null, 2)}`), { filename: `${event.event}_${event.status}_${event.metadata.tracking}.txt`, contentType: "application/text" });
+    }
+    if (settings.eas) {
+      const audio = yield setEasTone({
+        message: event.description,
+        header: event.metadata.header
+      });
+      const file = (0, import_fs2.readFileSync)(audio);
+      if (audio) {
+        form.append("fEas", Buffer.from(file), { filename: `${event.event}_${event.status}_${event.metadata.tracking}_eas.mp3`, contentType: "audio/mpeg" });
+      }
+    }
+    yield createHttp({
+      url: settings.webhook,
+      timeout: 2e3,
+      method: `POST`,
+      headers: form.getHeaders(),
+      body: form
+    });
+  }
+});
+
+// src/@manager/manager.updateWebhooks.ts
+var updateWebhooks = (event) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const webhooks = settings.WebhookSettings;
+  const eventName = event.properties.event;
+  for (const socket of webhooks) {
+    const events = socket.events;
+    if (!events || events.length === 0) {
+      yield createWebhook({ webhook: socket, event });
+      continue;
+    }
+    const matched = events.some((pattern) => {
+      if (!pattern) return false;
+      if (pattern === "*" || pattern === eventName) return true;
+      if (pattern.includes("*")) {
+        const regex = "^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
+        return new RegExp(regex).test(eventName);
+      }
+      return false;
+    });
+    if (matched) {
+      yield createWebhook({ webhook: socket, event });
+    }
+  }
+});
+
+// src/@modules/@utilities/utilities.getShapeNearestPoint.ts
+var getShapeNearestPoint = (coordinates, point) => {
+  if (!coordinates || !point) {
+    return { proximity: false, point: [0, 0], distance: null };
+  }
+  const normalize = (coords) => {
+    if (!Array.isArray(coords)) return [];
+    if (typeof coords[0] === "number" && typeof coords[1] === "number") return [];
+    if (Array.isArray(coords[0]) && typeof coords[0][0] === "number") {
+      return [[coords]];
+    }
+    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && typeof coords[0][0][0] === "number") {
+      return [coords];
+    }
+    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && Array.isArray(coords[0][0][0]) && typeof coords[0][0][0][0] === "number") {
+      return coords;
+    }
+    return [];
+  };
+  const polys = normalize(coordinates);
+  if (polys.length === 0) return { proximity: false, point: [0, 0], distance: null };
+  const lon = point[0];
+  const lat = point[1];
+  const pointInRing = (pt, ring) => {
+    let x = pt[0], y = pt[1];
+    let inside = false;
+    for (let i = 0, j2 = ring.length - 1; i < ring.length; j2 = i++) {
+      const xi = ring[i][0], yi = ring[i][1];
+      const xj = ring[j2][0], yj = ring[j2][1];
+      const intersect = yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi + 0) + xi;
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
+  const toRadians = (deg) => deg * Math.PI / 180;
+  const haversineMiles = (a, b) => {
+    const R = 3958.8;
+    const dLat = toRadians(b[1] - a[1]);
+    const dLon = toRadians(b[0] - a[0]);
+    const lat1 = toRadians(a[1]);
+    const lat2 = toRadians(b[1]);
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLon = Math.sin(dLon / 2);
+    const c = 2 * Math.asin(Math.sqrt(sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon));
+    return R * c;
+  };
+  let minDistance = Infinity;
+  let closestPoint = null;
+  for (const poly of polys) {
+    const outer = poly[0];
+    const holes = poly.slice(1);
+    if (pointInRing(point, outer)) {
+      let inHole = false;
+      for (const hole of holes) {
+        if (pointInRing(point, hole)) {
+          inHole = true;
+          break;
+        }
+      }
+      if (!inHole) {
+        return { proximity: true, point, distance: 0 };
+      }
+    }
+    for (const ring of poly) {
+      for (let i = 0; i < ring.length - 1; i++) {
+        const start = [ring[i][0], ring[i][1]];
+        const end = [ring[i + 1][0], ring[i + 1][1]];
+        const A = lon - start[0];
+        const B = lat - start[1];
+        const C = end[0] - start[0];
+        const D = end[1] - start[1];
+        const lenSq = C * C + D * D;
+        const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, (A * C + B * D) / lenSq));
+        const candidate = [start[0] + t * C, start[1] + t * D];
+        const dist = haversineMiles([lon, lat], candidate);
+        if (!isNaN(dist) && dist < minDistance) {
+          minDistance = Number(dist.toFixed(3));
+          closestPoint = candidate;
+        }
+      }
+    }
+  }
+  if (!isFinite(minDistance) || closestPoint == null) {
+    return { proximity: false, point: [0, 0], distance: null };
+  }
+  const distanceMiles = minDistance;
+  const distanceKm = Number((distanceMiles * 1.609344).toFixed(3));
+  const distanceMeters = Math.round(distanceKm * 1e3);
+  return { proximity: distanceMiles === 0, point: closestPoint, distance: distanceMiles, distanceKm, distanceMeters };
+};
+
+// src/@building/building.polygon.ts
+var getEventNodes = (event) => __async(null, null, function* () {
+  var _a, _b;
+  const metadata = { nodes: [], proximity: false, filtered: false };
+  const geometry = yield getEventGeometry(event);
+  if (!geometry || !geometry.coordinates) {
+    return { nodes: [], filtered: false, updated: Date.now() };
+  }
+  const nodes = bootstrap.cache.nodes.features;
+  for (const node of nodes) {
+    const [longitude, latitude] = node.geometry.coordinates;
+    const getPoint = getShapeNearestPoint(geometry.coordinates, [longitude, latitude]);
+    const miles = (_a = getPoint.distance) != null ? _a : null;
+    const kilometers = Number((miles * 1.609344).toFixed(3));
+    const info = {
+      id: (_b = node.properties) == null ? void 0 : _b.identifier,
+      coordinates: [longitude, latitude],
+      nearest: getPoint.point,
+      miles,
+      kilometers,
+      proximity: getPoint.proximity
+    };
+    metadata.nodes.push(info);
+    if (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMinDistance) {
+      metadata.proximity = true;
+      info.proximity = true;
+    }
+  }
+  return {
+    nodes: metadata.nodes,
+    filtered: metadata.proximity,
+    updated: Date.now()
+  };
+});
+
+// src/@manager/manager.updateNodes.ts
+var updateNode = (selectedEvent) => __async(null, null, function* () {
+  const events = bootstrap.cache.events.features;
+  const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
+  let total = 0;
+  function update(evt) {
+    return __async(this, null, function* () {
+      var _a, _b, _c;
+      const lastUpdate = (_c = (_b = (_a = evt == null ? void 0 : evt.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.updated) != null ? _c : null;
+      if (lastUpdate != null && Date.now() - lastUpdate < ttl) {
+        return evt;
+      }
+      const node = yield getEventNodes(evt);
+      if (node.nodes.length > 0) {
+        total++;
+      }
+      evt.properties.metadata.nodes = node.nodes;
+      evt.properties.metadata.filtered_proximity = node.filtered;
+      evt.properties.metadata.updated = node.updated;
+    });
+  }
+  if (!selectedEvent) {
+    yield Promise.all(events.map((evt) => __async(null, null, function* () {
+      yield update(evt);
+    })));
+  }
+  if (selectedEvent) {
+    yield update(selectedEvent);
+  }
+  if (total > 0) {
+    setEventEmit({
+      event: `onNodeUpdate`,
+      metadata: {
+        type: `global-update`,
+        updated: total
+      }
+    });
+  }
+});
+
+// src/@manager/manager.mkEvent.ts
+var mkEvent = (event) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+  const settings = bootstrap.settings;
+  const features = bootstrap.cache.events.features;
+  const getHash = event.properties.metadata.hash;
+  const getTracking = event.properties.metadata.tracking;
+  const isEntry = (_a = bootstrap.cache.hashes) == null ? void 0 : _a.find((hash) => hash.tracking === getTracking);
+  const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
+  const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
+  if (isHashed || event.properties.status_metadata.is_expired) return;
+  setHash(event, isEntry);
+  const isFilteredLocation = yield updateNode(event).then(() => event.properties.metadata.filtered_proximity);
+  if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
+    return;
+  }
+  setEventEmit({
+    event: `onEventStatus`,
+    metadata: {
+      type: getFeature ? `Updated` : `New`,
+      event
+    },
+    message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+  });
+  if (settings.GlobalSettings.EventManagement) {
+    if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
+      if (getFeature) {
+        const getIndex = features.indexOf(getFeature);
+        const cHistory = (_f = (_e = (_d = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _d.metadata) == null ? void 0 : _e.history) != null ? _f : [];
+        const cLocations = (_i = (_h = (_g = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _g.locations) == null ? void 0 : _h.split(";").map((l) => l.trim())) != null ? _i : [];
+        const cUgc = (_l = (_k = (_j = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _j.geocode) == null ? void 0 : _k.ugc) != null ? _l : [];
+        const iHistory = (_o = (_n = (_m = event.properties) == null ? void 0 : _m.metadata) == null ? void 0 : _n.history) != null ? _o : [];
+        const iLocations = (_r = (_q = (_p = event.properties) == null ? void 0 : _p.locations) == null ? void 0 : _q.split(";").map((l) => l.trim())) != null ? _r : [];
+        const iUgc = (_u = (_t = (_s = event.properties) == null ? void 0 : _s.geocode) == null ? void 0 : _t.ugc) != null ? _u : [];
+        const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i).filter((v, i, a) => a.findIndex((h) => h.description === v.description && h.issued === v.issued) === i);
+        const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join("; ");
+        const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
+        bootstrap.cache.events.features[getIndex] = __spreadProps(__spreadValues({}, event), {
+          properties: __spreadProps(__spreadValues({}, event.properties), {
+            metadata: __spreadProps(__spreadValues({}, (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.metadata), {
+              history: mHistory
+            }),
+            locations: mLocations,
+            geocode: __spreadProps(__spreadValues({}, (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.geocode), {
+              ugc: mUgc
+            })
+          })
+        });
+        updateWebhooks(bootstrap.cache.events.features[getIndex]);
+      } else {
+        features.push(event);
+        updateWebhooks(event);
+      }
+    }
+  }
+});
+
+// src/@manager/manager.rmEvent.ts
+var rmEvent = (event) => {
+  const getEvent = bootstrap.cache.events.features.find((f) => {
+    var _a, _b, _c, _d;
+    return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === ((_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.metadata) == null ? void 0 : _d.tracking);
+  });
+  const cachedStatus = event.properties.status;
+  event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
+  event.properties.status = `Expired`;
+  if (getEvent) {
+    setEventEmit({
+      event: `onEventStatus`,
+      metadata: {
+        type: `Removed`,
+        event
+      },
+      message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+    });
+    setEventEmit({ event: `onExpiredProduct`, metadata: event });
+    if (cachedStatus != `Statement`) updateWebhooks(event);
+    bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
+    bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
+  }
+  setEventEmit({
+    event: `onEventCache`,
+    metadata: bootstrap.cache.events,
+    limited: true
+  });
+};
+
+// src/@modules/@utilities/utilities.getLatestIssuance.ts
+var getLatestIssuance = () => {
+  const now = /* @__PURE__ */ new Date();
+  const current = now.getUTCHours() * 100 + now.getUTCMinutes();
+  const issuances = [100, 600, 1300, 1630, 2e3];
+  let latest = issuances[0];
+  for (const issuance of issuances) {
+    if (current >= issuance) {
+      latest = issuance;
+    }
+  }
+  return latest.toString().padStart(4, "0");
+};
+
+// src/@building/building.outlooks.ts
+var getEventAttachments = (event) => {
+  var _a, _b;
+  const latestTime = getLatestIssuance();
+  const validEvents = [
+    { target: "Day 1", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${latestTime}.png` },
+    { target: "Day 2", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
+    { target: "Day 3", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
+    { target: "Mesoscale Discussion", attachment: `https://www.spc.noaa.gov/products/md/mcd${(_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.spc_parameters) == null ? void 0 : _b.spc_number}.png` }
+  ];
+  const isValid = validEvents.find((outlook) => outlook.target == event.properties.event);
+  if (isValid) {
+    return (isValid == null ? void 0 : isValid.attachment) ? [isValid.attachment] : [];
+  }
+  return null;
+};
+
+// src/@building/building.validate.ts
+var validateEvents = (events) => __async(null, null, function* () {
+  var _a;
+  if (events.length === 0) return;
+  const configurations = bootstrap.settings;
+  const sets = {};
+  const bools = {};
+  const megered = __spreadValues(__spreadValues({}, configurations.GlobalSettings), configurations.GlobalSettings.EventFiltering);
+  for (const key in megered) {
+    const setting = megered[key];
+    if (Array.isArray(setting)) {
+      sets[key] = new Set(setting.map((item) => item.toLowerCase()));
+    }
+    if (typeof setting === "boolean") {
+      bools[key] = setting;
+    }
+  }
+  const filterd = events.filter((event) => {
+    var _a2, _b, _c, _d, _e;
+    const define2 = getEventSignature(event);
+    const properties2 = define2.properties;
+    const zones = properties2.geocode.ugc;
+    const icao = properties2.geocode.office.office;
+    const enhancedEventName = properties2.event = getEventEnhancedName(event);
+    const filteredProperties = JSON.parse(JSON.stringify(properties2));
+    if ((filteredProperties == null ? void 0 : filteredProperties.metadata) && "ms" in filteredProperties.metadata) {
+      delete filteredProperties.metadata.ms;
+    }
+    filteredProperties.metadata = (_a2 = filteredProperties.metadata) != null ? _a2 : {};
+    properties2.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
+    properties2.metadata.attachments = getEventAttachments(event);
+    setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`, metadata: define2 });
+    if (properties2.status_metadata.is_test) {
+      setEventEmit({ event: `onTestProduct`, metadata: define2 });
+      if (bools == null ? void 0 : bools.IgnoreTestProducts) return false;
+    }
+    if (properties2.status_metadata.is_expired) {
+      setEventEmit({ event: `onExpiredProduct`, metadata: define2 });
+      rmEvent(define2);
+      return false;
+    }
+    if ((_c = (_b = properties2.metadata) == null ? void 0 : _b.vtec) == null ? void 0 : _c.is_watch) {
+      const isSPC = (_e = (_d = properties2.metadata) == null ? void 0 : _d.vtec) == null ? void 0 : _e.prediction_center;
+      setEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define2 });
+      if ((bools == null ? void 0 : bools.SPCWatchesOnly) && !isSPC) {
+        return false;
+      }
+      if (!(bools == null ? void 0 : bools.SPCWatchesOnly) && isSPC) {
+        return false;
+      }
+    }
+    for (const key in sets) {
+      const setting = sets[key];
+      if (key === "ListeningEvents" && setting.size > 0 && !setting.has(define2.properties.event.toLowerCase())) {
+        setEventEmit({
+          event: `onFilteredEvent`,
+          metadata: define2
+        });
+        return false;
+      }
+      if (key === "IgnoredEvents" && setting.size > 0 && setting.has(define2.properties.event.toLowerCase())) {
+        setEventEmit({
+          event: `onIgnoredEvent`,
+          metadata: define2
+        });
+        return false;
+      }
+      if (key === "ListeningICAO" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
+        setEventEmit({
+          event: `onFilteredICAO`,
+          metadata: define2
+        });
+        return false;
+      }
+      if (key === "IgnoredICAO" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
+        setEventEmit({
+          event: `onIgnoredICAO`,
+          metadata: define2
+        });
+        return false;
+      }
+      if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.toLowerCase()))) {
+        setEventEmit({
+          event: `onFilteredUGC`,
+          metadata: define2
+        });
+        return false;
+      }
+      if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.substring(0, 2).toLowerCase()))) {
+        setEventEmit({
+          event: `onFilteredState`,
+          metadata: define2
+        });
+        return false;
+      }
+    }
+    return true;
+  });
+  if (!((_a = configurations == null ? void 0 : configurations.GlobalSettings) == null ? void 0 : _a.DisableGeometryParsing)) {
+    for (const event of filterd) {
+      event.geometry = yield getEventGeometry(event);
+    }
+  }
+  if (filterd.length > 0) {
+    for (const event of filterd) {
+      yield mkEvent(event);
+    }
+  }
+  yield updateNode();
+  setEventEmit({
+    event: `onEventCache`,
+    metadata: bootstrap.cache.events,
+    limited: true
+  });
+});
+
+// src/@events/events.text.ts
+var text = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c;
+  let processed = [];
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const props = properties({ message, attributes });
+    const header = getEventHeader({ properties: props, getType: stanza.getType });
+    const issued = new Date(attributes.issue);
+    const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
+    let event = Object.keys(eventsMatchText).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+    let isStatement = false;
+    if (!event) {
+      event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
+      isStatement = true;
+    }
+    processed.push({
+      type: `Feature`,
+      geometry: {
+        type: `Point`,
+        coordinates: []
+      },
+      properties: __spreadProps(__spreadValues({
+        event,
+        parent: event,
+        status: isStatement ? `Statement` : `Issued`,
+        issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+        expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+      }, props), {
+        metadata: {
+          ms: performance.now() - tick,
+          source: `events.text`,
+          tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+          header,
+          vtec: null,
+          hvtec: null,
+          raw: message,
+          history: [
+            {
+              description: props.description,
+              issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+              status: `Issued`
+            }
+          ]
+        }
+      })
+    });
+  }
+  validateEvents(processed);
+});
+
+// src/@parsers/@ugc/ugc.header.ts
+var getUGCHeader = (message) => {
+  const start = message.search(regExp.ugc1);
+  const sub = message.substring(start);
+  const end = sub.search(regExp.ugc2);
+  const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
+  return fin != null ? fin : null;
+};
+
+// src/@parsers/@ugc/ugc.zones.ts
+var getZones = (header) => {
+  const splits = header.split("-");
+  const zones = [];
+  let state = splits[0].substring(0, 2);
+  const format = splits[0].substring(2, 3);
+  for (const part of splits) {
+    if (/^[A-Z]/.test(part)) {
+      state = part.substring(0, 2);
+      if (part.includes(">")) {
+        const [start, end] = part.split(">");
+        const startNum = parseInt(start.substring(3), 10);
+        const endNum = parseInt(end, 10);
+        for (let j2 = startNum; j2 <= endNum; j2++) {
+          zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
+        }
+      } else {
+        zones.push(part);
+      }
+      continue;
+    }
+    if (part.includes(">")) {
+      const [start, end] = part.split(">");
+      const startNum = parseInt(start, 10);
+      const endNum = parseInt(end, 10);
+      for (let j2 = startNum; j2 <= endNum; j2++) {
+        zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
+      }
+    } else {
+      zones.push(`${state}${format}${part}`);
+    }
+  }
+  return zones.filter((item) => item !== "");
+};
+
+// src/@parsers/@ugc/ugc.expiry.ts
+var getExpiry = (message) => {
+  const match = message.match(/\b(\d{6})-/);
+  if (!match) {
+    return null;
+  }
+  const date = match == null ? void 0 : match[1];
+  const day = parseInt(date == null ? void 0 : date.slice(0, 2), 10);
+  const hour = parseInt(date == null ? void 0 : date.slice(2, 4), 10);
+  const minute = parseInt(date == null ? void 0 : date.slice(4, 6), 10);
+  const now = /* @__PURE__ */ new Date();
+  const expires = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
+  return expires.toISOString();
+};
+
+// src/@parsers/@ugc/ugc.locations.ts
+var getLocations = (zones) => __async(null, null, function* () {
+  const sites = Array.from(new Set(zones));
+  const placeholders = sites.map(() => "?").join(",");
+  const rows = yield bootstrap.database.prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`).all(...sites);
+  return rows.map((row) => row.location).sort();
+});
+
+// src/@parsers/@ugc/ugc.extract.ts
+var ugcExtract = (message) => __async(null, null, function* () {
+  const head = getUGCHeader(message);
+  const ugcs = getZones(head);
+  const expires = getExpiry(message);
+  const areas = yield getLocations(ugcs);
+  if (!head || (ugcs == null ? void 0 : ugcs.length) == 0) return;
+  return {
+    zones: ugcs,
+    locations: areas,
+    expires
+  };
+});
+
+// src/@events/events.ugc.ts
+var ugc = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c;
+  let processed = [];
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const ugc2 = yield ugcExtract(message);
+    if (ugc2 != null) {
+      const props = properties({ message, attributes, ugc: ugc2 });
+      const issued = new Date(attributes.issue);
+      const expires = new Date(ugc2.expires);
+      const header = getEventHeader({ properties: props, getType: stanza.getType });
+      let event = Object.keys(eventsMatchText).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+      let isStatement = false;
+      if (!event) {
+        event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
+        isStatement = true;
+      }
+      processed.push({
+        type: `Feature`,
+        geometry: {
+          type: `Point`,
+          coordinates: []
+        },
+        properties: __spreadProps(__spreadValues({
+          event,
+          parent: event,
+          status: isStatement ? `Statement` : `Issued`,
+          issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+          expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+        }, props), {
+          metadata: {
+            ms: performance.now() - tick,
+            source: `events.ugc`,
+            tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+            header,
+            vtec: null,
+            hvtec: null,
+            raw: message,
+            history: [
+              {
+                description: props.description,
+                issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+                status: `Issued`
+              }
+            ]
+          }
+        })
+      });
+    }
+  }
+  validateEvents(processed);
+});
+
+// src/@dictionaries/dictionaries.eventTypes.ts
+var eventTypes = {
+  "AF": "Ashfall",
+  "AS": "Air Stagnation",
+  "BH": "Beach Hazard",
+  "BW": "Brisk Wind",
+  "BZ": "Blizzard",
+  "CF": "Coastal Flood",
+  "DF": "Debris Flow",
+  "DS": "Dust Storm",
+  "EC": "Extreme Cold",
+  "EH": "Excessive Heat",
+  "XH": "Extreme Heat",
+  "EW": "Extreme Wind",
+  "FA": "Areal Flood",
+  "FF": "Flash Flood",
+  "FG": "Dense Fog",
+  "FL": "Flood",
+  "FR": "Frost",
+  "FW": "Fire Weather",
+  "FZ": "Freeze",
+  "GL": "Gale",
+  "HF": "Hurricane Force Wind",
+  "HT": "Heat",
+  "HU": "Hurricane",
+  "HW": "High Wind",
+  "HY": "Hydrologic",
+  "HZ": "Hard Freeze",
+  "IS": "Ice Storm",
+  "LE": "Lake Effect Snow",
+  "LO": "Low Water",
+  "LS": "Lakeshore Flood",
+  "LW": "Lake Wind",
+  "MA": "Special Marine",
+  "EQ": "Earthquake",
+  "MF": "Dense Fog",
+  "MH": "Ashfall",
+  "MS": "Dense Smoke",
+  "RB": "Small Craft for Rough Bar",
+  "RP": "Rip Current Risk",
+  "SC": "Small Craft",
+  "SE": "Hazardous Seas",
+  "SI": "Small Craft for Winds",
+  "SM": "Dense Smoke",
+  "SQ": "Snow Squall",
+  "SR": "Storm",
+  "SS": "Storm Surge",
+  "SU": "High Surf",
+  "SV": "Severe Thunderstorm",
+  "SW": "Small Craft for Hazardous Seas",
+  "TO": "Tornado",
+  "TR": "Tropical Storm",
+  "TS": "Tsunami",
+  "TY": "Typhoon",
+  "SP": "Special Weather",
+  "UP": "Heavy Freezing Spray",
+  "WC": "Wind Chill",
+  "WI": "Wind",
+  "WS": "Winter Storm",
+  "WW": "Winter Weather",
+  "ZF": "Freezing Fog",
+  "ZR": "Freezing Rain",
+  "ZY": "Freezing Spray"
+};
+
+// src/@dictionaries/dictionaries.eventActions.ts
+var eventActions = {
+  "W": "Warning",
+  "F": "Forecast",
+  "A": "Watch",
+  "O": "Outlook",
+  "Y": "Advisory",
+  "N": "Synopsis",
+  "S": "Statement"
+};
+
+// src/@dictionaries/dictionaries.eventStatus.ts
+var eventStatus = {
+  "NEW": "Issued",
+  "CON": "Updated",
+  "EXT": "Extended",
+  "EXA": "Extended",
+  "EXB": "Extended",
+  "UPG": "Upgraded",
+  "COR": "Correction",
+  "ROU": "Routine",
+  "CAN": "Cancelled",
+  "EXP": "Expired"
+};
+
+// src/@parsers/@pvtec/pvtec.expires.ts
+var getExpiry2 = (dates) => {
+  if ((dates == null ? void 0 : dates[1]) == `000000T0000Z`) return "Invalid Date Format";
+  const expires = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
+  const local = new Date(new Date(expires).getTime() - 4 * 60 * 6e4);
+  const pad = (n) => n.toString().padStart(2, "0");
+  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}:00.000-04:00`;
+};
+
+// src/@parsers/@pvtec/pvtec.extract.ts
+var pvExtract = (message) => {
+  var _a, _b, _c, _d;
+  const getVTECs = (_a = message.match(regExp.pvtec)) != null ? _a : [];
+  const vtecs = [];
+  for (const vtec2 of getVTECs) {
+    const sub = vtec2.split(`.`);
+    if ((sub == null ? void 0 : sub.length) < 7) continue;
+    const dates = (_b = sub[6]) == null ? void 0 : _b.split(`-`);
+    vtecs.push({
+      vtec: vtec2,
+      product: eventProducts[sub[0]],
+      tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
+      event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
+      status: eventStatus[sub[1]],
+      organization: (_d = (_c = message.match(regExp.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
+      expires: getExpiry2(dates),
+      is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
+      prediction_center: sub[2] == `KWNS` ? true : false
+    });
+  }
+  return vtecs.length > 0 ? vtecs : null;
+};
+
+// src/@dictionaries/dictionaries.eventCauses.ts
+var eventCauses = {
+  "SM": "Snow Melt",
+  "RS": "Rain/Snow Melt",
+  "ER": "Excessive Rain",
+  "DM": "Dam/Levee Failure",
+  "IJ": "Ice Jam",
+  "GO": "Glacier Lake Outburst",
+  "IC": "Ice",
+  "FS": "Flash Flood / Storm Surge",
+  "FT": "Tidal Effects",
+  "ET": "Elevated Upstream Flow",
+  "MC": "Other Multiple Causes",
+  "WT": "Wind and/or Tidal Effects",
+  "DR": "Reservoir Release",
+  "UU": "Unknown",
+  "OT": "Other Effects"
+};
+
+// src/@dictionaries/dictionaries.eventRecords.ts
+var eventRecords = {
+  "NO": "No Record Expected",
+  "NR": "Near Record or possible record",
+  "UU": "Unknown history of records",
+  "OO": "Other"
+};
+
+// src/@dictionaries/dictionaries.eventSeverity.ts
+var eventSeverity = {
+  N: "Not Expected",
+  0: "Areal Flood or FF Product",
+  1: "Minor",
+  2: "Moderate",
+  3: "Major",
+  U: "Unknown"
+};
+
+// src/@parsers/@hvtec/hvtec.extract.ts
+var hvExtract = (message) => {
+  var _a;
+  const getHVTECs = (_a = message.match(regExp.hvtec)) != null ? _a : [];
+  const vtecs = [];
+  for (const vtec2 of getHVTECs) {
+    const sub = vtec2.split(`.`);
+    if (sub.length < 7) continue;
+    vtecs.push({
+      hvtec: vtec2,
+      severity: eventSeverity[sub[1]],
+      cause: eventCauses[sub[2]],
+      record: eventRecords[sub[6]]
+    });
+  }
+  return vtecs.length > 0 ? vtecs : null;
+};
+
+// src/@events/events.vtec.ts
+var vtec = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e;
+  let processed = [];
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const pVtec = pvExtract(message);
+    const hVtec = hvExtract(message);
+    const ugc2 = yield ugcExtract(message);
+    if (pVtec != null && ugc2 != null) {
+      for (const pv of pVtec) {
+        const vtec2 = pv;
+        const props = properties({ message, attributes, ugc: ugc2, pVtec: vtec2 });
+        const header = getEventHeader({ properties: props, getType: stanza.getType, vtec: vtec2 });
+        const issued = (_d = new Date(attributes.issue)) != null ? _d : /* @__PURE__ */ new Date();
+        const expires = new Date(vtec2.expires);
+        processed.push({
+          type: `Feature`,
+          geometry: {
+            type: `Point`,
+            coordinates: []
+          },
+          properties: __spreadProps(__spreadValues({
+            event: pv.event,
+            parent: pv.event,
+            status: pv.status,
+            issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+            expires: !isNaN(expires.getTime()) ? expires.toISOString() : (_e = ugc2.expires) != null ? _e : new Date(issued.getTime() + 60 * 60 * 1e3).toISOString()
+          }, props), {
+            metadata: {
+              ms: performance.now() - tick,
+              source: `events.vtec`,
+              tracking: getEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec: vtec2 }),
+              header,
+              vtec: pv,
+              hvtec: hVtec,
+              raw: message,
+              history: [
+                {
+                  description: props.description,
+                  issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+                  status: pv.status
+                }
+              ]
+            }
+          })
+        });
+      }
+    }
+  }
+  validateEvents(processed);
+});
+
+// src/@events/events.api.ts
+var api = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb;
+  let processed = [];
+  const messages = Object.values(JSON.parse(stanza.message).features);
+  for (const feature of messages) {
+    const tick = performance.now();
+    const pVtec = (_d = (_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0]) != null ? _d : null;
+    processed.push({
+      type: `Feature`,
+      geometry: {
+        type: `Point`,
+        coordinates: []
+      },
+      properties: {
+        event: (_f = (_e = feature == null ? void 0 : feature.properties) == null ? void 0 : _e.event) != null ? _f : null,
+        parent: (_h = (_g = feature == null ? void 0 : feature.properties) == null ? void 0 : _g.event) != null ? _h : null,
+        status: (_j = (_i = feature == null ? void 0 : feature.properties) == null ? void 0 : _i.messageType) != null ? _j : null,
+        issued: ((_k = feature == null ? void 0 : feature.properties) == null ? void 0 : _k.sent) ? new Date((_l = feature == null ? void 0 : feature.properties) == null ? void 0 : _l.sent).toISOString() : null,
+        expires: ((_m = feature == null ? void 0 : feature.properties) == null ? void 0 : _m.expires) ? new Date((_n = feature == null ? void 0 : feature.properties) == null ? void 0 : _n.expires).toISOString() : null,
+        locations: (_p = (_o = feature == null ? void 0 : feature.properties) == null ? void 0 : _o.areaDesc) != null ? _p : null,
+        description: (_r = (_q = feature == null ? void 0 : feature.properties) == null ? void 0 : _q.description) != null ? _r : null,
+        attributes: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.attributes) != null ? _t : {},
+        geocode: {
+          office: {
+            office: pVtec ? pVtec.split(`.`)[2] : null,
+            name: (_u = officeICAOs[pVtec ? pVtec.split(`.`)[2] : null]) != null ? _u : null
+          },
+          organization: (_x = (_w = (_v = feature == null ? void 0 : feature.properties) == null ? void 0 : _v.parameters) == null ? void 0 : _w.WMOidentifier) == null ? void 0 : _x[0],
+          ugc: (_A = (_z = (_y = feature == null ? void 0 : feature.properties) == null ? void 0 : _y.geocode) == null ? void 0 : _z.UGC) != null ? _A : [],
+          polygon: ((_B = feature == null ? void 0 : feature.geometry) == null ? void 0 : _B.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_C = feature == null ? void 0 : feature.geometry) == null ? void 0 : _C.coordinates[0]])).toString("base64") : null,
+          polygon_generated: ((_D = feature == null ? void 0 : feature.geometry) == null ? void 0 : _D.coordinates.length) > 0 ? true : false
+        },
+        parameters: {
+          tags: getEventTags((_E = feature == null ? void 0 : feature.properties) == null ? void 0 : _E.description),
+          instructions: (_G = (_F = feature == null ? void 0 : feature.properties) == null ? void 0 : _F.instruction) != null ? _G : null,
+          source: (_I = getTextFromProduct({ message: (_H = feature == null ? void 0 : feature.properties) == null ? void 0 : _H.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _I : null,
+          hazards: (_K = getTextFromProduct({ message: (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _K : null,
+          impacts: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _M : null,
+          estimated_hail_size: (_Q = (_P = (_O = (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.parameters) == null ? void 0 : _O.maxHailSize) == null ? void 0 : _P[0]) != null ? _Q : null,
+          estimated_wind_gusts: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxWindGust) == null ? void 0 : _T[0]) != null ? _U : null,
+          damage_threat: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.thunderstormDamageThreat) == null ? void 0 : _X[0]) != null ? _Y : null,
+          tornado_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.tornadoDetection) == null ? void 0 : _$[0]) != null ? _aa : null,
+          flood_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.floodDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
+          wind_threat: (_ia = (_ha = (_ga = (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.parameters) == null ? void 0 : _ga.windThreat) == null ? void 0 : _ha[0]) != null ? _ia : null,
+          hail_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.hailThreat) == null ? void 0 : _la[0]) != null ? _ma : null
+        },
+        spc_parameters: {
+          spc_number: (_oa = getTextFromProduct({ message: (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) != null ? _oa : null,
+          spc_concerning: (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`Concerning...`] })) != null ? _qa : null,
+          spc_max_tornado: (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _sa : null,
+          spc_max_hail: (_ua = getTextFromProduct({ message: (_ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _ta.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _ua : null,
+          spc_max_wind: (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _wa : null,
+          spc_watch_issuance: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _ya : null
+        },
+        watch_parameters: {
+          watch_number: (_Ca = (_Ba = (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Aa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ba.trim()) != null ? _Ca : null,
+          watch_type: ((_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Ea = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ea.description.includes(`SEVERE`)) ? `Severe` : null,
+          additional_tornadoes_probability: (_Ga = getTextFromProduct({ message: (_Fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Fa.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ga : null,
+          strong_tornadoes_probability: (_Ia = getTextFromProduct({ message: (_Ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ha.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ia : null,
+          severe_wind_probability: (_Ka = getTextFromProduct({ message: (_Ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ja.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ka : null,
+          severe_hail_probability: (_Ma = getTextFromProduct({ message: (_La = feature == null ? void 0 : feature.properties) == null ? void 0 : _La.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ma : null,
+          hail_2in_probability: (_Oa = getTextFromProduct({ message: (_Na = feature == null ? void 0 : feature.properties) == null ? void 0 : _Na.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _Oa : null,
+          combined_hail_wind_probability: (_Qa = getTextFromProduct({ message: (_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Qa : null,
+          max_hail_in: (_Sa = getTextFromProduct({ message: (_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _Sa : null,
+          max_wind_surface: (_Ua = getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
+          max_tops_x100feet: (_Wa = getTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
+          pds_watch: getTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+        },
+        metadata: {
+          ms: performance.now() - tick,
+          source: `events.api`,
+          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (__a = (_Za = (_Ya = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ya.parameters) == null ? void 0 : _Za.WMOidentifier) == null ? void 0 : __a[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec }),
+          header: `ZCZC-ATMOSX-${(_ab = (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.parameters) == null ? void 0 : _ab.WMOidentifier}`,
+          vtec: pVtec,
+          hvtec: null,
+          raw: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description,
+          history: [
+            {
+              description: (_cb = feature == null ? void 0 : feature.properties) == null ? void 0 : _cb.description,
+              issued: ((_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.sent) ? new Date((_eb = feature == null ? void 0 : feature.properties) == null ? void 0 : _eb.sent).toISOString() : null,
+              status: (_gb = (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.messageType) != null ? _gb : null
+            }
+          ]
+        }
+      }
+    });
+  }
+  validateEvents(processed);
+});
+
+// src/@building/building.create.ts
+var createEvent = (stanza) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
+  const isVtecEvent = stanza.isVTEC && stanza.isUGC;
+  const isUgcEvent = !stanza.isVTEC && stanza.isUGC;
+  const isTextEvent = !stanza.isVTEC && !stanza.isUGC;
+  const isNWWS = stanza.isNWWS;
+  if (!isNWWS) return yield api(stanza);
+  if (!StanzaSettings.DisableVTEC && isVtecEvent) return yield vtec(stanza);
+  if (!StanzaSettings.DisableUGC && isUgcEvent) return yield ugc(stanza);
+  if (!StanzaSettings.DisableText && isTextEvent) return yield text(stanza);
+  return "nothing picked";
+});
+
+// src/@modules/@database/database.stanza.ts
+var importStanza = (stanza) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  try {
+    if (!settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
+      return;
+    }
+    bootstrap.database.prepare(`INSERT OR IGNORE INTO stanzas (type, stanza, issued) VALUES (?, ?, ?)`).run(stanza.getType.type, JSON.stringify(stanza), stanza.attributes.issue);
+    const count = bootstrap.database.prepare(`SELECT COUNT(*) as total FROM stanzas`).get();
+    const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxDatabaseHistory;
+    if (count.total > max) {
+      const toDelete = count.total - max;
+      if (toDelete > 0) {
+        bootstrap.database.prepare(`DELETE FROM stanzas WHERE id IN (SELECT id FROM stanzas ORDER BY issued ASC LIMIT ?)`).run(toDelete);
+      }
+    }
+  } catch (error) {
+    setWarning({ message: `An error occurred while importing stanza: ${error.message}` });
+  }
+});
+
+// src/@modules/@xmpp/xmpp.xStanza.ts
+var xStanza = () => {
+  bootstrap.session_xmpp.on(`stanza`, (stanza) => __async(null, null, function* () {
+    var _a, _b, _c, _d;
+    const msgFrom = (_b = (_a = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _a.from) != null ? _b : ``;
+    const msgType = (_d = (_c = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _c.type) != null ? _d : ``;
+    setEventEmit({
+      event: `onServiceStatus`,
+      metadata: {
+        message: stanza,
+        from: msgFrom,
+        type: `stanza`
+      }
+    });
+    bootstrap.cache.lastStanza = Date.now();
+    if (stanza.is(`message`)) {
+      const result = validate({ stanza });
+      const isSkippable = result.isIgnored || result.isCapEvent || result.isCapEvent && !result.isCapAreaDescription;
+      if (isSkippable) {
+        return;
+      }
+      yield createEvent(result);
+      yield importStanza(result);
+    }
+    if (stanza.is(`presence`) && msgFrom.startsWith("nwws@conference.nwws-oi.weather.gov/")) {
+      const getOccupant = msgFrom.split(`/`).slice(1).join(`/`);
+      const getAvailability = msgType === `unavailable`;
+      setEventEmit({
+        event: `onServiceStatus`,
+        metadata: {
+          message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
+          data: {},
+          type: `occupant`,
+          error: false
+        }
+      });
+    }
+  }));
+};
+
+// src/@modules/@xmpp/xmpp.xDeploy.ts
+var xDeploy = () => __async(null, null, function* () {
+  var _a, _b;
+  let session;
+  const settings = bootstrap.settings;
+  (_b = (_a = settings.NOAAWeatherWireServiceSettings.CredentialSettings).Nickname) != null ? _b : _a.Nickname = settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username;
+  session = bootstrap.session_xmpp = client({
+    service: "xmpp://nwws-oi.weather.gov",
+    domain: "nwws-oi.weather.gov",
+    username: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username,
+    password: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Password
+  });
+  try {
+    yield xOffline();
+    yield xError();
+    yield xStanza();
+    yield xOnline();
+    yield session.start();
+  } catch (error) {
+    setEventEmit({
+      event: `onServiceStatus`,
+      metadata: {
+        message: `Error occured while starting XMPP Session: ${error}`,
+        data: {},
+        type: `error`,
+        error: true
+      }
+    });
+  }
+});
+
+// src/@modules/@database/database.init.ts
+var import_fs4 = __toESM(require("fs"));
+var import_better_sqlite3 = __toESM(require("better-sqlite3"));
+
+// src/@modules/@database/database.shapefiles.ts
+var import_fs3 = __toESM(require("fs"));
+var import_path3 = require("path");
+var import_jszip = require("jszip");
+var import_shapefile = require("shapefile");
+
+// src/@modules/@utilities/utilities.setSleep.ts
+var setSleep = (options) => __async(null, null, function* () {
+  return new Promise((resolve6) => {
+    setTimeout(() => {
+      resolve6();
+    }, options.timeout);
+  });
+});
+
+// src/@dictionaries/dictionaries.shapefileLinks.ts
+var shapefileLinks = [
+  { name: "us_counties", id: "C", link: "https://www.weather.gov/source/gis/Shapefiles/County/c_16ap26.zip" },
+  { name: "us_states_territories", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/County/s_16ap26.zip" },
+  { name: "fire_weather_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/fz16ap26.zip" },
+  { name: "costal_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/mz16ap26.zip" },
+  { name: "offshore_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/oz16ap26.zip" },
+  { name: "public_forecast_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/z_16ap26.zip" },
+  { name: "county_warning_areas", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/w_16ap26.zip" },
+  { name: "river_forecast_boundaries", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/Misc/rf05mr24.zip" },
+  { name: "high_seas_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/hz17fe26.zip" }
+];
+
+// src/@modules/@database/database.shapefiles.ts
+var importShapefiles = () => __async(null, null, function* () {
+  var _a, _b;
+  const settings = bootstrap.settings;
+  try {
+    const tShapefiles = bootstrap.database.prepare(`SELECT COUNT(*) AS count FROM shapefiles`).get().count;
+    if (tShapefiles === 0) {
+      yield setSleep({ timeout: 1e3 });
+      setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` });
+      for (const shapefile of shapefileLinks) {
+        const response2 = yield fetch(shapefile.link);
+        const arrayBuff = yield response2.arrayBuffer();
+        const content = yield (0, import_jszip.loadAsync)(arrayBuff);
+        const directory = (0, import_path3.resolve)(__dirname, `../../shapefiles`);
+        if (!import_fs3.default.existsSync(directory)) {
+          import_fs3.default.mkdirSync(directory, { recursive: true });
+        }
+        for (const file of Object.keys(content.files)) {
+          if (file.endsWith(".shp") || file.endsWith(".dbf")) {
+            const data = yield content.files[file].async(`nodebuffer`);
+            const output = (0, import_path3.resolve)(directory, `${(_a = shapefile == null ? void 0 : shapefile.name) != null ? _a : ``}_${(_b = shapefile == null ? void 0 : shapefile.id) != null ? _b : ``}${(0, import_path3.extname)(file)}`);
+            import_fs3.default.writeFileSync(output, data);
+          }
+        }
+        const filepath = (0, import_path3.resolve)(__dirname, "../../shapefiles", shapefile.name + "_" + shapefile.id);
+        const { features } = yield (0, import_shapefile.read)(
+          filepath,
+          filepath
+        );
+        setWarning({ message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id}` });
+        const insert = bootstrap.database.prepare(`INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`);
+        const transaction = bootstrap.database.transaction((entries) => {
+          var _a2, _b2, _c;
+          for (const entry of entries) {
+            const { properties: properties2, geometry } = entry;
+            let final2, location;
+            if (properties2.FIPS) {
+              final2 = `${properties2.STATE}${shapefile.id}${properties2.FIPS.substring(2)}`;
+              location = `${properties2.COUNTYNAME}, ${properties2.STATE}`;
+            } else if (properties2.FULLSTAID) {
+              final2 = `${properties2.ST}${shapefile.id}${properties2.WFO}`;
+              location = `${properties2.CITY}, ${properties2.STATE}`;
+            } else if (properties2.STATE) {
+              final2 = `${properties2.STATE}${shapefile.id}${(_a2 = properties2.ZONE) != null ? _a2 : properties2.SITE_ID}`;
+              location = `${(_b2 = properties2.NAME) != null ? _b2 : `${properties2.RFC_NAME} ${properties2.RFC_CITY}`}, ${properties2.STATE}`;
+            } else {
+              final2 = (_c = properties2.ID) != null ? _c : properties2.WFO;
+              location = properties2.NAME;
+            }
+            insert.run(final2, location, JSON.stringify(geometry));
+          }
+        });
+        import_fs3.default.unlinkSync(`${filepath}.shp`);
+        import_fs3.default.unlinkSync(`${filepath}.dbf`);
+        setWarning({ message: `Cleaned up temporary files for ${shapefile.name}_${shapefile.id}` });
+        transaction(features);
+      }
+      setWarning({ message: `Shapefiles have finished compiling, you can now continue and close this terminal` });
+      import_fs3.default.rm((0, import_path3.resolve)(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
+      });
+    }
+  } catch (error) {
+    setWarning({ message: `An error occurred while compiling shapefiles: ${error.message}` });
+  }
+});
+
+// src/@modules/@database/database.init.ts
+var initializeDatabase = () => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  try {
+    if (!import_fs4.default.existsSync(settings.Database)) {
+      import_fs4.default.writeFileSync(settings.Database, "");
+      setWarning({ message: `Creating new database at ${settings.Database}` });
+    }
+    bootstrap.database = new import_better_sqlite3.default(settings.Database);
+    bootstrap.database.prepare(`CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )`).run();
+    bootstrap.database.prepare(`CREATE TABLE IF NOT EXISTS shapefiles (id TEXT PRIMARY KEY, location TEXT, geometry TEXT)`).run();
+    yield importShapefiles();
+  } catch (error) {
+    setWarning({ message: `An error occurred while initializing the database: ${error.message}` });
+  }
+});
+
+// src/@modules/@database/database.cache.ts
+var getCachedEvents = () => __async(null, null, function* () {
+  var _a;
+  try {
+    const settings = bootstrap.settings;
+    const tick = performance.now();
+    if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
+      const max = (_a = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory) != null ? _a : 500;
+      const get = yield bootstrap.database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max);
+      setWarning({ message: `Fetched ${get.length} cached events from the database in ${Math.floor(performance.now() - tick)} ms` });
+      let events = get.map((row) => JSON.parse(row.stanza)).filter((stanza) => {
+        if (!stanza) {
+          return;
+        }
+        const isSkippable = stanza.isIgnored || stanza.isCapEvent || stanza.isCapEvent && !stanza.isCapAreaDescription;
+        return !isSkippable;
+      });
+      events = events.sort((a, b) => b.issued - a.issued);
+      yield Promise.all(events.map((event) => createEvent(event)));
+      setWarning({ message: `Processed ${events.length} cached events in ${Math.floor(performance.now() - tick)} ms` });
+    }
+  } catch (error) {
+    setWarning({ message: `An error occurred while fetching cached events: ${error.message} -> ${error.stack}` });
+  }
+});
+
+// src/@modules/@xmpp/xmpp.xReconnect.ts
+var xReconnect = (interval) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const lastStanza = Date.now() - bootstrap.cache.lastStanza;
+  if (interval < 15) {
+    setWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` });
+    interval = 15;
+    bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
+  }
+  const reconnectThreshold = interval * 1e3;
+  if (!bootstrap.cache.isConnected && !bootstrap.cache.sigHault || !bootstrap.session_xmpp) {
+    return;
+  }
+  if (lastStanza > reconnectThreshold) {
+    if (!bootstrap.cache.isReconnecting) {
+      bootstrap.cache.isReconnecting = true;
+      bootstrap.cache.isConnected = false;
+      bootstrap.cache.tReconnects += 1;
+      try {
+        setEventEmit({
+          event: `onServiceStatus`,
+          metadata: {
+            message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
+            data: {
+              last_stanza: lastStanza,
+              nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
+            },
+            type: `reconnect`,
+            error: true
+          }
+        });
+        yield bootstrap.session_xmpp.stop().catch(() => {
+        });
+        yield bootstrap.session_xmpp.start().catch(() => {
+        });
+      } catch (error) {
+        setWarning({ message: `XMPP Reconnect Failed - ${error.message}` });
+      } finally {
+        bootstrap.cache.isReconnecting = false;
+      }
+    }
+  }
+});
+
+// src/@modules/@utilities/utilities.setCronSchedule.ts
+var import_fs5 = require("fs");
+var setCronSchedule = () => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  if (settings.GlobalSettings.EASSettings.ArchiveDirectory) {
+    const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL;
+    if (TTL) {
+      const files = (0, import_fs5.readdirSync)(settings.GlobalSettings.EASSettings.ArchiveDirectory);
+      for (const file of files) {
+        const filePath = `${settings.GlobalSettings.EASSettings.ArchiveDirectory}/${file}`;
+        const stats = yield new Promise((resolve6, reject) => {
+        });
+        const time = Date.now() - TTL * 1e3;
+        if (stats.mtime.getTime() < time) {
+          (0, import_fs5.unlink)(filePath, (err) => {
+          });
+        }
+      }
+    }
+  }
+  if (settings.EnableWireService) {
+    if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
+      void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
+    }
+  } else {
+    const response2 = yield createHttp({
+      url: settings.NationalWeatherServiceSettings.EventsEndpoint,
+      headers: {
+        "User-Agent": "@atmosx/event-product-parser"
+      }
+    });
+    if (response2.error) {
+      return setEventEmit({
+        event: `onServiceStatus`,
+        metadata: {
+          type: "fetch-api",
+          message: `Failed to fetch latest events from National Weather Service API - ${response2.message}`,
+          data: {},
+          error: true
+        }
+      });
+    }
+    setEventEmit({
+      event: `onServiceStatus`,
+      metadata: {
+        message: `Fetched latest events from National Weather Service API`,
+        data: {},
+        type: "fetch-api",
+        error: false
+      }
+    });
+    createEvent({ message: response2.message, isNWWS: false });
+  }
+});
+
+// src/@manager/manager.updateEvents.ts
+var updateEvents = (selectedEvent) => __async(null, null, function* () {
+  const events = bootstrap.cache.events.features;
+  function update(evt) {
+    return __async(this, null, function* () {
+      if (new Date(evt.properties.expires) < /* @__PURE__ */ new Date()) {
+        rmEvent(evt);
+      }
+    });
+  }
+  if (!selectedEvent) {
+    yield Promise.all(events.map((evt) => __async(null, null, function* () {
+      yield update(evt);
+    })));
+  }
+  if (selectedEvent) {
+    yield update(selectedEvent);
+  }
+});
+
+// src/@core/core.start.ts
+var import_croner = require("croner");
+var startService = (configurations) => __async(null, null, function* () {
+  if (!bootstrap.isReady) {
+    return setWarning({
+      message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!`
+    });
+  }
+  const settings = setSettings(configurations);
+  bootstrap.isReady = true;
+  yield initializeDatabase();
+  if (settings.EnableWireService) {
+    (() => __async(null, null, function* () {
+      yield getCachedEvents();
+      yield xDeploy();
+    }))();
+  }
+  yield setCronSchedule();
+  let scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 1;
+  if (!settings.EnableWireService && scheduleInterval < 15) {
+    setWarning({ message: `Schedule interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` });
+    bootstrap.settings.NationalWeatherServiceSettings.CallbackInterval = 15;
+    scheduleInterval = 15;
+  }
+  bootstrap.cron = new import_croner.Cron(`*/${scheduleInterval} * * * * *`, () => __async(null, null, function* () {
+    yield setCronSchedule();
+  }));
+  bootstrap.cron = new import_croner.Cron(`* * * * * *`, () => __async(null, null, function* () {
+    yield updateNode();
+    yield updateEvents();
+  }));
+});
+
+// src/@core/core.stop.ts
+var stopService = () => __async(null, null, function* () {
+  if (bootstrap.isReady) {
+    bootstrap.isReady = false;
+    if (bootstrap.session_xmpp) {
+      try {
+        yield bootstrap.session_xmpp.stop();
+      } catch (e) {
+      }
+      bootstrap.cache.isConnected = false;
+      bootstrap.cache.sigHault = true;
+      bootstrap.session_xmpp = null;
+    }
+  }
 });
 
 // src/@core/core.setNode.ts
