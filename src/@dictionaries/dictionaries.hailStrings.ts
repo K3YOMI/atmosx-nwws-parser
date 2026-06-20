@@ -18,6 +18,8 @@
 */
 
 export const hailStrings: Record<string, string> = {
+    ".25": "Pea",
+    ".50": "Penny",
     ".75": "Penny",
     ".88": "Nickel",
     "0.75": "Penny",
