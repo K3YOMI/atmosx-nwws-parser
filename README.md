@@ -341,13 +341,13 @@ await setEasTone(event.properties.description, event.properties.metadata.header)
 
 
 ## Types
-[Event](./src/@types/type.event.ts)
-[Properties](./src/@types/type.properties.ts)
-[HVTec](./src/@types/type.hvtec.ts)
-[PVTec](./src/@types/type.pvtec.ts)
-[UGC](./src/@types/type.ugc.ts)
-[Stanzas](./src/@types/type.stanza.ts)
-[Attributes](./src/@types/type.attributes.ts)
+[Event](./src/@types/type.event.ts) | 
+[Properties](./src/@types/type.properties.ts)  |
+[HVTec](./src/@types/type.hvtec.ts) |
+[PVTec](./src/@types/type.pvtec.ts) |\
+[UGC](./src/@types/type.ugc.ts) |
+[Stanzas](./src/@types/type.stanza.ts) |
+[Attributes](./src/@types/type.attributes.ts) |
 
 
 ## Performance Recommendations
