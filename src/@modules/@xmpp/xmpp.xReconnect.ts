@@ -17,7 +17,7 @@
 
 */
 
-import { TypeSettings } from "../../@types/types.settings";
+import { TypeSettings } from "../../@types/type.settings";
 import { bootstrap } from "../../bootstrap"
 import { setEventEmit } from "../@utilities/utilities.setEventEmit";
 import { setWarning } from "../@utilities/utilities.setWarning";

@@ -18,7 +18,7 @@
 */
 
 import { TypeEvent } from "../@types/type.event";
-import { TypeSettings } from "../@types/types.settings";
+import { TypeSettings } from "../@types/type.settings";
 import { bootstrap } from "../bootstrap"
 import { betterEventNames } from "../@dictionaries/dictionaries.betterEventNames"
 

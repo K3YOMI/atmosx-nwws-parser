@@ -17,7 +17,7 @@
 
 */
 
-import { TypeStanza } from "../../@types/types.stanza";
+import { TypeStanza } from "../../@types/type.stanza";
 import { bootstrap } from "../../bootstrap";
 import { validate } from "../@stanza/stanza.validate";
 import { createEvent } from "../../@building/building.create";

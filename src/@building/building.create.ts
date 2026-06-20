@@ -17,8 +17,8 @@
 
 */
 
-import { TypeStanzaCompiled } from "../@types/types.compiled"
-import { TypeSettings } from "../@types/types.settings"
+import { TypeStanzaCompiled } from "../@types/type.compiled"
+import { TypeSettings } from "../@types/type.settings"
 import { bootstrap } from "../bootstrap"
 import { text } from "../@events/events.text"
 import { ugc } from "../@events/events.ugc"

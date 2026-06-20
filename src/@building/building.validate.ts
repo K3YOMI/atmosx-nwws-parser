@@ -19,7 +19,7 @@
 
 import { createHash } from "crypto"
 import { TypeEvent } from "../@types/type.event";
-import { TypeSettings } from "../@types/types.settings";
+import { TypeSettings } from "../@types/type.settings";
 import { bootstrap } from "../bootstrap"
 import { getEventEnhancedName } from "./building.enhance";
 import { getEventSignature } from "./building.signature"

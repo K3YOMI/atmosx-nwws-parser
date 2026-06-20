@@ -17,11 +17,11 @@
 
 */
 
-import { TypeAttributes } from "../@types/types.attributes";
-import { TypeStanzaCompiled } from "../@types/types.compiled"
+import { TypeAttributes } from "../@types/type.attributes";
+import { TypeStanzaCompiled } from "../@types/type.compiled"
 import { TypeEvent } from "../@types/type.event";
-import { TypePVTEC } from "../@types/types.pvtec";
-import { TypeHVTEC } from "../@types/types.hvtec";
+import { TypePVTEC } from "../@types/type.pvtec";
+import { TypeHVTEC } from "../@types/type.hvtec";
 import { pvExtract } from "../@parsers/@pvtec/pvtec.extract";
 import { hvExtract } from "../@parsers/@hvtec/hvtec.extract";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";

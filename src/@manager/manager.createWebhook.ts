@@ -21,7 +21,7 @@ import { TypeEvent } from "../@types/type.event";
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction"
 import { createHttp } from "../@modules/@utilities/utilities.createHttp"
 import { isImageReady } from "../@modules/@utilities/utilities.isImageReady"
-import { TypeWebhook } from "../@types/types.webhook";
+import { TypeWebhook } from "../@types/type.webhook";
 import { getCleanedEvent } from "../@building/building.clean";
 import { setEasTone } from "../@modules/@eas/eas.setEasTone";
 import { readFileSync } from "fs";

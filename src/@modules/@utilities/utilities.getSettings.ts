@@ -17,7 +17,7 @@
 
 */
 
-import { TypeSettings } from '../../@types/types.settings'
+import { TypeSettings } from '../../@types/type.settings'
 import { bootstrap } from "../../bootstrap"
 
 export const getSettings = (): TypeSettings => {

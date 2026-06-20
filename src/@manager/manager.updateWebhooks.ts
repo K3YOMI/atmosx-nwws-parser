@@ -19,7 +19,7 @@
 
 import { createWebhook } from "./manager.createWebhook";
 import { TypeEvent } from "../@types/type.event";
-import { TypeWebhook } from "../@types/types.webhook";
+import { TypeWebhook } from "../@types/type.webhook";
 import { bootstrap } from "../bootstrap"
 
 export const updateWebhooks = async (event: TypeEvent): Promise<void> => {

@@ -17,7 +17,7 @@
 
 */
 
-import { TypeSettings } from './@types/types.settings'
+import { TypeSettings } from './@types/type.settings'
 import { setSettings } from "./@modules/@utilities/utilities.setSettings"
 import { getEventGeometry } from "./@building/building.geometry";
 import { getCleanedEvent } from "./@building/building.clean"

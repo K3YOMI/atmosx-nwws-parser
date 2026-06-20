@@ -17,8 +17,8 @@
 
 */
 
-import { TypeAttributes } from "../@types/types.attributes";
-import { TypePVTEC } from "../@types/types.pvtec";
+import { TypeAttributes } from "../@types/type.attributes";
+import { TypePVTEC } from "../@types/type.pvtec";
 import { officeICAOs } from "../@dictionaries/dictionaries.officeICAOs";
 
 interface GetOfficeOptions { 

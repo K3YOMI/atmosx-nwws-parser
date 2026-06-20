@@ -18,7 +18,7 @@
     
 */
 
-import { TypeSettings } from "../../@types/types.settings";
+import { TypeSettings } from "../../@types/type.settings";
 import { xReconnect } from "../@xmpp/xmpp.xReconnect"
 import { bootstrap } from "../../bootstrap";
 import { createHttp } from "./utilities.createHttp";

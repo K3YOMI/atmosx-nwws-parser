@@ -17,8 +17,8 @@
 
 */
 
-import { TypeAttributes } from "../@types/types.attributes";
-import { TypeStanzaCompiled } from "../@types/types.compiled"
+import { TypeAttributes } from "../@types/type.attributes";
+import { TypeStanzaCompiled } from "../@types/type.compiled"
 import { TypeEvent } from "../@types/type.event";
 import { eventsMatchText } from "../@dictionaries/dictionaries.eventsMatchText";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";

@@ -18,7 +18,7 @@
 */
 
 import { TypeEvent } from "../@types/type.event";
-import { TypeHash } from "../@types/types.hash"
+import { TypeHash } from "../@types/type.hash"
 import { bootstrap } from "../bootstrap"
 
 

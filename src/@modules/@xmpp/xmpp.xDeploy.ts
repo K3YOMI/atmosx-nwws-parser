@@ -18,7 +18,7 @@
 */
 
 import { client } from '@xmpp/client';
-import { TypeSettings } from "../../@types/types.settings";
+import { TypeSettings } from "../../@types/type.settings";
 import { bootstrap } from "../../bootstrap"
 import { setWarning } from "../@utilities/utilities.setWarning";
 import { xOnline } from "./xmpp.xOnline";

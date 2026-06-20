@@ -18,8 +18,8 @@
 */
 
 import { TypeEventProperties as BaseTypeEventProperties } from "./type.properties";
-import { TypeHVTEC } from "../@types/types.hvtec";
-import { TypePVTEC } from "./types.pvtec";
+import { TypeHVTEC } from "./type.hvtec";
+import { TypePVTEC } from "./type.pvtec";
 
 export type TypeEvent = {
     type: string

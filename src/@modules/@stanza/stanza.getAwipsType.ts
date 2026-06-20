@@ -17,7 +17,7 @@
 
 */
 
-import { TypeAttributes } from "../../@types/types.attributes"
+import { TypeAttributes } from "../../@types/type.attributes"
 import { eventAwipAbreviations } from "../../@dictionaries/dictionaries.eventAwipAbreviations"
 
 interface ValidateOptions { 

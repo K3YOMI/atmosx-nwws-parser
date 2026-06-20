@@ -17,7 +17,7 @@
 
 */
 
-import { TypeAttributes } from "./types.attributes"
+import { TypeAttributes } from "./type.attributes"
 
 export type TypeStanzaCompiled = {
     message?: string

@@ -17,7 +17,7 @@
 
 */
 
-import { TypeUGC } from "../../@types/types.ugc";
+import { TypeUGC } from "../../@types/type.ugc";
 import { getUGCHeader } from "./ugc.header"
 import { getZones } from "./ugc.zones";
 import { getExpiry } from './ugc.expiry';

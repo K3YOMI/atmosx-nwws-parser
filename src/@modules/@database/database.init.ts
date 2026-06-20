@@ -19,7 +19,7 @@
 
 import fs from 'fs'
 import sqlite3 from 'better-sqlite3'
-import { TypeSettings } from "../../@types/types.settings"
+import { TypeSettings } from "../../@types/type.settings"
 import { bootstrap } from "../../bootstrap"
 import { setWarning } from '../@utilities/utilities.setWarning'
 import { importShapefiles } from './database.shapefiles'

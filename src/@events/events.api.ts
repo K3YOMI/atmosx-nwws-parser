@@ -17,7 +17,7 @@
 
 */
 
-import { TypeStanzaCompiled } from "../@types/types.compiled"
+import { TypeStanzaCompiled } from "../@types/type.compiled"
 import { TypeEvent } from "../@types/type.event";
 import { getEventTracking } from "../@building/building.tracking";
 import { validateEvents } from "../@building/building.validate";

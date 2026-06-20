@@ -21,7 +21,7 @@ import fs from 'fs'
 import { resolve, extname} from 'path'
 import { loadAsync } from 'jszip'
 import { read } from 'shapefile'
-import { TypeSettings } from "../../@types/types.settings"
+import { TypeSettings } from "../../@types/type.settings"
 import { bootstrap } from "../../bootstrap"
 import { setSleep } from '../@utilities/utilities.setSleep'
 import { setWarning } from '../@utilities/utilities.setWarning'

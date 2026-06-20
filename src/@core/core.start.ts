@@ -17,7 +17,7 @@
 
 */
 
-import { TypeSettings } from "../@types/types.settings";
+import { TypeSettings } from "../@types/type.settings";
 import { bootstrap } from "../bootstrap";
 import { setWarning } from "../@modules/@utilities/utilities.setWarning"
 import { setSettings } from "../@modules/@utilities/utilities.setSettings"

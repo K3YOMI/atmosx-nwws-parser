@@ -17,8 +17,8 @@
 
 */
 
-import { TypeStanza } from "../../@types/types.stanza"
-import { TypeStanzaCompiled } from "../../@types/types.compiled"
+import { TypeStanza } from "../../@types/type.stanza"
+import { TypeStanzaCompiled } from "../../@types/type.compiled"
 import { regExp } from "../../@dictionaries/dictionaries.regExp"
 import { getAwipsType } from "./stanza.getAwipsType"
 

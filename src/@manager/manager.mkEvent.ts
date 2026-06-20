@@ -23,7 +23,7 @@ import { bootstrap } from "../bootstrap"
 import { setHash } from "./manager.setHash";
 import { updateWebhooks } from "./manager.updateWebhooks";
 import { updateNode } from "./manager.updateNodes";
-import { TypeSettings } from "../@types/types.settings";
+import { TypeSettings } from "../@types/type.settings";
 
 export const mkEvent = async (event: TypeEvent): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;

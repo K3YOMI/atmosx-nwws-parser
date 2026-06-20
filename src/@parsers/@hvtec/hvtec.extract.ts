@@ -17,7 +17,7 @@
 
 */
 
-import { TypeHVTEC } from "../../@types/types.hvtec";
+import { TypeHVTEC } from "../../@types/type.hvtec";
 import { eventCauses } from "../../@dictionaries/dictionaries.eventCauses";
 import { eventRecords } from "../../@dictionaries/dictionaries.eventRecords";
 import { regExp } from "../../@dictionaries/dictionaries.regExp";

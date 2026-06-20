@@ -18,10 +18,10 @@
 */
 
 import { TypeEventProperties } from "../@types/type.properties";
-import { TypeAttributes } from "../@types/types.attributes";
-import { TypeUGC } from "../@types/types.ugc";
-import { TypePVTEC } from "../@types/types.pvtec";
-import { TypeHVTEC } from "../@types/types.hvtec";
+import { TypeAttributes } from "../@types/type.attributes";
+import { TypeUGC } from "../@types/type.ugc";
+import { TypePVTEC } from "../@types/type.pvtec";
+import { TypeHVTEC } from "../@types/type.hvtec";
 import { regExp } from "../@dictionaries/dictionaries.regExp";
 import { getDescriptionFromProduct } from "../@parsers/@text/text.getDescriptionFromProduct";
 import { getPolygonFromProduct } from "../@parsers/@text/text.getPolygonFromProduct";

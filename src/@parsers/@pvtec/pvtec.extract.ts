@@ -17,7 +17,7 @@
 
 */
 
-import { TypePVTEC } from "../../@types/types.pvtec";
+import { TypePVTEC } from "../../@types/type.pvtec";
 import { regExp } from "../../@dictionaries/dictionaries.regExp";
 import { eventProducts } from "../../@dictionaries/dictionaries.eventProducts";
 import { eventTypes } from "../../@dictionaries/dictionaries.eventTypes";

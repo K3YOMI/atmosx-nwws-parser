@@ -17,7 +17,7 @@
 
 */
 
-import { TypeWebhook } from "./types.webhook"
+import { TypeWebhook } from "./type.webhook"
 
 export type TypeSettings = {
     Database: string

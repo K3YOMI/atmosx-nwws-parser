@@ -17,10 +17,10 @@
 
 */
 
-import { TypeAttributes } from "../@types/types.attributes";
+import { TypeAttributes } from "../@types/type.attributes";
 import { TypeEventProperties } from "../@types/type.properties";
-import { TypeStanzaCompiled } from "../@types/types.compiled";
-import { TypePVTEC } from "../@types/types.pvtec";
+import { TypeStanzaCompiled } from "../@types/type.compiled";
+import { TypePVTEC } from "../@types/type.pvtec";
 
 interface GetTrackingOptions { 
     type: `RAW` | `VTEC` | `API`
