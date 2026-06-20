@@ -42,8 +42,8 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
         const isExpired = event.status_metadata.is_expired;
         let body = [
             line(`**Locations:**`, event?.locations?.slice(0, 100)),
-            line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1000)}:R>`),
-            line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1000)}:R>`, !isExpired && !isStatement),
+            line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1000)}:R>`, !isExpired),
+            line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1000)}:R>`, !isStatement),
             line(`**Damage Threat:**`, event?.parameters?.damage_threat, !isExpired),
             line(`**Flood Threat:**`, event?.parameters?.flood_threat, !isExpired),
             line(`**Tornado Threat:**`, event?.parameters?.tornado_threat, !isExpired),

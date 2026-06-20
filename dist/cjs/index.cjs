@@ -15298,8 +15298,8 @@ var createWebhook = (options) => __async(null, null, function* () {
     const isExpired = event.status_metadata.is_expired;
     let body = [
       line(`**Locations:**`, (_a = event == null ? void 0 : event.locations) == null ? void 0 : _a.slice(0, 100)),
-      line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>`),
-      line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>`, !isExpired && !isStatement),
+      line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>`, !isExpired),
+      line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>`, !isStatement),
       line(`**Damage Threat:**`, (_b = event == null ? void 0 : event.parameters) == null ? void 0 : _b.damage_threat, !isExpired),
       line(`**Flood Threat:**`, (_c = event == null ? void 0 : event.parameters) == null ? void 0 : _c.flood_threat, !isExpired),
       line(`**Tornado Threat:**`, (_d = event == null ? void 0 : event.parameters) == null ? void 0 : _d.tornado_threat, !isExpired),
