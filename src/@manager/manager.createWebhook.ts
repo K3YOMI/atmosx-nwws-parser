@@ -69,7 +69,7 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             line(`**Sender:**`, event?.geocode?.office?.name ? `${event?.geocode?.office?.name} (${event?.geocode?.office?.office})` : event?.geocode?.office?.office),
             line(`**Tracking:**`, event?.metadata?.tracking),
             line(`**Logs:**`, event?.metadata?.history?.length > 0 ? event?.metadata?.history.length : null),
-            line(``, event.metadata.attachments?.length > 0 ? `**References:**\n${event.metadata.attachments.map(attachment => `[Attachment #${event.metadata.attachments.indexOf(attachment) + 1}](${attachment})`).join('\n')}` : null),
+            line(``, event.metadata.attachments?.length > 0 ? `**Attachments:** ${event.metadata.attachments.map(attachment => `[Attachment #${event.metadata.attachments.indexOf(attachment) + 1}](${attachment})`).join(' | ')}` : null),
             line(``, event?.description ? '```' + '\n' + event?.description.split('\n').map(l => l.trim()).filter(Boolean).join('\n') + '\n' + '```' : null, !isExpired),
         ].filter(Boolean).join('\n');
     
@@ -91,10 +91,10 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             footer: { text: settings.title }
         };
         if (img) {
-            for (let i = 0; i < 2; i++) {
+            for (let i = 0; i < 60; i++) {
                 const ok = await isImageReady(img)
                 if (ok) break
-                await new Promise(r => setTimeout(r, 5000))
+                await new Promise(r => setTimeout(r, 1e3))
             }
             const finalCheck = await isImageReady(img)
             if (finalCheck) {

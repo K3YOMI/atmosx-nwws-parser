@@ -15325,8 +15325,7 @@ var createWebhook = (options) => __async(null, null, function* () {
       line(`**Sender:**`, ((_N = (_M = event == null ? void 0 : event.geocode) == null ? void 0 : _M.office) == null ? void 0 : _N.name) ? `${(_P = (_O = event == null ? void 0 : event.geocode) == null ? void 0 : _O.office) == null ? void 0 : _P.name} (${(_R = (_Q = event == null ? void 0 : event.geocode) == null ? void 0 : _Q.office) == null ? void 0 : _R.office})` : (_T = (_S = event == null ? void 0 : event.geocode) == null ? void 0 : _S.office) == null ? void 0 : _T.office),
       line(`**Tracking:**`, (_U = event == null ? void 0 : event.metadata) == null ? void 0 : _U.tracking),
       line(`**Logs:**`, ((_W = (_V = event == null ? void 0 : event.metadata) == null ? void 0 : _V.history) == null ? void 0 : _W.length) > 0 ? (_X = event == null ? void 0 : event.metadata) == null ? void 0 : _X.history.length : null),
-      line(``, ((_Y = event.metadata.attachments) == null ? void 0 : _Y.length) > 0 ? `**References:**
-${event.metadata.attachments.map((attachment) => `[Attachment #${event.metadata.attachments.indexOf(attachment) + 1}](${attachment})`).join("\n")}` : null),
+      line(``, ((_Y = event.metadata.attachments) == null ? void 0 : _Y.length) > 0 ? `**Attachments:** ${event.metadata.attachments.map((attachment) => `[Attachment #${event.metadata.attachments.indexOf(attachment) + 1}](${attachment})`).join(" | ")}` : null),
       line(``, (event == null ? void 0 : event.description) ? "```\n" + (event == null ? void 0 : event.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n")) + "\n```" : null, !isExpired)
     ].filter(Boolean).join("\n");
     if (body.length > 1900) {
@@ -15348,10 +15347,10 @@ ${event.metadata.attachments.map((attachment) => `[Attachment #${event.metadata.
       footer: { text: settings.title }
     };
     if (img) {
-      for (let i = 0; i < 2; i++) {
+      for (let i = 0; i < 60; i++) {
         const ok = yield isImageReady(img);
         if (ok) break;
-        yield new Promise((r) => setTimeout(r, 5e3));
+        yield new Promise((r) => setTimeout(r, 1e3));
       }
       const finalCheck = yield isImageReady(img);
       if (finalCheck) {
