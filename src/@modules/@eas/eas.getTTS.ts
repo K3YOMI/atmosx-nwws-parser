@@ -19,23 +19,34 @@
 */
 
 import { platform } from 'os'
+import { writeFileSync } from "fs"
 import { execSync } from 'child_process'
 
 export const getTTS = async (text: string, outputPath: string): Promise<void> => {
     const vPlatform = platform();
     switch (vPlatform) {
         case 'win32': {
-            const command =
-                `Add-Type -AssemblyName System.Speech;` +
-                `$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;` +
-                `$speak.SetOutputToWaveFile('${outputPath}');` +
-                `$speak.Speak('${text}');` +
-                `$speak.Dispose();`;
-            execSync(`powershell -Command "${command}"`, { stdio: 'ignore' });
+            try {
+                const txtPath = outputPath + ".txt";
+                writeFileSync(txtPath, text, "utf8");
+                const command = [
+                    "Add-Type -AssemblyName System.Speech;",
+                    `$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;`,
+                    `$text = Get-Content -Raw -LiteralPath '${txtPath}';`,
+                    `$speak.SetOutputToWaveFile('${outputPath}');`,
+                    `$speak.Speak($text);`,
+                    `$speak.Dispose();`
+                ].join(" ");
+                execSync(`powershell -Command "${command}"`, { stdio: 'inherit' })
+            } catch(error) {
+                console.error('Error occurred while generating TTS:', error);
+            }
             break;
         }
         case 'linux':
-            execSync(`espeak -w "${outputPath}" "${text.replace(/"/g, '\\"')}"`);
+            try {
+                execSync(`espeak -w "${outputPath}" "${text.replace(/"/g, '\\"')}"`);
+            } catch {}
             break;
         default: break;
     }

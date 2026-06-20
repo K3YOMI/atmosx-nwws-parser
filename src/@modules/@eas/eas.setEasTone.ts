@@ -83,10 +83,13 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     await new Promise<void>((resolve, reject) => {
         const tMsg = getCleanDescription(message)
         getTTS(tMsg, tmpTTS).then(() => {
-            buffTTS = readFileSync(tmpTTS);
             resolve();
         });
     });
+    if (!existsSync(tmpTTS)) {
+        return null;
+    }
+    buffTTS = readFileSync(tmpTTS);
     const vWav = getWavPCM16(buffTTS);
     const vSamples = getSampledPCM16(vWav.samples, vWav.sampleRate, 8000)
     const vRadio = setRadioEffect(vSamples, 8000)

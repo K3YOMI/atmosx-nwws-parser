@@ -123,13 +123,13 @@ type TypeEventProperties = {
         max_tops_x100feet: string;
         pds_watch: boolean;
     };
-    spc_parameters?: {
-        spc_number: string;
-        spc_concerning: string;
-        spc_max_tornado: string;
-        spc_max_hail: string;
-        spc_max_wind: string;
-        spc_watch_issuance: string;
+    discussion_parameters?: {
+        discussion_number: string;
+        discussion_concerning: string;
+        discussion_max_tornado: string;
+        discussion_max_hail: string;
+        discussion_max_wind: string;
+        discussion_watch_issuance: string;
     };
 };
 

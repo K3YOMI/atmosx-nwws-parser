@@ -65,16 +65,16 @@ export const properties = (options: GetPropertiesOptions): TypeEventProperties =
             wind_threat: getTextFromProduct({ message: options.message, find: [`WIND THREAT...`]}) ?? null,
             hail_threat: getTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: []}) ?? null,
         },
-        spc_parameters: {
-            spc_number: getTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] }) ?? null,
-            spc_concerning: getTextFromProduct({ message: options.message, find: [`Concerning...`] }) ?? null,
-            spc_max_tornado: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
-            spc_max_hail: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
-            spc_max_wind: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
-            spc_watch_issuance: getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`]}) ?? null,
+        discussion_parameters: {
+            discussion_number: getTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })?.toString()?.padStart(4, "0") ?? null,
+            discussion_concerning: getTextFromProduct({ message: options.message, find: [`Concerning...`] }) ?? null,
+            discussion_max_tornado: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
+            discussion_max_hail: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
+            discussion_max_wind: getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
+            discussion_watch_issuance: getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`]}) ?? null,
         },
         watch_parameters: {
-            watch_number: getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, '')?.trim() ?? null,
+            watch_number: (options?.pVtec?.is_watch) && (getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, '')?.trim()?.toString()?.padStart(4, "0") ?? options?.pVtec?.tracking?.slice(-4)?.toString()?.padStart(4, "0") ?? null),
             watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : options?.message.includes(`SEVERE`) ? `Severe` : null,
             additional_tornadoes_probability: getTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] }) ?? null,
             strong_tornadoes_probability: getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] }) ?? null,
@@ -85,7 +85,7 @@ export const properties = (options: GetPropertiesOptions): TypeEventProperties =
             max_hail_in: getTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] }) ?? null,
             max_wind_surface:  getTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] }) ?? null,
             max_tops_x100feet:  getTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] }) ?? null,
-            pds_watch: (getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`)
+            pds_watch: (getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES` ? true : null)
         }
     }
     if (isNaN(Number(properties.watch_parameters.watch_number))) {

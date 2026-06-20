@@ -14393,7 +14393,7 @@ var getEventTags = (message) => {
 
 // src/@building/building.properties.ts
 var properties = (options) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V;
   const organization = (_b = (_a = options.message.match(regExp.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
   const polygons = getPolygonFromProduct(options.message);
   const properties2 = {
@@ -14421,27 +14421,27 @@ var properties = (options) => {
       wind_threat: (_s = getTextFromProduct({ message: options.message, find: [`WIND THREAT...`] })) != null ? _s : null,
       hail_threat: (_t = getTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: [] })) != null ? _t : null
     },
-    spc_parameters: {
-      spc_number: (_u = getTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) != null ? _u : null,
-      spc_concerning: (_v = getTextFromProduct({ message: options.message, find: [`Concerning...`] })) != null ? _v : null,
-      spc_max_tornado: (_w = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _w : null,
-      spc_max_hail: (_x = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _x : null,
-      spc_max_wind: (_y = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _y : null,
-      spc_watch_issuance: (_z = getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _z : null
+    discussion_parameters: {
+      discussion_number: (_w = (_v = (_u = getTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _u.toString()) == null ? void 0 : _v.padStart(4, "0")) != null ? _w : null,
+      discussion_concerning: (_x = getTextFromProduct({ message: options.message, find: [`Concerning...`] })) != null ? _x : null,
+      discussion_max_tornado: (_y = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _y : null,
+      discussion_max_hail: (_z = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _z : null,
+      discussion_max_wind: (_A = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _A : null,
+      discussion_watch_issuance: (_B = getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _B : null
     },
     watch_parameters: {
-      watch_number: (_C = (_B = (_A = getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _A.replace(/(WT|WS|)/g, "")) == null ? void 0 : _B.trim()) != null ? _C : null,
+      watch_number: ((_C = options == null ? void 0 : options.pVtec) == null ? void 0 : _C.is_watch) && ((_M = (_L = (_G = (_F = (_E = (_D = getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _D.replace(/(WT|WS|)/g, "")) == null ? void 0 : _E.trim()) == null ? void 0 : _F.toString()) == null ? void 0 : _G.padStart(4, "0")) != null ? _L : (_K = (_J = (_I = (_H = options == null ? void 0 : options.pVtec) == null ? void 0 : _H.tracking) == null ? void 0 : _I.slice(-4)) == null ? void 0 : _J.toString()) == null ? void 0 : _K.padStart(4, "0")) != null ? _M : null),
       watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : (options == null ? void 0 : options.message.includes(`SEVERE`)) ? `Severe` : null,
-      additional_tornadoes_probability: (_D = getTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _D : null,
-      strong_tornadoes_probability: (_E = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _E : null,
-      severe_wind_probability: (_F = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _F : null,
-      severe_hail_probability: (_G = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _G : null,
-      hail_2in_probability: (_H = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _H : null,
-      combined_hail_wind_probability: (_I = getTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _I : null,
-      max_hail_in: (_J = getTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _J : null,
-      max_wind_surface: (_K = getTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _K : null,
-      max_tops_x100feet: (_L = getTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _L : null,
-      pds_watch: getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+      additional_tornadoes_probability: (_N = getTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _N : null,
+      strong_tornadoes_probability: (_O = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _O : null,
+      severe_wind_probability: (_P = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _P : null,
+      severe_hail_probability: (_Q = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Q : null,
+      hail_2in_probability: (_R = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _R : null,
+      combined_hail_wind_probability: (_S = getTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _S : null,
+      max_hail_in: (_T = getTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _T : null,
+      max_wind_surface: (_U = getTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _U : null,
+      max_tops_x100feet: (_V = getTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _V : null,
+      pds_watch: getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES` ? true : null
     }
   };
   if (isNaN(Number(properties2.watch_parameters.watch_number))) {
@@ -14480,7 +14480,7 @@ var eventsMatchText = {
 
 // src/@building/building.tracking.ts
 var getEventTracking = (options) => {
-  var _a, _b, _c, _d, _e, _f, _g;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
   const properties2 = options.properties;
   const attributes = options.attributes;
   const stanza = options.stanza;
@@ -14497,18 +14497,18 @@ var getEventTracking = (options) => {
   }
   if (options.type === `API`) {
     if (options.vtec) {
-      const vtecValue = Array.isArray(options.vtec) ? options.vtec[0] : options.vtec;
+      const vtecValue = Array.isArray(options.vtec) ? options.vtec[0].vtec : (_c = options.vtec) == null ? void 0 : _c.vtec;
       const splitPVTEC = vtecValue.split(".");
       return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
     }
-    const wmoMatch = (_d = (_c = options.organization) == null ? void 0 : _c.wmoidentifier) == null ? void 0 : _d.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
-    const station = (_e = wmoMatch == null ? void 0 : wmoMatch[2]) != null ? _e : "N/A";
+    const wmoMatch = (_e = (_d = options.organization) == null ? void 0 : _d.wmoidentifier) == null ? void 0 : _e.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
+    const station = (_f = wmoMatch == null ? void 0 : wmoMatch[2]) != null ? _f : "N/A";
     if (options.organization.featureId) {
       const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
-      return `${station}.${(_f = idMatch == null ? void 0 : idMatch[1]) != null ? _f : "N/A"}`;
+      return `${station}.${(_h = (_g = idMatch == null ? void 0 : idMatch[0]) == null ? void 0 : _g.replace(/\./g, "")) != null ? _h : "N/A"}`;
     }
-    const id2 = (_g = wmoMatch == null ? void 0 : wmoMatch[1]) != null ? _g : "N/A";
-    return `${station}.${id2}`;
+    const id2 = (_i = wmoMatch == null ? void 0 : wmoMatch[1]) != null ? _i : "N/A";
+    return `${station}.${(_j = id2 == null ? void 0 : id2.replace(/\./g, "")) != null ? _j : "N/A"}`;
   }
 };
 
@@ -14551,7 +14551,12 @@ var betterEventNames = {
   },
   "Tornado Watch": {
     "PDS Tornado Watch": {
-      description: "particularly dangerous situation"
+      pdswatch: true
+    }
+  },
+  "Severe Thunderstorm Watch": {
+    "PDS Severe Thunderstorm Watch": {
+      pdswatch: true
     }
   },
   "Flash Flood Warning": {
@@ -14592,7 +14597,7 @@ var betterEventNames = {
 
 // src/@building/building.enhance.ts
 var getEventEnhancedName = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
   const configurations = bootstrap.settings;
   let name = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.event;
   if (!((_b = configurations == null ? void 0 : configurations.GlobalSettings) == null ? void 0 : _b.BetterEventNames)) {
@@ -14600,7 +14605,8 @@ var getEventEnhancedName = (event) => {
   }
   const damage = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.parameters) == null ? void 0 : _d.damage_threat;
   const tornado = (_f = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters) == null ? void 0 : _f.tornado_threat;
-  const description = (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.description) == null ? void 0 : _h.toLowerCase();
+  const pdswatch = (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.watch_parameters) == null ? void 0 : _h.pds_watch;
+  const description = (_j = (_i = event == null ? void 0 : event.properties) == null ? void 0 : _i.description) == null ? void 0 : _j.toLowerCase();
   for (const [eventKey, eventConfig] of Object.entries(betterEventNames)) {
     if (eventKey !== name) continue;
     for (const [paramKey, paramValue] of Object.entries(eventConfig)) {
@@ -14613,6 +14619,9 @@ var getEventEnhancedName = (event) => {
       }
       if (paramValue == null ? void 0 : paramValue.tornado) {
         if (paramValue.tornado !== tornado) matches = false;
+      }
+      if (paramValue == null ? void 0 : paramValue.pdswatch) {
+        if (paramValue.pdswatch !== pdswatch) matches = false;
       }
       if (matches) {
         name = paramKey;
@@ -14672,6 +14681,7 @@ var hailStrings = {
   ".25": "Pea",
   ".50": "Penny",
   ".75": "Penny",
+  "Up to .75": "Penny",
   ".88": "Nickel",
   "0.75": "Penny",
   "0.88": "Nickel",
@@ -15044,17 +15054,34 @@ var getPCM16 = (samples, sampleRate) => {
 
 // src/@modules/@eas/eas.getTTS.ts
 import { platform } from "os";
+import { writeFileSync } from "fs";
 import { execSync } from "child_process";
 var getTTS = (text2, outputPath) => __async(null, null, function* () {
   const vPlatform = platform();
   switch (vPlatform) {
     case "win32": {
-      const command = `Add-Type -AssemblyName System.Speech;$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;$speak.SetOutputToWaveFile('${outputPath}');$speak.Speak('${text2}');$speak.Dispose();`;
-      execSync(`powershell -Command "${command}"`, { stdio: "ignore" });
+      try {
+        const txtPath = outputPath + ".txt";
+        writeFileSync(txtPath, text2, "utf8");
+        const command = [
+          "Add-Type -AssemblyName System.Speech;",
+          `$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;`,
+          `$text = Get-Content -Raw -LiteralPath '${txtPath}';`,
+          `$speak.SetOutputToWaveFile('${outputPath}');`,
+          `$speak.Speak($text);`,
+          `$speak.Dispose();`
+        ].join(" ");
+        execSync(`powershell -Command "${command}"`, { stdio: "inherit" });
+      } catch (error) {
+        console.error("Error occurred while generating TTS:", error);
+      }
       break;
     }
     case "linux":
-      execSync(`espeak -w "${outputPath}" "${text2.replace(/"/g, '\\"')}"`);
+      try {
+        execSync(`espeak -w "${outputPath}" "${text2.replace(/"/g, '\\"')}"`);
+      } catch (e) {
+      }
       break;
     default:
       break;
@@ -15130,12 +15157,12 @@ var getCleanDescription = (message) => {
   for (const { regex, replacement } of patches) {
     message = message.replace(regex, replacement);
   }
-  return message.replace(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(\d{2})\s+(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{2})(\d{2})\s+(AM|PM)\b/gi, (_, hh, mm, ap) => fmt(+hh, +mm, ap.toUpperCase())).replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").trim();
+  return message.replace(/'/g, "''").replace(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(\d{2})\s+(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{2})(\d{2})\s+(AM|PM)\b/gi, (_, hh, mm, ap) => fmt(+hh, +mm, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(AM|PM)\b/gi, (_, h, ap) => fmt(+h, 0, ap.toUpperCase())).replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").trim();
 };
 
 // src/@modules/@eas/eas.setEasTone.ts
 import { join } from "path";
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync as writeFileSync2, unlinkSync } from "fs";
 import { execSync as execSync2 } from "child_process";
 import { platform as platform2 } from "os";
 var setEasTone = (options) => __async(null, null, function* () {
@@ -15176,10 +15203,13 @@ var setEasTone = (options) => __async(null, null, function* () {
   yield new Promise((resolve6, reject) => {
     const tMsg = getCleanDescription(message);
     getTTS(tMsg, tmpTTS).then(() => {
-      buffTTS = readFileSync(tmpTTS);
       resolve6();
     });
   });
+  if (!existsSync(tmpTTS)) {
+    return null;
+  }
+  buffTTS = readFileSync(tmpTTS);
   const vWav = getWavPCM16(buffTTS);
   const vSamples = getSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
   const vRadio = setRadioEffect(vSamples, 8e3);
@@ -15226,7 +15256,7 @@ var setEasTone = (options) => __async(null, null, function* () {
   const aSamples = getMergedPCM16(buffFull);
   const aFinal = setNoise(aSamples, 2e-3);
   const aBuffer = getPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
-  writeFileSync(outTTS, aBuffer);
+  writeFileSync2(outTTS, aBuffer);
   try {
     unlinkSync(tmpTTS);
   } catch (e) {
@@ -15238,7 +15268,7 @@ var setEasTone = (options) => __async(null, null, function* () {
 var import_form_data = __toESM(require_form_data());
 import { readFileSync as readFileSync2 } from "fs";
 var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa;
   const event = options.event.properties;
   const settings = options.webhook;
   const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
@@ -15255,12 +15285,12 @@ var createWebhook = (options) => __async(null, null, function* () {
       line(`**Tornado Threat:**`, (_d = event == null ? void 0 : event.parameters) == null ? void 0 : _d.tornado_threat, !isExpired),
       line(`**Estimated Wind Gusts:**`, `${(_e = event == null ? void 0 : event.parameters) == null ? void 0 : _e.estimated_wind_gusts} ${((_f = event == null ? void 0 : event.parameters) == null ? void 0 : _f.wind_threat) ? ` (${(_g = event == null ? void 0 : event.parameters) == null ? void 0 : _g.wind_threat})` : ""}`, !isExpired && ((_h = event == null ? void 0 : event.parameters) == null ? void 0 : _h.estimated_wind_gusts) != null),
       line(`**Estimated Hail Size:**`, `${(_i = event == null ? void 0 : event.parameters) == null ? void 0 : _i.estimated_hail_size} ${((_j = event == null ? void 0 : event.parameters) == null ? void 0 : _j.hail_threat) ? ` (${(_k = event == null ? void 0 : event.parameters) == null ? void 0 : _k.hail_threat})` : ""}`, !isExpired && ((_l = event == null ? void 0 : event.parameters) == null ? void 0 : _l.estimated_hail_size) != null),
-      line(`**Discussion:**`, (_m = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _m.spc_number, !isExpired),
-      line(`**Concern:**`, (_n = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _n.spc_concerning, !isExpired),
-      line(`**SPC Max Tornado Threat:**`, (_o = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _o.spc_max_tornado, !isExpired),
-      line(`**SPC Max Hail Threat:**`, (_p = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _p.spc_max_hail, !isExpired),
-      line(`**SPC Max Wind Threat:**`, (_q = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _q.spc_max_wind, !isExpired),
-      line(`**SPC Watch Issuance Probability:**`, ((_r = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _r.spc_watch_issuance) ? `${(_s = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _s.spc_watch_issuance}%` : null, !isExpired),
+      line(`**Discussion:**`, (_m = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _m.discussion_number, !isExpired),
+      line(`**Concern:**`, (_n = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _n.discussion_concerning, !isExpired),
+      line(`**SPC Max Tornado Threat:**`, (_o = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _o.discussion_max_tornado, !isExpired),
+      line(`**SPC Max Hail Threat:**`, (_p = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _p.discussion_max_hail, !isExpired),
+      line(`**SPC Max Wind Threat:**`, (_q = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _q.discussion_max_wind, !isExpired),
+      line(`**SPC Watch Issuance Probability:**`, ((_r = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _r.discussion_watch_issuance) ? `${(_s = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _s.discussion_watch_issuance}%` : null, !isExpired),
       line(`**Watch Number:**`, (_t = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _t.watch_number, !isExpired),
       line(`**Strong Tornadoes Probability:**`, ((_u = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _u.strong_tornadoes_probability) ? `${(_v = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _v.strong_tornadoes_probability}%` : null, !isExpired),
       line(`**Additional Tornadoes Probability:**`, ((_w = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _w.additional_tornadoes_probability) ? `${(_x = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _x.additional_tornadoes_probability}%` : null, !isExpired),
@@ -15275,18 +15305,20 @@ var createWebhook = (options) => __async(null, null, function* () {
       line(`**Sender:**`, ((_N = (_M = event == null ? void 0 : event.geocode) == null ? void 0 : _M.office) == null ? void 0 : _N.name) ? `${(_P = (_O = event == null ? void 0 : event.geocode) == null ? void 0 : _O.office) == null ? void 0 : _P.name} (${(_R = (_Q = event == null ? void 0 : event.geocode) == null ? void 0 : _Q.office) == null ? void 0 : _R.office})` : (_T = (_S = event == null ? void 0 : event.geocode) == null ? void 0 : _S.office) == null ? void 0 : _T.office),
       line(`**Tracking:**`, (_U = event == null ? void 0 : event.metadata) == null ? void 0 : _U.tracking),
       line(`**Logs:**`, ((_W = (_V = event == null ? void 0 : event.metadata) == null ? void 0 : _V.history) == null ? void 0 : _W.length) > 0 ? (_X = event == null ? void 0 : event.metadata) == null ? void 0 : _X.history.length : null),
+      line(``, ((_Y = event.metadata.attachments) == null ? void 0 : _Y.length) > 0 ? `**References:**
+${event.metadata.attachments.map((attachment) => `[Attachment #${event.metadata.attachments.indexOf(attachment) + 1}](${attachment})`).join("\n")}` : null),
       line(``, (event == null ? void 0 : event.description) ? "```\n" + (event == null ? void 0 : event.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n")) + "\n```" : null, !isExpired)
     ].filter(Boolean).join("\n");
     if (body.length > 1900) {
       body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-      const blocks = ((_Y = body.match(/```/g)) != null ? _Y : []).length;
+      const blocks = ((_Z = body.match(/```/g)) != null ? _Z : []).length;
       if (blocks % 2 !== 0) body += "```";
     }
     if (event.description.length < 25) {
       return;
     }
     const form = new import_form_data.default();
-    const img = (_Z = event.metadata.attachments) == null ? void 0 : _Z[0];
+    const img = (__ = event.metadata.attachments) == null ? void 0 : __[0];
     const embed = {
       title: `${event.event} (${event.status})`,
       description: body,
@@ -15296,10 +15328,10 @@ var createWebhook = (options) => __async(null, null, function* () {
       footer: { text: settings.title }
     };
     if (img) {
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 2; i++) {
         const ok = yield isImageReady(img);
         if (ok) break;
-        yield new Promise((r) => setTimeout(r, 1e4));
+        yield new Promise((r) => setTimeout(r, 5e3));
       }
       const finalCheck = yield isImageReady(img);
       if (finalCheck) {
@@ -15307,8 +15339,8 @@ var createWebhook = (options) => __async(null, null, function* () {
       }
     }
     form.append("payload_json", JSON.stringify({
-      username: (__ = settings.title) != null ? __ : "AtmosphericX",
-      content: (_$ = settings.message) != null ? _$ : "",
+      username: (_$ = settings.title) != null ? _$ : "AtmosphericX",
+      content: (_aa = settings.message) != null ? _aa : "",
       embeds: [embed]
     }));
     if (settings.upload) {
@@ -15321,8 +15353,8 @@ ${JSON.stringify(getCleanedEvent(event), null, 2)}`), { filename: `${event.event
         message: event.description,
         header: event.metadata.header
       });
-      const file = readFileSync2(audio);
       if (audio) {
+        const file = readFileSync2(audio);
         form.append("fEas", Buffer.from(file), { filename: `${event.event}_${event.status}_${event.metadata.tracking}_eas.mp3`, contentType: "audio/mpeg" });
       }
     }
@@ -15629,15 +15661,21 @@ var getLatestIssuance = () => {
   return latest.toString().padStart(4, "0");
 };
 
-// src/@building/building.outlooks.ts
+// src/@building/building.attachments.ts
 var getEventAttachments = (event) => {
-  var _a, _b;
+  var _a, _b, _c, _d;
   const latestTime = getLatestIssuance();
+  const spcNumber = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.discussion_parameters) == null ? void 0 : _b.discussion_number;
+  const watchNumber = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.watch_parameters) == null ? void 0 : _d.watch_number;
   const validEvents = [
     { target: "Day 1", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${latestTime}.png` },
     { target: "Day 2", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
     { target: "Day 3", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
-    { target: "Mesoscale Discussion", attachment: `https://www.spc.noaa.gov/products/md/mcd${(_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.spc_parameters) == null ? void 0 : _b.spc_number}.png` }
+    { target: "Mesoscale Discussion", attachment: `https://www.spc.noaa.gov/products/md/mcd${spcNumber}.png` },
+    { target: "Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
+    { target: "PDS Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
+    { target: "Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
+    { target: "PDS Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` }
   ];
   const isValid = validEvents.find((outlook) => outlook.target == event.properties.event);
   if (isValid) {
@@ -15687,7 +15725,7 @@ var validateEvents = (events) => __async(null, null, function* () {
       rmEvent(define2);
       return false;
     }
-    if ((_c = (_b = properties2.metadata) == null ? void 0 : _b.vtec) == null ? void 0 : _c.is_watch) {
+    if (((_c = (_b = properties2.metadata) == null ? void 0 : _b.vtec) == null ? void 0 : _c.is_watch) && properties2.metadata.source != `events.api`) {
       const isSPC = (_e = (_d = properties2.metadata) == null ? void 0 : _d.vtec) == null ? void 0 : _e.prediction_center;
       setEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define2 });
       if ((bools == null ? void 0 : bools.SPCWatchesOnly) && !isSPC) {
@@ -16056,6 +16094,7 @@ var getExpiry2 = (dates) => {
 // src/@parsers/@pvtec/pvtec.extract.ts
 var pvExtract = (message) => {
   var _a, _b, _c, _d;
+  if (!message) return null;
   const getVTECs = (_a = message.match(regExp.pvtec)) != null ? _a : [];
   const vtecs = [];
   for (const vtec2 of getVTECs) {
@@ -16190,12 +16229,12 @@ var vtec = (stanza) => __async(null, null, function* () {
 
 // src/@events/events.api.ts
 var api = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb, _hb, _ib, _jb, _kb, _lb, _mb, _nb, _ob, _pb, _qb, _rb, _sb;
   let processed = [];
   const messages = Object.values(JSON.parse(stanza.message).features);
   for (const feature of messages) {
     const tick = performance.now();
-    const pVtec = (_d = (_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0]) != null ? _d : null;
+    const pVtec = (_d = pvExtract((_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0])) != null ? _d : null;
     processed.push({
       type: `Feature`,
       geometry: {
@@ -16213,63 +16252,63 @@ var api = (stanza) => __async(null, null, function* () {
         attributes: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.attributes) != null ? _t : {},
         geocode: {
           office: {
-            office: pVtec ? pVtec.split(`.`)[2] : null,
-            name: (_u = officeICAOs[pVtec ? pVtec.split(`.`)[2] : null]) != null ? _u : null
+            office: pVtec ? (_u = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _u.tracking.split(`.`)[0] : null,
+            name: (_w = officeICAOs[pVtec ? (_v = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _v.tracking.split(`.`)[0] : null]) != null ? _w : null
           },
-          organization: (_x = (_w = (_v = feature == null ? void 0 : feature.properties) == null ? void 0 : _v.parameters) == null ? void 0 : _w.WMOidentifier) == null ? void 0 : _x[0],
-          ugc: (_A = (_z = (_y = feature == null ? void 0 : feature.properties) == null ? void 0 : _y.geocode) == null ? void 0 : _z.UGC) != null ? _A : [],
-          polygon: ((_B = feature == null ? void 0 : feature.geometry) == null ? void 0 : _B.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_C = feature == null ? void 0 : feature.geometry) == null ? void 0 : _C.coordinates[0]])).toString("base64") : null,
-          polygon_generated: ((_D = feature == null ? void 0 : feature.geometry) == null ? void 0 : _D.coordinates.length) > 0 ? true : false
+          organization: (_z = (_y = (_x = feature == null ? void 0 : feature.properties) == null ? void 0 : _x.parameters) == null ? void 0 : _y.WMOidentifier) == null ? void 0 : _z[0],
+          ugc: (_C = (_B = (_A = feature == null ? void 0 : feature.properties) == null ? void 0 : _A.geocode) == null ? void 0 : _B.UGC) != null ? _C : [],
+          polygon: ((_D = feature == null ? void 0 : feature.geometry) == null ? void 0 : _D.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_E = feature == null ? void 0 : feature.geometry) == null ? void 0 : _E.coordinates[0]])).toString("base64") : null,
+          polygon_generated: ((_F = feature == null ? void 0 : feature.geometry) == null ? void 0 : _F.coordinates.length) > 0 ? true : false
         },
         parameters: {
-          tags: getEventTags((_E = feature == null ? void 0 : feature.properties) == null ? void 0 : _E.description),
-          instructions: (_G = (_F = feature == null ? void 0 : feature.properties) == null ? void 0 : _F.instruction) != null ? _G : null,
-          source: (_I = getTextFromProduct({ message: (_H = feature == null ? void 0 : feature.properties) == null ? void 0 : _H.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _I : null,
-          hazards: (_K = getTextFromProduct({ message: (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _K : null,
-          impacts: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _M : null,
-          estimated_hail_size: (_Q = (_P = (_O = (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.parameters) == null ? void 0 : _O.maxHailSize) == null ? void 0 : _P[0]) != null ? _Q : null,
-          estimated_wind_gusts: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxWindGust) == null ? void 0 : _T[0]) != null ? _U : null,
-          damage_threat: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.thunderstormDamageThreat) == null ? void 0 : _X[0]) != null ? _Y : null,
-          tornado_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.tornadoDetection) == null ? void 0 : _$[0]) != null ? _aa : null,
-          flood_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.floodDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
-          wind_threat: (_ia = (_ha = (_ga = (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.parameters) == null ? void 0 : _ga.windThreat) == null ? void 0 : _ha[0]) != null ? _ia : null,
-          hail_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.hailThreat) == null ? void 0 : _la[0]) != null ? _ma : null
+          tags: getEventTags((_G = feature == null ? void 0 : feature.properties) == null ? void 0 : _G.description),
+          instructions: (_I = (_H = feature == null ? void 0 : feature.properties) == null ? void 0 : _H.instruction) != null ? _I : null,
+          source: (_K = getTextFromProduct({ message: (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _K : null,
+          hazards: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _M : null,
+          impacts: (_O = getTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _O : null,
+          estimated_hail_size: (_S = (_R = (_Q = (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.parameters) == null ? void 0 : _Q.maxHailSize) == null ? void 0 : _R[0]) != null ? _S : null,
+          estimated_wind_gusts: (_W = (_V = (_U = (_T = feature == null ? void 0 : feature.properties) == null ? void 0 : _T.parameters) == null ? void 0 : _U.maxWindGust) == null ? void 0 : _V[0]) != null ? _W : null,
+          damage_threat: (__ = (_Z = (_Y = (_X = feature == null ? void 0 : feature.properties) == null ? void 0 : _X.parameters) == null ? void 0 : _Y.thunderstormDamageThreat) == null ? void 0 : _Z[0]) != null ? __ : null,
+          tornado_threat: (_ca = (_ba = (_aa = (_$ = feature == null ? void 0 : feature.properties) == null ? void 0 : _$.parameters) == null ? void 0 : _aa.tornadoDetection) == null ? void 0 : _ba[0]) != null ? _ca : null,
+          flood_threat: (_ga = (_fa = (_ea = (_da = feature == null ? void 0 : feature.properties) == null ? void 0 : _da.parameters) == null ? void 0 : _ea.floodDetection) == null ? void 0 : _fa[0]) != null ? _ga : null,
+          wind_threat: (_ka = (_ja = (_ia = (_ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _ha.parameters) == null ? void 0 : _ia.windThreat) == null ? void 0 : _ja[0]) != null ? _ka : null,
+          hail_threat: (_oa = (_na = (_ma = (_la = feature == null ? void 0 : feature.properties) == null ? void 0 : _la.parameters) == null ? void 0 : _ma.hailThreat) == null ? void 0 : _na[0]) != null ? _oa : null
         },
-        spc_parameters: {
-          spc_number: (_oa = getTextFromProduct({ message: (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) != null ? _oa : null,
-          spc_concerning: (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`Concerning...`] })) != null ? _qa : null,
-          spc_max_tornado: (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _sa : null,
-          spc_max_hail: (_ua = getTextFromProduct({ message: (_ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _ta.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _ua : null,
-          spc_max_wind: (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _wa : null,
-          spc_watch_issuance: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _ya : null
+        discussion_parameters: {
+          discussion_number: (_sa = (_ra = (_qa = getTextFromProduct({ message: (_pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _pa.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _qa.toString()) == null ? void 0 : _ra.padStart(4, "0")) != null ? _sa : null,
+          discussion_concerning: (_ua = getTextFromProduct({ message: (_ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _ta.description, find: [`Concerning...`] })) != null ? _ua : null,
+          discussion_max_tornado: (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _wa : null,
+          discussion_max_hail: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _ya : null,
+          discussion_max_wind: (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _Aa : null,
+          discussion_watch_issuance: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _Ca : null
         },
         watch_parameters: {
-          watch_number: (_Ca = (_Ba = (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Aa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ba.trim()) != null ? _Ca : null,
-          watch_type: ((_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Ea = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ea.description.includes(`SEVERE`)) ? `Severe` : null,
-          additional_tornadoes_probability: (_Ga = getTextFromProduct({ message: (_Fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Fa.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ga : null,
-          strong_tornadoes_probability: (_Ia = getTextFromProduct({ message: (_Ha = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ha.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ia : null,
-          severe_wind_probability: (_Ka = getTextFromProduct({ message: (_Ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ja.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ka : null,
-          severe_hail_probability: (_Ma = getTextFromProduct({ message: (_La = feature == null ? void 0 : feature.properties) == null ? void 0 : _La.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ma : null,
-          hail_2in_probability: (_Oa = getTextFromProduct({ message: (_Na = feature == null ? void 0 : feature.properties) == null ? void 0 : _Na.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _Oa : null,
-          combined_hail_wind_probability: (_Qa = getTextFromProduct({ message: (_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Qa : null,
-          max_hail_in: (_Sa = getTextFromProduct({ message: (_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _Sa : null,
-          max_wind_surface: (_Ua = getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
-          max_tops_x100feet: (_Wa = getTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
-          pds_watch: getTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+          watch_number: ((_Da = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _Da.is_watch) && ((_Oa = (_Na = (_Ia = (_Ha = (_Ga = (_Fa = getTextFromProduct({ message: (_Ea = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ea.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Fa.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ga.trim()) == null ? void 0 : _Ha.toString()) == null ? void 0 : _Ia.padStart(4, "0")) != null ? _Na : (_Ma = (_La = (_Ka = (_Ja = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _Ja.tracking) == null ? void 0 : _Ka.slice(-4)) == null ? void 0 : _La.toString()) == null ? void 0 : _Ma.padStart(4, "0")) != null ? _Oa : null),
+          watch_type: ((_Pa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Pa.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Qa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Qa.description.includes(`SEVERE`)) ? `Severe` : null,
+          additional_tornadoes_probability: (_Sa = getTextFromProduct({ message: (_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Sa : null,
+          strong_tornadoes_probability: (_Ua = getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
+          severe_wind_probability: (_Wa = getTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
+          severe_hail_probability: (_Ya = getTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ya : null,
+          hail_2in_probability: (__a = getTextFromProduct({ message: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? __a : null,
+          combined_hail_wind_probability: (_ab = getTextFromProduct({ message: (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _ab : null,
+          max_hail_in: (_cb = getTextFromProduct({ message: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _cb : null,
+          max_wind_surface: (_eb = getTextFromProduct({ message: (_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _eb : null,
+          max_tops_x100feet: (_gb = getTextFromProduct({ message: (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _gb : null,
+          pds_watch: getTextFromProduct({ message: (_hb = feature == null ? void 0 : feature.properties) == null ? void 0 : _hb.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
         },
         metadata: {
           ms: performance.now() - tick,
           source: `events.api`,
-          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (__a = (_Za = (_Ya = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ya.parameters) == null ? void 0 : _Za.WMOidentifier) == null ? void 0 : __a[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec }),
-          header: `ZCZC-ATMOSX-${(_ab = (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.parameters) == null ? void 0 : _ab.WMOidentifier}`,
-          vtec: pVtec,
+          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_kb = (_jb = (_ib = feature == null ? void 0 : feature.properties) == null ? void 0 : _ib.parameters) == null ? void 0 : _jb.WMOidentifier) == null ? void 0 : _kb[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec == null ? void 0 : pVtec[0] }),
+          header: `ZCZC-ATMOSX-${(_mb = (_lb = feature == null ? void 0 : feature.properties) == null ? void 0 : _lb.parameters) == null ? void 0 : _mb.WMOidentifier}`,
+          vtec: pVtec == null ? void 0 : pVtec[0],
           hvtec: null,
-          raw: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description,
+          raw: (_nb = feature == null ? void 0 : feature.properties) == null ? void 0 : _nb.description,
           history: [
             {
-              description: (_cb = feature == null ? void 0 : feature.properties) == null ? void 0 : _cb.description,
-              issued: ((_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.sent) ? new Date((_eb = feature == null ? void 0 : feature.properties) == null ? void 0 : _eb.sent).toISOString() : null,
-              status: (_gb = (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.messageType) != null ? _gb : null
+              description: (_ob = feature == null ? void 0 : feature.properties) == null ? void 0 : _ob.description,
+              issued: ((_pb = feature == null ? void 0 : feature.properties) == null ? void 0 : _pb.sent) ? new Date((_qb = feature == null ? void 0 : feature.properties) == null ? void 0 : _qb.sent).toISOString() : null,
+              status: (_sb = (_rb = feature == null ? void 0 : feature.properties) == null ? void 0 : _rb.messageType) != null ? _sb : null
             }
           ]
         }

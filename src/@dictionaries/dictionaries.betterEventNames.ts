@@ -22,6 +22,7 @@ type EnhancedEventType = {
     append?: boolean
     tornado?: string
     damage?: string
+    pdswatch?: boolean
 }
 
 export const betterEventNames: Record<string, Record<string, EnhancedEventType>> = {
@@ -59,7 +60,12 @@ export const betterEventNames: Record<string, Record<string, EnhancedEventType>>
     },
     "Tornado Watch": {
         "PDS Tornado Watch": { 
-            description: "particularly dangerous situation"
+            pdswatch: true,
+        }
+    },
+    "Severe Thunderstorm Watch": {
+        "PDS Severe Thunderstorm Watch": { 
+            pdswatch: true
         }
     },
     "Flash Flood Warning": {

@@ -26,7 +26,7 @@ import { getEventSignature } from "./building.signature"
 import { mkEvent } from "../@manager/manager.mkEvent";
 import { rmEvent } from "../@manager/manager.rmEvent";
 import { getEventGeometry } from "./building.geometry";
-import { getEventAttachments } from "./building.outlooks";
+import { getEventAttachments } from "./building.attachments";
 import { updateNode } from "../@manager/manager.updateNodes";
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
@@ -67,7 +67,7 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
             return false; 
         }
         
-        if (properties.metadata?.vtec?.is_watch) {
+        if (properties.metadata?.vtec?.is_watch && properties.metadata.source != `events.api`) {
             const isSPC = properties.metadata?.vtec?.prediction_center;
             setEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define })
             if (bools?.SPCWatchesOnly && !isSPC) {

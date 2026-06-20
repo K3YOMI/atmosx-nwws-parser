@@ -52,7 +52,7 @@ export const getEventTracking = (options: GetTrackingOptions): string => {
     if (options.type === `API`) {
         if (options.vtec) { 
             const vtecValue = Array.isArray(options.vtec) 
-                ? options.vtec[0] : options.vtec;
+                ? options.vtec[0].vtec : options.vtec?.vtec;
             const splitPVTEC = vtecValue.split('.');
             return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
         }
@@ -60,9 +60,9 @@ export const getEventTracking = (options: GetTrackingOptions): string => {
         const station = wmoMatch?.[2] ?? 'N/A';
         if (options.organization.featureId) {
             const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
-            return `${station}.${idMatch?.[1] ?? 'N/A'}`;
+            return `${station}.${idMatch?.[0]?.replace(/\./g, '') ?? 'N/A'}`;
         }
         const id = wmoMatch?.[1] ?? 'N/A';
-        return `${station}.${id}`;
+        return `${station}.${id?.replace(/\./g, '') ?? 'N/A'}`;
     }
 }

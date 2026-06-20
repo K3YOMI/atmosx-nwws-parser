@@ -26,6 +26,7 @@ import { eventStatus } from "../../@dictionaries/dictionaries.eventStatus";
 import { getExpiry } from "./pvtec.expires";
 
 export const pvExtract = (message: string): TypePVTEC[] | null => {
+    if (!message) return null;
     const getVTECs = message.match(regExp.pvtec) ?? [];
     const vtecs: TypePVTEC[] = [];
     for (const vtec of getVTECs) {
@@ -41,8 +42,7 @@ export const pvExtract = (message: string): TypePVTEC[] | null => {
             organization: message.match(regExp.wmo)?.[0] ?? null,
             expires: getExpiry(dates),
             is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
-            prediction_center: sub[2] == `KWNS`
-            ? true : false
+            prediction_center: sub[2] == `KWNS` ? true : false
         })
     }
     return vtecs.length > 0 ? vtecs : null;

@@ -49,12 +49,12 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             line(`**Tornado Threat:**`, event?.parameters?.tornado_threat, !isExpired),
             line(`**Estimated Wind Gusts:**`, `${event?.parameters?.estimated_wind_gusts} ${event?.parameters?.wind_threat ? ` (${event?.parameters?.wind_threat})` : ''}`, !isExpired && event?.parameters?.estimated_wind_gusts != null),
             line(`**Estimated Hail Size:**`, `${event?.parameters?.estimated_hail_size} ${event?.parameters?.hail_threat ? ` (${event?.parameters?.hail_threat})` : ''}`, !isExpired && event?.parameters?.estimated_hail_size != null),
-            line(`**Discussion:**`, event?.spc_parameters?.spc_number, !isExpired),
-            line(`**Concern:**`, event?.spc_parameters?.spc_concerning, !isExpired),
-            line(`**SPC Max Tornado Threat:**`, event?.spc_parameters?.spc_max_tornado, !isExpired),
-            line(`**SPC Max Hail Threat:**`, event?.spc_parameters?.spc_max_hail, !isExpired),
-            line(`**SPC Max Wind Threat:**`, event?.spc_parameters?.spc_max_wind, !isExpired),
-            line(`**SPC Watch Issuance Probability:**`, event?.spc_parameters?.spc_watch_issuance ? `${event?.spc_parameters?.spc_watch_issuance}%` : null, !isExpired),
+            line(`**Discussion:**`, event?.discussion_parameters?.discussion_number, !isExpired),
+            line(`**Concern:**`, event?.discussion_parameters?.discussion_concerning, !isExpired),
+            line(`**SPC Max Tornado Threat:**`, event?.discussion_parameters?.discussion_max_tornado, !isExpired),
+            line(`**SPC Max Hail Threat:**`, event?.discussion_parameters?.discussion_max_hail, !isExpired),
+            line(`**SPC Max Wind Threat:**`, event?.discussion_parameters?.discussion_max_wind, !isExpired),
+            line(`**SPC Watch Issuance Probability:**`, event?.discussion_parameters?.discussion_watch_issuance ? `${event?.discussion_parameters?.discussion_watch_issuance}%` : null, !isExpired),
             line(`**Watch Number:**`, event?.watch_parameters?.watch_number, !isExpired),
             line(`**Strong Tornadoes Probability:**`, event?.watch_parameters?.strong_tornadoes_probability ? `${event?.watch_parameters?.strong_tornadoes_probability}%` : null, !isExpired),
             line(`**Additional Tornadoes Probability:**`, event?.watch_parameters?.additional_tornadoes_probability ? `${event?.watch_parameters?.additional_tornadoes_probability}%` : null, !isExpired),
@@ -69,7 +69,8 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             line(`**Sender:**`, event?.geocode?.office?.name ? `${event?.geocode?.office?.name} (${event?.geocode?.office?.office})` : event?.geocode?.office?.office),
             line(`**Tracking:**`, event?.metadata?.tracking),
             line(`**Logs:**`, event?.metadata?.history?.length > 0 ? event?.metadata?.history.length : null),
-            line(``, event?.description ? '```' + '\n' + event?.description.split('\n').map(l => l.trim()).filter(Boolean).join('\n') + '\n' + '```' : null, !isExpired)
+            line(``, event.metadata.attachments?.length > 0 ? `**References:**\n${event.metadata.attachments.map(attachment => `[Attachment #${event.metadata.attachments.indexOf(attachment) + 1}](${attachment})`).join('\n')}` : null),
+            line(``, event?.description ? '```' + '\n' + event?.description.split('\n').map(l => l.trim()).filter(Boolean).join('\n') + '\n' + '```' : null, !isExpired),
         ].filter(Boolean).join('\n');
     
         if (body.length > 1900) {   
@@ -90,10 +91,10 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             footer: { text: settings.title }
         };
         if (img) {
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 2; i++) {
                 const ok = await isImageReady(img)
                 if (ok) break
-                await new Promise(r => setTimeout(r, 10000))
+                await new Promise(r => setTimeout(r, 5000))
             }
             const finalCheck = await isImageReady(img)
             if (finalCheck) {
@@ -113,8 +114,8 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
                 message: event.description,
                 header: event.metadata.header
             });
-            const file = readFileSync(audio)
             if (audio) {
+                const file = readFileSync(audio)
                 form.append("fEas", Buffer.from(file), { filename: `${event.event}_${event.status}_${event.metadata.tracking}_eas.mp3`, contentType: "audio/mpeg" });
             }
         }

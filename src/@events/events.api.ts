@@ -21,17 +21,19 @@ import { TypeStanzaCompiled } from "../@types/type.compiled"
 import { TypeEvent } from "../@types/type.event";
 import { getEventTracking } from "../@building/building.tracking";
 import { validateEvents } from "../@building/building.validate";
-import { getEventOffice } from "../@building/building.office";
+import { pvExtract } from "../@parsers/@pvtec/pvtec.extract"
 import { getEventTags } from "../@building/building.tags";
 import { getTextFromProduct } from "../@parsers/@text/text.getTextFromProduct";
 import { officeICAOs } from "../@dictionaries/dictionaries.officeICAOs";
+import { TypePVTEC } from "../@types/type.pvtec";
+
 
 export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
     let processed: TypeEvent[] = [];
     const messages =  Object.values(JSON.parse(stanza.message).features) as any;
     for (const feature of messages) {
         const tick = performance.now();
-        const pVtec = feature?.properties?.parameters?.VTEC?.[0] ?? null
+        const pVtec = pvExtract(feature?.properties?.parameters?.VTEC?.[0]) ?? null as TypePVTEC[]
         processed.push({
             type: `Feature`,
             geometry: {
@@ -49,8 +51,8 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 attributes: feature?.properties?.attributes ?? {},
                 geocode: {
                     office: {
-                        office: pVtec ? pVtec.split(`.`)[2] : null,
-                        name: officeICAOs[pVtec ? pVtec.split(`.`)[2] : null] ?? null,
+                        office: pVtec ? pVtec?.[0]?.tracking.split(`.`)[0] : null,
+                        name: officeICAOs[pVtec ? pVtec?.[0]?.tracking.split(`.`)[0] : null] ?? null,
                     },
                     organization:  feature?.properties?.parameters?.WMOidentifier?.[0],
                     ugc: feature?.properties?.geocode?.UGC ?? [], 
@@ -71,16 +73,16 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     wind_threat: feature?.properties?.parameters?.windThreat?.[0] ?? null,
                     hail_threat: feature?.properties?.parameters?.hailThreat?.[0] ?? null,
                 },
-                spc_parameters: {
-                    spc_number: getTextFromProduct({ message: feature?.properties?.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] }) ?? null,
-                    spc_concerning: getTextFromProduct({ message: feature?.properties?.description, find: [`Concerning...`] }) ?? null,
-                    spc_max_tornado: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
-                    spc_max_hail: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
-                    spc_max_wind: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
-                    spc_watch_issuance: getTextFromProduct({ message: feature?.properties?.description, find: [`Probability of Watch Issuance...`], removal: [`percent`]}) ?? null,
+                discussion_parameters: {
+                    discussion_number: getTextFromProduct({ message: feature?.properties?.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })?.toString()?.padStart(4, "0") ?? null,
+                    discussion_concerning: getTextFromProduct({ message: feature?.properties?.description, find: [`Concerning...`] }) ?? null,
+                    discussion_max_tornado: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
+                    discussion_max_hail: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
+                    discussion_max_wind: getTextFromProduct({ message: feature?.properties?.description, find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
+                    discussion_watch_issuance: getTextFromProduct({ message: feature?.properties?.description, find: [`Probability of Watch Issuance...`], removal: [`percent`]}) ?? null,
                 },
                 watch_parameters: {
-                    watch_number: getTextFromProduct({ message: feature?.properties?.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, '')?.trim() ?? null,
+                    watch_number: (pVtec?.[0]?.is_watch) && (getTextFromProduct({ message: feature?.properties?.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, '')?.trim()?.toString()?.padStart(4, "0") ?? pVtec?.[0]?.tracking?.slice(-4)?.toString()?.padStart(4, "0") ?? null),
                     watch_type: feature?.properties?.description.includes(`TORNADO WATCH`) ? `Tornado` : feature?.properties?.description.includes(`SEVERE`) ? `Severe` : null,
                     additional_tornadoes_probability: getTextFromProduct({ message: feature?.properties?.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] }) ?? null,
                     strong_tornadoes_probability: getTextFromProduct({ message: feature?.properties?.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] }) ?? null,
@@ -96,9 +98,9 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 metadata: {
                     ms: performance.now() - tick,
                     source: `events.api`,
-                    tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: feature?.properties?.parameters?.WMOidentifier?.[0], featureId: feature?.id}, vtec: pVtec}),
+                    tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: feature?.properties?.parameters?.WMOidentifier?.[0], featureId: feature?.id}, vtec: pVtec?.[0]}),
                     header: `ZCZC-ATMOSX-${feature?.properties?.parameters?.WMOidentifier}`,
-                    vtec: pVtec,
+                    vtec: pVtec?.[0],
                     hvtec: null,
                     raw: feature?.properties?.description,
                     history: [

@@ -32,6 +32,7 @@ export const getEventEnhancedName = (event: TypeEvent): string => {
 
     const damage = event?.properties?.parameters?.damage_threat
     const tornado = event?.properties?.parameters?.tornado_threat;
+    const pdswatch = event?.properties?.watch_parameters?.pds_watch;
     const description = event?.properties?.description?.toLowerCase()
     for (const [eventKey, eventConfig] of Object.entries(betterEventNames)) {
         if (eventKey !== name) continue;
@@ -45,6 +46,9 @@ export const getEventEnhancedName = (event: TypeEvent): string => {
             }
             if (paramValue?.tornado) {
                 if (paramValue.tornado !== tornado) matches = false;
+            }
+            if (paramValue?.pdswatch) {
+                if (paramValue.pdswatch !== pdswatch) matches = false;
             }
             if (matches) {
                 name = paramKey;

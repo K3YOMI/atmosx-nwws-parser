@@ -77,9 +77,11 @@ export const getCleanDescription = (message: string): string => {
         message = message.replace(regex, replacement)
     }
     return message
+        .replace(/'/g, "''")
         .replace(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase()))
         .replace(/\b(\d{1,2})\s+(\d{2})\s+(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase()))
         .replace(/\b(\d{2})(\d{2})\s+(AM|PM)\b/gi, (_, hh, mm, ap) => fmt(+hh, +mm, ap.toUpperCase()))
+        .replace(/\b(\d{1,2})\s+(AM|PM)\b/gi, (_, h, ap) => fmt(+h, 0, ap.toUpperCase()))
         .replace(/\*+/g, " ")
         .replace(/-/g, " ")
         .replace(/\n/g, " ")
