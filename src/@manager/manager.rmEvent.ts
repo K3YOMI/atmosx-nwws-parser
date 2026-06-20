@@ -27,6 +27,7 @@ export const rmEvent = (event: TypeEvent): void => {
     const cachedStatus = event.properties.status;
     event.properties.expires = new Date().toISOString();
     event.properties.status = `Expired`;
+    event.properties.status_metadata.is_expired = true;
     if (getEvent) {
         setEventEmit({
             event: `onEventStatus`,

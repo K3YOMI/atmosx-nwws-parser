@@ -15626,6 +15626,7 @@ var rmEvent = (event) => {
   const cachedStatus = event.properties.status;
   event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
   event.properties.status = `Expired`;
+  event.properties.status_metadata.is_expired = true;
   if (getEvent) {
     setEventEmit({
       event: `onEventStatus`,
