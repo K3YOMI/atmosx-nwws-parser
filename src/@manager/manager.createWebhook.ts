@@ -20,6 +20,7 @@
 import { TypeEvent } from "../@types/type.event";
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction"
 import { createHttp } from "../@modules/@utilities/utilities.createHttp"
+import { isImageReady } from "../@modules/@utilities/utilities.isImageReady"
 import { TypeWebhook } from "../@types/types.webhook";
 import { getCleanedEvent } from "../@building/building.clean";
 import { setEasTone } from "../@modules/@eas/eas.setEasTone";
@@ -76,8 +77,10 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             const blocks = (body.match(/```/g) ?? []).length;
             if (blocks % 2 !== 0) body += "```";
         }
-        
+        if (event.description.length < 25) { return }
+            
         const form = new FormData();
+        const img = event.metadata.attachments?.[0]
         const embed = {
             title: `${event.event} (${event.status})`,
             description: body,
@@ -86,8 +89,16 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             image: {},
             footer: { text: settings.title }
         };
-        if (event.metadata.attachments && event.metadata.attachments.length > 0) {
-            embed.image = { url: event.metadata.attachments[0] }
+        if (img) {
+            for (let i = 0; i < 5; i++) {
+                const ok = await isImageReady(img)
+                if (ok) break
+                await new Promise(r => setTimeout(r, 5000))
+            }
+            const finalCheck = await isImageReady(img)
+            if (finalCheck) {
+                embed.image = { url: img }
+            }
         }
         form.append("payload_json", JSON.stringify({
             username: settings.title ?? "AtmosphericX",

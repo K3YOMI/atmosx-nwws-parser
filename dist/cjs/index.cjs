@@ -10510,7 +10510,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.43`,
+  version: `3.0.44`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -14807,54 +14807,15 @@ var createHttp = (options) => __async(null, null, function* () {
   });
 });
 
-// src/@dictionaries/dictionaries.transcribedMessageReplacements.ts
-var transcribedMessageReplacements = [
-  { regex: /\.{3,}/g, replacement: ". " },
-  { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
-  { regex: /\bGMT\b/g, replacement: "Greenwich Mean Time" },
-  { regex: /\bEST\b(?!\w)/g, replacement: "Eastern Standard Time" },
-  { regex: /\bEDT\b(?!\w)/g, replacement: "Eastern Daylight Time" },
-  { regex: /\bCST\b(?!\w)/g, replacement: "Central Standard Time" },
-  { regex: /\bCDT\b(?!\w)/g, replacement: "Central Daylight Time" },
-  { regex: /\bMST\b(?!\w)/g, replacement: "Mountain Standard Time" },
-  { regex: /\bMDT\b(?!\w)/g, replacement: "Mountain Daylight Time" },
-  { regex: /\bPST\b(?!\w)/g, replacement: "Pacific Standard Time" },
-  { regex: /\bPDT\b(?!\w)/g, replacement: "Pacific Daylight Time" },
-  { regex: /\bAKST\b(?!\w)/g, replacement: "Alaska Standard Time" },
-  { regex: /\bAKDT\b(?!\w)/g, replacement: "Alaska Daylight Time" },
-  { regex: /\bHST\b(?!\w)/g, replacement: "Hawaii Standard Time" },
-  { regex: /\bHDT\b(?!\w)/g, replacement: "Hawaii Daylight Time" },
-  { regex: /\bmph\b(?!\w)/g, replacement: "miles per hour" },
-  { regex: /\bkm\/h\b(?!\w)/g, replacement: "kilometers per hour" },
-  { regex: /\bkmh\b(?!\w)/g, replacement: "kilometers per hour" },
-  { regex: /\bkt\b(?!\w)/g, replacement: "knots" },
-  { regex: /\bNE\b(?!\w)/g, replacement: "northeast" },
-  { regex: /\bNW\b(?!\w)/g, replacement: "northwest" },
-  { regex: /\bSE\b(?!\w)/g, replacement: "southeast" },
-  { regex: /\bSW\b(?!\w)/g, replacement: "southwest" },
-  { regex: /\bNM\b(?!\w)/g, replacement: "nautical miles" },
-  { regex: /\bdeg\b(?!\w)/g, replacement: "degrees" },
-  { regex: /\btstm\b(?!\w)/g, replacement: "thunderstorm" },
-  { regex: /\bmm\b(?!\w)/g, replacement: "millimeters" },
-  { regex: /\bcm\b(?!\w)/g, replacement: "centimeters" },
-  { regex: /\bin.\b(?!\w)/g, replacement: "inches" },
-  { regex: /\bft\b(?!\w)/g, replacement: "feet" },
-  { regex: /\bmi\b(?!\w)/g, replacement: "miles" },
-  { regex: /\bhr\b(?!\w)/g, replacement: "hour" },
-  { regex: /\bhourly\b(?!\w)/g, replacement: "per hour" },
-  { regex: /\bkg\b(?!\w)/g, replacement: "kilograms" },
-  { regex: /\bg\/kg\b(?!\w)/g, replacement: "grams per kilogram" },
-  { regex: /\bmb\b(?!\w)/g, replacement: "millibars" },
-  { regex: /\bhPa\b(?!\w)/g, replacement: "hectopascals" },
-  { regex: /\bPa\b(?!\w)/g, replacement: "pascals" },
-  { regex: /\bKPa\b(?!\w)/g, replacement: "kilopascals" },
-  { regex: /\bC\/hr\b(?!\w)/g, replacement: "degrees Celsius per hour" },
-  { regex: /\bF\/hr\b(?!\w)/g, replacement: "degrees Fahrenheit per hour" },
-  { regex: /\bC\/min\b(?!\w)/g, replacement: "degrees Celsius per minute" },
-  { regex: /\bF\/min\b(?!\w)/g, replacement: "degrees Fahrenheit per minute" },
-  { regex: /\bC\b(?!\w)/g, replacement: "degrees Celsius" },
-  { regex: /\bF\b(?!\w)/g, replacement: "degrees Fahrenheit" }
-];
+// src/@modules/@utilities/utilities.isImageReady.ts
+var isImageReady = (url) => __async(null, null, function* () {
+  try {
+    const res = yield fetch(url, { method: "HEAD" });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+});
 
 // src/@modules/@eas/eas.getWavPCM16.ts
 var getWavPCM16 = (buffer) => {
@@ -15098,12 +15059,102 @@ var getPCM16 = (samples, sampleRate) => {
   return buffer;
 };
 
+// src/@modules/@eas/eas.getTTS.ts
+var import_os = require("os");
+var import_child_process = require("child_process");
+var getTTS = (text2, outputPath) => __async(null, null, function* () {
+  const vPlatform = (0, import_os.platform)();
+  switch (vPlatform) {
+    case "win32": {
+      const command = `Add-Type -AssemblyName System.Speech;$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;$speak.SetOutputToWaveFile('${outputPath}');$speak.Speak('${text2}');$speak.Dispose();`;
+      (0, import_child_process.execSync)(`powershell -Command "${command}"`, { stdio: "ignore" });
+      break;
+    }
+    case "linux":
+      (0, import_child_process.execSync)(`espeak -w "${outputPath}" "${text2.replace(/"/g, '\\"')}"`);
+      break;
+    default:
+      break;
+  }
+});
+
+// src/@modules/@eas/eas.getCleanDescription.ts
+var getCleanDescription = (message) => {
+  const patches = [
+    { regex: /\.{3,}/g, replacement: ". " },
+    { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
+    { regex: /\bGMT\b/g, replacement: "Greenwich Mean Time" },
+    { regex: /\bEST\b(?!\w)/g, replacement: "Eastern Standard Time" },
+    { regex: /\bEDT\b(?!\w)/g, replacement: "Eastern Daylight Time" },
+    { regex: /\bCST\b(?!\w)/g, replacement: "Central Standard Time" },
+    { regex: /\bCDT\b(?!\w)/g, replacement: "Central Daylight Time" },
+    { regex: /\bMST\b(?!\w)/g, replacement: "Mountain Standard Time" },
+    { regex: /\bMDT\b(?!\w)/g, replacement: "Mountain Daylight Time" },
+    { regex: /\bPST\b(?!\w)/g, replacement: "Pacific Standard Time" },
+    { regex: /\bPDT\b(?!\w)/g, replacement: "Pacific Daylight Time" },
+    { regex: /\bAKST\b(?!\w)/g, replacement: "Alaska Standard Time" },
+    { regex: /\bAKDT\b(?!\w)/g, replacement: "Alaska Daylight Time" },
+    { regex: /\bHST\b(?!\w)/g, replacement: "Hawaii Standard Time" },
+    { regex: /\bHDT\b(?!\w)/g, replacement: "Hawaii Daylight Time" },
+    { regex: /\bmph\b(?!\w)/g, replacement: "miles per hour" },
+    { regex: /\bkm\/h\b(?!\w)/g, replacement: "kilometers per hour" },
+    { regex: /\bkmh\b(?!\w)/g, replacement: "kilometers per hour" },
+    { regex: /\bkt\b(?!\w)/g, replacement: "knots" },
+    { regex: /\bNE\b(?!\w)/g, replacement: "northeast" },
+    { regex: /\bNW\b(?!\w)/g, replacement: "northwest" },
+    { regex: /\bSE\b(?!\w)/g, replacement: "southeast" },
+    { regex: /\bSW\b(?!\w)/g, replacement: "southwest" },
+    { regex: /\bNM\b(?!\w)/g, replacement: "nautical miles" },
+    { regex: /\bdeg\b(?!\w)/g, replacement: "degrees" },
+    { regex: /\btstm\b(?!\w)/g, replacement: "thunderstorm" },
+    { regex: /\bmm\b(?!\w)/g, replacement: "millimeters" },
+    { regex: /\bcm\b(?!\w)/g, replacement: "centimeters" },
+    { regex: /\bin.\b(?!\w)/g, replacement: "inches" },
+    { regex: /\bft\b(?!\w)/g, replacement: "feet" },
+    { regex: /\bmi\b(?!\w)/g, replacement: "miles" },
+    { regex: /\bhr\b(?!\w)/g, replacement: "hour" },
+    { regex: /\bhourly\b(?!\w)/g, replacement: "per hour" },
+    { regex: /\bkg\b(?!\w)/g, replacement: "kilograms" },
+    { regex: /\bg\/kg\b(?!\w)/g, replacement: "grams per kilogram" },
+    { regex: /\bmb\b(?!\w)/g, replacement: "millibars" },
+    { regex: /\bhPa\b(?!\w)/g, replacement: "hectopascals" },
+    { regex: /\bPa\b(?!\w)/g, replacement: "pascals" },
+    { regex: /\bKPa\b(?!\w)/g, replacement: "kilopascals" },
+    { regex: /\bC\/hr\b(?!\w)/g, replacement: "degrees Celsius per hour" },
+    { regex: /\bF\/hr\b(?!\w)/g, replacement: "degrees Fahrenheit per hour" },
+    { regex: /\bC\/min\b(?!\w)/g, replacement: "degrees Celsius per minute" },
+    { regex: /\bF\/min\b(?!\w)/g, replacement: "degrees Fahrenheit per minute" },
+    { regex: /\bC\b(?!\w)/g, replacement: "degrees Celsius" },
+    { regex: /\bF\b(?!\w)/g, replacement: "degrees Fahrenheit" }
+  ];
+  const hours = {
+    0: "twelve",
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    10: "ten",
+    11: "eleven",
+    12: "twelve"
+  };
+  const minWord = (m) => m === 0 ? "o'clock" : m < 10 ? `oh ${m}` : `${m}`;
+  const fmt = (h, m, ap) => `${hours[h % 12]} ${minWord(m)} ${ap}`;
+  for (const { regex, replacement } of patches) {
+    message = message.replace(regex, replacement);
+  }
+  return message.replace(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(\d{2})\s+(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{2})(\d{2})\s+(AM|PM)\b/gi, (_, hh, mm, ap) => fmt(+hh, +mm, ap.toUpperCase())).replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").trim();
+};
+
 // src/@modules/@eas/eas.setEasTone.ts
 var import_path2 = require("path");
 var import_fs = require("fs");
-var import_child_process = require("child_process");
-var import_os = require("os");
-var import_say = __toESM(require("say"));
+var import_child_process2 = require("child_process");
+var import_os2 = require("os");
 var setEasTone = (options) => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const directory = settings.GlobalSettings.EASSettings.ArchiveDirectory;
@@ -15120,10 +15171,6 @@ var setEasTone = (options) => __async(null, null, function* () {
   let buffTTS;
   let buffRadio;
   let buffFull = [];
-  const tmpTTS = (0, import_path2.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
-  const outTTS = (0, import_path2.join)(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
-  const vTTS = process.platform === `win32` ? `Microsoft David Desktop` : `en-US-GuyNerual`;
-  const vPlatform = (0, import_os.platform)();
   if (!(0, import_fs.existsSync)(directory)) {
     (0, import_fs.mkdirSync)(directory, { recursive: true });
   }
@@ -15133,19 +15180,19 @@ var setEasTone = (options) => __async(null, null, function* () {
   if (!(0, import_fs.existsSync)((0, import_path2.join)(directory, `/output`))) {
     (0, import_fs.mkdirSync)((0, import_path2.join)(directory, `/output`), { recursive: true });
   }
-  for (const { regex, replacement } of transcribedMessageReplacements) {
-    message = message.replace(regex, replacement);
-  }
-  if (vPlatform != `win32`) {
+  const tmpTTS = (0, import_path2.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const outTTS = (0, import_path2.join)(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const vPlatform = (0, import_os2.platform)();
+  if (vPlatform === "darwin") {
     setWarning({
       title: `EAS`,
-      message: `Generation isn't supported with this OS. Please wait for further updates before trying again`
+      message: `EAS tone generation is not supported on macOS.`
     });
     return null;
   }
   yield new Promise((resolve6, reject) => {
-    const tMsg = message.replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").replace(/\s+/g, " ").trim();
-    import_say.default.export(tMsg, vTTS, 1, tmpTTS, (err) => {
+    const tMsg = getCleanDescription(message);
+    getTTS(tMsg, tmpTTS).then(() => {
       buffTTS = (0, import_fs.readFileSync)(tmpTTS);
       resolve6();
     });
@@ -15159,7 +15206,7 @@ var setEasTone = (options) => __async(null, null, function* () {
     if (tWav == null) {
       try {
         const converted = (0, import_path2.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}.converted.wav`);
-        (0, import_child_process.execSync)(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
+        (0, import_child_process2.execSync)(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
         if ((0, import_fs.existsSync)(converted)) {
           tBuffer = (0, import_fs.readFileSync)(converted);
           tWav = getWavPCM16(tBuffer);
@@ -15208,7 +15255,7 @@ var setEasTone = (options) => __async(null, null, function* () {
 var import_fs2 = require("fs");
 var import_form_data = __toESM(require_form_data());
 var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
   const event = options.event.properties;
   const settings = options.webhook;
   const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
@@ -15252,7 +15299,11 @@ var createWebhook = (options) => __async(null, null, function* () {
       const blocks = ((_i = body.match(/```/g)) != null ? _i : []).length;
       if (blocks % 2 !== 0) body += "```";
     }
+    if (event.description.length < 25) {
+      return;
+    }
     const form = new import_form_data.default();
+    const img = (_j = event.metadata.attachments) == null ? void 0 : _j[0];
     const embed = {
       title: `${event.event} (${event.status})`,
       description: body,
@@ -15261,12 +15312,20 @@ var createWebhook = (options) => __async(null, null, function* () {
       image: {},
       footer: { text: settings.title }
     };
-    if (event.metadata.attachments && event.metadata.attachments.length > 0) {
-      embed.image = { url: event.metadata.attachments[0] };
+    if (img) {
+      for (let i = 0; i < 5; i++) {
+        const ok = yield isImageReady(img);
+        if (ok) break;
+        yield new Promise((r) => setTimeout(r, 5e3));
+      }
+      const finalCheck = yield isImageReady(img);
+      if (finalCheck) {
+        embed.image = { url: img };
+      }
     }
     form.append("payload_json", JSON.stringify({
-      username: (_j = settings.title) != null ? _j : "AtmosphericX",
-      content: (_k = settings.message) != null ? _k : "",
+      username: (_k = settings.title) != null ? _k : "AtmosphericX",
+      content: (_l = settings.message) != null ? _l : "",
       embeds: [embed]
     }));
     if (settings.upload) {
@@ -16531,24 +16590,32 @@ var xReconnect = (interval) => __async(null, null, function* () {
 
 // src/@modules/@utilities/utilities.setCronSchedule.ts
 var import_fs5 = require("fs");
+var import_path4 = require("path");
 var setCronSchedule = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
-  if (settings.GlobalSettings.EASSettings.ArchiveDirectory) {
-    const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL;
-    if (TTL) {
-      const files = (0, import_fs5.readdirSync)(settings.GlobalSettings.EASSettings.ArchiveDirectory);
-      for (const file of files) {
-        const filePath = `${settings.GlobalSettings.EASSettings.ArchiveDirectory}/${file}`;
-        const stats = yield new Promise((resolve6, reject) => {
-        });
-        const time = Date.now() - TTL * 1e3;
-        if (stats.mtime.getTime() < time) {
-          (0, import_fs5.unlink)(filePath, (err) => {
-          });
+  const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL;
+  const TTLCUT = Date.now() - TTL * 1e3;
+  const walk = (dir) => {
+    if ((0, import_fs5.existsSync)(dir)) {
+      const entries = (0, import_fs5.readdirSync)(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = (0, import_path4.join)(dir, entry.name);
+        if (entry.isDirectory()) {
+          walk(fullPath);
+          continue;
+        }
+        const stats = (0, import_fs5.statSync)(fullPath);
+        if (stats.mtime.getTime() < TTLCUT) {
+          try {
+            (0, import_fs5.unlinkSync)(fullPath);
+          } catch (err) {
+            console.error(`Failed to delete ${fullPath}:`, err);
+          }
         }
       }
     }
-  }
+  };
+  walk(settings.GlobalSettings.EASSettings.ArchiveDirectory);
   if (settings.EnableWireService) {
     if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
       void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);

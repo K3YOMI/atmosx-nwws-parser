@@ -14,7 +14,7 @@
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
 
     Internal Package: @atmosx/event-product-parser
-
+ 
     
 */
 
@@ -24,26 +24,35 @@ import { bootstrap } from "../../bootstrap";
 import { createHttp } from "./utilities.createHttp";
 import { createEvent } from "../../@building/building.create";
 import { setEventEmit } from "./utilities.setEventEmit";
-import { readdirSync, unlink } from "fs";
+import { readdirSync, unlinkSync, statSync, existsSync } from "fs";
+import { join } from "path";
 
 export const setCronSchedule = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
 
-    if (settings.GlobalSettings.EASSettings.ArchiveDirectory) { 
-        const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL;
-        if (TTL) {
-            const files = readdirSync(settings.GlobalSettings.EASSettings.ArchiveDirectory);
-            for (const file of files) {
-                const filePath = `${settings.GlobalSettings.EASSettings.ArchiveDirectory}/${file}`;
-                const stats = await new Promise<{ mtime: Date }>((resolve, reject) => {})
-                const time = Date.now() - TTL * 1000;
-                if (stats.mtime.getTime() < time) {
-                    unlink(filePath, (err) => {});
+    const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL
+    const TTLCUT = Date.now() - TTL * 1000;
+    const walk = (dir: string): void => {
+        if (existsSync(dir)) {
+            const entries = readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = join(dir, entry.name);
+                if (entry.isDirectory()) { walk(fullPath); continue; }
+                const stats = statSync(fullPath);
+                if (stats.mtime.getTime() < TTLCUT) {
+                    try {
+                        unlinkSync(fullPath);
+                    } catch (err) {
+                        console.error(`Failed to delete ${fullPath}:`, err);
+                    }
                 }
-            }    
+            }
         }
-    }
-    
+    };
+    walk(settings.GlobalSettings.EASSettings.ArchiveDirectory)
+
+
+
     if (settings.EnableWireService) {
         if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
             void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval)

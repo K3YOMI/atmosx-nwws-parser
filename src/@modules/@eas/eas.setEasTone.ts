@@ -18,9 +18,8 @@
 */
 
 import { TypeSettings } from "../../@types/types.settings";
-import { transcribedMessageReplacements } from "../../@dictionaries/dictionaries.transcribedMessageReplacements";
 import { bootstrap } from "../../bootstrap";
-import { setSleep } from "../@utilities/utilities.setSleep"
+import { setWarning } from "../@utilities/utilities.setWarning";
 import { getWavPCM16 } from "./eas.getWavPCM16";
 import { getSampledPCM16 } from "./eas.getSampledPCM16";
 import { setRadioEffect } from "./eas.setRadioEffect";
@@ -29,13 +28,12 @@ import { setAttentionTone } from "./eas.setAttentionTone";
 import { getMergedPCM16 } from "./eas.getMergedPCM16";
 import { setNoise } from "./eas.setNoise";
 import { getPCM16 } from "./eas.getPCM16";
+import { getTTS } from "./eas.getTTS";
+import { getCleanDescription } from "./eas.getCleanDescription";
 import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
 import { execSync } from 'child_process'
 import { platform } from 'os'
-import { setWarning } from "../@utilities/utilities.setWarning";
-import say from 'say'
-import { buffer } from "stream/consumers";
 
 interface GenerateEASOptions { 
     message: string
@@ -59,12 +57,6 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     let buffRadio: any;
     let buffFull: any[] = [];
 
-
-    const tmpTTS = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
-    const outTTS = join(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
-    const vTTS = process.platform === `win32` ? `Microsoft David Desktop` : `en-US-GuyNerual`;
-    const vPlatform = platform();
-
     if (!existsSync(directory)) {
         mkdirSync(directory, { recursive: true });
     }
@@ -74,21 +66,23 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     if (!existsSync(join(directory, `/output`))) {
         mkdirSync(join(directory, `/output`), { recursive: true });
     }
-    for (const {regex, replacement} of transcribedMessageReplacements) {
-        message = message.replace(regex, replacement)
-    }
 
-    if (vPlatform != `win32`) {
+    const tmpTTS = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
+    const outTTS = join(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
+    const vPlatform = platform();
+
+    if (vPlatform === 'darwin') {
         setWarning({
             title: `EAS`,
-            message: `Generation isn't supported with this OS. Please wait for further updates before trying again`
-        })
-        return null;
+            message: `EAS tone generation is not supported on macOS.`
+        });
+        return null
     }
-    
+
+
     await new Promise<void>((resolve, reject) => {
-        const tMsg = message.replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").replace(/\s+/g, " ").trim();
-        say.export(tMsg, vTTS, 1.0, tmpTTS, (err: any) => {
+        const tMsg = getCleanDescription(message)
+        getTTS(tMsg, tmpTTS).then(() => {
             buffTTS = readFileSync(tmpTTS);
             resolve();
         });
