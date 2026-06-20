@@ -90,10 +90,10 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             footer: { text: settings.title }
         };
         if (img) {
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 6; i++) {
                 const ok = await isImageReady(img)
                 if (ok) break
-                await new Promise(r => setTimeout(r, 5000))
+                await new Promise(r => setTimeout(r, 10000))
             }
             const finalCheck = await isImageReady(img)
             if (finalCheck) {

@@ -15294,10 +15294,10 @@ var createWebhook = (options) => __async(null, null, function* () {
       footer: { text: settings.title }
     };
     if (img) {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         const ok = yield isImageReady(img);
         if (ok) break;
-        yield new Promise((r) => setTimeout(r, 5e3));
+        yield new Promise((r) => setTimeout(r, 1e4));
       }
       const finalCheck = yield isImageReady(img);
       if (finalCheck) {
