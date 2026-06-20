@@ -29,7 +29,7 @@ export const updateWebhooks = async (event: TypeEvent): Promise<void> => {
     for (const socket of webhooks) {
         const events = socket.events;
         if (!events || events.length === 0) {
-            await createWebhook({ webhook: socket, event });
+            createWebhook({ webhook: socket, event });
             continue;
         }
         const matched = events.some(pattern => {
@@ -43,7 +43,7 @@ export const updateWebhooks = async (event: TypeEvent): Promise<void> => {
             return false;
         });
         if (matched) {
-            await createWebhook({ webhook: socket, event });
+            createWebhook({ webhook: socket, event });
         }
     }
 };

@@ -33,8 +33,8 @@ export const getEventSignature = (event: TypeEvent): TypeEvent => {
     const csig = eventCancelMessages.find(sig => properties.description.toLowerCase().includes(sig.toLowerCase()));
     properties.status_metadata = { ...properties.status_metadata, is_issued: true, is_test: false};
 
-    if (properties.parameters.estimated_hail_size) { 
-        properties.parameters.estimated_hail_size += ` (${hailStrings[properties.parameters.estimated_hail_size] ?? '--'})`
+    if (properties?.parameters?.estimated_hail_size) { 
+        properties.parameters.estimated_hail_size += ` (${hailStrings[properties?.parameters?.estimated_hail_size] ?? '--'})`
     }
 
     if (status) { 

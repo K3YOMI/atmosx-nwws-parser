@@ -31,7 +31,7 @@ export const getEventEnhancedName = (event: TypeEvent): string => {
     }
 
     const damage = event?.properties?.parameters?.damage_threat
-    const tornado = event?.properties?.parameters.tornado_threat;
+    const tornado = event?.properties?.parameters?.tornado_threat;
     const description = event?.properties?.description?.toLowerCase()
     for (const [eventKey, eventConfig] of Object.entries(betterEventNames)) {
         if (eventKey !== name) continue;

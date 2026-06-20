@@ -322,6 +322,24 @@ const nodes = getNodes()
 console.log(nodes)
 ```
 
+### Function `createEvent`
+Creates a new event in the parser.
+```ts
+import { createEvent } from "@atmosx/event-product-parser"
+createEvent({
+    event: `PDS Ice Storm Warning`,
+    status: `Upgraded`,
+    issued: new Date(),
+    expires: new Date(Date.now() + 3600000),
+    locations: `Somewhere USA`,
+    description: `This is a test event sample.`,
+    coordinates: [
+        [-122.4194, 37.7749], 
+        [-122.4194, 37.7749]
+    ]
+})
+```
+
 ### Function `query`
 Queries the event cache (datbase) for specific events based on text.
 ```ts 
@@ -348,6 +366,10 @@ await setEasTone(event.properties.description, event.properties.metadata.header)
 [UGC](./src/@types/type.ugc.ts) |
 [Stanzas](./src/@types/type.stanza.ts) |
 [Attributes](./src/@types/type.attributes.ts) |
+
+## Supported Events
+`@atmosx/event-product-parser` natively supports and ingests **300+** NWS Text products using VTEC, UGC, and various text parsing techniues.
+If you wish to view all supported products, please see: [SUPPORTED_EVENTS.md](./SUPPORTED_EVENTS.md)
 
 
 ## Performance Recommendations

@@ -79,7 +79,7 @@ type TypeAttributes = {
 type TypeEventProperties = {
     locations: string;
     description: string;
-    attributes: TypeAttributes;
+    attributes?: TypeAttributes;
     geocode: {
         office: {
             name: string;
@@ -90,7 +90,7 @@ type TypeEventProperties = {
         polygon: string;
         polygon_generated: boolean;
     };
-    parameters: {
+    parameters?: {
         tags: string[];
         instructions: string;
         source: string;
@@ -123,7 +123,7 @@ type TypeEventProperties = {
         max_tops_x100feet: string;
         pds_watch: boolean;
     };
-    spc_parameters: {
+    spc_parameters?: {
         spc_number: string;
         spc_concerning: string;
         spc_max_tornado: string;
@@ -177,8 +177,8 @@ type TypeEvent = {
             tracking: string;
             hash?: string;
             header: string;
-            vtec: TypePVTEC | null;
-            hvtec: TypeHVTEC[];
+            vtec?: TypePVTEC | null;
+            hvtec?: TypeHVTEC[] | null;
             nodes?: {
                 id?: string | number;
                 coordinates: [number, number];
@@ -232,6 +232,17 @@ declare const getEvents: () => any;
 
 declare const getNodes: () => any;
 
+interface CreateEventOptions {
+    event: string;
+    status: string;
+    issued: Date;
+    expires: Date;
+    locations: string;
+    description: string;
+    coordinates: number[][];
+}
+declare const createEvent: (options: CreateEventOptions) => void;
+
 declare const getRandomEvent: () => any;
 
 type TypeStanza = {
@@ -267,4 +278,4 @@ declare class Manager {
     trycatch(): void;
 }
 
-export { Manager, type TypeEvent, clearEvents, Manager as default, getCleanedEvent, getEventGeometry, getEvents, getNodes, getRandomEvent, query, setEasTone, setNode, setSettings, startService, stopService };
+export { Manager, type TypeEvent, clearEvents, createEvent, Manager as default, getCleanedEvent, getEventGeometry, getEvents, getNodes, getRandomEvent, query, setEasTone, setNode, setSettings, startService, stopService };

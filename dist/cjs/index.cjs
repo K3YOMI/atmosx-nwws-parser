@@ -10491,6 +10491,7 @@ var index_exports = {};
 __export(index_exports, {
   Manager: () => Manager,
   clearEvents: () => clearEvents,
+  createEvent: () => createEvent2,
   default: () => index_default,
   getCleanedEvent: () => getCleanedEvent,
   getEventGeometry: () => getEventGeometry,
@@ -10510,7 +10511,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.44`,
+  version: `3.0.45`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -14611,15 +14612,15 @@ var betterEventNames = {
 
 // src/@building/building.enhance.ts
 var getEventEnhancedName = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g;
+  var _a, _b, _c, _d, _e, _f, _g, _h;
   const configurations = bootstrap.settings;
   let name = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.event;
   if (!((_b = configurations == null ? void 0 : configurations.GlobalSettings) == null ? void 0 : _b.BetterEventNames)) {
     return name;
   }
   const damage = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.parameters) == null ? void 0 : _d.damage_threat;
-  const tornado = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters.tornado_threat;
-  const description = (_g = (_f = event == null ? void 0 : event.properties) == null ? void 0 : _f.description) == null ? void 0 : _g.toLowerCase();
+  const tornado = (_f = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters) == null ? void 0 : _f.tornado_threat;
+  const description = (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.description) == null ? void 0 : _h.toLowerCase();
   for (const [eventKey, eventConfig] of Object.entries(betterEventNames)) {
     if (eventKey !== name) continue;
     for (const [paramKey, paramValue] of Object.entries(eventConfig)) {
@@ -14704,23 +14705,23 @@ var hailStrings = {
 
 // src/@building/building.signature.ts
 var getEventSignature = (event) => {
-  var _a, _b, _c, _d, _e, _f;
+  var _a, _b, _c, _d, _e, _f, _g, _h;
   const properties2 = event == null ? void 0 : event.properties;
   const vtec2 = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.vtec;
   const status = statusCorrelationText.find((c) => c.type === (properties2 == null ? void 0 : properties2.status));
   const csig = eventCancelMessages.find((sig) => properties2.description.toLowerCase().includes(sig.toLowerCase()));
   properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_issued: true, is_test: false });
-  if (properties2.parameters.estimated_hail_size) {
-    properties2.parameters.estimated_hail_size += ` (${(_c = hailStrings[properties2.parameters.estimated_hail_size]) != null ? _c : "--"})`;
+  if ((_c = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _c.estimated_hail_size) {
+    properties2.parameters.estimated_hail_size += ` (${(_e = hailStrings[(_d = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _d.estimated_hail_size]) != null ? _e : "--"})`;
   }
   if (status) {
-    properties2.status = (_d = status.name) != null ? _d : properties2.status;
+    properties2.status = (_f = status.name) != null ? _f : properties2.status;
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel, is_statement: !!status.isStatement });
   }
   if (csig) {
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
   }
-  const getProduct = (_f = (_e = vtec2 == null ? void 0 : vtec2.vtec) == null ? void 0 : _e.split(`.`)[0]) == null ? void 0 : _f.replace(`/`, ``);
+  const getProduct = (_h = (_g = vtec2 == null ? void 0 : vtec2.vtec) == null ? void 0 : _g.split(`.`)[0]) == null ? void 0 : _h.replace(`/`, ``);
   const isTestProduct = eventProducts[getProduct] == `Test Product`;
   if (isTestProduct || testSignatures.some((sig) => {
     var _a2, _b2, _c2, _d2;
@@ -15255,7 +15256,7 @@ var setEasTone = (options) => __async(null, null, function* () {
 var import_fs2 = require("fs");
 var import_form_data = __toESM(require_form_data());
 var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$;
   const event = options.event.properties;
   const settings = options.webhook;
   const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
@@ -15267,43 +15268,43 @@ var createWebhook = (options) => __async(null, null, function* () {
       line(`**Locations:**`, (_a = event == null ? void 0 : event.locations) == null ? void 0 : _a.slice(0, 100)),
       line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>`),
       line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>`, !isExpired && !isStatement),
-      line(`**Damage Threat:**`, event.parameters.damage_threat, !isExpired),
-      line(`**Flood Threat:**`, event.parameters.flood_threat, !isExpired),
-      line(`**Tornado Threat:**`, event.parameters.tornado_threat, !isExpired),
-      line(`**Estimated Wind Gusts:**`, `${event.parameters.estimated_wind_gusts} ${event.parameters.wind_threat ? ` (${event.parameters.wind_threat})` : ""}`, !isExpired && event.parameters.estimated_wind_gusts != null),
-      line(`**Estimated Hail Size:**`, `${event.parameters.estimated_hail_size} ${event.parameters.hail_threat ? ` (${event.parameters.hail_threat})` : ""}`, !isExpired && event.parameters.estimated_hail_size != null),
-      line(`**Discussion:**`, event.spc_parameters.spc_number, !isExpired),
-      line(`**Concern:**`, event.spc_parameters.spc_concerning, !isExpired),
-      line(`**SPC Max Tornado Threat:**`, event.spc_parameters.spc_max_tornado, !isExpired),
-      line(`**SPC Max Hail Threat:**`, event.spc_parameters.spc_max_hail, !isExpired),
-      line(`**SPC Max Wind Threat:**`, event.spc_parameters.spc_max_wind, !isExpired),
-      line(`**SPC Watch Issuance Probability:**`, event.spc_parameters.spc_watch_issuance ? `${event.spc_parameters.spc_watch_issuance}%` : null, !isExpired),
-      line(`**Watch Number:**`, event.watch_parameters.watch_number, !isExpired),
-      line(`**Strong Tornadoes Probability:**`, event.watch_parameters.strong_tornadoes_probability ? `${event.watch_parameters.strong_tornadoes_probability}%` : null, !isExpired),
-      line(`**Additional Tornadoes Probability:**`, event.watch_parameters.additional_tornadoes_probability ? `${event.watch_parameters.additional_tornadoes_probability}%` : null, !isExpired),
-      line(`**Combined Hail/Wind Probability:**`, event.watch_parameters.combined_hail_wind_probability ? `${event.watch_parameters.combined_hail_wind_probability}%` : null, !isExpired),
-      line(`**Severe Hail Probability:**`, event.watch_parameters.severe_hail_probability ? `${event.watch_parameters.severe_hail_probability}%` : null, !isExpired),
-      line(`**Hail >2in Probability:**`, event.watch_parameters.hail_2in_probability ? `${event.watch_parameters.hail_2in_probability}%` : null, !isExpired),
-      line(`**Max Hail Inches:**`, event.watch_parameters.max_hail_in, !isExpired),
-      line(`**Severe Wind Probability:**`, event.watch_parameters.severe_wind_probability ? `${event.watch_parameters.severe_wind_probability}%` : null, !isExpired),
-      line(`**Max Surface Wind:**`, event.watch_parameters.max_wind_surface, !isExpired),
-      line(`**Max Tops (x100 feet):**`, event.watch_parameters.max_tops_x100feet, !isExpired),
-      line(`**Tags:**`, ((_b = event.parameters.tags) == null ? void 0 : _b.length) > 0 ? event.parameters.tags.join(", ") : null, !isExpired),
-      line(`**Sender:**`, ((_d = (_c = event.geocode) == null ? void 0 : _c.office) == null ? void 0 : _d.name) ? `${event.geocode.office.name} (${event.geocode.office.office})` : (_f = (_e = event.geocode) == null ? void 0 : _e.office) == null ? void 0 : _f.office),
-      line(`**Tracking:**`, (_g = event.metadata) == null ? void 0 : _g.tracking),
-      line(`**Logs:**`, ((_h = event.metadata.history) == null ? void 0 : _h.length) > 0 ? event.metadata.history.length : null),
-      line(``, event.description ? "```\n" + event.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : null, !isExpired)
+      line(`**Damage Threat:**`, (_b = event == null ? void 0 : event.parameters) == null ? void 0 : _b.damage_threat, !isExpired),
+      line(`**Flood Threat:**`, (_c = event == null ? void 0 : event.parameters) == null ? void 0 : _c.flood_threat, !isExpired),
+      line(`**Tornado Threat:**`, (_d = event == null ? void 0 : event.parameters) == null ? void 0 : _d.tornado_threat, !isExpired),
+      line(`**Estimated Wind Gusts:**`, `${(_e = event == null ? void 0 : event.parameters) == null ? void 0 : _e.estimated_wind_gusts} ${((_f = event == null ? void 0 : event.parameters) == null ? void 0 : _f.wind_threat) ? ` (${(_g = event == null ? void 0 : event.parameters) == null ? void 0 : _g.wind_threat})` : ""}`, !isExpired && ((_h = event == null ? void 0 : event.parameters) == null ? void 0 : _h.estimated_wind_gusts) != null),
+      line(`**Estimated Hail Size:**`, `${(_i = event == null ? void 0 : event.parameters) == null ? void 0 : _i.estimated_hail_size} ${((_j = event == null ? void 0 : event.parameters) == null ? void 0 : _j.hail_threat) ? ` (${(_k = event == null ? void 0 : event.parameters) == null ? void 0 : _k.hail_threat})` : ""}`, !isExpired && ((_l = event == null ? void 0 : event.parameters) == null ? void 0 : _l.estimated_hail_size) != null),
+      line(`**Discussion:**`, (_m = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _m.spc_number, !isExpired),
+      line(`**Concern:**`, (_n = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _n.spc_concerning, !isExpired),
+      line(`**SPC Max Tornado Threat:**`, (_o = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _o.spc_max_tornado, !isExpired),
+      line(`**SPC Max Hail Threat:**`, (_p = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _p.spc_max_hail, !isExpired),
+      line(`**SPC Max Wind Threat:**`, (_q = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _q.spc_max_wind, !isExpired),
+      line(`**SPC Watch Issuance Probability:**`, ((_r = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _r.spc_watch_issuance) ? `${(_s = event == null ? void 0 : event.spc_parameters) == null ? void 0 : _s.spc_watch_issuance}%` : null, !isExpired),
+      line(`**Watch Number:**`, (_t = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _t.watch_number, !isExpired),
+      line(`**Strong Tornadoes Probability:**`, ((_u = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _u.strong_tornadoes_probability) ? `${(_v = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _v.strong_tornadoes_probability}%` : null, !isExpired),
+      line(`**Additional Tornadoes Probability:**`, ((_w = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _w.additional_tornadoes_probability) ? `${(_x = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _x.additional_tornadoes_probability}%` : null, !isExpired),
+      line(`**Combined Hail/Wind Probability:**`, ((_y = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _y.combined_hail_wind_probability) ? `${(_z = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _z.combined_hail_wind_probability}%` : null, !isExpired),
+      line(`**Severe Hail Probability:**`, ((_A = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _A.severe_hail_probability) ? `${(_B = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _B.severe_hail_probability}%` : null, !isExpired),
+      line(`**Hail >2in Probability:**`, ((_C = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _C.hail_2in_probability) ? `${(_D = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _D.hail_2in_probability}%` : null, !isExpired),
+      line(`**Max Hail Inches:**`, (_E = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _E.max_hail_in, !isExpired),
+      line(`**Severe Wind Probability:**`, ((_F = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _F.severe_wind_probability) ? `${(_G = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _G.severe_wind_probability}%` : null, !isExpired),
+      line(`**Max Surface Wind:**`, (_H = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _H.max_wind_surface, !isExpired),
+      line(`**Max Tops (x100 feet):**`, (_I = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _I.max_tops_x100feet, !isExpired),
+      line(`**Tags:**`, ((_K = (_J = event == null ? void 0 : event.parameters) == null ? void 0 : _J.tags) == null ? void 0 : _K.length) > 0 ? (_L = event == null ? void 0 : event.parameters) == null ? void 0 : _L.tags.join(", ") : null, !isExpired),
+      line(`**Sender:**`, ((_N = (_M = event == null ? void 0 : event.geocode) == null ? void 0 : _M.office) == null ? void 0 : _N.name) ? `${(_P = (_O = event == null ? void 0 : event.geocode) == null ? void 0 : _O.office) == null ? void 0 : _P.name} (${(_R = (_Q = event == null ? void 0 : event.geocode) == null ? void 0 : _Q.office) == null ? void 0 : _R.office})` : (_T = (_S = event == null ? void 0 : event.geocode) == null ? void 0 : _S.office) == null ? void 0 : _T.office),
+      line(`**Tracking:**`, (_U = event == null ? void 0 : event.metadata) == null ? void 0 : _U.tracking),
+      line(`**Logs:**`, ((_W = (_V = event == null ? void 0 : event.metadata) == null ? void 0 : _V.history) == null ? void 0 : _W.length) > 0 ? (_X = event == null ? void 0 : event.metadata) == null ? void 0 : _X.history.length : null),
+      line(``, (event == null ? void 0 : event.description) ? "```\n" + (event == null ? void 0 : event.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n")) + "\n```" : null, !isExpired)
     ].filter(Boolean).join("\n");
     if (body.length > 1900) {
       body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-      const blocks = ((_i = body.match(/```/g)) != null ? _i : []).length;
+      const blocks = ((_Y = body.match(/```/g)) != null ? _Y : []).length;
       if (blocks % 2 !== 0) body += "```";
     }
     if (event.description.length < 25) {
       return;
     }
     const form = new import_form_data.default();
-    const img = (_j = event.metadata.attachments) == null ? void 0 : _j[0];
+    const img = (_Z = event.metadata.attachments) == null ? void 0 : _Z[0];
     const embed = {
       title: `${event.event} (${event.status})`,
       description: body,
@@ -15324,8 +15325,8 @@ var createWebhook = (options) => __async(null, null, function* () {
       }
     }
     form.append("payload_json", JSON.stringify({
-      username: (_k = settings.title) != null ? _k : "AtmosphericX",
-      content: (_l = settings.message) != null ? _l : "",
+      username: (__ = settings.title) != null ? __ : "AtmosphericX",
+      content: (_$ = settings.message) != null ? _$ : "",
       embeds: [embed]
     }));
     if (settings.upload) {
@@ -15361,7 +15362,7 @@ var updateWebhooks = (event) => __async(null, null, function* () {
   for (const socket of webhooks) {
     const events = socket.events;
     if (!events || events.length === 0) {
-      yield createWebhook({ webhook: socket, event });
+      createWebhook({ webhook: socket, event });
       continue;
     }
     const matched = events.some((pattern) => {
@@ -15374,7 +15375,7 @@ var updateWebhooks = (event) => __async(null, null, function* () {
       return false;
     });
     if (matched) {
-      yield createWebhook({ webhook: socket, event });
+      createWebhook({ webhook: socket, event });
     }
   }
 });
@@ -16783,6 +16784,60 @@ var getNodes = () => {
   return bootstrap.cache.nodes;
 };
 
+// src/@core/core.createEvent.ts
+var createEvent2 = (options) => {
+  var _a;
+  const tick = performance.now();
+  const status = statusCorrelationText.find((c) => c.type === options.status);
+  validateEvents([{
+    type: `Feature`,
+    geometry: {
+      type: `Point`,
+      coordinates: options.coordinates
+    },
+    properties: {
+      event: options.event,
+      parent: options.event,
+      status: options.status,
+      issued: options.issued.toISOString(),
+      expires: options.expires.toISOString(),
+      locations: options.locations,
+      description: options.description,
+      geocode: {
+        office: {
+          office: `ATMX`,
+          name: `AtmosphericX Manual Event`
+        },
+        organization: `AtmosphericX`,
+        ugc: [],
+        polygon: options.coordinates.length > 0 ? Buffer.from(JSON.stringify([options.coordinates[0]])).toString("base64") : null,
+        polygon_generated: options.coordinates.length > 0 ? true : false
+      },
+      status_metadata: {
+        is_issued: options.status == `Issued`,
+        is_updated: options.status == `Updated`,
+        is_expired: options.status == `Expired`,
+        is_test: options.status == `Test`,
+        is_statement: options.status == `Statement`
+      },
+      metadata: {
+        ms: performance.now() - tick,
+        source: `events.manual`,
+        tracking: `ATMX-M-W-01`,
+        header: `ZCZC-ATMOSX-ATMX-M-W-01`,
+        raw: options.description,
+        history: [
+          {
+            description: options.description,
+            issued: options.issued.toISOString(),
+            status: (_a = options.status) != null ? _a : null
+          }
+        ]
+      }
+    }
+  }]);
+};
+
 // src/@core/core.getRandomEvent.ts
 var getRandomEvent = () => {
   return bootstrap.cache.events.features[Math.floor(Math.random() * bootstrap.cache.events.features.length)];
@@ -16843,6 +16898,7 @@ var index_default = Manager;
 0 && (module.exports = {
   Manager,
   clearEvents,
+  createEvent,
   getCleanedEvent,
   getEventGeometry,
   getEvents,

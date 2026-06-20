@@ -22,7 +22,7 @@ import { TypeAttributes } from "./type.attributes";
 export type TypeEventProperties = {
     locations: string
     description: string
-    attributes: TypeAttributes
+    attributes?: TypeAttributes
     geocode: {
         office: {
             name: string 
@@ -33,7 +33,7 @@ export type TypeEventProperties = {
         polygon: string
         polygon_generated: boolean
     }
-    parameters: {
+    parameters?: {
         tags: string[]
         instructions: string
         source: string
@@ -66,7 +66,7 @@ export type TypeEventProperties = {
         max_tops_x100feet: string
         pds_watch: boolean
     }
-    spc_parameters: {
+    spc_parameters?: {
         spc_number: string
         spc_concerning: string
         spc_max_tornado: string

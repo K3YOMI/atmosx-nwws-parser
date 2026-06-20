@@ -30,6 +30,7 @@ import { setEasTone } from './@modules/@eas/eas.setEasTone';
 import { setNode } from "./@core/core.setNode"
 import { getEvents } from "./@core/core.getEvents"
 import { getNodes } from "./@core/core.getNodes"
+import { createEvent } from "./@core/core.createEvent"
 import { getRandomEvent } from './@core/core.getRandomEvent';
 import { query } from './@core/core.query';
 import { clearEvents } from './@core/core.clearEvents';
@@ -64,7 +65,7 @@ export class Manager {
 export default Manager;
 export type { TypeEvent } from './@types/type.event';
 export { 
-    setSettings, getEventGeometry, 
+    setSettings, getEventGeometry, createEvent,
     getCleanedEvent, stopService, clearEvents,
     startService, setNode, getRandomEvent,
     getEvents, getNodes, setEasTone, query

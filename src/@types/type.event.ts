@@ -46,8 +46,8 @@ export type TypeEvent = {
             tracking: string
             hash?: string
             header: string
-            vtec: TypePVTEC | null
-            hvtec: TypeHVTEC[]
+            vtec?: TypePVTEC | null
+            hvtec?: TypeHVTEC[] | null
             nodes?: {
                 id?: string | number
                 coordinates: [number, number]
