@@ -81,7 +81,6 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
         if (event.description.length < 25) { return }
             
         const form = new FormData();
-        const img = event.metadata.attachments?.[0]
         const embed = {
             title: `${event.event} (${event.status})`,
             description: body,
@@ -90,17 +89,6 @@ export const createWebhook = async (options: CreateWebhookOptions): Promise<void
             image: {},
             footer: { text: settings.title }
         };
-        if (img) {
-            for (let i = 0; i < 60; i++) {
-                const ok = await isImageReady(img)
-                if (ok) break
-                await new Promise(r => setTimeout(r, 1e3))
-            }
-            const finalCheck = await isImageReady(img)
-            if (finalCheck) {
-                embed.image = { url: img }
-            }
-        }
         form.append("payload_json", JSON.stringify({
             username: settings.title ?? "AtmosphericX",
             content: settings.message ?? "",

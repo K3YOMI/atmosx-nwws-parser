@@ -14820,16 +14820,6 @@ var createHttp = (options) => __async(null, null, function* () {
   });
 });
 
-// src/@modules/@utilities/utilities.isImageReady.ts
-var isImageReady = (url) => __async(null, null, function* () {
-  try {
-    const res = yield fetch(url, { method: "HEAD" });
-    return res.ok;
-  } catch (e) {
-    return false;
-  }
-});
-
 // src/@modules/@eas/eas.getWavPCM16.ts
 var getWavPCM16 = (buffer) => {
   if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
@@ -15288,7 +15278,7 @@ var setEasTone = (options) => __async(null, null, function* () {
 var import_fs3 = require("fs");
 var import_form_data = __toESM(require_form_data());
 var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$;
   const event = options.event.properties;
   const settings = options.webhook;
   const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
@@ -15337,7 +15327,6 @@ var createWebhook = (options) => __async(null, null, function* () {
       return;
     }
     const form = new import_form_data.default();
-    const img = (__ = event.metadata.attachments) == null ? void 0 : __[0];
     const embed = {
       title: `${event.event} (${event.status})`,
       description: body,
@@ -15346,20 +15335,9 @@ var createWebhook = (options) => __async(null, null, function* () {
       image: {},
       footer: { text: settings.title }
     };
-    if (img) {
-      for (let i = 0; i < 60; i++) {
-        const ok = yield isImageReady(img);
-        if (ok) break;
-        yield new Promise((r) => setTimeout(r, 1e3));
-      }
-      const finalCheck = yield isImageReady(img);
-      if (finalCheck) {
-        embed.image = { url: img };
-      }
-    }
     form.append("payload_json", JSON.stringify({
-      username: (_$ = settings.title) != null ? _$ : "AtmosphericX",
-      content: (_aa = settings.message) != null ? _aa : "",
+      username: (__ = settings.title) != null ? __ : "AtmosphericX",
+      content: (_$ = settings.message) != null ? _$ : "",
       embeds: [embed]
     }));
     if (settings.upload) {
