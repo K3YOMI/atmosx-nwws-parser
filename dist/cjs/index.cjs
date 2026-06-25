@@ -10567,7 +10567,7 @@ var bootstrap = {
       CallbackInterval: 15,
       EventsEndpoint: `https://api.weather.gov/alerts/active`
     },
-    WebhookSettings: [],
+    ListenerSettings: [],
     GlobalSettings: {
       EventManagement: true,
       BetterEventNames: true,
@@ -10587,10 +10587,11 @@ var bootstrap = {
         NodeLocationFiltering: false,
         IgnoreTestProducts: true
       },
-      EASSettings: {
-        ArchiveTTL: 60,
-        ArchiveDirectory: null,
-        IntroWavFile: null
+      ArchiveSettings: {
+        TTL: 60,
+        TextDirectory: null,
+        EasDirectory: null,
+        EasToneout: null
       }
     }
   }
@@ -14685,7 +14686,8 @@ var eventCancelMessages = [
 var testSignatures = [
   `This is a test message`,
   `Monitoring message only.`,
-  `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`
+  `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
+  "TEST MESSAGE"
 ];
 
 // src/@dictionaries/dictionaries.eventProducts.ts
@@ -14761,64 +14763,6 @@ var setHash = (event, entry) => {
     });
   }
 };
-
-// src/@modules/@utilities/utilities.createHttp.ts
-var import_request = __toESM(require("request"));
-var createHttp = (options) => __async(null, null, function* () {
-  return new Promise((resolve6, reject) => {
-    var _a, _b, _c, _d, _e;
-    const requestOptions = {
-      url: (_a = options.url) != null ? _a : `https://api.weather.gov/alerts/active`,
-      headers: (_b = options.headers) != null ? _b : {
-        "User-Agent": "AtmosphericX",
-        "Accept": "application/geo+json, text/plain, */*; q=0.9",
-        "Accept-Language": "en-US,en;q=0.9"
-      },
-      method: (_c = options.method) != null ? _c : `GET`,
-      timeout: (_d = options.timeout) != null ? _d : 1e4,
-      proxy: (_e = options.proxy) != null ? _e : null,
-      maxRedirects: 1
-    };
-    if (options.formData) {
-      requestOptions["formData"] = options.formData;
-    } else if (options.body) {
-      requestOptions["body"] = options.body;
-    }
-    (0, import_request.default)(requestOptions, (error, response2, body) => {
-      var _a2, _b2, _c2, _d2, _e2;
-      if (error) {
-        return resolve6({
-          error: true,
-          options: requestOptions,
-          status: -1,
-          message: (_a2 = error.message) != null ? _a2 : `Unknown Error`
-        });
-      }
-      if (response2.statusCode < 200 || response2.statusCode >= 300) {
-        return resolve6({
-          error: true,
-          options: requestOptions,
-          status: (_b2 = response2.statusCode) != null ? _b2 : -1,
-          message: `HTTP Status Code ${(_c2 = response2.statusCode) != null ? _c2 : `Unknown Status Code`} (${body})`
-        });
-      }
-      if (body == void 0 || body == null) {
-        return resolve6({
-          error: true,
-          options: requestOptions,
-          status: (_d2 = response2.statusCode) != null ? _d2 : -1,
-          message: `Empty Response Body`
-        });
-      }
-      resolve6({
-        error: false,
-        options: requestOptions,
-        status: (_e2 = response2.statusCode) != null ? _e2 : -1,
-        message: body
-      });
-    });
-  });
-});
 
 // src/@modules/@eas/eas.getWavPCM16.ts
 var getWavPCM16 = (buffer) => {
@@ -15176,11 +15120,13 @@ var import_fs2 = require("fs");
 var import_child_process2 = require("child_process");
 var import_os2 = require("os");
 var setEasTone = (options) => __async(null, null, function* () {
+  var _a;
   const settings = bootstrap.settings;
-  const directory = settings.GlobalSettings.EASSettings.ArchiveDirectory;
-  const prefix = settings.GlobalSettings.EASSettings.IntroWavFile;
+  const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
+  const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
   let message = options.message;
   let header = options.header;
+  let title = (_a = options.title) != null ? _a : `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}`;
   if (!message || !header) {
     setWarning({
       title: `EAS`,
@@ -15194,14 +15140,14 @@ var setEasTone = (options) => __async(null, null, function* () {
   if (!(0, import_fs2.existsSync)(directory)) {
     (0, import_fs2.mkdirSync)(directory, { recursive: true });
   }
-  if (!(0, import_fs2.existsSync)((0, import_path2.join)(directory, `/temp`))) {
-    (0, import_fs2.mkdirSync)((0, import_path2.join)(directory, `/temp`), { recursive: true });
+  if (!(0, import_fs2.existsSync)((0, import_path2.join)(directory, `/tts`))) {
+    (0, import_fs2.mkdirSync)((0, import_path2.join)(directory, `/tts`), { recursive: true });
   }
-  if (!(0, import_fs2.existsSync)((0, import_path2.join)(directory, `/output`))) {
-    (0, import_fs2.mkdirSync)((0, import_path2.join)(directory, `/output`), { recursive: true });
+  if (!(0, import_fs2.existsSync)((0, import_path2.join)(directory, `/encoded`))) {
+    (0, import_fs2.mkdirSync)((0, import_path2.join)(directory, `/encoded`), { recursive: true });
   }
-  const tmpTTS = (0, import_path2.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
-  const outTTS = (0, import_path2.join)(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const tmpTTS = (0, import_path2.join)(directory, `/tts/${title}.wav`);
+  const outTTS = (0, import_path2.join)(directory, `/encoded/${title}.wav`);
   const vPlatform = (0, import_os2.platform)();
   if (vPlatform === "darwin") {
     setWarning({
@@ -15228,7 +15174,7 @@ var setEasTone = (options) => __async(null, null, function* () {
     let tWav = getWavPCM16(tBuffer);
     if (tWav == null) {
       try {
-        const converted = (0, import_path2.join)(directory, `/temp/${Math.random().toString(36).substring(2, 15)}.converted.wav`);
+        const converted = (0, import_path2.join)(directory, `/tts/${title}.converted.wav`);
         (0, import_child_process2.execSync)(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
         if ((0, import_fs2.existsSync)(converted)) {
           tBuffer = (0, import_fs2.readFileSync)(converted);
@@ -15274,119 +15220,196 @@ var setEasTone = (options) => __async(null, null, function* () {
   return outTTS;
 });
 
-// src/@manager/manager.createWebhook.ts
-var import_fs3 = require("fs");
-var import_form_data = __toESM(require_form_data());
-var createWebhook = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$;
-  const event = options.event.properties;
-  const settings = options.webhook;
+// src/@parsers/@text/text.getEmbed.ts
+var getEmebed = (event) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua;
   const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
-  const isLimited = setTimeoutAction({ identifier: options.webhook.webhook, interval: options.webhook.rate, max: options.webhook.rate, addTime: true });
-  if (!isLimited.limited) {
-    const isStatement = event.status_metadata.is_statement;
-    const isExpired = event.status_metadata.is_expired;
-    let body = [
-      line(`**Locations:**`, (_a = event == null ? void 0 : event.locations) == null ? void 0 : _a.slice(0, 100)),
-      line(`**Issued:**`, `<t:${Math.floor(new Date(event.issued).getTime() / 1e3)}:R>`, !isExpired),
-      line(`**Expires:**`, `<t:${Math.floor(new Date(event.expires).getTime() / 1e3)}:R>`, !isStatement),
-      line(`**Damage Threat:**`, (_b = event == null ? void 0 : event.parameters) == null ? void 0 : _b.damage_threat, !isExpired),
-      line(`**Flood Threat:**`, (_c = event == null ? void 0 : event.parameters) == null ? void 0 : _c.flood_threat, !isExpired),
-      line(`**Tornado Threat:**`, (_d = event == null ? void 0 : event.parameters) == null ? void 0 : _d.tornado_threat, !isExpired),
-      line(`**Estimated Wind Gusts:**`, `${(_e = event == null ? void 0 : event.parameters) == null ? void 0 : _e.estimated_wind_gusts} ${((_f = event == null ? void 0 : event.parameters) == null ? void 0 : _f.wind_threat) ? ` (${(_g = event == null ? void 0 : event.parameters) == null ? void 0 : _g.wind_threat})` : ""}`, !isExpired && ((_h = event == null ? void 0 : event.parameters) == null ? void 0 : _h.estimated_wind_gusts) != null),
-      line(`**Estimated Hail Size:**`, `${(_i = event == null ? void 0 : event.parameters) == null ? void 0 : _i.estimated_hail_size} ${((_j = event == null ? void 0 : event.parameters) == null ? void 0 : _j.hail_threat) ? ` (${(_k = event == null ? void 0 : event.parameters) == null ? void 0 : _k.hail_threat})` : ""}`, !isExpired && ((_l = event == null ? void 0 : event.parameters) == null ? void 0 : _l.estimated_hail_size) != null),
-      line(`**Discussion:**`, (_m = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _m.discussion_number, !isExpired),
-      line(`**Concern:**`, (_n = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _n.discussion_concerning, !isExpired),
-      line(`**SPC Max Tornado Threat:**`, (_o = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _o.discussion_max_tornado, !isExpired),
-      line(`**SPC Max Hail Threat:**`, (_p = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _p.discussion_max_hail, !isExpired),
-      line(`**SPC Max Wind Threat:**`, (_q = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _q.discussion_max_wind, !isExpired),
-      line(`**SPC Watch Issuance Probability:**`, ((_r = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _r.discussion_watch_issuance) ? `${(_s = event == null ? void 0 : event.discussion_parameters) == null ? void 0 : _s.discussion_watch_issuance}%` : null, !isExpired),
-      line(`**Watch Number:**`, (_t = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _t.watch_number, !isExpired),
-      line(`**Strong Tornadoes Probability:**`, ((_u = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _u.strong_tornadoes_probability) ? `${(_v = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _v.strong_tornadoes_probability}%` : null, !isExpired),
-      line(`**Additional Tornadoes Probability:**`, ((_w = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _w.additional_tornadoes_probability) ? `${(_x = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _x.additional_tornadoes_probability}%` : null, !isExpired),
-      line(`**Combined Hail/Wind Probability:**`, ((_y = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _y.combined_hail_wind_probability) ? `${(_z = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _z.combined_hail_wind_probability}%` : null, !isExpired),
-      line(`**Severe Hail Probability:**`, ((_A = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _A.severe_hail_probability) ? `${(_B = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _B.severe_hail_probability}%` : null, !isExpired),
-      line(`**Hail >2in Probability:**`, ((_C = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _C.hail_2in_probability) ? `${(_D = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _D.hail_2in_probability}%` : null, !isExpired),
-      line(`**Max Hail Inches:**`, (_E = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _E.max_hail_in, !isExpired),
-      line(`**Severe Wind Probability:**`, ((_F = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _F.severe_wind_probability) ? `${(_G = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _G.severe_wind_probability}%` : null, !isExpired),
-      line(`**Max Surface Wind:**`, (_H = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _H.max_wind_surface, !isExpired),
-      line(`**Max Tops (x100 feet):**`, (_I = event == null ? void 0 : event.watch_parameters) == null ? void 0 : _I.max_tops_x100feet, !isExpired),
-      line(`**Tags:**`, ((_K = (_J = event == null ? void 0 : event.parameters) == null ? void 0 : _J.tags) == null ? void 0 : _K.length) > 0 ? (_L = event == null ? void 0 : event.parameters) == null ? void 0 : _L.tags.join(", ") : null, !isExpired),
-      line(`**Sender:**`, ((_N = (_M = event == null ? void 0 : event.geocode) == null ? void 0 : _M.office) == null ? void 0 : _N.name) ? `${(_P = (_O = event == null ? void 0 : event.geocode) == null ? void 0 : _O.office) == null ? void 0 : _P.name} (${(_R = (_Q = event == null ? void 0 : event.geocode) == null ? void 0 : _Q.office) == null ? void 0 : _R.office})` : (_T = (_S = event == null ? void 0 : event.geocode) == null ? void 0 : _S.office) == null ? void 0 : _T.office),
-      line(`**Tracking:**`, (_U = event == null ? void 0 : event.metadata) == null ? void 0 : _U.tracking),
-      line(`**Logs:**`, ((_W = (_V = event == null ? void 0 : event.metadata) == null ? void 0 : _V.history) == null ? void 0 : _W.length) > 0 ? (_X = event == null ? void 0 : event.metadata) == null ? void 0 : _X.history.length : null),
-      line(``, ((_Y = event.metadata.attachments) == null ? void 0 : _Y.length) > 0 ? `**Attachments:** ${event.metadata.attachments.map((attachment) => `[Attachment #${event.metadata.attachments.indexOf(attachment) + 1}](${attachment})`).join(" | ")}` : null),
-      line(``, (event == null ? void 0 : event.description) ? "```\n" + (event == null ? void 0 : event.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n")) + "\n```" : null, !isExpired)
-    ].filter(Boolean).join("\n");
-    if (body.length > 1900) {
-      body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-      const blocks = ((_Z = body.match(/```/g)) != null ? _Z : []).length;
-      if (blocks % 2 !== 0) body += "```";
-    }
-    if (event.description.length < 25) {
-      return;
-    }
-    const form = new import_form_data.default();
-    const embed = {
-      title: `${event.event} (${event.status})`,
-      description: body,
-      color: 16711680,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      image: {},
-      footer: { text: settings.title }
-    };
-    form.append("payload_json", JSON.stringify({
-      username: (__ = settings.title) != null ? __ : "AtmosphericX",
-      content: (_$ = settings.message) != null ? _$ : "",
-      embeds: [embed]
-    }));
-    if (settings.upload) {
-      form.append("fUpload", Buffer.from(`${event.metadata.raw}
+  const isStatement = event.properties.status_metadata.is_statement;
+  const isExpired = event.properties.status_metadata.is_expired;
+  return [
+    line(`**Locations:**`, (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.locations) == null ? void 0 : _b.slice(0, 100)),
+    line(`**Issued:**`, `<t:${Math.floor(new Date(event.properties.issued).getTime() / 1e3)}:R>`, !isExpired),
+    line(`**Expires:**`, `<t:${Math.floor(new Date(event.properties.expires).getTime() / 1e3)}:R>`, !isStatement),
+    line(`**Damage Threat:**`, (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.parameters) == null ? void 0 : _d.damage_threat, !isExpired),
+    line(`**Flood Threat:**`, (_f = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters) == null ? void 0 : _f.flood_threat, !isExpired),
+    line(`**Tornado Threat:**`, (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.parameters) == null ? void 0 : _h.tornado_threat, !isExpired),
+    line(`**Estimated Wind Gusts:**`, `${(_j = (_i = event == null ? void 0 : event.properties) == null ? void 0 : _i.parameters) == null ? void 0 : _j.estimated_wind_gusts} ${((_l = (_k = event == null ? void 0 : event.properties) == null ? void 0 : _k.parameters) == null ? void 0 : _l.wind_threat) ? ` (${(_n = (_m = event == null ? void 0 : event.properties) == null ? void 0 : _m.parameters) == null ? void 0 : _n.wind_threat})` : ""}`, !isExpired && ((_p = (_o = event == null ? void 0 : event.properties) == null ? void 0 : _o.parameters) == null ? void 0 : _p.estimated_wind_gusts) != null),
+    line(`**Estimated Hail Size:**`, `${(_r = (_q = event == null ? void 0 : event.properties) == null ? void 0 : _q.parameters) == null ? void 0 : _r.estimated_hail_size} ${((_t = (_s = event == null ? void 0 : event.properties) == null ? void 0 : _s.parameters) == null ? void 0 : _t.hail_threat) ? ` (${(_v = (_u = event == null ? void 0 : event.properties) == null ? void 0 : _u.parameters) == null ? void 0 : _v.hail_threat})` : ""}`, !isExpired && ((_x = (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.parameters) == null ? void 0 : _x.estimated_hail_size) != null),
+    line(`**Discussion:**`, (_z = (_y = event == null ? void 0 : event.properties) == null ? void 0 : _y.discussion_parameters) == null ? void 0 : _z.discussion_number, !isExpired),
+    line(`**Concern:**`, (_B = (_A = event == null ? void 0 : event.properties) == null ? void 0 : _A.discussion_parameters) == null ? void 0 : _B.discussion_concerning, !isExpired),
+    line(`**SPC Max Tornado Threat:**`, (_D = (_C = event == null ? void 0 : event.properties) == null ? void 0 : _C.discussion_parameters) == null ? void 0 : _D.discussion_max_tornado, !isExpired),
+    line(`**SPC Max Hail Threat:**`, (_F = (_E = event == null ? void 0 : event.properties) == null ? void 0 : _E.discussion_parameters) == null ? void 0 : _F.discussion_max_hail, !isExpired),
+    line(`**SPC Max Wind Threat:**`, (_H = (_G = event == null ? void 0 : event.properties) == null ? void 0 : _G.discussion_parameters) == null ? void 0 : _H.discussion_max_wind, !isExpired),
+    line(`**SPC Watch Issuance Probability:**`, ((_J = (_I = event == null ? void 0 : event.properties) == null ? void 0 : _I.discussion_parameters) == null ? void 0 : _J.discussion_watch_issuance) ? `${(_L = (_K = event == null ? void 0 : event.properties) == null ? void 0 : _K.discussion_parameters) == null ? void 0 : _L.discussion_watch_issuance}%` : null, !isExpired),
+    line(`**Watch Number:**`, (_N = (_M = event == null ? void 0 : event.properties) == null ? void 0 : _M.watch_parameters) == null ? void 0 : _N.watch_number, !isExpired),
+    line(`**Strong Tornadoes Probability:**`, ((_P = (_O = event == null ? void 0 : event.properties) == null ? void 0 : _O.watch_parameters) == null ? void 0 : _P.strong_tornadoes_probability) ? `${(_R = (_Q = event == null ? void 0 : event.properties) == null ? void 0 : _Q.watch_parameters) == null ? void 0 : _R.strong_tornadoes_probability}%` : null, !isExpired),
+    line(`**Additional Tornadoes Probability:**`, ((_T = (_S = event == null ? void 0 : event.properties) == null ? void 0 : _S.watch_parameters) == null ? void 0 : _T.additional_tornadoes_probability) ? `${(_V = (_U = event == null ? void 0 : event.properties) == null ? void 0 : _U.watch_parameters) == null ? void 0 : _V.additional_tornadoes_probability}%` : null, !isExpired),
+    line(`**Combined Hail/Wind Probability:**`, ((_X = (_W = event == null ? void 0 : event.properties) == null ? void 0 : _W.watch_parameters) == null ? void 0 : _X.combined_hail_wind_probability) ? `${(_Z = (_Y = event == null ? void 0 : event.properties) == null ? void 0 : _Y.watch_parameters) == null ? void 0 : _Z.combined_hail_wind_probability}%` : null, !isExpired),
+    line(`**Severe Hail Probability:**`, ((_$ = (__ = event == null ? void 0 : event.properties) == null ? void 0 : __.watch_parameters) == null ? void 0 : _$.severe_hail_probability) ? `${(_ba = (_aa = event == null ? void 0 : event.properties) == null ? void 0 : _aa.watch_parameters) == null ? void 0 : _ba.severe_hail_probability}%` : null, !isExpired),
+    line(`**Hail >2in Probability:**`, ((_da = (_ca = event == null ? void 0 : event.properties) == null ? void 0 : _ca.watch_parameters) == null ? void 0 : _da.hail_2in_probability) ? `${(_fa = (_ea = event == null ? void 0 : event.properties) == null ? void 0 : _ea.watch_parameters) == null ? void 0 : _fa.hail_2in_probability}%` : null, !isExpired),
+    line(`**Max Hail Inches:**`, (_ha = (_ga = event == null ? void 0 : event.properties) == null ? void 0 : _ga.watch_parameters) == null ? void 0 : _ha.max_hail_in, !isExpired),
+    line(`**Severe Wind Probability:**`, ((_ja = (_ia = event == null ? void 0 : event.properties) == null ? void 0 : _ia.watch_parameters) == null ? void 0 : _ja.severe_wind_probability) ? `${(_la = (_ka = event == null ? void 0 : event.properties) == null ? void 0 : _ka.watch_parameters) == null ? void 0 : _la.severe_wind_probability}%` : null, !isExpired),
+    line(`**Max Surface Wind:**`, (_na = (_ma = event == null ? void 0 : event.properties) == null ? void 0 : _ma.watch_parameters) == null ? void 0 : _na.max_wind_surface, !isExpired),
+    line(`**Max Tops (x100 feet):**`, (_pa = (_oa = event == null ? void 0 : event.properties) == null ? void 0 : _oa.watch_parameters) == null ? void 0 : _pa.max_tops_x100feet, !isExpired),
+    line(`**Tags:**`, ((_sa = (_ra = (_qa = event == null ? void 0 : event.properties) == null ? void 0 : _qa.parameters) == null ? void 0 : _ra.tags) == null ? void 0 : _sa.length) > 0 ? (_ua = (_ta = event == null ? void 0 : event.properties) == null ? void 0 : _ta.parameters) == null ? void 0 : _ua.tags.join(", ") : null, !isExpired),
+    line(`**Sender:**`, ((_xa = (_wa = (_va = event == null ? void 0 : event.properties) == null ? void 0 : _va.geocode) == null ? void 0 : _wa.office) == null ? void 0 : _xa.name) ? `${(_Aa = (_za = (_ya = event == null ? void 0 : event.properties) == null ? void 0 : _ya.geocode) == null ? void 0 : _za.office) == null ? void 0 : _Aa.name} (${(_Da = (_Ca = (_Ba = event == null ? void 0 : event.properties) == null ? void 0 : _Ba.geocode) == null ? void 0 : _Ca.office) == null ? void 0 : _Da.office})` : (_Ga = (_Fa = (_Ea = event == null ? void 0 : event.properties) == null ? void 0 : _Ea.geocode) == null ? void 0 : _Fa.office) == null ? void 0 : _Ga.office),
+    line(`**Tracking:**`, (_Ia = (_Ha = event == null ? void 0 : event.properties) == null ? void 0 : _Ha.metadata) == null ? void 0 : _Ia.tracking),
+    line(`**Logs:**`, ((_La = (_Ka = (_Ja = event == null ? void 0 : event.properties) == null ? void 0 : _Ja.metadata) == null ? void 0 : _Ka.history) == null ? void 0 : _La.length) > 0 ? (_Na = (_Ma = event == null ? void 0 : event.properties) == null ? void 0 : _Ma.metadata) == null ? void 0 : _Na.history.length : null),
+    line(``, ((_Qa = (_Pa = (_Oa = event == null ? void 0 : event.properties) == null ? void 0 : _Oa.metadata) == null ? void 0 : _Pa.attachments) == null ? void 0 : _Qa.length) > 0 ? `**Attachments:** ${(_Sa = (_Ra = event == null ? void 0 : event.properties) == null ? void 0 : _Ra.metadata) == null ? void 0 : _Sa.attachments.map((attachment) => {
+      var _a2, _b2;
+      return `[Attachment #${((_b2 = (_a2 = event == null ? void 0 : event.properties) == null ? void 0 : _a2.metadata) == null ? void 0 : _b2.attachments.indexOf(attachment)) + 1}](${attachment})`;
+    }).join(" | ")}` : null),
+    line(``, ((_Ta = event == null ? void 0 : event.properties) == null ? void 0 : _Ta.description) ? "```\n" + ((_Ua = event == null ? void 0 : event.properties) == null ? void 0 : _Ua.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n")) + "\n```" : null, !isExpired)
+  ].filter(Boolean).join("\n");
+};
 
-${JSON.stringify(getCleanedEvent(event), null, 2)}`), { filename: `${event.event}_${event.status}_${event.metadata.tracking}.txt`, contentType: "application/text" });
+// src/@modules/@utilities/utilities.createHttp.ts
+var import_request = __toESM(require("request"));
+var createHttp = (options) => __async(null, null, function* () {
+  return new Promise((resolve6, reject) => {
+    var _a, _b, _c, _d, _e;
+    const requestOptions = {
+      url: (_a = options.url) != null ? _a : `https://api.weather.gov/alerts/active`,
+      headers: (_b = options.headers) != null ? _b : {
+        "User-Agent": "AtmosphericX",
+        "Accept": "application/geo+json, text/plain, */*; q=0.9",
+        "Accept-Language": "en-US,en;q=0.9"
+      },
+      method: (_c = options.method) != null ? _c : `GET`,
+      timeout: (_d = options.timeout) != null ? _d : 1e4,
+      proxy: (_e = options.proxy) != null ? _e : null,
+      maxRedirects: 1
+    };
+    if (options.formData) {
+      requestOptions["formData"] = options.formData;
+    } else if (options.body) {
+      requestOptions["body"] = options.body;
     }
-    if (settings.eas) {
-      const audio = yield setEasTone({
-        message: event.description,
-        header: event.metadata.header
-      });
-      if (audio) {
-        const file = (0, import_fs3.readFileSync)(audio);
-        form.append("fEas", Buffer.from(file), { filename: `${event.event}_${event.status}_${event.metadata.tracking}_eas.mp3`, contentType: "audio/mpeg" });
+    (0, import_request.default)(requestOptions, (error, response2, body) => {
+      var _a2, _b2, _c2, _d2, _e2;
+      if (error) {
+        return resolve6({
+          error: true,
+          options: requestOptions,
+          status: -1,
+          message: (_a2 = error.message) != null ? _a2 : `Unknown Error`
+        });
       }
-    }
-    yield createHttp({
-      url: settings.webhook,
-      timeout: 2e3,
-      method: `POST`,
-      headers: form.getHeaders(),
-      body: form
+      if (response2.statusCode < 200 || response2.statusCode >= 300) {
+        return resolve6({
+          error: true,
+          options: requestOptions,
+          status: (_b2 = response2.statusCode) != null ? _b2 : -1,
+          message: `HTTP Status Code ${(_c2 = response2.statusCode) != null ? _c2 : `Unknown Status Code`} (${body})`
+        });
+      }
+      if (body == void 0 || body == null) {
+        return resolve6({
+          error: true,
+          options: requestOptions,
+          status: (_d2 = response2.statusCode) != null ? _d2 : -1,
+          message: `Empty Response Body`
+        });
+      }
+      resolve6({
+        error: false,
+        options: requestOptions,
+        status: (_e2 = response2.statusCode) != null ? _e2 : -1,
+        message: body
+      });
     });
-  }
+  });
 });
 
-// src/@manager/manager.updateWebhooks.ts
-var updateWebhooks = (event) => __async(null, null, function* () {
+// src/@manager/manager.updateListener.ts
+var import_fs3 = require("fs");
+var import_form_data = __toESM(require_form_data());
+var updateListener = (event) => __async(null, null, function* () {
+  var _a, _b, _c, _d;
   const settings = bootstrap.settings;
-  const webhooks = settings.WebhookSettings;
-  const eventName = event.properties.event;
-  for (const socket of webhooks) {
+  const listeners2 = settings.ListenerSettings;
+  const properties2 = event.properties;
+  for (const socket of listeners2) {
     const events = socket.events;
-    if (!events || events.length === 0) {
-      createWebhook({ webhook: socket, event });
-      continue;
-    }
+    const sWebhook = socket == null ? void 0 : socket.webhook;
+    const sUploads = socket == null ? void 0 : socket.uploads;
     const matched = events.some((pattern) => {
       if (!pattern) return false;
-      if (pattern === "*" || pattern === eventName) return true;
+      if (pattern === "*" || pattern === properties2.event) return true;
       if (pattern.includes("*")) {
         const regex = "^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
-        return new RegExp(regex).test(eventName);
+        return new RegExp(regex).test(properties2.event);
       }
       return false;
     });
-    if (matched) {
-      createWebhook({ webhook: socket, event });
+    if ((events == null ? void 0 : events.length) == 0 || matched) {
+      let eas;
+      let file;
+      if (sUploads == null ? void 0 : sUploads.eas) {
+        eas = yield setEasTone({
+          title: `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}`,
+          message: properties2.description,
+          header: properties2.metadata.header
+        });
+      }
+      if (sUploads == null ? void 0 : sUploads.file) {
+        const destination = bootstrap.settings.GlobalSettings.ArchiveSettings.TextDirectory;
+        if (destination) {
+          if (!(0, import_fs3.existsSync)(destination)) {
+            (0, import_fs3.mkdirSync)(destination, { recursive: true });
+          }
+          if ((0, import_fs3.existsSync)(`${destination}/${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`)) {
+            (0, import_fs3.appendFileSync)(`${destination}/${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`, properties2.metadata.raw);
+          } else {
+            (0, import_fs3.writeFileSync)(`${destination}/${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`, properties2.metadata.raw);
+          }
+        }
+        file = properties2.metadata.raw;
+      }
+      if (sWebhook == null ? void 0 : sWebhook.enabled) {
+        const isLimited = setTimeoutAction({ identifier: sWebhook.destination, interval: sWebhook.ratelimit, max: sWebhook.ratelimit, addTime: true });
+        if (!isLimited.limited) {
+          let body = getEmebed(event);
+          if (body.length > 1900) {
+            body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
+            const blocks = ((_a = body.match(/```/g)) != null ? _a : []).length;
+            if (blocks % 2 !== 0) body += "```";
+          }
+          if (properties2.description.length < 25) {
+            continue;
+          }
+          const form = new import_form_data.default();
+          const embed = {
+            title: `${properties2.event} (${properties2.status})`,
+            description: body,
+            color: 16711680,
+            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+            image: {},
+            footer: { text: (_b = sWebhook.title) != null ? _b : `AtmosphericX` }
+          };
+          form.append("payload_json", JSON.stringify({
+            username: (_c = sWebhook.title) != null ? _c : "AtmosphericX",
+            content: (_d = sWebhook.message) != null ? _d : "",
+            embeds: [embed]
+          }));
+          if (sUploads == null ? void 0 : sUploads.file) {
+            form.append("fUpload", Buffer.from(file), { filename: `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`, contentType: "application/text" });
+          }
+          if (sUploads == null ? void 0 : sUploads.eas) {
+            if (eas) {
+              const file2 = (0, import_fs3.readFileSync)(eas);
+              form.append("fEas", Buffer.from(file2), { filename: `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}_eas.mp3`, contentType: "audio/mpeg" });
+            }
+          }
+          const a = yield createHttp({
+            url: sWebhook.destination,
+            timeout: 5e3,
+            method: `POST`,
+            headers: form.getHeaders(),
+            body: form
+          });
+        }
+      }
     }
   }
 });
@@ -15605,10 +15628,10 @@ var mkEvent = (event) => __async(null, null, function* () {
             })
           })
         });
-        updateWebhooks(bootstrap.cache.events.features[getIndex]);
+        updateListener(bootstrap.cache.events.features[getIndex]);
       } else {
         features.push(event);
-        updateWebhooks(event);
+        updateListener(event);
       }
     }
   }
@@ -15634,7 +15657,7 @@ var rmEvent = (event) => {
       message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
     });
     setEventEmit({ event: `onExpiredProduct`, metadata: event });
-    if (cachedStatus != `Statement`) updateWebhooks(event);
+    if (cachedStatus != `Statement`) updateListener(event);
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
   }
@@ -16613,7 +16636,7 @@ var import_fs6 = require("fs");
 var import_path4 = require("path");
 var setCronSchedule = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
-  const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL;
+  const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
   const TTLCUT = Date.now() - TTL * 1e3;
   const walk = (dir) => {
     if ((0, import_fs6.existsSync)(dir)) {
@@ -16635,7 +16658,8 @@ var setCronSchedule = () => __async(null, null, function* () {
       }
     }
   };
-  walk(settings.GlobalSettings.EASSettings.ArchiveDirectory);
+  walk(settings.GlobalSettings.ArchiveSettings.TextDirectory);
+  walk(settings.GlobalSettings.ArchiveSettings.EasDirectory);
   if (settings.EnableWireService) {
     if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
       void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);

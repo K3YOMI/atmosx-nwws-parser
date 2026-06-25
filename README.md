@@ -51,14 +51,20 @@ const Client = new Manager({
         CallbackInterval: 30,
         EventsEndpoint: `https://api.weather.gov/alerts/active`,
     },
-    WebhookSettings: [
+    ListenerSettings: [
         {
-            webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
-            title: "AtmosphericX - (@atmosx/event-product-parser)", 
-            message: ``, 
-            upload: true,
-            events: [`Severe Thunderstorm Warning`, `Radar Indicated Tornado Warning`, `*Warning`, `*Thunderstorm*`],
-            rate: 5,
+            events: [`*Thunderstorm Warning*`, `* Watch`],
+            webhook: {
+                enabled: true,
+                destination: "https://discord.com/api/XXXXXXXXXX/XXXXXXXXXXX",
+                title: "AtmosphericX - (Thunderstorm Warnings and Watches)",
+                message: "<@&XXXXXXXXXXXXXXXXXXXXX>",
+                ratelimit: 1
+            },
+            uploads: {
+                eas: true,
+                file: true
+            }
         }
     ],
     GlobalSettings: {
@@ -99,9 +105,11 @@ const Client = new Manager({
             NodeLocationFiltering: false,
             IgnoreTestProducts: true,
         },
-        EASSettings: {
-            ArchiveDirectory: null,
-            IntroWavFile: null,
+        ArchiveSettings: {
+            TTL: 600,
+            TextDirectory: `Storage/TextProducts`,
+            EasDirectory: `Storage/EasScenarios`,
+            EasToneout: `tone.wav`,
         }
     }
 })
@@ -121,14 +129,20 @@ const Client = new Manager({
 - **CallbackInterval**: The interval at which the parser will check for new alerts from the National Weather Service API.
 - **EventsEndpoint**: The URL that directs to the API.
 
-### WebhookSettings
-- **webhook**: The URL of the webhook you want to send messages to.
-- **title**: The title of the message you want to send.
-- **message**: The message content you want to send. You can use placeholders like `<@&role_id>` to mention roles in Discord.
-- **eas**: Whether to generate and upload an EAS audio file for the event.
-- **upload**: Whether to upload a JSON file as well with the message containing the event data.
-- **events**: An array of event types that will trigger the webhook when they are received by the parser. If this array is empty, the webhook will be triggered for all events.
-- **rate**: The rate limit in seconds for how often the webhook can be triggered. This is to prevent spamming the webhook with too many messages in a short period of time.
+### ListenerSettings
+- **events**: An array of event types that will trigger the listener when they are received by the parser. If this array is empty, the listener will be triggered for all events.
+
+#### Webhook
+- **enabled**: If the webhook is enabled or not
+- **destination**: Webhook URL
+- **title**: The title of the webhook
+- **message**: The message you'd like to use for the webhook
+- **ratelimit**: How many messages can it send before being ratelimited
+
+#### Uploads
+- **eas**: Whether to enable auto eas generated audio files
+- **file**: Wheather to generate text files
+
 
 ### GlobalSettings
 - **EventManagement**: Whether to enable the event management system which includes filtering, tracking nodes, and custom messages.
@@ -147,11 +161,10 @@ const Client = new Manager({
 - **ListeningStates**: States you'd like to listen to `(Ex. ["IL"])`
 - **NodeLocationFiltering**: If you want tracking nodes to filter out events based on radius. (Miles)\
 - **IgnoreTextProducts**: If you want to ignore test products and events.
-- **ArchiveTTL**: The time to live for archived events. After this time, the events will be automatically deleted from the eas archive.
-- **ArchiveDirectory**: The directory you'd like to store generated EAS audio files.
-- **IntroWavFile**: The PCM16 bit WAV audio file to append to the EAS message.
-
-
+- **TTL**: How long files live for before getting automatically deleted
+- **TextDirectory**: The location to store text products that are generated.
+- **EasDirectory**: The location to store audio eas files that are generated.
+- **EasToneout**: The toneout prefix to use for generated eas messages.
 
 ## Events and Listeners
 
@@ -354,7 +367,7 @@ Fetches an EAS audio message for an event (Simulated)
 ```ts
 import { setEasTone } from "@atmosx/event-product-parser"
 const event = {...}
-await setEasTone(event.properties.description, event.properties.metadata.header)
+await setEasTone({message: event.properties.description, header: event.properties.metadata.header, title: `eas_audio_message`})
 ```
 
 

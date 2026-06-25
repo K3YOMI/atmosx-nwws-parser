@@ -30,8 +30,9 @@ import { join } from "path";
 export const setCronSchedule = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
 
-    const TTL = settings.GlobalSettings.EASSettings.ArchiveTTL
+    const TTL = settings.GlobalSettings.ArchiveSettings.TTL
     const TTLCUT = Date.now() - TTL * 1000;
+
     const walk = (dir: string): void => {
         if (existsSync(dir)) {
             const entries = readdirSync(dir, { withFileTypes: true });
@@ -49,7 +50,8 @@ export const setCronSchedule = async (): Promise<void> => {
             }
         }
     };
-    walk(settings.GlobalSettings.EASSettings.ArchiveDirectory)
+    walk(settings.GlobalSettings.ArchiveSettings.TextDirectory)
+    walk(settings.GlobalSettings.ArchiveSettings.EasDirectory)
 
 
 

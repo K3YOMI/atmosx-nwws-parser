@@ -17,12 +17,16 @@
 
 */
 
-export type TypeWebhook = { 
-    webhook: string
-    title: string
-    message: string
-    upload: boolean
-    eas: boolean
-    rate: number
+export type TypeListener = { 
     events: string[]
+    webhook?: {
+        enabled: boolean
+        destination: string
+        ratelimit: number
+        title: string
+        message: string
+    }
+    uploads?: {
+        file?: boolean, eas?: boolean
+    }
 }

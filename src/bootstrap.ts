@@ -72,7 +72,7 @@ export const bootstrap = {
             CallbackInterval: 15,
             EventsEndpoint: `https://api.weather.gov/alerts/active`,
         },
-        WebhookSettings: [],
+        ListenerSettings: [],
         GlobalSettings: {
             EventManagement: true,
             BetterEventNames: true,
@@ -92,10 +92,11 @@ export const bootstrap = {
                 NodeLocationFiltering: false,
                 IgnoreTestProducts: true,
             },
-            EASSettings: {
-                ArchiveTTL: 60,
-                ArchiveDirectory: null,
-                IntroWavFile: null,
+            ArchiveSettings: {
+                TTL: 60,
+                TextDirectory: null,
+                EasDirectory: null,
+                EasToneout: null
             }
         }
     },

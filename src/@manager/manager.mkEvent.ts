@@ -21,7 +21,7 @@ import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
 import { setHash } from "./manager.setHash";
-import { updateWebhooks } from "./manager.updateWebhooks";
+import { updateListener } from "./manager.updateListener";
 import { updateNode } from "./manager.updateNodes";
 import { TypeSettings } from "../@types/type.settings";
 
@@ -79,10 +79,10 @@ export const mkEvent = async (event: TypeEvent): Promise<void> => {
                         },
                     }
                 };
-                updateWebhooks(bootstrap.cache.events.features[getIndex])
+                updateListener(bootstrap.cache.events.features[getIndex])
             } else { 
                 features.push(event)
-                updateWebhooks(event)
+                updateListener(event)
             }
         }
     }

@@ -38,14 +38,16 @@ import { platform } from 'os'
 interface GenerateEASOptions { 
     message: string
     header: string
+    title: string
 }
 
 export const setEasTone = async (options: GenerateEASOptions): Promise<string> => {
     const settings = bootstrap.settings as TypeSettings;
-    const directory = settings.GlobalSettings.EASSettings.ArchiveDirectory;
-    const prefix = settings.GlobalSettings.EASSettings.IntroWavFile;
+    const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
+    const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
     let message = options.message;
     let header = options.header;
+    let title = options.title ?? `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}`;
     if (!message || !header) {
         setWarning({
             title: `EAS`,
@@ -60,15 +62,15 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     if (!existsSync(directory)) {
         mkdirSync(directory, { recursive: true });
     }
-    if (!existsSync(join(directory, `/temp`))) {
-        mkdirSync(join(directory, `/temp`), { recursive: true });
+    if (!existsSync(join(directory, `/tts`))) {
+        mkdirSync(join(directory, `/tts`), { recursive: true });
     }
-    if (!existsSync(join(directory, `/output`))) {
-        mkdirSync(join(directory, `/output`), { recursive: true });
+    if (!existsSync(join(directory, `/encoded`))) {
+        mkdirSync(join(directory, `/encoded`), { recursive: true });
     }
 
-    const tmpTTS = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
-    const outTTS = join(directory, `/output/${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
+    const tmpTTS = join(directory, `/tts/${title}.wav`)
+    const outTTS = join(directory, `/encoded/${title}.wav`)
     const vPlatform = platform();
 
     if (vPlatform === 'darwin') {
@@ -100,7 +102,7 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
 
         if (tWav == null) {
             try {
-                const converted = join(directory, `/temp/${Math.random().toString(36).substring(2, 15)}.converted.wav`)
+                const converted = join(directory, `/tts/${title}.converted.wav`)
                 execSync(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: 'ignore' })
                 if (existsSync(converted)) {
                     tBuffer = readFileSync(converted)

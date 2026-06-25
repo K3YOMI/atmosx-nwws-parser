@@ -20,5 +20,6 @@
 export const testSignatures: string[] = [
     `This is a test message`, 
     `Monitoring message only.`,
-    `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`
+    `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
+    "TEST MESSAGE"
 ]

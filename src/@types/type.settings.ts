@@ -17,7 +17,7 @@
 
 */
 
-import { TypeWebhook } from "./type.webhook"
+import { TypeListener } from "./type.listener"
 
 export type TypeSettings = {
     Database: string
@@ -57,7 +57,7 @@ export type TypeSettings = {
         ShapefileSkipPoints: number
         NodeTTL: number
         NodeMinDistance: number
-        WebhookSettings?: TypeWebhook
+        ListenerSettings?: TypeListener[]
         EventFiltering: {
             ListeningEvents: string[]
             ListeningICAO: string[]
@@ -68,10 +68,11 @@ export type TypeSettings = {
             NodeLocationFiltering: boolean
             IgnoreTestProducts: boolean
         },
-        EASSettings: {
-            ArchiveTTL: number,
-            ArchiveDirectory: string,
-            IntroWavFile: string
+        ArchiveSettings: {
+            TTL: number,
+            TextDirectory: string
+            EasDirectory: string
+            EasToneout: string
         }
     }
 }

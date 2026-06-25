@@ -1,7 +1,7 @@
 const { Manager, setSettings, getSettings, getListener } = require(`../dist/cjs/index.cjs`)
 
 const NOAAWeatherWireService = new Manager({
-    Database: `shapefile-manager.db`,
+    Database: `shapefiles.db`,
     EnableWireService: false,
     EnableJournal: true,
     NOAAWeatherWireServiceSettings: {
@@ -29,22 +29,20 @@ const NOAAWeatherWireService = new Manager({
         CallbackInterval: 30,
         EventsEndpoint: `https://api.weather.gov/alerts/active`,
     },
-    WebhookSettings: [
+    ListenerSettings: [
         {
-            webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
-            title: "AtmosphericX - (Severe Weather Events)", 
-            message: `<@user_id>`, 
-            upload: true,
-            events: [`Severe Thunderstorm Warning`, `Radar Indicated Tornado Warning`],
-            rate: 1,
-        },
-        {
-            webhook: "https://discord.com/api/webhooks/XXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
-            title: "AtmosphericX - (All Events)", 
-            message: `<@user_id>`, 
-            upload: false,
-            events: [],
-            rate: 5,
+            events: [`*Thunderstorm Warning*`, `* Watch`],
+            webhook: {
+                enabled: true,
+                destination: "https://discord.com/api/XXXXXXXXXX/XXXXXXXXXXX",
+                title: "AtmosphericX - (Thunderstorm Warnings and Watches)",
+                message: "<@&XXXXXXXXXXXXXXXXXXXXX>",
+                ratelimit: 1
+            },
+            uploads: {
+                eas: true,
+                file: true
+            }
         }
     ],
     GlobalSettings: {
@@ -83,9 +81,11 @@ const NOAAWeatherWireService = new Manager({
             NodeLocationFiltering: false,
             IgnoreTestProducts: true,
         },
-        EASSettings: {
-            ArchiveDirectory: null,
-            IntroWavFile: null,
+        ArchiveSettings: {
+            TTL: 600,
+            TextDirectory: `Storage/TextProducts`,
+            EasDirectory: `Storage/EasScenarios`,
+            EasToneout: `tone.wav`,
         }
     }
 })
