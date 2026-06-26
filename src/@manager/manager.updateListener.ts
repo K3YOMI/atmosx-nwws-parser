@@ -24,10 +24,10 @@ import { bootstrap } from "../bootstrap"
 import { setEasTone } from "../@modules/@eas/eas.setEasTone"
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
 import { getEmebed } from "../@parsers/@text/text.getEmbed";
+import { getCleanedEvent } from "../@building/building.clean"
 import { createHttp } from "../@modules/@utilities/utilities.createHttp";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from "fs";
 import FormData from "form-data";
-
 
 
 
@@ -35,90 +35,129 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
     const settings = bootstrap.settings;
     const listeners = settings.ListenerSettings as TypeListener[];
     const properties = event.properties;
-    for (const socket of listeners) {
-        const events = socket.events;
-        const sWebhook = socket?.webhook;
-        const sUploads = socket?.uploads;
-      
+    const metadata = { 
+        file: null,
+        eas: null,
+        name: properties.event,
+        status: properties.status,
+        description: properties.description,
+        tracking: properties.metadata.tracking,
+        header: properties.metadata.header,
+        raw: properties.metadata.raw,
+        expired: properties.status_metadata.is_expired,
+        attachments: properties.metadata.attachments
+    }
 
-        const matched = events.some(pattern => {
+    for (const listener of listeners) {
+        const events = listener?.events;
+        const webhook = listener?.webhook;
+        const uploads = listener?.uploads
+        const isMatched = events.some(pattern => {
             if (!pattern) return false;
-            if (pattern === "*" || pattern === properties.event) return true;
+            if (pattern === "*" || pattern === metadata.name) return true;
             if (pattern.includes("*")) {
                 const regex = "^" +
                     pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
-                return new RegExp(regex).test(properties.event);
+                return new RegExp(regex).test(metadata.name);
             }
             return false;
         });
-        if (events?.length == 0 || matched) {
-            let eas;
-            let file;
 
-            if (sUploads?.eas) { 
-                eas = await setEasTone({
-                    title: `${properties.event}_${properties.status}_${properties.metadata.tracking}`,
-                    message: properties.description,
-                    header: properties.metadata.header
+        if (events?.length == 0 || isMatched) {
+            if (uploads?.eas) { 
+                metadata.eas = await setEasTone({
+                    title: `${metadata.name}_${metadata.status}_${metadata.tracking}`,
+                    message: metadata.description,
+                    header: metadata.header
                 });
             }
-            if (sUploads?.file) { 
-                const destination = bootstrap.settings.GlobalSettings.ArchiveSettings.TextDirectory;
-                if (destination) {
-                    if (!existsSync(destination)) { mkdirSync(destination, { recursive: true }); }
-                    if (existsSync(`${destination}/${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)) {
-                        appendFileSync(`${destination}/${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`, properties.metadata.raw);
+
+            if (uploads?.file) {
+                const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
+                if (fDestination) {
+                    if (!existsSync(fDestination)) { mkdirSync(fDestination, { recursive: true }); }
+                    if (existsSync(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`)) {
+                        appendFileSync(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`, metadata.raw);
                     } else {
-                        writeFileSync(`${destination}/${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`, properties.metadata.raw);
+                        writeFileSync(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`, metadata.raw);
                     }
                 }
-                file = properties.metadata.raw;
+                metadata.file = metadata.raw;
             }
 
-            if (sWebhook?.enabled) { 
-                const isLimited = setTimeoutAction({ identifier: sWebhook.destination, interval: sWebhook.ratelimit, max: sWebhook.ratelimit, addTime: true })
-                if (!isLimited.limited) {
-                    let body = getEmebed(event);
-                    if (body.length > 1900) {   
-                        body = body.substring(0, 1900) + "\n\n[Message truncated due to length]";
-                        const blocks = (body.match(/```/g) ?? []).length;
-                        if (blocks % 2 !== 0) body += "```";
-                    }
-
-                    if (properties.description.length < 25) { continue } 
-                     
-                    const form = new FormData();
-                    const embed = {
-                        title: `${properties.event} (${properties.status})`,
-                        description: body,
-                        color: 16711680,
-                        timestamp: new Date().toISOString(),
-                        image: {},
-                        footer: { text: sWebhook.title ?? `AtmosphericX` }
-                    };
-                    form.append("payload_json", JSON.stringify({
-                        username: sWebhook.title ?? "AtmosphericX",
-                        content: sWebhook.message ?? "",
-                        embeds: [embed]
-                    }));
-                    if (sUploads?.file) { 
-                        form.append("fUpload", Buffer.from(file), { filename: `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`, contentType: "application/text" });
-                    }
-                    if (sUploads?.eas) { 
-                        if (eas) {
-                            const file = readFileSync(eas)
-                            form.append("fEas", Buffer.from(file), { filename: `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`, contentType: "audio/mpeg" });
-                        }
-                    }
-                    const a = await createHttp({
-                        url: sWebhook.destination,
-                        timeout: 5000,
-                        method: `POST`,
-                        headers: form.getHeaders(),
-                        body: form
-                    })
+            if (uploads?.event) {
+                const eDestination = settings.GlobalSettings.ArchiveSettings.EventDirectory;
+                if (eDestination) {
+                    if (!existsSync(eDestination)) { mkdirSync(eDestination, { recursive: true }); }
+                    writeFileSync(`${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`, JSON.stringify(getCleanedEvent(event), null, 2));
                 }
+            }
+
+            if (webhook.enabled && webhook.destination) {
+                const ratelimit = setTimeoutAction({ identifier: webhook.destination, interval: webhook.ratelimit, max: webhook.ratelimit, addTime: true })
+                const form = new FormData();
+                const embed = {
+                    title: `${metadata.name} (${metadata.status})`,
+                    description: getEmebed(event),
+                    fields: [],
+                    color: 16711680,
+                    timestamp: new Date().toISOString(),
+                    footer: { text: webhook.title ?? `AtmosphericX` }
+                };
+
+                if (ratelimit.limited) { return } 
+
+
+                if (metadata.description && !metadata.expired) {
+                    if (metadata.description.length > 900) {   
+                        metadata.description = metadata.description.substring(0, 900) + "\n\n[Message truncated due to length]";
+                    }
+                    embed.fields.push({
+                        name: "Description", 
+                        value: metadata.description ? '```' + '\n' + metadata.description.split('\n').map(l => l.trim()).filter(Boolean).join('\n') + '\n' + '```' : ""
+                    });
+                }
+
+
+                if (metadata.attachments?.length > 0) {
+                    metadata.attachments = metadata.attachments.slice(0, 5);
+                    embed.fields.push({
+                        name: "Attachments", 
+                        value: metadata.attachments.map(attachment => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + '...' : attachment.name}](${attachment.link})`).join('\n')
+                    });
+                }
+
+                if (uploads?.file) { 
+                    form.append("fUpload", Buffer.from(metadata.file), { 
+                        filename: `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`, 
+                        contentType: "application/text" 
+                    });
+                }
+
+                if (uploads?.eas) { 
+                    if (metadata.eas) {
+                        const file = readFileSync(metadata.eas)
+                        form.append("fEas", Buffer.from(file), { 
+                            filename: `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`, 
+                            contentType: "audio/mpeg" 
+                        });
+                    }
+                }
+
+                form.append("payload_json", JSON.stringify({
+                    username: webhook.title ?? "AtmosphericX",
+                    content: webhook.message ?? "",
+                    embeds: [embed]
+                }));
+
+                await createHttp({
+                    url: webhook.destination,
+                    timeout: 5000,
+                    method: `POST`,
+                    headers: form.getHeaders(),
+                    body: form
+                })
             }
         }
     }
-};
+}

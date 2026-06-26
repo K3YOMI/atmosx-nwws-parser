@@ -63,7 +63,7 @@ export type TypeEvent = {
                 issued: string
                 status: string
             }[]
-            attachments?: string[]
+            attachments?: { name: string; link: string }[]
             raw: string
         }
     } & BaseTypeEventProperties

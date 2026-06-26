@@ -21,6 +21,7 @@ export const dict_cancellation: string[] = [
     "has been cancelled",
     "subsided sufficiently for the advisory to be cancelled", 
     "has been cancelled", 
+    "no tsunami threat from a nearby earthquake",
     "will be allowed to expire", 
     "has diminished", 
     "and no longer", 

@@ -1,6 +1,6 @@
-const { Manager, setSettings, getSettings, getListener } = require(`../dist/cjs/index.cjs`)
+const { Manager } = require(`../dist/cjs/index.cjs`)
 
-const NOAAWeatherWireService = new Manager({
+const Client = new Manager({
     Database: `shapefiles.db`,
     EnableWireService: false,
     EnableJournal: true,
@@ -29,6 +29,10 @@ const NOAAWeatherWireService = new Manager({
         CallbackInterval: 30,
         EventsEndpoint: `https://api.weather.gov/alerts/active`,
     },
+    BroadcastifySettings: {
+        BroadcastifyAttachments: true,
+        BroadcastifyTags: [`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`]
+    },
     ListenerSettings: [
         {
             events: [`*Thunderstorm Warning*`, `* Watch`],
@@ -41,15 +45,18 @@ const NOAAWeatherWireService = new Manager({
             },
             uploads: {
                 eas: true,
-                file: true
+                file: true,
+                event: true
             }
         }
     ],
     GlobalSettings: {
+        EventManagement: true,
         BetterEventNames: true,
         DisableGeometryParsing: false,
         UseShapefileCoordinates: true,
         SPCWatchesOnly: true,
+        ShapefileSkipPoints: 0,
         NodeTTL: 60,
         NodeMinDistance: 120,
         EventFiltering: {
@@ -83,6 +90,7 @@ const NOAAWeatherWireService = new Manager({
         },
         ArchiveSettings: {
             TTL: 600,
+            EventDirectory: `Storage/EventProducts`,
             TextDirectory: `Storage/TextProducts`,
             EasDirectory: `Storage/EasScenarios`,
             EasToneout: `tone.wav`,

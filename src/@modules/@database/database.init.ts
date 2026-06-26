@@ -23,6 +23,7 @@ import { TypeSettings } from "../../@types/type.settings"
 import { bootstrap } from "../../bootstrap"
 import { setWarning } from '../@utilities/utilities.setWarning'
 import { importShapefiles } from './database.shapefiles'
+import { importBroadcastify } from "./database.broadcastify"
 
 export const initializeDatabase = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
@@ -38,7 +39,19 @@ export const initializeDatabase = async (): Promise<void> => {
         bootstrap.database
             .prepare(`CREATE TABLE IF NOT EXISTS shapefiles (id TEXT PRIMARY KEY, location TEXT, geometry TEXT)`)
             .run();
-        await importShapefiles();
+        const isNeedingShapefiles = bootstrap.database
+            .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='shapefiles';`)
+            .get();
+        const isNeedingBroadcastify = bootstrap.database
+            .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';`)
+            .get();
+
+        if (!isNeedingShapefiles || !isNeedingBroadcastify) {
+            setWarning({message: `Required database tables are currently building, please ${bootstrap.ansi_colors.RED}DO NOT${bootstrap.ansi_colors.RESET} close your terminal. The building will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` })
+            await importBroadcastify();
+            await importShapefiles();
+            setWarning({ message: `Building has completed, you can now continue or close the terminal`})
+        }
     } catch (error) {
         setWarning({ message: `An error occurred while initializing the database: ${error.message}` })
     }

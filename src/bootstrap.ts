@@ -21,7 +21,7 @@ import path from 'path'
 import { EventEmitter } from 'node:events';
 
 export const bootstrap = {
-    version: `3.0.46`,
+    version: `3.0.47`,
     isReady: true,
     ratelimits: {},
     session_xmpp: null,
@@ -72,6 +72,11 @@ export const bootstrap = {
             CallbackInterval: 15,
             EventsEndpoint: `https://api.weather.gov/alerts/active`,
         },
+        BroadcastifySettings: {
+            BroadcastifyAttachments: true,
+            BroadcastifyDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/broadcastify.json`,
+            BroadcastifyTags: [`Ham`, `Air`, `Fire`, `Public Safety`, `Weather`, `EMS`, `Police`, `Rail`]
+        },
         ListenerSettings: [],
         GlobalSettings: {
             EventManagement: true,
@@ -94,6 +99,7 @@ export const bootstrap = {
             },
             ArchiveSettings: {
                 TTL: 60,
+                EventDirectory: null,
                 TextDirectory: null,
                 EasDirectory: null,
                 EasToneout: null

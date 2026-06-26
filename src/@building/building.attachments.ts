@@ -17,14 +17,32 @@
 
 */
 
+import { bootstrap } from "../bootstrap"
 import { TypeEvent } from "../@types/type.event"
 import { getLatestIssuance } from "../@modules/@utilities/utilities.getLatestIssuance";
+import { dict_states } from "../@dictionaries/dictionaries.states"
+import { dict_expressions } from "../@dictionaries/dictionaries.expressions"
 
-export const getEventAttachments = (event: TypeEvent): string[] | null => {
+interface GetEventAttachmentsResponse { 
+    name: string
+    link: string
+}
+
+type BroadcastifyResponse = { 
+    state: string
+    county: string
+    feed: string
+    type: string
+    link: string
+}
+
+export const getEventAttachments = (event: TypeEvent): GetEventAttachmentsResponse[] | null => {
+    let attachments = [];
     const latestTime = getLatestIssuance();
     const spcNumber = event?.properties?.discussion_parameters?.discussion_number;
     const watchNumber = event?.properties?.watch_parameters?.watch_number;
-    const validEvents = [
+    const locations = event?.properties?.locations_array;
+    const events = [
         { target: "Day 1", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${latestTime}.png` },
         { target: "Day 2", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
         { target: "Day 3", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
@@ -34,9 +52,32 @@ export const getEventAttachments = (event: TypeEvent): string[] | null => {
         { target: "Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
         { target: "PDS Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` }
     ]
-    const isValid = validEvents.find(outlook => outlook.target == event.properties.event);
-    if (isValid) {
-        return isValid?.attachment ? [isValid.attachment] : [];
+
+    if (events.find((e) => e.target === event.properties.event)) {
+        attachments.push({ name: `Image: Graphic`, link: events.find((e) => e.target === event.properties.event).attachment });
     }
-    return null;
+
+    for (const location of locations) {
+        if (dict_expressions.location.test(location)) {
+            const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`]
+            const county = location?.split(',')[0]?.trim().replace(new RegExp(`^(${lines.join('|')}) `), '')
+            const state = dict_states[location?.split(',')[1]?.trim()]
+            const feeds = bootstrap.database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
+                const typeOrder = ['Other', 'Public Safety'];
+                const indexA = typeOrder.indexOf(a.type);
+                const indexB = typeOrder.indexOf(b.type);
+                return indexA - indexB;
+            });
+            const tags = bootstrap.settings.BroadcastifySettings.BroadcastifyTags;
+            const filtered = feeds.filter((feed: BroadcastifyResponse) => tags.includes(feed.type));
+            if (filtered.length > 0) {
+                filtered.map((filtered: BroadcastifyResponse) => {
+                    if (!attachments.some((a) => a.link === filtered.link)) {
+                        attachments.push({ name: `${filtered.type}: ${filtered.feed}`, link: filtered.link });
+                    }
+                });
+            }
+        }
+    }
+    return attachments;
 }

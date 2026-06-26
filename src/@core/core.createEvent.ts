@@ -45,6 +45,7 @@ export const createEvent = (options: CreateEventOptions): void => {
             issued: options.issued.toISOString(),
             expires: options.expires.toISOString(),
             locations: options.locations,
+            locations_array: options.locations ? options.locations.split(';') : [],
             description: options.description,
             geocode: {
                 office: {

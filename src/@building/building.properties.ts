@@ -42,6 +42,7 @@ export const properties = (options: GetPropertiesOptions): TypeEventProperties =
     const polygons = getPolygonFromProduct(options.message)
     const properties = {
         locations: options?.ugc?.locations?.join(`; `) ?? null,
+        locations_array: options?.ugc?.locations ?? [],
         description: getDescriptionFromProduct({ message: options.message, handle: options?.pVtec?.vtec ?? null }),
         attributes: options.attributes,
         geocode: {

@@ -47,6 +47,7 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 issued: feature?.properties?.sent ? new Date(feature?.properties?.sent).toISOString() : null,
                 expires: feature?.properties?.expires ? new Date(feature?.properties?.expires).toISOString() : null,
                 locations: feature?.properties?.areaDesc ?? null,
+                locations_array: feature?.properties?.areaDesc ? feature?.properties?.areaDesc.split(';') : [],
                 description: feature?.properties?.description ?? null,
                 attributes: feature?.properties?.attributes ?? {},
                 geocode: {

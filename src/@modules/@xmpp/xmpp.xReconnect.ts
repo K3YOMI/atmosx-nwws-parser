@@ -50,7 +50,7 @@ export const xReconnect = async (interval: number): Promise<void> => {
                         },
                         type: `reconnect`,
                         error: true
-                    },
+                    }, message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
                 })
                 await bootstrap.session_xmpp.stop().catch(() => {});
                 await bootstrap.session_xmpp.start().catch(() => {});

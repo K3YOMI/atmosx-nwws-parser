@@ -27,6 +27,6 @@ export type TypeListener = {
         message: string
     }
     uploads?: {
-        file?: boolean, eas?: boolean
+        file?: boolean, eas?: boolean, event?: boolean
     }
 }

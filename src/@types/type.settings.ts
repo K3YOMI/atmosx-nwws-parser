@@ -48,6 +48,11 @@ export type TypeSettings = {
         CallbackInterval: number
         EventsEndpoint: string
     }
+    BroadcastifySettings: {
+        BroadcastifyAttachments: boolean
+        BroadcastifyDatabase: string
+        BroadcastifyTags: string[]
+    },
     GlobalSettings: {
         EventManagement: boolean
         BetterEventNames: boolean
@@ -69,7 +74,8 @@ export type TypeSettings = {
             IgnoreTestProducts: boolean
         },
         ArchiveSettings: {
-            TTL: number,
+            TTL: number
+            EventDirectory: string
             TextDirectory: string
             EasDirectory: string
             EasToneout: string

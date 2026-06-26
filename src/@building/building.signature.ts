@@ -20,7 +20,7 @@
 import { TypeEvent } from "../@types/type.event";
 import { dict_correlations } from "../@dictionaries/dictionaries.correlations";
 import { dict_cancellation } from "../@dictionaries/dictionaries.cancellation";
-import { dict_testing} from "../@dictionaries/dictionaries.test"
+import { dict_testing} from "../@dictionaries/dictionaries.testing"
 import { dict_products } from "../@dictionaries/dictionaries.products";
 import { dict_hail } from "../@dictionaries/dictionaries.hail"
 

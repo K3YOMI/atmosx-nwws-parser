@@ -31,55 +31,64 @@ interface CreateHttpOptions {
 
 export const createHttp = async (options: CreateHttpOptions): Promise<any> => {
     return new Promise((resolve, reject) => {
-        const requestOptions = { 
-            url: options.url ?? `https://api.weather.gov/alerts/active`,
-            headers: options.headers ?? {
-                "User-Agent": "AtmosphericX",
-                "Accept": "application/geo+json, text/plain, */*; q=0.9",
-                "Accept-Language": "en-US,en;q=0.9"
-            }, 
-            method: options.method ?? `GET`,
-            timeout: options.timeout ?? 10e3,
-            proxy: options.proxy ?? null,
-            maxRedirects: 1, 
-        };
-        if (options.formData) {
-            requestOptions['formData'] = options.formData;
-        } else if (options.body) {
-            requestOptions['body'] = options.body;
+        try {
+            const requestOptions = { 
+                url: options.url ?? `https://api.weather.gov/alerts/active`,
+                headers: options.headers ?? {
+                    "User-Agent": "AtmosphericX",
+                    "Accept": "application/geo+json, text/plain, */*; q=0.9",
+                    "Accept-Language": "en-US,en;q=0.9"
+                }, 
+                method: options.method ?? `GET`,
+                timeout: options.timeout ?? 10e3,
+                proxy: options.proxy ?? null,
+                maxRedirects: 1, 
+            };
+            if (options.formData) {
+                requestOptions['formData'] = options.formData;
+            } else if (options.body) {
+                requestOptions['body'] = options.body;
+            }
+            
+            request(requestOptions, (error, response, body) => {
+                if (error) { 
+                    return resolve({
+                        error: true,
+                        options: requestOptions,
+                        status: -1,
+                        message: error.message ?? `Unknown Error`
+                    })
+                }
+                if (response.statusCode < 200 || response.statusCode >= 300) {
+                    return resolve({
+                        error: true,
+                        options: requestOptions,
+                        status: response.statusCode ?? -1,
+                        message: `HTTP Status Code ${response.statusCode ?? `Unknown Status Code`} (${body})`
+                    })
+                }
+                if (body == undefined || body == null) { 
+                    return resolve({
+                        error: true,
+                        options: requestOptions,
+                        status: response.statusCode ?? -1,
+                        message: `Empty Response Body`
+                    })
+                }
+                resolve({
+                    error: false,
+                    options: requestOptions,
+                    status: response.statusCode ?? -1,
+                    message: body
+                })  
+            })
+        } catch (error) {
+            return resolve({
+                error: true,
+                options: {},
+                status: -1,
+                message: error.message ?? `Unknown Error`
+            })
         }
-        
-        request(requestOptions, (error, response, body) => {
-            if (error) { 
-                return resolve({
-                    error: true,
-                    options: requestOptions,
-                    status: -1,
-                    message: error.message ?? `Unknown Error`
-                })
-            }
-            if (response.statusCode < 200 || response.statusCode >= 300) {
-                return resolve({
-                    error: true,
-                    options: requestOptions,
-                    status: response.statusCode ?? -1,
-                    message: `HTTP Status Code ${response.statusCode ?? `Unknown Status Code`} (${body})`
-                })
-            }
-            if (body == undefined || body == null) { 
-                return resolve({
-                    error: true,
-                    options: requestOptions,
-                    status: response.statusCode ?? -1,
-                    message: `Empty Response Body`
-                })
-            }
-            resolve({
-                error: false,
-                options: requestOptions,
-                status: response.statusCode ?? -1,
-                message: body
-            })  
-        })
     })
 }

@@ -51,6 +51,10 @@ const Client = new Manager({
         CallbackInterval: 30,
         EventsEndpoint: `https://api.weather.gov/alerts/active`,
     },
+    BroadcastifySettings: {
+        BroadcastifyAttachments: true,
+        BroadcastifyTags: [`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`]
+    },
     ListenerSettings: [
         {
             events: [`*Thunderstorm Warning*`, `* Watch`],
@@ -63,7 +67,8 @@ const Client = new Manager({
             },
             uploads: {
                 eas: true,
-                file: true
+                file: true,
+                event: true
             }
         }
     ],
@@ -107,6 +112,7 @@ const Client = new Manager({
         },
         ArchiveSettings: {
             TTL: 600,
+            EventDirectory: `Storage/EventProducts`,
             TextDirectory: `Storage/TextProducts`,
             EasDirectory: `Storage/EasScenarios`,
             EasToneout: `tone.wav`,
@@ -128,6 +134,11 @@ const Client = new Manager({
 ### NationalWeatherServiceSettings
 - **CallbackInterval**: The interval at which the parser will check for new alerts from the National Weather Service API.
 - **EventsEndpoint**: The URL that directs to the API.
+
+## BroadcastifySettings
+- **BroadcastifyAttachments**: Whether to enable broadcastify attachments for events.
+- **BroadcastifyDatabase**: The download url to point to for the collection of broadcastify feeds. (Stored locally once downloaded)
+- **BroadcastifyTags**: An array of tags to filter broadcastify feeds. (`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`)
 
 ### ListenerSettings
 - **events**: An array of event types that will trigger the listener when they are received by the parser. If this array is empty, the listener will be triggered for all events.

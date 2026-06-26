@@ -10,6 +10,7 @@ type TypeListener = {
     uploads?: {
         file?: boolean;
         eas?: boolean;
+        event?: boolean;
     };
 };
 
@@ -42,6 +43,11 @@ type TypeSettings = {
         CallbackInterval: number;
         EventsEndpoint: string;
     };
+    BroadcastifySettings: {
+        BroadcastifyAttachments: boolean;
+        BroadcastifyDatabase: string;
+        BroadcastifyTags: string[];
+    };
     GlobalSettings: {
         EventManagement: boolean;
         BetterEventNames: boolean;
@@ -64,6 +70,7 @@ type TypeSettings = {
         };
         ArchiveSettings: {
             TTL: number;
+            EventDirectory: string;
             TextDirectory: string;
             EasDirectory: string;
             EasToneout: string;
@@ -84,6 +91,7 @@ type TypeAttributes = {
 
 type TypeEventProperties = {
     locations: string;
+    locations_array: string[];
     description: string;
     attributes?: TypeAttributes;
     geocode: {
@@ -200,7 +208,10 @@ type TypeEvent = {
                 issued: string;
                 status: string;
             }[];
-            attachments?: string[];
+            attachments?: {
+                name: string;
+                link: string;
+            }[];
             raw: string;
         };
     } & TypeEventProperties;

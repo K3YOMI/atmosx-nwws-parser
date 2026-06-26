@@ -54,7 +54,5 @@ export const getEmebed = (event: TypeEvent): string => {
         line(`**Sender:**`, event?.properties?.geocode?.office?.name ? `${event?.properties?.geocode?.office?.name} (${event?.properties?.geocode?.office?.office})` : event?.properties?.geocode?.office?.office),
         line(`**Tracking:**`, event?.properties?.metadata?.tracking),
         line(`**Logs:**`, event?.properties?.metadata?.history?.length > 0 ? event?.properties?.metadata?.history.length : null),
-        line(``, event?.properties?.metadata?.attachments?.length > 0 ? `**Attachments:** ${event?.properties?.metadata?.attachments.map(attachment => `[Attachment #${event?.properties?.metadata?.attachments.indexOf(attachment) + 1}](${attachment})`).join(' | ')}` : null),
-        line(``, event?.properties?.description ? '```' + '\n' + event?.properties?.description.split('\n').map(l => l.trim()).filter(Boolean).join('\n') + '\n' + '```' : null, !isExpired),
     ].filter(Boolean).join('\n');
 }

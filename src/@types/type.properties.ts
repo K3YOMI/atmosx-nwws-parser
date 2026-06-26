@@ -21,6 +21,7 @@ import { TypeAttributes } from "./type.attributes";
     
 export type TypeEventProperties = {
     locations: string
+    locations_array: string[]
     description: string
     attributes?: TypeAttributes
     geocode: {

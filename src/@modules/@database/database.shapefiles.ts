@@ -35,7 +35,6 @@ export const importShapefiles = async (): Promise<void> => {
             .get().count;
         if (tShapefiles === 0) {
             await setSleep({timeout: 1e3});
-            setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` })
             for (const shapefile of dict_shapefiles) {
                 const response = await fetch(shapefile.link);
                 const arrayBuff = await response.arrayBuffer();
@@ -56,7 +55,7 @@ export const importShapefiles = async (): Promise<void> => {
                     filepath,
                     filepath,
                 );
-                setWarning({ message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id}` })
+                setWarning({ message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` })
                 const insert = bootstrap.database
                     .prepare(`INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`)
                 const transaction = bootstrap.database.transaction((entries: any[]) => {
@@ -84,10 +83,8 @@ export const importShapefiles = async (): Promise<void> => {
                 })
                 fs.unlinkSync(`${filepath}.shp`)
                 fs.unlinkSync(`${filepath}.dbf`)
-                setWarning({ message: `Cleaned up temporary files for ${shapefile.name}_${shapefile.id}` })
                 transaction(features)
             }
-            setWarning({ message: `Shapefiles have finished compiling, you can now continue and close this terminal` })
             fs.rm(resolve(__dirname, '../../shapefiles'), { recursive: true, force: true }, () => {});
         }
     } catch (error) {
