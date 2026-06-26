@@ -20,11 +20,11 @@
 import { TypeHVTEC } from "../../@types/type.hvtec";
 import { dict_causes } from "../../@dictionaries/dictionaries.causes";
 import { dict_records } from "../../@dictionaries/dictionaries.records";
-import { dict_regexp } from "../../@dictionaries/dictionaries.regexp";
+import { dict_expressions } from "../../@dictionaries/dictionaries.expressions";
 import { dict_severity } from "../../@dictionaries/dictionaries.severity";
 
 export const hvExtract = (message: string): TypeHVTEC[] | null => {
-    const getHVTECs = message.match(dict_regexp.hvtec) ?? [];
+    const getHVTECs = message.match(dict_expressions.hvtec) ?? [];
     const vtecs: TypeHVTEC[] = [];
     for (const vtec of getHVTECs) {
         const sub = vtec.split(`.`);

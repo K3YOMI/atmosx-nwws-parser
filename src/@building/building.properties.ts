@@ -22,7 +22,7 @@ import { TypeAttributes } from "../@types/type.attributes";
 import { TypeUGC } from "../@types/type.ugc";
 import { TypePVTEC } from "../@types/type.pvtec";
 import { TypeHVTEC } from "../@types/type.hvtec";
-import { dict_regexp } from "../@dictionaries/dictionaries.regexp";
+import { dict_expressions } from "../@dictionaries/dictionaries.expressions";
 import { getDescriptionFromProduct } from "../@parsers/@text/text.getDescriptionFromProduct";
 import { getPolygonFromProduct } from "../@parsers/@text/text.getPolygonFromProduct";
 import { getTextFromProduct } from "../@parsers/@text/text.getTextFromProduct";
@@ -38,7 +38,7 @@ interface GetPropertiesOptions {
 }
 
 export const properties = (options: GetPropertiesOptions): TypeEventProperties => {
-    const organization = options.message.match(dict_regexp.wmo)?.[0] ?? null
+    const organization = options.message.match(dict_expressions.wmo)?.[0] ?? null
     const polygons = getPolygonFromProduct(options.message)
     const properties = {
         locations: options?.ugc?.locations?.join(`; `) ?? null,

@@ -18,7 +18,7 @@
 */
 
 import { TypePVTEC } from "../../@types/type.pvtec";
-import { dict_regexp } from "../../@dictionaries/dictionaries.regexp";
+import { dict_expressions } from "../../@dictionaries/dictionaries.expressions";
 import { dict_products } from "../../@dictionaries/dictionaries.products";
 import { dict_events } from "../../@dictionaries/dictionaries.events";
 import { dict_actions } from "../../@dictionaries/dictionaries.actions";
@@ -27,7 +27,7 @@ import { getExpiry } from "./pvtec.expires";
 
 export const pvExtract = (message: string): TypePVTEC[] | null => {
     if (!message) return null;
-    const getVTECs = message.match(dict_regexp.pvtec) ?? [];
+    const getVTECs = message.match(dict_expressions.pvtec) ?? [];
     const vtecs: TypePVTEC[] = [];
     for (const vtec of getVTECs) {
         const sub = vtec.split(`.`);
@@ -39,7 +39,7 @@ export const pvExtract = (message: string): TypePVTEC[] | null => {
             tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
             event: `${dict_events[sub[3]]} ${dict_actions[sub[4]]}`,
             status: dict_status[sub[1]],
-            organization: message.match(dict_regexp.wmo)?.[0] ?? null,
+            organization: message.match(dict_expressions.wmo)?.[0] ?? null,
             expires: getExpiry(dates),
             is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
             prediction_center: sub[2] == `KWNS` ? true : false

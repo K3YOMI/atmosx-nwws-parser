@@ -17,7 +17,7 @@
 
 */
 
-import { dict_regexp } from "../../@dictionaries/dictionaries.regexp";
+import { dict_expressions } from "../../@dictionaries/dictionaries.expressions";
 
 interface GetDescriptionFromProductOptions { 
     message: string
@@ -26,7 +26,7 @@ interface GetDescriptionFromProductOptions {
 
 export const getDescriptionFromProduct = (options: GetDescriptionFromProductOptions): string => {
     let message = options.message;
-    const dates = Array.from(message.matchAll(dict_regexp.dateline));
+    const dates = Array.from(message.matchAll(dict_expressions.dateline));
     if (dates.length) {
         const lastMatch = dates[dates.length - 1][0];
         const sIndx = message.lastIndexOf(lastMatch);
