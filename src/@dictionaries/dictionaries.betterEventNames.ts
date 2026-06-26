@@ -43,6 +43,11 @@ export const betterEventNames: Record<string, Record<string, EnhancedEventType>>
         },
         "Radar Indicated Tornado Warning": { },
     },
+    "Fire Weather Warning": {
+        "PDS Fire Weather Warning": {
+            description: "particularly dangerous situation", 
+        },
+    },
     "Blizzard Warning": {
         "PDS Blizzard Warning": {
             description: "particularly dangerous situation", 
