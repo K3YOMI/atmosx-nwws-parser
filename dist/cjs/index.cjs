@@ -10511,7 +10511,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.45`,
+  version: `3.0.46`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -13605,8 +13605,8 @@ var xError = () => {
   }));
 };
 
-// src/@dictionaries/dictionaries.regexp.ts
-var dict_regexp = {
+// src/@dictionaries/dictionaries.expressions.ts
+var dict_expressions = {
   pvtec: new RegExp(`[OTEX].(NEW|CON|EXT|EXA|EXB|UPG|CAN|EXP|COR|ROU).[A-Z]{4}.[A-Z]{2}.[WAYSFON].[0-9]{4}.[0-9]{6}T[0-9]{4}Z-[0-9]{6}T[0-9]{4}Z`, "g"),
   hvtec: new RegExp(`[a-zA-Z0-9]{4}.[A-Z0-9].[A-Z]{2}.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[A-Z]{2}`, "imu"),
   wmo: new RegExp(`[A-Z0-9]{6}\\s[A-Z]{4}\\s\\d{6}`, "imu"),
@@ -13990,8 +13990,8 @@ var validate = (options) => {
       if (attributes.awipsid && attributes.awipsid.length > 1) {
         const isCapEvent = message.includes(`<?xml`);
         const isCapAreaDescription = message.includes(`<areaDesc>`);
-        const isVTEC = message.match(dict_regexp.pvtec) != null;
-        const isUGC = message.match(dict_regexp.ugc1) != null;
+        const isVTEC = message.match(dict_expressions.pvtec) != null;
+        const isUGC = message.match(dict_expressions.ugc1) != null;
         const getType = getAwipsType({ attributes });
         if (getType.type != null) {
           return {
@@ -14015,7 +14015,7 @@ var validate = (options) => {
 // src/@parsers/@text/text.getDescriptionFromProduct.ts
 var getDescriptionFromProduct = (options) => {
   let message = options.message;
-  const dates = Array.from(message.matchAll(dict_regexp.dateline));
+  const dates = Array.from(message.matchAll(dict_expressions.dateline));
   if (dates.length) {
     const lastMatch = dates[dates.length - 1][0];
     const sIndx = message.lastIndexOf(lastMatch);
@@ -14415,7 +14415,7 @@ var getEventTags = (message) => {
 // src/@building/building.properties.ts
 var properties = (options) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V;
-  const organization = (_b = (_a = options.message.match(dict_regexp.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
+  const organization = (_b = (_a = options.message.match(dict_expressions.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
   const polygons = getPolygonFromProduct(options.message);
   const properties2 = {
     locations: (_e = (_d = (_c = options == null ? void 0 : options.ugc) == null ? void 0 : _c.locations) == null ? void 0 : _d.join(`; `)) != null ? _e : null,
@@ -15882,9 +15882,9 @@ var text = (stanza) => __async(null, null, function* () {
 
 // src/@parsers/@ugc/ugc.header.ts
 var getUGCHeader = (message) => {
-  const start = message.search(dict_regexp.ugc1);
+  const start = message.search(dict_expressions.ugc1);
   const sub = message.substring(start);
-  const end = sub.search(dict_regexp.ugc2);
+  const end = sub.search(dict_expressions.ugc2);
   const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
   return fin != null ? fin : null;
 };
@@ -16121,7 +16121,7 @@ var getExpiry2 = (dates) => {
 var pvExtract = (message) => {
   var _a, _b, _c, _d;
   if (!message) return null;
-  const getVTECs = (_a = message.match(dict_regexp.pvtec)) != null ? _a : [];
+  const getVTECs = (_a = message.match(dict_expressions.pvtec)) != null ? _a : [];
   const vtecs = [];
   for (const vtec2 of getVTECs) {
     const sub = vtec2.split(`.`);
@@ -16133,7 +16133,7 @@ var pvExtract = (message) => {
       tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
       event: `${dict_events[sub[3]]} ${dict_actions[sub[4]]}`,
       status: dict_status[sub[1]],
-      organization: (_d = (_c = message.match(dict_regexp.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
+      organization: (_d = (_c = message.match(dict_expressions.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
       expires: getExpiry2(dates),
       is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
       prediction_center: sub[2] == `KWNS` ? true : false
@@ -16182,7 +16182,7 @@ var dict_severity = {
 // src/@parsers/@hvtec/hvtec.extract.ts
 var hvExtract = (message) => {
   var _a;
-  const getHVTECs = (_a = message.match(dict_regexp.hvtec)) != null ? _a : [];
+  const getHVTECs = (_a = message.match(dict_expressions.hvtec)) != null ? _a : [];
   const vtecs = [];
   for (const vtec2 of getHVTECs) {
     const sub = vtec2.split(`.`);
