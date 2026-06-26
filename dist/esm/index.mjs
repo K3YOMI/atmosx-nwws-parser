@@ -13585,8 +13585,8 @@ var xError = () => {
   }));
 };
 
-// src/@dictionaries/dictionaries.regExp.ts
-var regExp = {
+// src/@dictionaries/dictionaries.regexp.ts
+var dict_regexp = {
   pvtec: new RegExp(`[OTEX].(NEW|CON|EXT|EXA|EXB|UPG|CAN|EXP|COR|ROU).[A-Z]{4}.[A-Z]{2}.[WAYSFON].[0-9]{4}.[0-9]{6}T[0-9]{4}Z-[0-9]{6}T[0-9]{4}Z`, "g"),
   hvtec: new RegExp(`[a-zA-Z0-9]{4}.[A-Z0-9].[A-Z]{2}.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[A-Z]{2}`, "imu"),
   wmo: new RegExp(`[A-Z0-9]{6}\\s[A-Z]{4}\\s\\d{6}`, "imu"),
@@ -13596,8 +13596,8 @@ var regExp = {
   dateline: new RegExp(`\\d{3,4}\\s*(AM|PM)?\\s*[A-Z]{2,4}\\s+[A-Z]{3,}\\s+[A-Z]{3,}\\s+\\d{1,2}\\s+\\d{4}`, "gim")
 };
 
-// src/@dictionaries/dictionaries.eventAwipAbreviations.ts
-var eventAwipAbreviations = {
+// src/@dictionaries/dictionaries.awips.ts
+var dict_awips = {
   ABV: `rawinsonde-data-above-100-millibars`,
   ADA: `alarm-alert-administrative-message`,
   ADM: `alert-administrative-message`,
@@ -13952,7 +13952,7 @@ var getAwipsType = (options) => {
       prefix: null
     };
   }
-  for (const [prefix, type] of Object.entries(eventAwipAbreviations)) {
+  for (const [prefix, type] of Object.entries(dict_awips)) {
     if (attributes.awipsid.startsWith(prefix)) {
       return { type, prefix };
     }
@@ -13970,8 +13970,8 @@ var validate = (options) => {
       if (attributes.awipsid && attributes.awipsid.length > 1) {
         const isCapEvent = message.includes(`<?xml`);
         const isCapAreaDescription = message.includes(`<areaDesc>`);
-        const isVTEC = message.match(regExp.pvtec) != null;
-        const isUGC = message.match(regExp.ugc1) != null;
+        const isVTEC = message.match(dict_regexp.pvtec) != null;
+        const isUGC = message.match(dict_regexp.ugc1) != null;
         const getType = getAwipsType({ attributes });
         if (getType.type != null) {
           return {
@@ -13995,7 +13995,7 @@ var validate = (options) => {
 // src/@parsers/@text/text.getDescriptionFromProduct.ts
 var getDescriptionFromProduct = (options) => {
   let message = options.message;
-  const dates = Array.from(message.matchAll(regExp.dateline));
+  const dates = Array.from(message.matchAll(dict_regexp.dateline));
   if (dates.length) {
     const lastMatch = dates[dates.length - 1][0];
     const sIndx = message.lastIndexOf(lastMatch);
@@ -14061,8 +14061,8 @@ var getTextFromProduct = (options) => {
   return null;
 };
 
-// src/@dictionaries/dictionaries.officeICAOs.ts
-var officeICAOs = {
+// src/@dictionaries/dictionaries.icao.ts
+var dict_icao = {
   "KLUB": "Lubbock, TX",
   "KLCH": "Lake Charles, LA",
   "TSTL": "St. Louis, MO",
@@ -14307,12 +14307,12 @@ var officeICAOs = {
 var getEventOffice = (options) => {
   var _a, _b, _c, _d, _e, _f, _g;
   const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`.`)[0] : (_e = (_c = options.attributes) == null ? void 0 : _c.cccc) != null ? _e : options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null;
-  const name = (_g = (_f = officeICAOs) == null ? void 0 : _f[office]) != null ? _g : null;
+  const name = (_g = (_f = dict_icao) == null ? void 0 : _f[office]) != null ? _g : null;
   return { office, name };
 };
 
-// src/@dictionaries/dictionaries.eventTags.ts
-var eventTags = {
+// src/@dictionaries/dictionaries.tags.ts
+var dict_tags = {
   "FROSTBITE AND HYPOTHERMIA ARE LIKELY": "Frostbite and Hypothermia Likely",
   "LICKELY BECOME SLICK AND HAZARDOUS": "Slick and Hazardous Roads",
   "SLIPPERY ROAD CONDITIONS": "Slippery Roads",
@@ -14389,13 +14389,13 @@ var eventTags = {
 
 // src/@building/building.tags.ts
 var getEventTags = (message) => {
-  return Object.entries(eventTags).filter(([key]) => message == null ? void 0 : message.toLowerCase().includes(key.toLowerCase())).map(([, value]) => value);
+  return Object.entries(dict_tags).filter(([key]) => message == null ? void 0 : message.toLowerCase().includes(key.toLowerCase())).map(([, value]) => value);
 };
 
 // src/@building/building.properties.ts
 var properties = (options) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V;
-  const organization = (_b = (_a = options.message.match(regExp.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
+  const organization = (_b = (_a = options.message.match(dict_regexp.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
   const polygons = getPolygonFromProduct(options.message);
   const properties2 = {
     locations: (_e = (_d = (_c = options == null ? void 0 : options.ugc) == null ? void 0 : _c.locations) == null ? void 0 : _d.join(`; `)) != null ? _e : null,
@@ -14460,8 +14460,8 @@ var getEventHeader = (options) => {
   return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc2}-${(_b = vtec2 == null ? void 0 : vtec2.status) != null ? _b : `Issued`}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[-:]/g, "").split(".")[0]}-${(_c = properties2.geocode.office.office) != null ? _c : `KWNS`}`;
 };
 
-// src/@dictionaries/dictionaries.eventsMatchText.ts
-var eventsMatchText = {
+// src/@dictionaries/dictionaries.matches.ts
+var dict_matches = {
   "Special Weather Statement": "Special Weather Statement",
   "Hurricane Warning": "Hurricane Warning",
   "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
@@ -14516,8 +14516,8 @@ var getEventTracking = (options) => {
 // src/@building/building.validate.ts
 import { createHash } from "crypto";
 
-// src/@dictionaries/dictionaries.betterEventNames.ts
-var betterEventNames = {
+// src/@dictionaries/dictionaries.enhanced.ts
+var dict_enhanced = {
   "Tornado Warning": {
     "Tornado Emergency": {
       description: "tornado emergency"
@@ -14534,6 +14534,11 @@ var betterEventNames = {
       tornado: `OBSERVED`
     },
     "Radar Indicated Tornado Warning": {}
+  },
+  "Fire Weather Warning": {
+    "PDS Fire Weather Warning": {
+      description: "particularly dangerous situation"
+    }
   },
   "Blizzard Warning": {
     "PDS Blizzard Warning": {
@@ -14608,7 +14613,7 @@ var getEventEnhancedName = (event) => {
   const tornado = (_f = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters) == null ? void 0 : _f.tornado_threat;
   const pdswatch = (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.watch_parameters) == null ? void 0 : _h.pds_watch;
   const description = (_j = (_i = event == null ? void 0 : event.properties) == null ? void 0 : _i.description) == null ? void 0 : _j.toLowerCase();
-  for (const [eventKey, eventConfig] of Object.entries(betterEventNames)) {
+  for (const [eventKey, eventConfig] of Object.entries(dict_enhanced)) {
     if (eventKey !== name) continue;
     for (const [paramKey, paramValue] of Object.entries(eventConfig)) {
       let matches = true;
@@ -14633,8 +14638,8 @@ var getEventEnhancedName = (event) => {
   return name;
 };
 
-// src/@dictionaries/dictionaries.statusCorrelationText.ts
-var statusCorrelationText = [
+// src/@dictionaries/dictionaries.correlations.ts
+var dict_correlations = [
   { type: "Statement", name: "Statement", isCancel: false, isUpdate: false, isIssued: true, isStatement: true },
   { type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
   { type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
@@ -14649,8 +14654,8 @@ var statusCorrelationText = [
   { type: "Routine", name: "Routine", isCancel: false, isUpdate: true, isIssued: false, isStatement: false }
 ];
 
-// src/@dictionaries/dictionaries.eventCancelMessages.ts
-var eventCancelMessages = [
+// src/@dictionaries/dictionaries.cancellation.ts
+var dict_cancellation = [
   "has been cancelled",
   "subsided sufficiently for the advisory to be cancelled",
   "has been cancelled",
@@ -14662,24 +14667,24 @@ var eventCancelMessages = [
   "has weakened below severe"
 ];
 
-// src/@dictionaries/dictionaries.testSignatures.ts
-var testSignatures = [
+// src/@dictionaries/dictionaries.test.ts
+var dict_testing = [
   `This is a test message`,
   `Monitoring message only.`,
   `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
   "TEST MESSAGE"
 ];
 
-// src/@dictionaries/dictionaries.eventProducts.ts
-var eventProducts = {
+// src/@dictionaries/dictionaries.products.ts
+var dict_products = {
   "O": "Operational Product",
   "T": "Test Product",
   "E": "Experimental Product",
   "X": "Experimental Product (Non-Operational)"
 };
 
-// src/@dictionaries/dictionaries.hailStrings.ts
-var hailStrings = {
+// src/@dictionaries/dictionaries.hail.ts
+var dict_hail = {
   ".25": "Pea",
   ".50": "Penny",
   ".75": "Penny",
@@ -14702,11 +14707,11 @@ var getEventSignature = (event) => {
   var _a, _b, _c, _d, _e, _f, _g, _h;
   const properties2 = event == null ? void 0 : event.properties;
   const vtec2 = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.vtec;
-  const status = statusCorrelationText.find((c) => c.type === (properties2 == null ? void 0 : properties2.status));
-  const csig = eventCancelMessages.find((sig) => properties2.description.toLowerCase().includes(sig.toLowerCase()));
+  const status = dict_correlations.find((c) => c.type === (properties2 == null ? void 0 : properties2.status));
+  const csig = dict_cancellation.find((sig) => properties2.description.toLowerCase().includes(sig.toLowerCase()));
   properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_issued: true, is_test: false });
   if ((_c = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _c.estimated_hail_size) {
-    properties2.parameters.estimated_hail_size += ` (${(_e = hailStrings[(_d = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _d.estimated_hail_size]) != null ? _e : "--"})`;
+    properties2.parameters.estimated_hail_size += ` (${(_e = dict_hail[(_d = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _d.estimated_hail_size]) != null ? _e : "--"})`;
   }
   if (status) {
     properties2.status = (_f = status.name) != null ? _f : properties2.status;
@@ -14716,8 +14721,8 @@ var getEventSignature = (event) => {
     properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
   }
   const getProduct = (_h = (_g = vtec2 == null ? void 0 : vtec2.vtec) == null ? void 0 : _g.split(`.`)[0]) == null ? void 0 : _h.replace(`/`, ``);
-  const isTestProduct = eventProducts[getProduct] == `Test Product`;
-  if (isTestProduct || testSignatures.some((sig) => {
+  const isTestProduct = dict_products[getProduct] == `Test Product`;
+  if (isTestProduct || dict_testing.some((sig) => {
     var _a2, _b2, _c2, _d2;
     return (_d2 = (_a2 = properties2.description) == null ? void 0 : _a2.toLowerCase().includes(sig.toLowerCase())) != null ? _d2 : (_c2 = (_b2 = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _b2.instructions) == null ? void 0 : _c2.toLowerCase().includes(sig.toLowerCase());
   })) {
@@ -15814,7 +15819,7 @@ var text = (stanza) => __async(null, null, function* () {
     const header = getEventHeader({ properties: props, getType: stanza.getType });
     const issued = new Date(attributes.issue);
     const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
-    let event = Object.keys(eventsMatchText).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+    let event = Object.keys(dict_matches).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
     let isStatement = false;
     if (!event) {
       event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
@@ -15857,9 +15862,9 @@ var text = (stanza) => __async(null, null, function* () {
 
 // src/@parsers/@ugc/ugc.header.ts
 var getUGCHeader = (message) => {
-  const start = message.search(regExp.ugc1);
+  const start = message.search(dict_regexp.ugc1);
   const sub = message.substring(start);
-  const end = sub.search(regExp.ugc2);
+  const end = sub.search(dict_regexp.ugc2);
   const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
   return fin != null ? fin : null;
 };
@@ -15951,7 +15956,7 @@ var ugc = (stanza) => __async(null, null, function* () {
       const issued = new Date(attributes.issue);
       const expires = new Date(ugc2.expires);
       const header = getEventHeader({ properties: props, getType: stanza.getType });
-      let event = Object.keys(eventsMatchText).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+      let event = Object.keys(dict_matches).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
       let isStatement = false;
       if (!event) {
         event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
@@ -15993,8 +15998,8 @@ var ugc = (stanza) => __async(null, null, function* () {
   validateEvents(processed);
 });
 
-// src/@dictionaries/dictionaries.eventTypes.ts
-var eventTypes = {
+// src/@dictionaries/dictionaries.events.ts
+var dict_events = {
   "AF": "Ashfall",
   "AS": "Air Stagnation",
   "BH": "Beach Hazard",
@@ -16058,8 +16063,8 @@ var eventTypes = {
   "ZY": "Freezing Spray"
 };
 
-// src/@dictionaries/dictionaries.eventActions.ts
-var eventActions = {
+// src/@dictionaries/dictionaries.actions.ts
+var dict_actions = {
   "W": "Warning",
   "F": "Forecast",
   "A": "Watch",
@@ -16069,8 +16074,8 @@ var eventActions = {
   "S": "Statement"
 };
 
-// src/@dictionaries/dictionaries.eventStatus.ts
-var eventStatus = {
+// src/@dictionaries/dictionaries.status.ts
+var dict_status = {
   "NEW": "Issued",
   "CON": "Updated",
   "EXT": "Extended",
@@ -16096,7 +16101,7 @@ var getExpiry2 = (dates) => {
 var pvExtract = (message) => {
   var _a, _b, _c, _d;
   if (!message) return null;
-  const getVTECs = (_a = message.match(regExp.pvtec)) != null ? _a : [];
+  const getVTECs = (_a = message.match(dict_regexp.pvtec)) != null ? _a : [];
   const vtecs = [];
   for (const vtec2 of getVTECs) {
     const sub = vtec2.split(`.`);
@@ -16104,11 +16109,11 @@ var pvExtract = (message) => {
     const dates = (_b = sub[6]) == null ? void 0 : _b.split(`-`);
     vtecs.push({
       vtec: vtec2,
-      product: eventProducts[sub[0]],
+      product: dict_products[sub[0]],
       tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
-      event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
-      status: eventStatus[sub[1]],
-      organization: (_d = (_c = message.match(regExp.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
+      event: `${dict_events[sub[3]]} ${dict_actions[sub[4]]}`,
+      status: dict_status[sub[1]],
+      organization: (_d = (_c = message.match(dict_regexp.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
       expires: getExpiry2(dates),
       is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
       prediction_center: sub[2] == `KWNS` ? true : false
@@ -16117,8 +16122,8 @@ var pvExtract = (message) => {
   return vtecs.length > 0 ? vtecs : null;
 };
 
-// src/@dictionaries/dictionaries.eventCauses.ts
-var eventCauses = {
+// src/@dictionaries/dictionaries.causes.ts
+var dict_causes = {
   "SM": "Snow Melt",
   "RS": "Rain/Snow Melt",
   "ER": "Excessive Rain",
@@ -16136,16 +16141,16 @@ var eventCauses = {
   "OT": "Other Effects"
 };
 
-// src/@dictionaries/dictionaries.eventRecords.ts
-var eventRecords = {
+// src/@dictionaries/dictionaries.records.ts
+var dict_records = {
   "NO": "No Record Expected",
   "NR": "Near Record or possible record",
   "UU": "Unknown history of records",
   "OO": "Other"
 };
 
-// src/@dictionaries/dictionaries.eventSeverity.ts
-var eventSeverity = {
+// src/@dictionaries/dictionaries.severity.ts
+var dict_severity = {
   N: "Not Expected",
   0: "Areal Flood or FF Product",
   1: "Minor",
@@ -16157,16 +16162,16 @@ var eventSeverity = {
 // src/@parsers/@hvtec/hvtec.extract.ts
 var hvExtract = (message) => {
   var _a;
-  const getHVTECs = (_a = message.match(regExp.hvtec)) != null ? _a : [];
+  const getHVTECs = (_a = message.match(dict_regexp.hvtec)) != null ? _a : [];
   const vtecs = [];
   for (const vtec2 of getHVTECs) {
     const sub = vtec2.split(`.`);
     if (sub.length < 7) continue;
     vtecs.push({
       hvtec: vtec2,
-      severity: eventSeverity[sub[1]],
-      cause: eventCauses[sub[2]],
-      record: eventRecords[sub[6]]
+      severity: dict_severity[sub[1]],
+      cause: dict_causes[sub[2]],
+      record: dict_records[sub[6]]
     });
   }
   return vtecs.length > 0 ? vtecs : null;
@@ -16254,7 +16259,7 @@ var api = (stanza) => __async(null, null, function* () {
         geocode: {
           office: {
             office: pVtec ? (_u = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _u.tracking.split(`.`)[0] : null,
-            name: (_w = officeICAOs[pVtec ? (_v = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _v.tracking.split(`.`)[0] : null]) != null ? _w : null
+            name: (_w = dict_icao[pVtec ? (_v = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _v.tracking.split(`.`)[0] : null]) != null ? _w : null
           },
           organization: (_z = (_y = (_x = feature == null ? void 0 : feature.properties) == null ? void 0 : _x.parameters) == null ? void 0 : _y.WMOidentifier) == null ? void 0 : _z[0],
           ugc: (_C = (_B = (_A = feature == null ? void 0 : feature.properties) == null ? void 0 : _A.geocode) == null ? void 0 : _B.UGC) != null ? _C : [],
@@ -16445,8 +16450,8 @@ var setSleep = (options) => __async(null, null, function* () {
   });
 });
 
-// src/@dictionaries/dictionaries.shapefileLinks.ts
-var shapefileLinks = [
+// src/@dictionaries/dictionaries.shapefiles.ts
+var dict_shapefiles = [
   { name: "us_counties", id: "C", link: "https://www.weather.gov/source/gis/Shapefiles/County/c_16ap26.zip" },
   { name: "us_states_territories", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/County/s_16ap26.zip" },
   { name: "fire_weather_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/fz16ap26.zip" },
@@ -16467,7 +16472,7 @@ var importShapefiles = () => __async(null, null, function* () {
     if (tShapefiles === 0) {
       yield setSleep({ timeout: 1e3 });
       setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` });
-      for (const shapefile of shapefileLinks) {
+      for (const shapefile of dict_shapefiles) {
         const response2 = yield fetch(shapefile.link);
         const arrayBuff = yield response2.arrayBuffer();
         const content = yield loadAsync(arrayBuff);
@@ -16811,7 +16816,6 @@ var getNodes = () => {
 var createEvent2 = (options) => {
   var _a;
   const tick = performance.now();
-  const status = statusCorrelationText.find((c) => c.type === options.status);
   validateEvents([{
     type: `Feature`,
     geometry: {

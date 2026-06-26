@@ -19,7 +19,7 @@
 
 import { TypeAttributes } from "../@types/type.attributes";
 import { TypePVTEC } from "../@types/type.pvtec";
-import { officeICAOs } from "../@dictionaries/dictionaries.officeICAOs";
+import { dict_icao } from "../@dictionaries/dictionaries.icao";
 
 interface GetOfficeOptions { 
     attributes: TypeAttributes
@@ -38,6 +38,6 @@ export const getEventOffice = (options: GetOfficeOptions): GetOfficeResponse => 
             (options.organization != null ? 
                 (Array.isArray(options.organization) ? options.organization?.[0] : options.organization) 
         : null));
-    const name = officeICAOs?.[office] ?? null;
+    const name = dict_icao?.[office] ?? null;
     return { office, name };
 }

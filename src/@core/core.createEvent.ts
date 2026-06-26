@@ -18,7 +18,7 @@
 */
 
 import { validateEvents } from "../@building/building.validate";
-import { statusCorrelationText } from "../@dictionaries/dictionaries.statusCorrelationText";
+import { dict_correlations } from "../@dictionaries/dictionaries.correlations";
 
 interface CreateEventOptions { 
     event: string
@@ -32,8 +32,6 @@ interface CreateEventOptions {
 
 export const createEvent = (options: CreateEventOptions): void => {
     const tick = performance.now()
-    const status = statusCorrelationText
-        .find((c: { type: string }) => c.type === options.status);
     validateEvents([{
         type: `Feature`,
         geometry: {

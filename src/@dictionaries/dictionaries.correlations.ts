@@ -26,7 +26,7 @@ type TypeCorrelations = {
     isStatement: boolean
 }
 
-export const statusCorrelationText: TypeCorrelations[] = [
+export const dict_correlations: TypeCorrelations[] = [
     {type: "Statement", name: "Statement", isCancel: false, isUpdate: false, isIssued: true, isStatement: true},
     {type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false},
     {type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false},

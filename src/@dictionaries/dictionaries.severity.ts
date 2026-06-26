@@ -17,9 +17,11 @@
 
 */
 
-export const testSignatures: string[] = [
-    `This is a test message`, 
-    `Monitoring message only.`,
-    `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
-    "TEST MESSAGE"
-]
+export const dict_severity: Record<string, string> = {
+    N: "Not Expected",
+    0: "Areal Flood or FF Product",
+    1: "Minor",
+    2: "Moderate",
+    3: "Major",
+    U: "Unknown",
+}

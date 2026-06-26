@@ -17,9 +17,15 @@
 
 */
 
-export const eventProducts: Record<string, string> = {
-    "O": "Operational Product",
-    "T": "Test Product",
-    "E": "Experimental Product",
-    "X": "Experimental Product (Non-Operational)",
+export const dict_status: Record<string, string> = {
+    "NEW": "Issued", 
+    "CON": "Updated", 
+    "EXT": "Extended", 
+    "EXA": "Extended", 
+    "EXB": "Extended",
+    "UPG": "Upgraded", 
+    "COR": "Correction", 
+    "ROU": "Routine", 
+    "CAN": "Cancelled", 
+    "EXP": "Expired" 
 }

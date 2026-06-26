@@ -20,7 +20,7 @@
 import { TypeAttributes } from "../@types/type.attributes";
 import { TypeStanzaCompiled } from "../@types/type.compiled"
 import { TypeEvent } from "../@types/type.event";
-import { eventsMatchText } from "../@dictionaries/dictionaries.eventsMatchText";
+import { dict_matches } from "../@dictionaries/dictionaries.matches";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";
 import { properties } from "../@building/building.properties";
 import { getEventHeader } from "../@building/building.headers";
@@ -43,7 +43,7 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
             const issued = new Date(attributes.issue)
             const expires = new Date(ugc.expires)
             const header = getEventHeader({properties: props, getType: stanza.getType })
-            let event = Object.keys(eventsMatchText).find(event => message.toLowerCase().includes(event.toLowerCase()));
+            let event = Object.keys(dict_matches).find(event => message.toLowerCase().includes(event.toLowerCase()));
             let isStatement = false;
             if (!event) { 
                 event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)

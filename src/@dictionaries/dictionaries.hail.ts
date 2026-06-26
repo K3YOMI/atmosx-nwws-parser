@@ -17,14 +17,20 @@
 
 */
 
-export const eventCancelMessages: string[] = [
-    "has been cancelled",
-    "subsided sufficiently for the advisory to be cancelled", 
-    "has been cancelled", 
-    "will be allowed to expire", 
-    "has diminished", 
-    "and no longer", 
-    "has been replaced", 
-    "The threat has ended", 
-    "has weakened below severe"
-]
+export const dict_hail: Record<string, string> = {
+    ".25": "Pea",
+    ".50": "Penny",
+    ".75": "Penny",
+    "Up to .75": "Penny",
+    ".88": "Nickel",
+    "0.75": "Penny",
+    "0.88": "Nickel",
+    "1.00": "Quarter",
+    "1.25": "Half Dollar",
+    "1.50": "Ping Pong Ball",
+    "1.75": "Golf Ball",
+    "2.00": "Hen Egg",
+    "2.50": "Tennis Ball",
+    "2.75": "Baseball",
+    "4.00": "CD/DVD"
+}

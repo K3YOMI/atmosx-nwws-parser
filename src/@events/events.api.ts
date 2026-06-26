@@ -24,7 +24,7 @@ import { validateEvents } from "../@building/building.validate";
 import { pvExtract } from "../@parsers/@pvtec/pvtec.extract"
 import { getEventTags } from "../@building/building.tags";
 import { getTextFromProduct } from "../@parsers/@text/text.getTextFromProduct";
-import { officeICAOs } from "../@dictionaries/dictionaries.officeICAOs";
+import { dict_icao } from "../@dictionaries/dictionaries.icao";
 import { TypePVTEC } from "../@types/type.pvtec";
 
 
@@ -52,7 +52,7 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 geocode: {
                     office: {
                         office: pVtec ? pVtec?.[0]?.tracking.split(`.`)[0] : null,
-                        name: officeICAOs[pVtec ? pVtec?.[0]?.tracking.split(`.`)[0] : null] ?? null,
+                        name: dict_icao[pVtec ? pVtec?.[0]?.tracking.split(`.`)[0] : null] ?? null,
                     },
                     organization:  feature?.properties?.parameters?.WMOidentifier?.[0],
                     ugc: feature?.properties?.geocode?.UGC ?? [], 

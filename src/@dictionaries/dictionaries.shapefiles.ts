@@ -23,7 +23,7 @@ interface ShapefilesResponse {
     link: string
 }
 
-export const shapefileLinks: ShapefilesResponse[] = [
+export const dict_shapefiles: ShapefilesResponse[] = [
     {name: "us_counties", id: "C", link: "https://www.weather.gov/source/gis/Shapefiles/County/c_16ap26.zip"},
     {name: "us_states_territories", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/County/s_16ap26.zip"},
     {name: "fire_weather_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/fz16ap26.zip"},

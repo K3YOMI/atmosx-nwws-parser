@@ -19,7 +19,7 @@
 
 import { TypeStanza } from "../../@types/type.stanza"
 import { TypeStanzaCompiled } from "../../@types/type.compiled"
-import { regExp } from "../../@dictionaries/dictionaries.regExp"
+import { dict_regexp } from "../../@dictionaries/dictionaries.regexp"
 import { getAwipsType } from "./stanza.getAwipsType"
 
 interface ValidateOptions { 
@@ -35,8 +35,8 @@ export const validate = (options: ValidateOptions): TypeStanzaCompiled => {
             if (attributes.awipsid && attributes.awipsid.length > 1) { 
                 const isCapEvent = message.includes(`<?xml`);
                 const isCapAreaDescription = message.includes(`<areaDesc>`)
-                const isVTEC = message.match(regExp.pvtec) != null;
-                const isUGC = message.match(regExp.ugc1) != null;
+                const isVTEC = message.match(dict_regexp.pvtec) != null;
+                const isUGC = message.match(dict_regexp.ugc1) != null;
                 const getType = getAwipsType({ attributes: attributes})
                 if (getType.type != null) {
                     return { 

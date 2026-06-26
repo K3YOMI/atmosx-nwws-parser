@@ -17,7 +17,7 @@
 
 */
 
-export const officeICAOs: Record<string, string> = {
+export const dict_icao: Record<string, string> = {
     "KLUB": "Lubbock, TX",
     "KLCH": "Lake Charles, LA",
     "TSTL": "St. Louis, MO", 

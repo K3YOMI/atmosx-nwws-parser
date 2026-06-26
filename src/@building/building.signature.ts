@@ -18,23 +18,23 @@
 */
 
 import { TypeEvent } from "../@types/type.event";
-import { statusCorrelationText } from "../@dictionaries/dictionaries.statusCorrelationText";
-import { eventCancelMessages } from "../@dictionaries/dictionaries.eventCancelMessages";
-import { testSignatures} from "../@dictionaries/dictionaries.testSignatures"
-import { eventProducts } from "../@dictionaries/dictionaries.eventProducts";
-import { hailStrings } from "../@dictionaries/dictionaries.hailStrings"
+import { dict_correlations } from "../@dictionaries/dictionaries.correlations";
+import { dict_cancellation } from "../@dictionaries/dictionaries.cancellation";
+import { dict_testing} from "../@dictionaries/dictionaries.test"
+import { dict_products } from "../@dictionaries/dictionaries.products";
+import { dict_hail } from "../@dictionaries/dictionaries.hail"
 
 
 export const getEventSignature = (event: TypeEvent): TypeEvent => {
     const properties = event?.properties;
     const vtec = event?.properties?.metadata?.vtec
-    const status = statusCorrelationText
+    const status = dict_correlations
         .find((c: { type: string }) => c.type === properties?.status);
-    const csig = eventCancelMessages.find(sig => properties.description.toLowerCase().includes(sig.toLowerCase()));
+    const csig = dict_cancellation.find(sig => properties.description.toLowerCase().includes(sig.toLowerCase()));
     properties.status_metadata = { ...properties.status_metadata, is_issued: true, is_test: false};
 
     if (properties?.parameters?.estimated_hail_size) { 
-        properties.parameters.estimated_hail_size += ` (${hailStrings[properties?.parameters?.estimated_hail_size] ?? '--'})`
+        properties.parameters.estimated_hail_size += ` (${dict_hail[properties?.parameters?.estimated_hail_size] ?? '--'})`
     }
 
     if (status) { 
@@ -46,8 +46,8 @@ export const getEventSignature = (event: TypeEvent): TypeEvent => {
     }
     
     const getProduct = vtec?.vtec?.split(`.`)[0]?.replace(`/`, ``)
-    const isTestProduct = eventProducts[getProduct] == `Test Product`
-    if (isTestProduct || testSignatures.some(sig => properties.description?.toLowerCase().includes(sig.toLowerCase()) ?? properties?.parameters?.instructions?.toLowerCase().includes(sig.toLowerCase()))) {
+    const isTestProduct = dict_products[getProduct] == `Test Product`
+    if (isTestProduct || dict_testing.some(sig => properties.description?.toLowerCase().includes(sig.toLowerCase()) ?? properties?.parameters?.instructions?.toLowerCase().includes(sig.toLowerCase()))) {
         properties.status_metadata = { ...properties.status_metadata, is_test: true }
     }    
     

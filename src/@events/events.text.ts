@@ -22,7 +22,7 @@ import { TypeStanzaCompiled } from "../@types/type.compiled"
 import { TypeEvent } from "../@types/type.event";
 import { properties } from "../@building/building.properties";
 import { getEventHeader } from "../@building/building.headers";
-import { eventsMatchText } from "../@dictionaries/dictionaries.eventsMatchText";
+import { dict_matches } from "../@dictionaries/dictionaries.matches";
 import { getEventTracking } from "../@building/building.tracking";
 import { validateEvents } from "../@building/building.validate";
 
@@ -40,7 +40,7 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
         const header = getEventHeader({properties: props, getType: stanza.getType})   
         const issued = new Date(attributes.issue)
         const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1000)
-        let event = Object.keys(eventsMatchText).find(event => message.toLowerCase().includes(event.toLowerCase()));
+        let event = Object.keys(dict_matches).find(event => message.toLowerCase().includes(event.toLowerCase()));
         let isStatement = false;
         if (!event) { 
             event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)

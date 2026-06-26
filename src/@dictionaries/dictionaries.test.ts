@@ -17,12 +17,9 @@
 
 */
 
-export const eventActions: Record<string, string> = {
-    "W": "Warning", 
-    "F": "Forecast", 
-    "A": "Watch", 
-    "O": "Outlook", 
-    "Y": "Advisory", 
-    "N": "Synopsis", 
-    "S": "Statement"
-}
+export const dict_testing: string[] = [
+    `This is a test message`, 
+    `Monitoring message only.`,
+    `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
+    "TEST MESSAGE"
+]

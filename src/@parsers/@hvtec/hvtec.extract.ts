@@ -18,22 +18,22 @@
 */
 
 import { TypeHVTEC } from "../../@types/type.hvtec";
-import { eventCauses } from "../../@dictionaries/dictionaries.eventCauses";
-import { eventRecords } from "../../@dictionaries/dictionaries.eventRecords";
-import { regExp } from "../../@dictionaries/dictionaries.regExp";
-import { eventSeverity } from "../../@dictionaries/dictionaries.eventSeverity";
+import { dict_causes } from "../../@dictionaries/dictionaries.causes";
+import { dict_records } from "../../@dictionaries/dictionaries.records";
+import { dict_regexp } from "../../@dictionaries/dictionaries.regexp";
+import { dict_severity } from "../../@dictionaries/dictionaries.severity";
 
 export const hvExtract = (message: string): TypeHVTEC[] | null => {
-    const getHVTECs = message.match(regExp.hvtec) ?? [];
+    const getHVTECs = message.match(dict_regexp.hvtec) ?? [];
     const vtecs: TypeHVTEC[] = [];
     for (const vtec of getHVTECs) {
         const sub = vtec.split(`.`);
         if (sub.length < 7) continue;
         vtecs.push({
             hvtec: vtec,
-            severity: eventSeverity[sub[1]],
-            cause: eventCauses[sub[2]],
-            record: eventRecords[sub[6]]
+            severity: dict_severity[sub[1]],
+            cause: dict_causes[sub[2]],
+            record: dict_records[sub[6]]
         })
     }
     return vtecs.length > 0 ? vtecs : null;

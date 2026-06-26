@@ -17,7 +17,7 @@
 
 */
 
-export const eventAwipAbreviations: Record<string, string> = {
+export const dict_awips: Record<string, string> = {
     ABV: `rawinsonde-data-above-100-millibars`,
     ADA: `alarm-alert-administrative-message`,
     ADM: `alert-administrative-message`,

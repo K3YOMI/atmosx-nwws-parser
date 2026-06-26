@@ -17,7 +17,7 @@
 
 */
 
-export const eventCauses : Record<string, string> = {
+export const dict_causes: Record<string, string> = {
     "SM": "Snow Melt",
     "RS": "Rain/Snow Melt",
     "ER": "Excessive Rain",

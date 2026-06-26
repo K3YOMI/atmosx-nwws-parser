@@ -25,7 +25,7 @@ type EnhancedEventType = {
     pdswatch?: boolean
 }
 
-export const betterEventNames: Record<string, Record<string, EnhancedEventType>> = {
+export const dict_enhanced: Record<string, Record<string, EnhancedEventType>> = {
     "Tornado Warning": {
         "Tornado Emergency": { 
             description: "tornado emergency"

@@ -20,7 +20,7 @@
 import { TypeEvent } from "../@types/type.event";
 import { TypeSettings } from "../@types/type.settings";
 import { bootstrap } from "../bootstrap"
-import { betterEventNames } from "../@dictionaries/dictionaries.betterEventNames"
+import { dict_enhanced } from "../@dictionaries/dictionaries.enhanced"
 
 export const getEventEnhancedName = (event: TypeEvent): string => {
     const configurations = bootstrap.settings as TypeSettings
@@ -34,7 +34,7 @@ export const getEventEnhancedName = (event: TypeEvent): string => {
     const tornado = event?.properties?.parameters?.tornado_threat;
     const pdswatch = event?.properties?.watch_parameters?.pds_watch;
     const description = event?.properties?.description?.toLowerCase()
-    for (const [eventKey, eventConfig] of Object.entries(betterEventNames)) {
+    for (const [eventKey, eventConfig] of Object.entries(dict_enhanced)) {
         if (eventKey !== name) continue;
         for (const [paramKey, paramValue] of Object.entries(eventConfig)) {
             let matches = true;

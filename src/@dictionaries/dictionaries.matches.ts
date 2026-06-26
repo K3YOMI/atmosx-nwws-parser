@@ -17,9 +17,20 @@
 
 */
 
-export const eventRecords: Record<string, string> = {
-    "NO": "No Record Expected",
-    "NR": "Near Record or possible record",
-    "UU": "Unknown history of records",
-    "OO": "Other",
-}
+export const dict_matches: Record<string, string> = {
+    "Special Weather Statement": "Special Weather Statement",
+    "Hurricane Warning": "Hurricane Warning",
+    "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
+    "Hurricane Watch": "Hurricane Watch",
+    "Tropical Storm Warning": "Tropical Storm Warning",
+    "Tropical Storm Watch": "Tropical Storm Watch",
+    "High Wind Warning": "High Wind Warning",
+    "Gale Warning": "Gale Warning",
+    "Small Craft Advisory": "Small Craft Advisory",
+    "Small Craft Warning": "Small Craft Warning",
+    "Tsunami Warning": "Tsunami Warning",
+    "Tsunami Watch": "Tsunami Watch",
+    "Tsunami Advisory": "Tsunami Advisory",
+    "Tsunami Information Statement": "Tsunami Information Statement",
+    "Subscribers:": "National Weather Service Policy",
+};

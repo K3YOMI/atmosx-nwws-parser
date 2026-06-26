@@ -17,15 +17,12 @@
 
 */
 
-export const eventStatus: Record<string, string> = {
-    "NEW": "Issued", 
-    "CON": "Updated", 
-    "EXT": "Extended", 
-    "EXA": "Extended", 
-    "EXB": "Extended",
-    "UPG": "Upgraded", 
-    "COR": "Correction", 
-    "ROU": "Routine", 
-    "CAN": "Cancelled", 
-    "EXP": "Expired" 
+export const dict_actions: Record<string, string> = {
+    "W": "Warning", 
+    "F": "Forecast", 
+    "A": "Watch", 
+    "O": "Outlook", 
+    "Y": "Advisory", 
+    "N": "Synopsis", 
+    "S": "Statement"
 }

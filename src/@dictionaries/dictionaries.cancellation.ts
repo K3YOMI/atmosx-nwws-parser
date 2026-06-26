@@ -17,11 +17,14 @@
 
 */
 
-export const eventSeverity: Record<string, string> = {
-    N: "Not Expected",
-    0: "Areal Flood or FF Product",
-    1: "Minor",
-    2: "Moderate",
-    3: "Major",
-    U: "Unknown",
-}
+export const dict_cancellation: string[] = [
+    "has been cancelled",
+    "subsided sufficiently for the advisory to be cancelled", 
+    "has been cancelled", 
+    "will be allowed to expire", 
+    "has diminished", 
+    "and no longer", 
+    "has been replaced", 
+    "The threat has ended", 
+    "has weakened below severe"
+]

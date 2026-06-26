@@ -17,7 +17,7 @@
 
 */
 
-export const eventTypes: Record<string, string> = {
+export const dict_events: Record<string, string> = {
     "AF": "Ashfall",
     "AS": "Air Stagnation",
     "BH": "Beach Hazard",

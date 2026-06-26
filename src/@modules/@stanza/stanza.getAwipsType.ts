@@ -18,7 +18,7 @@
 */
 
 import { TypeAttributes } from "../../@types/type.attributes"
-import { eventAwipAbreviations } from "../../@dictionaries/dictionaries.eventAwipAbreviations"
+import { dict_awips } from "../../@dictionaries/dictionaries.awips"
 
 interface ValidateOptions { 
     attributes: TypeAttributes
@@ -37,7 +37,7 @@ export const getAwipsType = (options: ValidateOptions): ValidiateResponse => {
             prefix: null
         }
     }
-    for (const [prefix, type] of Object.entries(eventAwipAbreviations)) {
+    for (const [prefix, type] of Object.entries(dict_awips)) {
         if (attributes.awipsid.startsWith(prefix)) {
             return { type, prefix }
         }

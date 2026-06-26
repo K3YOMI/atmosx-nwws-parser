@@ -17,7 +17,7 @@
 
 */
 
-export const eventTags: Record<string, string> = {
+export const dict_tags: Record<string, string> = {
     "FROSTBITE AND HYPOTHERMIA ARE LIKELY": "Frostbite and Hypothermia Likely",
     "LICKELY BECOME SLICK AND HAZARDOUS": "Slick and Hazardous Roads",
     "SLIPPERY ROAD CONDITIONS": "Slippery Roads",

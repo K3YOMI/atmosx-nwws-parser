@@ -17,12 +17,12 @@
 
 */
 
-import { regExp } from "../../@dictionaries/dictionaries.regExp"
+import { dict_regexp } from "../../@dictionaries/dictionaries.regexp"
 
 export const getUGCHeader = (message: string): string | null => {
-    const start = message.search(regExp.ugc1)
+    const start = message.search(dict_regexp.ugc1)
     const sub = message.substring(start)
-    const end = sub.search(regExp.ugc2)
+    const end = sub.search(dict_regexp.ugc2)
     const fin = sub.substring(0, end)
         .replace(/\s+/g, '')
         .slice(0, -1);

@@ -18,16 +18,16 @@
 */
 
 import { TypePVTEC } from "../../@types/type.pvtec";
-import { regExp } from "../../@dictionaries/dictionaries.regExp";
-import { eventProducts } from "../../@dictionaries/dictionaries.eventProducts";
-import { eventTypes } from "../../@dictionaries/dictionaries.eventTypes";
-import { eventActions } from "../../@dictionaries/dictionaries.eventActions";
-import { eventStatus } from "../../@dictionaries/dictionaries.eventStatus";
+import { dict_regexp } from "../../@dictionaries/dictionaries.regexp";
+import { dict_products } from "../../@dictionaries/dictionaries.products";
+import { dict_events } from "../../@dictionaries/dictionaries.events";
+import { dict_actions } from "../../@dictionaries/dictionaries.actions";
+import { dict_status } from "../../@dictionaries/dictionaries.status";
 import { getExpiry } from "./pvtec.expires";
 
 export const pvExtract = (message: string): TypePVTEC[] | null => {
     if (!message) return null;
-    const getVTECs = message.match(regExp.pvtec) ?? [];
+    const getVTECs = message.match(dict_regexp.pvtec) ?? [];
     const vtecs: TypePVTEC[] = [];
     for (const vtec of getVTECs) {
         const sub = vtec.split(`.`);
@@ -35,11 +35,11 @@ export const pvExtract = (message: string): TypePVTEC[] | null => {
         const dates = sub[6]?.split(`-`);
         vtecs.push({
             vtec: vtec,
-            product: eventProducts[sub[0]],
+            product: dict_products[sub[0]],
             tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
-            event: `${eventTypes[sub[3]]} ${eventActions[sub[4]]}`,
-            status: eventStatus[sub[1]],
-            organization: message.match(regExp.wmo)?.[0] ?? null,
+            event: `${dict_events[sub[3]]} ${dict_actions[sub[4]]}`,
+            status: dict_status[sub[1]],
+            organization: message.match(dict_regexp.wmo)?.[0] ?? null,
             expires: getExpiry(dates),
             is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
             prediction_center: sub[2] == `KWNS` ? true : false

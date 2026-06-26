@@ -25,7 +25,7 @@ import { TypeSettings } from "../../@types/type.settings"
 import { bootstrap } from "../../bootstrap"
 import { setSleep } from '../@utilities/utilities.setSleep'
 import { setWarning } from '../@utilities/utilities.setWarning'
-import { shapefileLinks } from '../../@dictionaries/dictionaries.shapefileLinks'
+import { dict_shapefiles } from '../../@dictionaries/dictionaries.shapefiles'
 
 export const importShapefiles = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
@@ -36,7 +36,7 @@ export const importShapefiles = async (): Promise<void> => {
         if (tShapefiles === 0) {
             await setSleep({timeout: 1e3});
             setWarning({ message: `Shapefiles are currently building, please DO NOT close your terminal. The shapefiles will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` })
-            for (const shapefile of shapefileLinks) {
+            for (const shapefile of dict_shapefiles) {
                 const response = await fetch(shapefile.link);
                 const arrayBuff = await response.arrayBuffer();
                 const content = await loadAsync(arrayBuff);
