@@ -39,6 +39,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
     const metadata = { 
         file: null,
         eas: null,
+        json: null,
         name: properties.event,
         status: properties.status,
         description: properties.description,
@@ -92,6 +93,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     if (!existsSync(eDestination)) { mkdirSync(eDestination, { recursive: true }); }
                     writeFileSync(`${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`, JSON.stringify(getCleanedEvent(event), null, 2));
                 }
+                metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
             }
 
             if (webhook.enabled && webhook.destination) {
@@ -132,6 +134,10 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     form.append("fUpload", new Blob([Buffer.from(metadata.file)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
                 }
 
+                if (uploads?.event) { 
+                    form.append("fUpload", new Blob([Buffer.from(metadata.json)], {type: "application/json"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`)
+                }
+
                 if (uploads?.eas) { 
                     if (metadata.eas) {
                         const file = readFileSync(metadata.eas)
@@ -145,15 +151,13 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     embeds: [embed]
                 }));
 
-                const a = await createHttp({
+                await createHttp({
                     url: webhook.destination,
                     timeout: 15e3,
                     method: `POST`,
                     body: form
                 })
-                if (a.error) { 
-                    setWarning({ message: `Webhook Failed: ${a.message}` })
-                }
+
             }
         }
     }

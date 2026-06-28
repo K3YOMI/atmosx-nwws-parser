@@ -4,7 +4,7 @@ export default defineConfig({
 	entry: ['src/index.ts'],
 	outDir: 'dist',
 	format: ['esm', 'cjs'],
-	dts: true,
+	dts: false,
 	noExternal: ["@xmpp/client", "@xmpp/sasl", "@xmpp/sasl-plain"],
 	clean: true,
 	outExtension({ format }) {

@@ -5931,6 +5931,7 @@ var updateListener = (event) => __async(null, null, function* () {
   const metadata = {
     file: null,
     eas: null,
+    json: null,
     name: properties2.event,
     status: properties2.status,
     description: properties2.description,
@@ -5983,6 +5984,7 @@ var updateListener = (event) => __async(null, null, function* () {
           }
           (0, import_fs3.writeFileSync)(`${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`, JSON.stringify(getCleanedEvent(event), null, 2));
         }
+        metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
       }
       if (webhook.enabled && webhook.destination) {
         const ratelimit = setTimeoutAction({ identifier: webhook.destination, interval: webhook.ratelimit * 2, max: webhook.ratelimit, addTime: true });
@@ -6017,6 +6019,9 @@ var updateListener = (event) => __async(null, null, function* () {
         if (uploads == null ? void 0 : uploads.file) {
           form.append("fUpload", new Blob([Buffer.from(metadata.file)], { type: "application/text" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`);
         }
+        if (uploads == null ? void 0 : uploads.event) {
+          form.append("fUpload", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.json`);
+        }
         if (uploads == null ? void 0 : uploads.eas) {
           if (metadata.eas) {
             const file = (0, import_fs3.readFileSync)(metadata.eas);
@@ -6028,15 +6033,12 @@ var updateListener = (event) => __async(null, null, function* () {
           content: (_d = webhook.message) != null ? _d : "",
           embeds: [embed]
         }));
-        const a = yield createHttp({
+        yield createHttp({
           url: webhook.destination,
           timeout: 15e3,
           method: `POST`,
           body: form
         });
-        if (a.error) {
-          setWarning({ message: `Webhook Failed: ${a.message}` });
-        }
       }
     }
   }
