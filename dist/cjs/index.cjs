@@ -6030,12 +6030,12 @@ var updateListener = (event) => __async(null, null, function* () {
         }));
         const a = yield createHttp({
           url: webhook.destination,
-          timeout: 5e3,
+          timeout: 15e3,
           method: `POST`,
           body: form
         });
         if (a.error) {
-          setWarning({ message: `Failed to send webhook: ${a.error.message}` });
+          setWarning({ message: `Webhook Failed: ${a.message}` });
         }
       }
     }
@@ -6256,17 +6256,17 @@ var mkEvent = (event) => __async(null, null, function* () {
             })
           })
         });
-        updateListener(bootstrap.cache.events.features[getIndex]);
+        yield updateListener(bootstrap.cache.events.features[getIndex]);
       } else {
         features.push(event);
-        updateListener(event);
+        yield updateListener(event);
       }
     }
   }
 });
 
 // src/@manager/manager.rmEvent.ts
-var rmEvent = (event) => {
+var rmEvent = (event) => __async(null, null, function* () {
   const getEvent = bootstrap.cache.events.features.find((f) => {
     var _a, _b, _c, _d;
     return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === ((_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.metadata) == null ? void 0 : _d.tracking);
@@ -6285,7 +6285,7 @@ var rmEvent = (event) => {
       message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
     });
     setEventEmit({ event: `onExpiredProduct`, metadata: event });
-    if (cachedStatus != `Statement`) updateListener(event);
+    if (cachedStatus != `Statement`) yield updateListener(event);
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
   }
@@ -6294,7 +6294,7 @@ var rmEvent = (event) => {
     metadata: bootstrap.cache.events,
     limited: true
   });
-};
+});
 
 // src/@modules/@utilities/utilities.getLatestIssuance.ts
 var getLatestIssuance = () => {
@@ -7457,7 +7457,7 @@ var updateEvents = (selectedEvent) => __async(null, null, function* () {
   function update(evt) {
     return __async(this, null, function* () {
       if (new Date(evt.properties.expires) < /* @__PURE__ */ new Date()) {
-        rmEvent(evt);
+        yield rmEvent(evt);
       }
     });
   }

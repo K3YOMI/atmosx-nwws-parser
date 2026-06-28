@@ -27,7 +27,7 @@ export const updateEvents = async (selectedEvent?: TypeEvent): Promise<void> => 
     const events = bootstrap.cache.events.features;
     async function update(evt: TypeEvent) {
         if (new Date(evt.properties.expires) < new Date()) {
-            rmEvent(evt);
+            await rmEvent(evt);
         }
     }
     if (!selectedEvent) { await Promise.all(events.map(async (evt) => { await update(evt) })) } 

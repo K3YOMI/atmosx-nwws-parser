@@ -79,10 +79,10 @@ export const mkEvent = async (event: TypeEvent): Promise<void> => {
                         },
                     }
                 };
-                updateListener(bootstrap.cache.events.features[getIndex])
+                await updateListener(bootstrap.cache.events.features[getIndex])
             } else { 
                 features.push(event)
-                updateListener(event)
+                await updateListener(event)
             }
         }
     }

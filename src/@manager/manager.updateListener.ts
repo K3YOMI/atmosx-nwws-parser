@@ -147,12 +147,12 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
 
                 const a = await createHttp({
                     url: webhook.destination,
-                    timeout: 5000,
+                    timeout: 15e3,
                     method: `POST`,
                     body: form
                 })
                 if (a.error) { 
-                    setWarning({ message: `Failed to send webhook: ${a.error.message}` })
+                    setWarning({ message: `Webhook Failed: ${a.message}` })
                 }
             }
         }
