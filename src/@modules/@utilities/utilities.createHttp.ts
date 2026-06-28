@@ -17,10 +17,7 @@
 
 */
 
-import request from 'request'
-
 interface CreateHttpOptions { 
-    proxy?: string
     url: string
     headers?: any
     timeout?: number
@@ -30,65 +27,44 @@ interface CreateHttpOptions {
 }
 
 export const createHttp = async (options: CreateHttpOptions): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        try {
-            const requestOptions = { 
-                url: options.url ?? `https://api.weather.gov/alerts/active`,
-                headers: options.headers ?? {
-                    "User-Agent": "AtmosphericX",
-                    "Accept": "application/geo+json, text/plain, */*; q=0.9",
-                    "Accept-Language": "en-US,en;q=0.9"
-                }, 
-                method: options.method ?? `GET`,
-                timeout: options.timeout ?? 10e3,
-                proxy: options.proxy ?? null,
-                maxRedirects: 1, 
-            };
-            if (options.formData) {
-                requestOptions['formData'] = options.formData;
-            } else if (options.body) {
-                requestOptions['body'] = options.body;
-            }
-            
-            request(requestOptions, (error, response, body) => {
-                if (error) { 
-                    return resolve({
-                        error: true,
-                        options: requestOptions,
-                        status: -1,
-                        message: error.message ?? `Unknown Error`
-                    })
-                }
-                if (response.statusCode < 200 || response.statusCode >= 300) {
-                    return resolve({
-                        error: true,
-                        options: requestOptions,
-                        status: response.statusCode ?? -1,
-                        message: `HTTP Status Code ${response.statusCode ?? `Unknown Status Code`} (${body})`
-                    })
-                }
-                if (body == undefined || body == null) { 
-                    return resolve({
-                        error: true,
-                        options: requestOptions,
-                        status: response.statusCode ?? -1,
-                        message: `Empty Response Body`
-                    })
-                }
-                resolve({
-                    error: false,
-                    options: requestOptions,
-                    status: response.statusCode ?? -1,
-                    message: body
-                })  
-            })
-        } catch (error) {
-            return resolve({
-                error: true,
-                options: {},
-                status: -1,
-                message: error.message ?? `Unknown Error`
-            })
-        }
-    })
+	const requestOptions: RequestInit = {
+        method: options.method ?? "GET",
+        headers: options.headers ?? {
+            "User-Agent": "AtmosphericX",
+            "Accept": "application/geo+json, text/plain, */*; q=0.9",
+            "Accept-Language": "en-US,en;q=0.9",
+        },
+        signal: AbortSignal.timeout(options.timeout ?? 10_000),
+        redirect: "follow"
+    };
+
+
+	const returnHttp = function(error: boolean,status: number, message: string) {
+		return { error: error, options: requestOptions, status, message };
+	}
+
+	if (options?.formData) { 
+		requestOptions.body = options.formData;
+	} else if (options?.body != undefined) {
+        requestOptions.body =
+        options.body instanceof FormData
+            ? options.body
+            : typeof options.body === "string"
+                ? options.body
+                : JSON.stringify(options.body);
+	}
+
+	try { 
+		const response = await fetch(
+			options?.url ?? `https://api.weather.gov/alerts/active`,
+			requestOptions
+		)
+		const body = await response.text();
+		if (!response.ok) { 
+			return returnHttp(true, response.status, `HTTP Status Code ${response.status} (${response.statusText})`)
+		}
+		return returnHttp(false, response.status, body)
+	} catch (error) {
+		return returnHttp(true, 500, `Internal Server Error: ${error}`)
+	}
 }

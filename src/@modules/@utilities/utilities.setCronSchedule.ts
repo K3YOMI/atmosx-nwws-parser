@@ -68,7 +68,7 @@ export const setCronSchedule = async (): Promise<void> => {
             }
         })
         if (response.error) {
-            return  setEventEmit({
+            return setEventEmit({
                 event: `onServiceStatus`,
                 metadata: {
                     type: "fetch-api",

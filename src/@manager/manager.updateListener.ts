@@ -27,7 +27,8 @@ import { getEmebed } from "../@parsers/@text/text.getEmbed";
 import { getCleanedEvent } from "../@building/building.clean"
 import { createHttp } from "../@modules/@utilities/utilities.createHttp";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from "fs";
-import FormData from "form-data";
+import { setWarning } from "../@modules/@utilities/utilities.setWarning";
+
 
 
 
@@ -94,7 +95,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
             }
 
             if (webhook.enabled && webhook.destination) {
-                const ratelimit = setTimeoutAction({ identifier: webhook.destination, interval: webhook.ratelimit, max: webhook.ratelimit, addTime: true })
+                const ratelimit = setTimeoutAction({ identifier: webhook.destination, interval: webhook.ratelimit * 2, max: webhook.ratelimit, addTime: true })
                 const form = new FormData();
                 const embed = {
                     title: `${metadata.name} (${metadata.status})`,
@@ -128,19 +129,13 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 }
 
                 if (uploads?.file) { 
-                    form.append("fUpload", Buffer.from(metadata.file), { 
-                        filename: `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`, 
-                        contentType: "application/text" 
-                    });
+                    form.append("fUpload", new Blob([Buffer.from(metadata.file)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
                 }
 
                 if (uploads?.eas) { 
                     if (metadata.eas) {
                         const file = readFileSync(metadata.eas)
-                        form.append("fEas", Buffer.from(file), { 
-                            filename: `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`, 
-                            contentType: "audio/mpeg" 
-                        });
+                        form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`)
                     }
                 }
 
@@ -150,13 +145,15 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     embeds: [embed]
                 }));
 
-                await createHttp({
+                const a = await createHttp({
                     url: webhook.destination,
                     timeout: 5000,
                     method: `POST`,
-                    headers: form.getHeaders(),
                     body: form
                 })
+                if (a.error) { 
+                    setWarning({ message: `Failed to send webhook: ${a.error.message}` })
+                }
             }
         }
     }
