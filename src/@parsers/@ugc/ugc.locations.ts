@@ -18,12 +18,41 @@
 */
 
 import { bootstrap } from "../../bootstrap";
+import { getCache } from "./ugc.getCache";
+import { setCache } from "./ugc.setCache";
 
 export const getLocations = async (zones: string[]): Promise<string[]> => {
-    const sites = Array.from(new Set(zones));
-    const placeholders = sites.map(() => '?').join(',');
-    const rows = await bootstrap.database
-        .prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`)
-        .all(...sites)
-    return rows.map((row: any) => row.location).sort();
-}
+    const tick = performance.now();
+    const uniqueZones = Array.from(new Set(zones));
+
+    const results: string[] = [];
+    const missing: string[] = [];
+
+    for (let i = 0; i < uniqueZones.length; i++) {
+        const zone = uniqueZones[i];
+        const cached = getCache(zone);
+
+        if (cached) {
+            for (let j = 0; j < cached.length; j++) {
+                results.push(cached[j]);
+            }
+        } else {
+            missing.push(zone);
+        }
+    }
+
+    if (missing.length > 0) {
+        const rows = await bootstrap.database
+            .prepare(
+                `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => '?').join(',')})`
+            )
+            .all(...missing);
+
+        for (let i = 0; i < rows.length; i++) {
+            const r = rows[i] as any;
+            setCache(r.id, [r.location]);
+            results.push(r.location);
+        }
+    }
+    return results; // ❌ no sort
+};

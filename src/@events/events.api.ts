@@ -18,23 +18,22 @@
 */
 
 import { TypeStanzaCompiled } from "../@types/type.compiled"
-import { TypeEvent } from "../@types/type.event";
+import { TypePVTEC } from "../@types/type.pvtec";
+import { bootstrap } from "../bootstrap";
 import { getEventTracking } from "../@building/building.tracking";
-import { validateEvents } from "../@building/building.validate";
 import { pvExtract } from "../@parsers/@pvtec/pvtec.extract"
 import { getEventTags } from "../@building/building.tags";
 import { getTextFromProduct } from "../@parsers/@text/text.getTextFromProduct";
 import { dict_icao } from "../@dictionaries/dictionaries.icao";
-import { TypePVTEC } from "../@types/type.pvtec";
+import { setDebug } from "../@modules/@utilities/utilities.setDebug";
 
 
 export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    let processed: TypeEvent[] = [];
-    const messages =  Object.values(JSON.parse(stanza.message).features) as any;
+    const messages = Object.values(JSON.parse(stanza.message).features) as any;
     for (const feature of messages) {
         const tick = performance.now();
         const pVtec = pvExtract(feature?.properties?.parameters?.VTEC?.[0]) ?? null as TypePVTEC[]
-        processed.push({
+        bootstrap.cache.processed.push({
             type: `Feature`,
             geometry: {
                 type: `Point`,
@@ -114,6 +113,6 @@ export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 }
             }
         })
+        setDebug({ title: `@events.api`, message: `Event process took ${performance.now() - tick} ms` })
     }
-    validateEvents(processed)
 }

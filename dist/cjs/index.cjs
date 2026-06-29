@@ -1124,7 +1124,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.48`,
+  version: `3.0.5`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -1149,11 +1149,14 @@ var bootstrap = {
     sigHault: false,
     events: { type: "FeatureCollection", features: [] },
     nodes: { type: "FeatureCollection", features: [] },
-    hashes: []
+    hashes: [],
+    processed: [],
+    ugc: /* @__PURE__ */ new Map()
   },
   settings: {
     Database: import_path.default.join(process.cwd(), "shapefiles.db"),
     EnableWireService: true,
+    EnableDebugging: false,
     EnableJournal: true,
     NOAAWeatherWireServiceSettings: {
       ReconnectionSettings: {
@@ -1363,6 +1366,9 @@ var setTimeoutAction = (options) => {
   if (!target) {
     bootstrap.ratelimits[options == null ? void 0 : options.identifier] = [];
     target = bootstrap.ratelimits[options == null ? void 0 : options.identifier];
+  }
+  if (options == null ? void 0 : options.expire) {
+    delete bootstrap.ratelimits[options == null ? void 0 : options.identifier];
   }
   if ((target == null ? void 0 : target.length) > 0) {
     bootstrap.ratelimits[options == null ? void 0 : options.identifier] = target.filter((ts) => Date.now() - ts < (options == null ? void 0 : options.interval) * 1e3);
@@ -4516,9 +4522,9 @@ var dict_awips = {
   SVR: `severe-thunderstorm-warning`,
   SVS: `severe-weather-statement`,
   SWOMCD: `mesoscale-discussion`,
-  SWODY1: `day-1`,
-  SWODY2: `day-2`,
-  SWODY3: `day-3`,
+  SWODY1: `spc-day-1-outlook`,
+  SWODY2: `spc-day-2-outlook`,
+  SWODY3: `spc-day-3-outlook`,
   SWS: `state-weather-summary`,
   SYN: `regional-weather-synopsis`,
   TAF: `terminal-aerodrome-forecast`,
@@ -5144,15 +5150,588 @@ var getEventTracking = (options) => {
       return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
     }
     const wmoMatch = (_e = (_d = options.organization) == null ? void 0 : _d.wmoidentifier) == null ? void 0 : _e.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
-    const station = (_f = wmoMatch == null ? void 0 : wmoMatch[2]) != null ? _f : "N/A";
+    const station = (_f = wmoMatch == null ? void 0 : wmoMatch[2]) != null ? _f : "---";
     if (options.organization.featureId) {
       const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
-      return `${station}.${(_h = (_g = idMatch == null ? void 0 : idMatch[0]) == null ? void 0 : _g.replace(/\./g, "")) != null ? _h : "N/A"}`;
+      return `${station}.${(_h = (_g = idMatch == null ? void 0 : idMatch[0]) == null ? void 0 : _g.replace(/\./g, "")) != null ? _h : "---"}`;
     }
-    const id2 = (_i = wmoMatch == null ? void 0 : wmoMatch[1]) != null ? _i : "N/A";
-    return `${station}.${(_j = id2 == null ? void 0 : id2.replace(/\./g, "")) != null ? _j : "N/A"}`;
+    const id2 = (_i = wmoMatch == null ? void 0 : wmoMatch[1]) != null ? _i : "---";
+    return `${station}.${(_j = id2 == null ? void 0 : id2.replace(/\./g, "")) != null ? _j : "---"}`;
   }
 };
+
+// src/@modules/@utilities/utilities.setDebug.ts
+var setDebug = (options) => {
+  var _a, _b, _c, _d;
+  const settings = bootstrap.settings;
+  bootstrap.listener.emit(`debug`, {
+    message: options.message,
+    parent: (_b = (_a = options == null ? void 0 : options.title) == null ? void 0 : _a.split(`.`)[0]) == null ? void 0 : _b.replace(`@`, ``),
+    function: (_c = options == null ? void 0 : options.title) == null ? void 0 : _c.split(`.`)[1]
+  });
+  if (settings.EnableDebugging) {
+    console.log(`[${bootstrap.ansi_colors.BLUE}${(_d = options.title) != null ? _d : `debug`}${bootstrap.ansi_colors.RESET}] ${options.message}`);
+  }
+};
+
+// src/@events/events.text.ts
+var text = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c;
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const props = properties({ message, attributes });
+    const header = getEventHeader({ properties: props, getType: stanza.getType });
+    const issued = new Date(attributes.issue);
+    const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
+    let event = Object.keys(dict_matches).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+    let isStatement = false;
+    if (!event) {
+      event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
+      isStatement = true;
+    }
+    bootstrap.cache.processed.push({
+      type: `Feature`,
+      geometry: {
+        type: `Point`,
+        coordinates: []
+      },
+      properties: __spreadProps(__spreadValues({
+        event,
+        parent: event,
+        status: isStatement ? `Statement` : `Issued`,
+        issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+        expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+      }, props), {
+        metadata: {
+          ms: performance.now() - tick,
+          source: `events.text`,
+          tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+          header,
+          vtec: null,
+          hvtec: null,
+          raw: message,
+          history: [
+            {
+              description: props.description,
+              issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+              status: `Issued`
+            }
+          ]
+        }
+      })
+    });
+    setDebug({ title: `@events.text`, message: `Event process took ${performance.now() - tick} ms` });
+  }
+});
+
+// src/@parsers/@ugc/ugc.header.ts
+var getUGCHeader = (message) => {
+  const start = message.search(dict_expressions.ugc1);
+  const sub = message.substring(start);
+  const end = sub.search(dict_expressions.ugc2);
+  const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
+  return fin != null ? fin : null;
+};
+
+// src/@parsers/@ugc/ugc.zones.ts
+var getZones = (header) => {
+  const splits = header.split("-");
+  const zones = [];
+  let state = splits[0].substring(0, 2);
+  const format = splits[0].substring(2, 3);
+  for (const part of splits) {
+    if (/^[A-Z]/.test(part)) {
+      state = part.substring(0, 2);
+      if (part.includes(">")) {
+        const [start, end] = part.split(">");
+        const startNum = parseInt(start.substring(3), 10);
+        const endNum = parseInt(end, 10);
+        for (let j2 = startNum; j2 <= endNum; j2++) {
+          zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
+        }
+      } else {
+        zones.push(part);
+      }
+      continue;
+    }
+    if (part.includes(">")) {
+      const [start, end] = part.split(">");
+      const startNum = parseInt(start, 10);
+      const endNum = parseInt(end, 10);
+      for (let j2 = startNum; j2 <= endNum; j2++) {
+        zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
+      }
+    } else {
+      zones.push(`${state}${format}${part}`);
+    }
+  }
+  return zones.filter((item) => item !== "");
+};
+
+// src/@parsers/@ugc/ugc.expiry.ts
+var getExpiry = (message) => {
+  const match = message.match(/\b(\d{6})-/);
+  if (!match) {
+    return null;
+  }
+  const date = match == null ? void 0 : match[1];
+  const day = parseInt(date == null ? void 0 : date.slice(0, 2), 10);
+  const hour = parseInt(date == null ? void 0 : date.slice(2, 4), 10);
+  const minute = parseInt(date == null ? void 0 : date.slice(4, 6), 10);
+  const now = /* @__PURE__ */ new Date();
+  const expires = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
+  return expires.toISOString();
+};
+
+// src/@parsers/@ugc/ugc.getCache.ts
+var getCache = (key) => {
+  return bootstrap.cache.ugc.get(key);
+};
+
+// src/@parsers/@ugc/ugc.setCache.ts
+var setCache = (key, value) => {
+  if (bootstrap.cache.ugc.size >= 5e3) {
+    const firstKey = bootstrap.cache.ugc.keys().next().value;
+    bootstrap.cache.ugc.delete(firstKey);
+  }
+  bootstrap.cache.ugc.set(key, value);
+};
+
+// src/@parsers/@ugc/ugc.locations.ts
+var getLocations = (zones) => __async(null, null, function* () {
+  const tick = performance.now();
+  const uniqueZones = Array.from(new Set(zones));
+  const results = [];
+  const missing = [];
+  for (let i = 0; i < uniqueZones.length; i++) {
+    const zone = uniqueZones[i];
+    const cached = getCache(zone);
+    if (cached) {
+      for (let j2 = 0; j2 < cached.length; j2++) {
+        results.push(cached[j2]);
+      }
+    } else {
+      missing.push(zone);
+    }
+  }
+  if (missing.length > 0) {
+    const rows = yield bootstrap.database.prepare(
+      `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => "?").join(",")})`
+    ).all(...missing);
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      setCache(r.id, [r.location]);
+      results.push(r.location);
+    }
+  }
+  return results;
+});
+
+// src/@parsers/@ugc/ugc.extract.ts
+var ugcExtract = (message) => __async(null, null, function* () {
+  const head = getUGCHeader(message);
+  const ugcs = getZones(head);
+  const expires = getExpiry(message);
+  const areas = yield getLocations(ugcs);
+  if (!head || (ugcs == null ? void 0 : ugcs.length) == 0) return;
+  return {
+    zones: ugcs,
+    locations: areas,
+    expires
+  };
+});
+
+// src/@events/events.ugc.ts
+var ugc = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c;
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const ugc2 = yield ugcExtract(message);
+    if (ugc2 != null) {
+      const props = properties({ message, attributes, ugc: ugc2 });
+      const issued = new Date(attributes.issue);
+      const expires = new Date(ugc2.expires);
+      const header = getEventHeader({ properties: props, getType: stanza.getType });
+      let event = Object.keys(dict_matches).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
+      let isStatement = false;
+      if (!event) {
+        event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
+        isStatement = true;
+      }
+      bootstrap.cache.processed.push({
+        type: `Feature`,
+        geometry: {
+          type: `Point`,
+          coordinates: []
+        },
+        properties: __spreadProps(__spreadValues({
+          event,
+          parent: event,
+          status: isStatement ? `Statement` : `Issued`,
+          issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+          expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+        }, props), {
+          metadata: {
+            ms: performance.now() - tick,
+            source: `events.ugc`,
+            tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+            header,
+            vtec: null,
+            hvtec: null,
+            raw: message,
+            history: [
+              {
+                description: props.description,
+                issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+                status: `Issued`
+              }
+            ]
+          }
+        })
+      });
+      setDebug({ title: `@events.ugc`, message: `Event process took ${performance.now() - tick} ms` });
+    }
+  }
+});
+
+// src/@dictionaries/dictionaries.products.ts
+var dict_products = {
+  "O": "Operational Product",
+  "T": "Test Product",
+  "E": "Experimental Product",
+  "X": "Experimental Product (Non-Operational)"
+};
+
+// src/@dictionaries/dictionaries.events.ts
+var dict_events = {
+  "AF": "Ashfall",
+  "AS": "Air Stagnation",
+  "BH": "Beach Hazard",
+  "BW": "Brisk Wind",
+  "BZ": "Blizzard",
+  "CF": "Coastal Flood",
+  "DF": "Debris Flow",
+  "DS": "Dust Storm",
+  "EC": "Extreme Cold",
+  "EH": "Excessive Heat",
+  "XH": "Extreme Heat",
+  "EW": "Extreme Wind",
+  "FA": "Areal Flood",
+  "FF": "Flash Flood",
+  "FG": "Dense Fog",
+  "FL": "Flood",
+  "FR": "Frost",
+  "FW": "Fire Weather",
+  "FZ": "Freeze",
+  "GL": "Gale",
+  "HF": "Hurricane Force Wind",
+  "HT": "Heat",
+  "HU": "Hurricane",
+  "HW": "High Wind",
+  "HY": "Hydrologic",
+  "HZ": "Hard Freeze",
+  "IS": "Ice Storm",
+  "LE": "Lake Effect Snow",
+  "LO": "Low Water",
+  "LS": "Lakeshore Flood",
+  "LW": "Lake Wind",
+  "MA": "Special Marine",
+  "EQ": "Earthquake",
+  "MF": "Dense Fog",
+  "MH": "Ashfall",
+  "MS": "Dense Smoke",
+  "RB": "Small Craft for Rough Bar",
+  "RP": "Rip Current Risk",
+  "SC": "Small Craft",
+  "SE": "Hazardous Seas",
+  "SI": "Small Craft for Winds",
+  "SM": "Dense Smoke",
+  "SQ": "Snow Squall",
+  "SR": "Storm",
+  "SS": "Storm Surge",
+  "SU": "High Surf",
+  "SV": "Severe Thunderstorm",
+  "SW": "Small Craft for Hazardous Seas",
+  "TO": "Tornado",
+  "TR": "Tropical Storm",
+  "TS": "Tsunami",
+  "TY": "Typhoon",
+  "SP": "Special Weather",
+  "UP": "Heavy Freezing Spray",
+  "WC": "Wind Chill",
+  "WI": "Wind",
+  "WS": "Winter Storm",
+  "WW": "Winter Weather",
+  "ZF": "Freezing Fog",
+  "ZR": "Freezing Rain",
+  "ZY": "Freezing Spray"
+};
+
+// src/@dictionaries/dictionaries.actions.ts
+var dict_actions = {
+  "W": "Warning",
+  "F": "Forecast",
+  "A": "Watch",
+  "O": "Outlook",
+  "Y": "Advisory",
+  "N": "Synopsis",
+  "S": "Statement"
+};
+
+// src/@dictionaries/dictionaries.status.ts
+var dict_status = {
+  "NEW": "Issued",
+  "CON": "Updated",
+  "EXT": "Extended",
+  "EXA": "Extended",
+  "EXB": "Extended",
+  "UPG": "Upgraded",
+  "COR": "Correction",
+  "ROU": "Routine",
+  "CAN": "Cancelled",
+  "EXP": "Expired"
+};
+
+// src/@parsers/@pvtec/pvtec.expires.ts
+var getExpiry2 = (dates) => {
+  if ((dates == null ? void 0 : dates[1]) == `000000T0000Z`) return "Invalid Date Format";
+  const expires = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
+  const local = new Date(new Date(expires).getTime() - 4 * 60 * 6e4);
+  const pad = (n) => n.toString().padStart(2, "0");
+  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}:00.000-04:00`;
+};
+
+// src/@parsers/@pvtec/pvtec.extract.ts
+var pvExtract = (message) => {
+  var _a, _b, _c, _d;
+  if (!message) return null;
+  const getVTECs = (_a = message.match(dict_expressions.pvtec)) != null ? _a : [];
+  const vtecs = [];
+  for (const vtec2 of getVTECs) {
+    const sub = vtec2.split(`.`);
+    if ((sub == null ? void 0 : sub.length) < 7) continue;
+    const dates = (_b = sub[6]) == null ? void 0 : _b.split(`-`);
+    vtecs.push({
+      vtec: vtec2,
+      product: dict_products[sub[0]],
+      tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
+      event: `${dict_events[sub[3]]} ${dict_actions[sub[4]]}`,
+      status: dict_status[sub[1]],
+      organization: (_d = (_c = message.match(dict_expressions.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
+      expires: getExpiry2(dates),
+      is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
+      prediction_center: sub[2] == `KWNS` ? true : false
+    });
+  }
+  return vtecs.length > 0 ? vtecs : null;
+};
+
+// src/@dictionaries/dictionaries.causes.ts
+var dict_causes = {
+  "SM": "Snow Melt",
+  "RS": "Rain/Snow Melt",
+  "ER": "Excessive Rain",
+  "DM": "Dam/Levee Failure",
+  "IJ": "Ice Jam",
+  "GO": "Glacier Lake Outburst",
+  "IC": "Ice",
+  "FS": "Flash Flood / Storm Surge",
+  "FT": "Tidal Effects",
+  "ET": "Elevated Upstream Flow",
+  "MC": "Other Multiple Causes",
+  "WT": "Wind and/or Tidal Effects",
+  "DR": "Reservoir Release",
+  "UU": "Unknown",
+  "OT": "Other Effects"
+};
+
+// src/@dictionaries/dictionaries.records.ts
+var dict_records = {
+  "NO": "No Record Expected",
+  "NR": "Near Record or possible record",
+  "UU": "Unknown history of records",
+  "OO": "Other"
+};
+
+// src/@dictionaries/dictionaries.severity.ts
+var dict_severity = {
+  N: "Not Expected",
+  0: "Areal Flood or FF Product",
+  1: "Minor",
+  2: "Moderate",
+  3: "Major",
+  U: "Unknown"
+};
+
+// src/@parsers/@hvtec/hvtec.extract.ts
+var hvExtract = (message) => {
+  var _a;
+  const getHVTECs = (_a = message.match(dict_expressions.hvtec)) != null ? _a : [];
+  const vtecs = [];
+  for (const vtec2 of getHVTECs) {
+    const sub = vtec2.split(`.`);
+    if (sub.length < 7) continue;
+    vtecs.push({
+      hvtec: vtec2,
+      severity: dict_severity[sub[1]],
+      cause: dict_causes[sub[2]],
+      record: dict_records[sub[6]]
+    });
+  }
+  return vtecs.length > 0 ? vtecs : null;
+};
+
+// src/@events/events.vtec.ts
+var vtec = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e;
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const pVtec = pvExtract(message);
+    const hVtec = hvExtract(message);
+    const ugc2 = yield ugcExtract(message);
+    if (pVtec != null && ugc2 != null) {
+      for (const pv of pVtec) {
+        const vtec2 = pv;
+        const props = properties({ message, attributes, ugc: ugc2, pVtec: vtec2 });
+        const header = getEventHeader({ properties: props, getType: stanza.getType, vtec: vtec2 });
+        const issued = (_d = new Date(attributes.issue)) != null ? _d : /* @__PURE__ */ new Date();
+        const expires = new Date(vtec2.expires);
+        bootstrap.cache.processed.push({
+          type: `Feature`,
+          geometry: {
+            type: `Point`,
+            coordinates: []
+          },
+          properties: __spreadProps(__spreadValues({
+            event: pv.event,
+            parent: pv.event,
+            status: pv.status,
+            issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+            expires: !isNaN(expires.getTime()) ? expires.toISOString() : (_e = ugc2.expires) != null ? _e : new Date(issued.getTime() + 60 * 60 * 1e3).toISOString()
+          }, props), {
+            metadata: {
+              ms: performance.now() - tick,
+              source: `events.vtec`,
+              tracking: getEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec: vtec2 }),
+              header,
+              vtec: pv,
+              hvtec: hVtec,
+              raw: message,
+              history: [
+                {
+                  description: props.description,
+                  issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+                  status: pv.status
+                }
+              ]
+            }
+          })
+        });
+        setDebug({ title: `@events.vtec`, message: `Event process took ${performance.now() - tick} ms` });
+      }
+    }
+  }
+});
+
+// src/@events/events.api.ts
+var api = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb, _hb, _ib, _jb, _kb, _lb, _mb, _nb, _ob, _pb, _qb, _rb, _sb, _tb, _ub;
+  const messages = Object.values(JSON.parse(stanza.message).features);
+  for (const feature of messages) {
+    const tick = performance.now();
+    const pVtec = (_d = pvExtract((_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0])) != null ? _d : null;
+    bootstrap.cache.processed.push({
+      type: `Feature`,
+      geometry: {
+        type: `Point`,
+        coordinates: []
+      },
+      properties: {
+        event: (_f = (_e = feature == null ? void 0 : feature.properties) == null ? void 0 : _e.event) != null ? _f : null,
+        parent: (_h = (_g = feature == null ? void 0 : feature.properties) == null ? void 0 : _g.event) != null ? _h : null,
+        status: (_j = (_i = feature == null ? void 0 : feature.properties) == null ? void 0 : _i.messageType) != null ? _j : null,
+        issued: ((_k = feature == null ? void 0 : feature.properties) == null ? void 0 : _k.sent) ? new Date((_l = feature == null ? void 0 : feature.properties) == null ? void 0 : _l.sent).toISOString() : null,
+        expires: ((_m = feature == null ? void 0 : feature.properties) == null ? void 0 : _m.expires) ? new Date((_n = feature == null ? void 0 : feature.properties) == null ? void 0 : _n.expires).toISOString() : null,
+        locations: (_p = (_o = feature == null ? void 0 : feature.properties) == null ? void 0 : _o.areaDesc) != null ? _p : null,
+        locations_array: ((_q = feature == null ? void 0 : feature.properties) == null ? void 0 : _q.areaDesc) ? (_r = feature == null ? void 0 : feature.properties) == null ? void 0 : _r.areaDesc.split(";") : [],
+        description: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.description) != null ? _t : null,
+        attributes: (_v = (_u = feature == null ? void 0 : feature.properties) == null ? void 0 : _u.attributes) != null ? _v : {},
+        geocode: {
+          office: {
+            office: pVtec ? (_w = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _w.tracking.split(`.`)[0] : null,
+            name: (_y = dict_icao[pVtec ? (_x = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _x.tracking.split(`.`)[0] : null]) != null ? _y : null
+          },
+          organization: (_B = (_A = (_z = feature == null ? void 0 : feature.properties) == null ? void 0 : _z.parameters) == null ? void 0 : _A.WMOidentifier) == null ? void 0 : _B[0],
+          ugc: (_E = (_D = (_C = feature == null ? void 0 : feature.properties) == null ? void 0 : _C.geocode) == null ? void 0 : _D.UGC) != null ? _E : [],
+          polygon: ((_F = feature == null ? void 0 : feature.geometry) == null ? void 0 : _F.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_G = feature == null ? void 0 : feature.geometry) == null ? void 0 : _G.coordinates[0]])).toString("base64") : null,
+          polygon_generated: ((_H = feature == null ? void 0 : feature.geometry) == null ? void 0 : _H.coordinates.length) > 0 ? true : false
+        },
+        parameters: {
+          tags: getEventTags((_I = feature == null ? void 0 : feature.properties) == null ? void 0 : _I.description),
+          instructions: (_K = (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.instruction) != null ? _K : null,
+          source: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _M : null,
+          hazards: (_O = getTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _O : null,
+          impacts: (_Q = getTextFromProduct({ message: (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _Q : null,
+          estimated_hail_size: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxHailSize) == null ? void 0 : _T[0]) != null ? _U : null,
+          estimated_wind_gusts: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.maxWindGust) == null ? void 0 : _X[0]) != null ? _Y : null,
+          damage_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.thunderstormDamageThreat) == null ? void 0 : _$[0]) != null ? _aa : null,
+          tornado_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.tornadoDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
+          flood_threat: (_ia = (_ha = (_ga = (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.parameters) == null ? void 0 : _ga.floodDetection) == null ? void 0 : _ha[0]) != null ? _ia : null,
+          wind_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.windThreat) == null ? void 0 : _la[0]) != null ? _ma : null,
+          hail_threat: (_qa = (_pa = (_oa = (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.parameters) == null ? void 0 : _oa.hailThreat) == null ? void 0 : _pa[0]) != null ? _qa : null
+        },
+        discussion_parameters: {
+          discussion_number: (_ua = (_ta = (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _sa.toString()) == null ? void 0 : _ta.padStart(4, "0")) != null ? _ua : null,
+          discussion_concerning: (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`Concerning...`] })) != null ? _wa : null,
+          discussion_max_tornado: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _ya : null,
+          discussion_max_hail: (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _Aa : null,
+          discussion_max_wind: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _Ca : null,
+          discussion_watch_issuance: (_Ea = getTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _Ea : null
+        },
+        watch_parameters: {
+          watch_number: ((_Fa = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _Fa.is_watch) && ((_Qa = (_Pa = (_Ka = (_Ja = (_Ia = (_Ha = getTextFromProduct({ message: (_Ga = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ga.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Ha.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ia.trim()) == null ? void 0 : _Ja.toString()) == null ? void 0 : _Ka.padStart(4, "0")) != null ? _Pa : (_Oa = (_Na = (_Ma = (_La = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _La.tracking) == null ? void 0 : _Ma.slice(-4)) == null ? void 0 : _Na.toString()) == null ? void 0 : _Oa.padStart(4, "0")) != null ? _Qa : null),
+          watch_type: ((_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Sa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Sa.description.includes(`SEVERE`)) ? `Severe` : null,
+          additional_tornadoes_probability: (_Ua = getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
+          strong_tornadoes_probability: (_Wa = getTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
+          severe_wind_probability: (_Ya = getTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ya : null,
+          severe_hail_probability: (__a = getTextFromProduct({ message: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? __a : null,
+          hail_2in_probability: (_ab = getTextFromProduct({ message: (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _ab : null,
+          combined_hail_wind_probability: (_cb = getTextFromProduct({ message: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _cb : null,
+          max_hail_in: (_eb = getTextFromProduct({ message: (_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _eb : null,
+          max_wind_surface: (_gb = getTextFromProduct({ message: (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _gb : null,
+          max_tops_x100feet: (_ib = getTextFromProduct({ message: (_hb = feature == null ? void 0 : feature.properties) == null ? void 0 : _hb.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _ib : null,
+          pds_watch: getTextFromProduct({ message: (_jb = feature == null ? void 0 : feature.properties) == null ? void 0 : _jb.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+        },
+        metadata: {
+          ms: performance.now() - tick,
+          source: `events.api`,
+          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_mb = (_lb = (_kb = feature == null ? void 0 : feature.properties) == null ? void 0 : _kb.parameters) == null ? void 0 : _lb.WMOidentifier) == null ? void 0 : _mb[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec == null ? void 0 : pVtec[0] }),
+          header: `ZCZC-ATMOSX-${(_ob = (_nb = feature == null ? void 0 : feature.properties) == null ? void 0 : _nb.parameters) == null ? void 0 : _ob.WMOidentifier}`,
+          vtec: pVtec == null ? void 0 : pVtec[0],
+          hvtec: null,
+          raw: (_pb = feature == null ? void 0 : feature.properties) == null ? void 0 : _pb.description,
+          history: [
+            {
+              description: (_qb = feature == null ? void 0 : feature.properties) == null ? void 0 : _qb.description,
+              issued: ((_rb = feature == null ? void 0 : feature.properties) == null ? void 0 : _rb.sent) ? new Date((_sb = feature == null ? void 0 : feature.properties) == null ? void 0 : _sb.sent).toISOString() : null,
+              status: (_ub = (_tb = feature == null ? void 0 : feature.properties) == null ? void 0 : _tb.messageType) != null ? _ub : null
+            }
+          ]
+        }
+      }
+    });
+    setDebug({ title: `@events.api`, message: `Event process took ${performance.now() - tick} ms` });
+  }
+});
 
 // src/@building/building.validate.ts
 var import_crypto = require("crypto");
@@ -5316,14 +5895,6 @@ var dict_testing = [
   `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
   "TEST MESSAGE"
 ];
-
-// src/@dictionaries/dictionaries.products.ts
-var dict_products = {
-  "O": "Operational Product",
-  "T": "Test Product",
-  "E": "Experimental Product",
-  "X": "Experimental Product (Non-Operational)"
-};
 
 // src/@dictionaries/dictionaries.hail.ts
 var dict_hail = {
@@ -5748,12 +6319,13 @@ var import_child_process2 = require("child_process");
 var import_os2 = require("os");
 var setEasTone = (options) => __async(null, null, function* () {
   var _a;
+  const tick = performance.now();
   const settings = bootstrap.settings;
   const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
   const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
   let message = options.message;
   let header = options.header;
-  let title = (_a = options.title) != null ? _a : `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}`;
+  let title = ((_a = options.title) != null ? _a : `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
   if (!message || !header) {
     setWarning({
       title: `EAS`,
@@ -5773,8 +6345,8 @@ var setEasTone = (options) => __async(null, null, function* () {
   if (!(0, import_fs2.existsSync)((0, import_path2.join)(directory, `/encoded`))) {
     (0, import_fs2.mkdirSync)((0, import_path2.join)(directory, `/encoded`), { recursive: true });
   }
-  const tmpTTS = (0, import_path2.join)(directory, `/tts/${title}.wav`);
-  const outTTS = (0, import_path2.join)(directory, `/encoded/${title}.wav`);
+  const tmpTTS = (0, import_path2.join)(directory, `/tts/${title.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const outTTS = (0, import_path2.join)(directory, `/encoded/${title.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
   const vPlatform = (0, import_os2.platform)();
   if (vPlatform === "darwin") {
     setWarning({
@@ -5844,6 +6416,7 @@ var setEasTone = (options) => __async(null, null, function* () {
     (0, import_fs2.unlinkSync)(tmpTTS);
   } catch (e) {
   }
+  setDebug({ title: `@eas.setEasTone`, message: `EAS tone generation took ${performance.now() - tick} ms` });
   return outTTS;
 });
 
@@ -5921,10 +6494,27 @@ var createHttp = (options) => __async(null, null, function* () {
   }
 });
 
+// src/@modules/@utilities/utilities.getMatched.ts
+var getMatched = (strings, string) => {
+  const isMatched = strings.some((pattern) => {
+    if (!pattern) return false;
+    const lowerP = pattern.toLowerCase();
+    const lowerS = string.toLowerCase();
+    if (lowerP === "*" || lowerP === lowerS) return true;
+    if (lowerP.includes("*")) {
+      const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
+      return new RegExp(regex).test(lowerS);
+    }
+    return false;
+  });
+  return isMatched;
+};
+
 // src/@manager/manager.updateListener.ts
 var import_fs3 = require("fs");
 var updateListener = (event) => __async(null, null, function* () {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e, _f;
+  const tick = performance.now();
   const settings = bootstrap.settings;
   const listeners2 = settings.ListenerSettings;
   const properties2 = event.properties;
@@ -5945,15 +6535,7 @@ var updateListener = (event) => __async(null, null, function* () {
     const events = listener2 == null ? void 0 : listener2.events;
     const webhook = listener2 == null ? void 0 : listener2.webhook;
     const uploads = listener2 == null ? void 0 : listener2.uploads;
-    const isMatched = events.some((pattern) => {
-      if (!pattern) return false;
-      if (pattern === "*" || pattern === metadata.name) return true;
-      if (pattern.includes("*")) {
-        const regex = "^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
-        return new RegExp(regex).test(metadata.name);
-      }
-      return false;
-    });
+    const isMatched = getMatched(events != null ? events : [], metadata.name);
     if ((events == null ? void 0 : events.length) == 0 || isMatched) {
       if (uploads == null ? void 0 : uploads.eas) {
         metadata.eas = yield setEasTone({
@@ -5965,13 +6547,14 @@ var updateListener = (event) => __async(null, null, function* () {
       if (uploads == null ? void 0 : uploads.file) {
         const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
         if (fDestination) {
+          const file = `${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
           if (!(0, import_fs3.existsSync)(fDestination)) {
             (0, import_fs3.mkdirSync)(fDestination, { recursive: true });
           }
-          if ((0, import_fs3.existsSync)(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`)) {
-            (0, import_fs3.appendFileSync)(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`, metadata.raw);
+          if ((0, import_fs3.existsSync)(file)) {
+            (0, import_fs3.appendFileSync)(file, metadata.raw);
           } else {
-            (0, import_fs3.writeFileSync)(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`, metadata.raw);
+            (0, import_fs3.writeFileSync)(file, metadata.raw);
           }
         }
         metadata.file = metadata.raw;
@@ -5979,15 +6562,16 @@ var updateListener = (event) => __async(null, null, function* () {
       if (uploads == null ? void 0 : uploads.event) {
         const eDestination = settings.GlobalSettings.ArchiveSettings.EventDirectory;
         if (eDestination) {
+          const file = `${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
           if (!(0, import_fs3.existsSync)(eDestination)) {
             (0, import_fs3.mkdirSync)(eDestination, { recursive: true });
           }
-          (0, import_fs3.writeFileSync)(`${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`, JSON.stringify(getCleanedEvent(event), null, 2));
+          (0, import_fs3.writeFileSync)(file, JSON.stringify(getCleanedEvent(event), null, 2));
         }
         metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
       }
-      if (webhook.enabled && webhook.destination) {
-        const ratelimit = setTimeoutAction({ identifier: webhook.destination, interval: webhook.ratelimit * 2, max: webhook.ratelimit, addTime: true });
+      if ((webhook == null ? void 0 : webhook.enabled) && (webhook == null ? void 0 : webhook.destination)) {
+        const isRatelimited = setTimeoutAction({ identifier: webhook.destination, interval: ((_a = webhook.ratelimit) != null ? _a : 2) * 2, max: (_b = webhook.ratelimit) != null ? _b : 2, addTime: true });
         const form = new FormData();
         const embed = {
           title: `${metadata.name} (${metadata.status})`,
@@ -5995,9 +6579,9 @@ var updateListener = (event) => __async(null, null, function* () {
           fields: [],
           color: 16711680,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-          footer: { text: (_a = webhook.title) != null ? _a : `AtmosphericX` }
+          footer: { text: (_c = webhook.title) != null ? _c : `AtmosphericX` }
         };
-        if (ratelimit.limited) {
+        if (isRatelimited.limited) {
           return;
         }
         if (metadata.description && !metadata.expired) {
@@ -6009,7 +6593,7 @@ var updateListener = (event) => __async(null, null, function* () {
             value: metadata.description ? "```\n" + metadata.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
           });
         }
-        if (((_b = metadata.attachments) == null ? void 0 : _b.length) > 0) {
+        if (((_d = metadata.attachments) == null ? void 0 : _d.length) > 0) {
           metadata.attachments = metadata.attachments.slice(0, 5);
           embed.fields.push({
             name: "Attachments",
@@ -6020,7 +6604,7 @@ var updateListener = (event) => __async(null, null, function* () {
           form.append("fUpload", new Blob([Buffer.from(metadata.file)], { type: "application/text" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`);
         }
         if (uploads == null ? void 0 : uploads.event) {
-          form.append("fUpload", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.json`);
+          form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.json`);
         }
         if (uploads == null ? void 0 : uploads.eas) {
           if (metadata.eas) {
@@ -6029,8 +6613,8 @@ var updateListener = (event) => __async(null, null, function* () {
           }
         }
         form.append("payload_json", JSON.stringify({
-          username: (_c = webhook.title) != null ? _c : "AtmosphericX",
-          content: (_d = webhook.message) != null ? _d : "",
+          username: (_e = webhook.title) != null ? _e : "AtmosphericX",
+          content: (_f = webhook.message) != null ? _f : "",
           embeds: [embed]
         }));
         yield createHttp({
@@ -6042,6 +6626,7 @@ var updateListener = (event) => __async(null, null, function* () {
       }
     }
   }
+  setDebug({ title: `@manager.updateListener`, message: `Listener took ${performance.now() - tick} ms` });
 });
 
 // src/@modules/@utilities/utilities.getShapeNearestPoint.ts
@@ -6226,14 +6811,17 @@ var mkEvent = (event) => __async(null, null, function* () {
   if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
     return;
   }
-  setEventEmit({
-    event: `onEventStatus`,
-    metadata: {
-      type: getFeature ? `Updated` : `New`,
-      event
-    },
-    message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
-  });
+  const isRatelimited = setTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
+  if (!isRatelimited.limited) {
+    setEventEmit({
+      event: `onEventStatus`,
+      metadata: {
+        type: getFeature ? `Updated` : `New`,
+        event
+      },
+      message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+    });
+  }
   if (settings.GlobalSettings.EventManagement) {
     if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
       if (getFeature) {
@@ -6290,6 +6878,7 @@ var rmEvent = (event) => __async(null, null, function* () {
     if (cachedStatus != `Statement`) yield updateListener(event);
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
+    setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true });
   }
   setEventEmit({
     event: `onEventCache`,
@@ -6416,6 +7005,7 @@ var getEventAttachments = (event) => {
 // src/@building/building.validate.ts
 var validateEvents = (events) => __async(null, null, function* () {
   var _a;
+  const tick = performance.now();
   if (events.length === 0) return;
   const configurations = bootstrap.settings;
   const sets = {};
@@ -6432,6 +7022,7 @@ var validateEvents = (events) => __async(null, null, function* () {
   }
   const filterd = events.filter((event) => {
     var _a2, _b, _c, _d, _e;
+    bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
     const define2 = getEventSignature(event);
     const properties2 = define2.properties;
     const zones = properties2.geocode.ugc;
@@ -6466,14 +7057,15 @@ var validateEvents = (events) => __async(null, null, function* () {
     }
     for (const key in sets) {
       const setting = sets[key];
-      if (key === "ListeningEvents" && setting.size > 0 && !setting.has(define2.properties.event.toLowerCase())) {
+      const values = [...setting];
+      if (key === "ListeningEvents" && setting.size > 0 && !getMatched(values, define2.properties.event)) {
         setEventEmit({
           event: `onFilteredEvent`,
           metadata: define2
         });
         return false;
       }
-      if (key === "IgnoredEvents" && setting.size > 0 && setting.has(define2.properties.event.toLowerCase())) {
+      if (key === "IgnoredEvents" && setting.size > 0 && getMatched(values, define2.properties.event)) {
         setEventEmit({
           event: `onIgnoredEvent`,
           metadata: define2
@@ -6527,539 +7119,34 @@ var validateEvents = (events) => __async(null, null, function* () {
     metadata: bootstrap.cache.events,
     limited: true
   });
-});
-
-// src/@events/events.text.ts
-var text = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c;
-  let processed = [];
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const props = properties({ message, attributes });
-    const header = getEventHeader({ properties: props, getType: stanza.getType });
-    const issued = new Date(attributes.issue);
-    const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
-    let event = Object.keys(dict_matches).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
-    let isStatement = false;
-    if (!event) {
-      event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
-      isStatement = true;
-    }
-    processed.push({
-      type: `Feature`,
-      geometry: {
-        type: `Point`,
-        coordinates: []
-      },
-      properties: __spreadProps(__spreadValues({
-        event,
-        parent: event,
-        status: isStatement ? `Statement` : `Issued`,
-        issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-        expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
-      }, props), {
-        metadata: {
-          ms: performance.now() - tick,
-          source: `events.text`,
-          tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
-          header,
-          vtec: null,
-          hvtec: null,
-          raw: message,
-          history: [
-            {
-              description: props.description,
-              issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-              status: `Issued`
-            }
-          ]
-        }
-      })
-    });
-  }
-  validateEvents(processed);
-});
-
-// src/@parsers/@ugc/ugc.header.ts
-var getUGCHeader = (message) => {
-  const start = message.search(dict_expressions.ugc1);
-  const sub = message.substring(start);
-  const end = sub.search(dict_expressions.ugc2);
-  const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
-  return fin != null ? fin : null;
-};
-
-// src/@parsers/@ugc/ugc.zones.ts
-var getZones = (header) => {
-  const splits = header.split("-");
-  const zones = [];
-  let state = splits[0].substring(0, 2);
-  const format = splits[0].substring(2, 3);
-  for (const part of splits) {
-    if (/^[A-Z]/.test(part)) {
-      state = part.substring(0, 2);
-      if (part.includes(">")) {
-        const [start, end] = part.split(">");
-        const startNum = parseInt(start.substring(3), 10);
-        const endNum = parseInt(end, 10);
-        for (let j2 = startNum; j2 <= endNum; j2++) {
-          zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
-        }
-      } else {
-        zones.push(part);
-      }
-      continue;
-    }
-    if (part.includes(">")) {
-      const [start, end] = part.split(">");
-      const startNum = parseInt(start, 10);
-      const endNum = parseInt(end, 10);
-      for (let j2 = startNum; j2 <= endNum; j2++) {
-        zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
-      }
-    } else {
-      zones.push(`${state}${format}${part}`);
-    }
-  }
-  return zones.filter((item) => item !== "");
-};
-
-// src/@parsers/@ugc/ugc.expiry.ts
-var getExpiry = (message) => {
-  const match = message.match(/\b(\d{6})-/);
-  if (!match) {
-    return null;
-  }
-  const date = match == null ? void 0 : match[1];
-  const day = parseInt(date == null ? void 0 : date.slice(0, 2), 10);
-  const hour = parseInt(date == null ? void 0 : date.slice(2, 4), 10);
-  const minute = parseInt(date == null ? void 0 : date.slice(4, 6), 10);
-  const now = /* @__PURE__ */ new Date();
-  const expires = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
-  return expires.toISOString();
-};
-
-// src/@parsers/@ugc/ugc.locations.ts
-var getLocations = (zones) => __async(null, null, function* () {
-  const sites = Array.from(new Set(zones));
-  const placeholders = sites.map(() => "?").join(",");
-  const rows = yield bootstrap.database.prepare(`SELECT id, location FROM shapefiles WHERE id IN (${placeholders})`).all(...sites);
-  return rows.map((row) => row.location).sort();
-});
-
-// src/@parsers/@ugc/ugc.extract.ts
-var ugcExtract = (message) => __async(null, null, function* () {
-  const head = getUGCHeader(message);
-  const ugcs = getZones(head);
-  const expires = getExpiry(message);
-  const areas = yield getLocations(ugcs);
-  if (!head || (ugcs == null ? void 0 : ugcs.length) == 0) return;
-  return {
-    zones: ugcs,
-    locations: areas,
-    expires
-  };
-});
-
-// src/@events/events.ugc.ts
-var ugc = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c;
-  let processed = [];
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const ugc2 = yield ugcExtract(message);
-    if (ugc2 != null) {
-      const props = properties({ message, attributes, ugc: ugc2 });
-      const issued = new Date(attributes.issue);
-      const expires = new Date(ugc2.expires);
-      const header = getEventHeader({ properties: props, getType: stanza.getType });
-      let event = Object.keys(dict_matches).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
-      let isStatement = false;
-      if (!event) {
-        event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
-        isStatement = true;
-      }
-      processed.push({
-        type: `Feature`,
-        geometry: {
-          type: `Point`,
-          coordinates: []
-        },
-        properties: __spreadProps(__spreadValues({
-          event,
-          parent: event,
-          status: isStatement ? `Statement` : `Issued`,
-          issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-          expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
-        }, props), {
-          metadata: {
-            ms: performance.now() - tick,
-            source: `events.ugc`,
-            tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
-            header,
-            vtec: null,
-            hvtec: null,
-            raw: message,
-            history: [
-              {
-                description: props.description,
-                issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-                status: `Issued`
-              }
-            ]
-          }
-        })
-      });
-    }
-  }
-  validateEvents(processed);
-});
-
-// src/@dictionaries/dictionaries.events.ts
-var dict_events = {
-  "AF": "Ashfall",
-  "AS": "Air Stagnation",
-  "BH": "Beach Hazard",
-  "BW": "Brisk Wind",
-  "BZ": "Blizzard",
-  "CF": "Coastal Flood",
-  "DF": "Debris Flow",
-  "DS": "Dust Storm",
-  "EC": "Extreme Cold",
-  "EH": "Excessive Heat",
-  "XH": "Extreme Heat",
-  "EW": "Extreme Wind",
-  "FA": "Areal Flood",
-  "FF": "Flash Flood",
-  "FG": "Dense Fog",
-  "FL": "Flood",
-  "FR": "Frost",
-  "FW": "Fire Weather",
-  "FZ": "Freeze",
-  "GL": "Gale",
-  "HF": "Hurricane Force Wind",
-  "HT": "Heat",
-  "HU": "Hurricane",
-  "HW": "High Wind",
-  "HY": "Hydrologic",
-  "HZ": "Hard Freeze",
-  "IS": "Ice Storm",
-  "LE": "Lake Effect Snow",
-  "LO": "Low Water",
-  "LS": "Lakeshore Flood",
-  "LW": "Lake Wind",
-  "MA": "Special Marine",
-  "EQ": "Earthquake",
-  "MF": "Dense Fog",
-  "MH": "Ashfall",
-  "MS": "Dense Smoke",
-  "RB": "Small Craft for Rough Bar",
-  "RP": "Rip Current Risk",
-  "SC": "Small Craft",
-  "SE": "Hazardous Seas",
-  "SI": "Small Craft for Winds",
-  "SM": "Dense Smoke",
-  "SQ": "Snow Squall",
-  "SR": "Storm",
-  "SS": "Storm Surge",
-  "SU": "High Surf",
-  "SV": "Severe Thunderstorm",
-  "SW": "Small Craft for Hazardous Seas",
-  "TO": "Tornado",
-  "TR": "Tropical Storm",
-  "TS": "Tsunami",
-  "TY": "Typhoon",
-  "SP": "Special Weather",
-  "UP": "Heavy Freezing Spray",
-  "WC": "Wind Chill",
-  "WI": "Wind",
-  "WS": "Winter Storm",
-  "WW": "Winter Weather",
-  "ZF": "Freezing Fog",
-  "ZR": "Freezing Rain",
-  "ZY": "Freezing Spray"
-};
-
-// src/@dictionaries/dictionaries.actions.ts
-var dict_actions = {
-  "W": "Warning",
-  "F": "Forecast",
-  "A": "Watch",
-  "O": "Outlook",
-  "Y": "Advisory",
-  "N": "Synopsis",
-  "S": "Statement"
-};
-
-// src/@dictionaries/dictionaries.status.ts
-var dict_status = {
-  "NEW": "Issued",
-  "CON": "Updated",
-  "EXT": "Extended",
-  "EXA": "Extended",
-  "EXB": "Extended",
-  "UPG": "Upgraded",
-  "COR": "Correction",
-  "ROU": "Routine",
-  "CAN": "Cancelled",
-  "EXP": "Expired"
-};
-
-// src/@parsers/@pvtec/pvtec.expires.ts
-var getExpiry2 = (dates) => {
-  if ((dates == null ? void 0 : dates[1]) == `000000T0000Z`) return "Invalid Date Format";
-  const expires = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
-  const local = new Date(new Date(expires).getTime() - 4 * 60 * 6e4);
-  const pad = (n) => n.toString().padStart(2, "0");
-  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}:00.000-04:00`;
-};
-
-// src/@parsers/@pvtec/pvtec.extract.ts
-var pvExtract = (message) => {
-  var _a, _b, _c, _d;
-  if (!message) return null;
-  const getVTECs = (_a = message.match(dict_expressions.pvtec)) != null ? _a : [];
-  const vtecs = [];
-  for (const vtec2 of getVTECs) {
-    const sub = vtec2.split(`.`);
-    if ((sub == null ? void 0 : sub.length) < 7) continue;
-    const dates = (_b = sub[6]) == null ? void 0 : _b.split(`-`);
-    vtecs.push({
-      vtec: vtec2,
-      product: dict_products[sub[0]],
-      tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
-      event: `${dict_events[sub[3]]} ${dict_actions[sub[4]]}`,
-      status: dict_status[sub[1]],
-      organization: (_d = (_c = message.match(dict_expressions.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
-      expires: getExpiry2(dates),
-      is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
-      prediction_center: sub[2] == `KWNS` ? true : false
-    });
-  }
-  return vtecs.length > 0 ? vtecs : null;
-};
-
-// src/@dictionaries/dictionaries.causes.ts
-var dict_causes = {
-  "SM": "Snow Melt",
-  "RS": "Rain/Snow Melt",
-  "ER": "Excessive Rain",
-  "DM": "Dam/Levee Failure",
-  "IJ": "Ice Jam",
-  "GO": "Glacier Lake Outburst",
-  "IC": "Ice",
-  "FS": "Flash Flood / Storm Surge",
-  "FT": "Tidal Effects",
-  "ET": "Elevated Upstream Flow",
-  "MC": "Other Multiple Causes",
-  "WT": "Wind and/or Tidal Effects",
-  "DR": "Reservoir Release",
-  "UU": "Unknown",
-  "OT": "Other Effects"
-};
-
-// src/@dictionaries/dictionaries.records.ts
-var dict_records = {
-  "NO": "No Record Expected",
-  "NR": "Near Record or possible record",
-  "UU": "Unknown history of records",
-  "OO": "Other"
-};
-
-// src/@dictionaries/dictionaries.severity.ts
-var dict_severity = {
-  N: "Not Expected",
-  0: "Areal Flood or FF Product",
-  1: "Minor",
-  2: "Moderate",
-  3: "Major",
-  U: "Unknown"
-};
-
-// src/@parsers/@hvtec/hvtec.extract.ts
-var hvExtract = (message) => {
-  var _a;
-  const getHVTECs = (_a = message.match(dict_expressions.hvtec)) != null ? _a : [];
-  const vtecs = [];
-  for (const vtec2 of getHVTECs) {
-    const sub = vtec2.split(`.`);
-    if (sub.length < 7) continue;
-    vtecs.push({
-      hvtec: vtec2,
-      severity: dict_severity[sub[1]],
-      cause: dict_causes[sub[2]],
-      record: dict_records[sub[6]]
-    });
-  }
-  return vtecs.length > 0 ? vtecs : null;
-};
-
-// src/@events/events.vtec.ts
-var vtec = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e;
-  let processed = [];
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const pVtec = pvExtract(message);
-    const hVtec = hvExtract(message);
-    const ugc2 = yield ugcExtract(message);
-    if (pVtec != null && ugc2 != null) {
-      for (const pv of pVtec) {
-        const vtec2 = pv;
-        const props = properties({ message, attributes, ugc: ugc2, pVtec: vtec2 });
-        const header = getEventHeader({ properties: props, getType: stanza.getType, vtec: vtec2 });
-        const issued = (_d = new Date(attributes.issue)) != null ? _d : /* @__PURE__ */ new Date();
-        const expires = new Date(vtec2.expires);
-        processed.push({
-          type: `Feature`,
-          geometry: {
-            type: `Point`,
-            coordinates: []
-          },
-          properties: __spreadProps(__spreadValues({
-            event: pv.event,
-            parent: pv.event,
-            status: pv.status,
-            issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-            expires: !isNaN(expires.getTime()) ? expires.toISOString() : (_e = ugc2.expires) != null ? _e : new Date(issued.getTime() + 60 * 60 * 1e3).toISOString()
-          }, props), {
-            metadata: {
-              ms: performance.now() - tick,
-              source: `events.vtec`,
-              tracking: getEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec: vtec2 }),
-              header,
-              vtec: pv,
-              hvtec: hVtec,
-              raw: message,
-              history: [
-                {
-                  description: props.description,
-                  issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-                  status: pv.status
-                }
-              ]
-            }
-          })
-        });
-      }
-    }
-  }
-  validateEvents(processed);
-});
-
-// src/@events/events.api.ts
-var api = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb, _hb, _ib, _jb, _kb, _lb, _mb, _nb, _ob, _pb, _qb, _rb, _sb, _tb, _ub;
-  let processed = [];
-  const messages = Object.values(JSON.parse(stanza.message).features);
-  for (const feature of messages) {
-    const tick = performance.now();
-    const pVtec = (_d = pvExtract((_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0])) != null ? _d : null;
-    processed.push({
-      type: `Feature`,
-      geometry: {
-        type: `Point`,
-        coordinates: []
-      },
-      properties: {
-        event: (_f = (_e = feature == null ? void 0 : feature.properties) == null ? void 0 : _e.event) != null ? _f : null,
-        parent: (_h = (_g = feature == null ? void 0 : feature.properties) == null ? void 0 : _g.event) != null ? _h : null,
-        status: (_j = (_i = feature == null ? void 0 : feature.properties) == null ? void 0 : _i.messageType) != null ? _j : null,
-        issued: ((_k = feature == null ? void 0 : feature.properties) == null ? void 0 : _k.sent) ? new Date((_l = feature == null ? void 0 : feature.properties) == null ? void 0 : _l.sent).toISOString() : null,
-        expires: ((_m = feature == null ? void 0 : feature.properties) == null ? void 0 : _m.expires) ? new Date((_n = feature == null ? void 0 : feature.properties) == null ? void 0 : _n.expires).toISOString() : null,
-        locations: (_p = (_o = feature == null ? void 0 : feature.properties) == null ? void 0 : _o.areaDesc) != null ? _p : null,
-        locations_array: ((_q = feature == null ? void 0 : feature.properties) == null ? void 0 : _q.areaDesc) ? (_r = feature == null ? void 0 : feature.properties) == null ? void 0 : _r.areaDesc.split(";") : [],
-        description: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.description) != null ? _t : null,
-        attributes: (_v = (_u = feature == null ? void 0 : feature.properties) == null ? void 0 : _u.attributes) != null ? _v : {},
-        geocode: {
-          office: {
-            office: pVtec ? (_w = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _w.tracking.split(`.`)[0] : null,
-            name: (_y = dict_icao[pVtec ? (_x = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _x.tracking.split(`.`)[0] : null]) != null ? _y : null
-          },
-          organization: (_B = (_A = (_z = feature == null ? void 0 : feature.properties) == null ? void 0 : _z.parameters) == null ? void 0 : _A.WMOidentifier) == null ? void 0 : _B[0],
-          ugc: (_E = (_D = (_C = feature == null ? void 0 : feature.properties) == null ? void 0 : _C.geocode) == null ? void 0 : _D.UGC) != null ? _E : [],
-          polygon: ((_F = feature == null ? void 0 : feature.geometry) == null ? void 0 : _F.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_G = feature == null ? void 0 : feature.geometry) == null ? void 0 : _G.coordinates[0]])).toString("base64") : null,
-          polygon_generated: ((_H = feature == null ? void 0 : feature.geometry) == null ? void 0 : _H.coordinates.length) > 0 ? true : false
-        },
-        parameters: {
-          tags: getEventTags((_I = feature == null ? void 0 : feature.properties) == null ? void 0 : _I.description),
-          instructions: (_K = (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.instruction) != null ? _K : null,
-          source: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _M : null,
-          hazards: (_O = getTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _O : null,
-          impacts: (_Q = getTextFromProduct({ message: (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _Q : null,
-          estimated_hail_size: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxHailSize) == null ? void 0 : _T[0]) != null ? _U : null,
-          estimated_wind_gusts: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.maxWindGust) == null ? void 0 : _X[0]) != null ? _Y : null,
-          damage_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.thunderstormDamageThreat) == null ? void 0 : _$[0]) != null ? _aa : null,
-          tornado_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.tornadoDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
-          flood_threat: (_ia = (_ha = (_ga = (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.parameters) == null ? void 0 : _ga.floodDetection) == null ? void 0 : _ha[0]) != null ? _ia : null,
-          wind_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.windThreat) == null ? void 0 : _la[0]) != null ? _ma : null,
-          hail_threat: (_qa = (_pa = (_oa = (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.parameters) == null ? void 0 : _oa.hailThreat) == null ? void 0 : _pa[0]) != null ? _qa : null
-        },
-        discussion_parameters: {
-          discussion_number: (_ua = (_ta = (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _sa.toString()) == null ? void 0 : _ta.padStart(4, "0")) != null ? _ua : null,
-          discussion_concerning: (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`Concerning...`] })) != null ? _wa : null,
-          discussion_max_tornado: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _ya : null,
-          discussion_max_hail: (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _Aa : null,
-          discussion_max_wind: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _Ca : null,
-          discussion_watch_issuance: (_Ea = getTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _Ea : null
-        },
-        watch_parameters: {
-          watch_number: ((_Fa = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _Fa.is_watch) && ((_Qa = (_Pa = (_Ka = (_Ja = (_Ia = (_Ha = getTextFromProduct({ message: (_Ga = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ga.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Ha.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ia.trim()) == null ? void 0 : _Ja.toString()) == null ? void 0 : _Ka.padStart(4, "0")) != null ? _Pa : (_Oa = (_Na = (_Ma = (_La = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _La.tracking) == null ? void 0 : _Ma.slice(-4)) == null ? void 0 : _Na.toString()) == null ? void 0 : _Oa.padStart(4, "0")) != null ? _Qa : null),
-          watch_type: ((_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Sa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Sa.description.includes(`SEVERE`)) ? `Severe` : null,
-          additional_tornadoes_probability: (_Ua = getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
-          strong_tornadoes_probability: (_Wa = getTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
-          severe_wind_probability: (_Ya = getTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ya : null,
-          severe_hail_probability: (__a = getTextFromProduct({ message: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? __a : null,
-          hail_2in_probability: (_ab = getTextFromProduct({ message: (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _ab : null,
-          combined_hail_wind_probability: (_cb = getTextFromProduct({ message: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _cb : null,
-          max_hail_in: (_eb = getTextFromProduct({ message: (_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _eb : null,
-          max_wind_surface: (_gb = getTextFromProduct({ message: (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _gb : null,
-          max_tops_x100feet: (_ib = getTextFromProduct({ message: (_hb = feature == null ? void 0 : feature.properties) == null ? void 0 : _hb.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _ib : null,
-          pds_watch: getTextFromProduct({ message: (_jb = feature == null ? void 0 : feature.properties) == null ? void 0 : _jb.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
-        },
-        metadata: {
-          ms: performance.now() - tick,
-          source: `events.api`,
-          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_mb = (_lb = (_kb = feature == null ? void 0 : feature.properties) == null ? void 0 : _kb.parameters) == null ? void 0 : _lb.WMOidentifier) == null ? void 0 : _mb[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec == null ? void 0 : pVtec[0] }),
-          header: `ZCZC-ATMOSX-${(_ob = (_nb = feature == null ? void 0 : feature.properties) == null ? void 0 : _nb.parameters) == null ? void 0 : _ob.WMOidentifier}`,
-          vtec: pVtec == null ? void 0 : pVtec[0],
-          hvtec: null,
-          raw: (_pb = feature == null ? void 0 : feature.properties) == null ? void 0 : _pb.description,
-          history: [
-            {
-              description: (_qb = feature == null ? void 0 : feature.properties) == null ? void 0 : _qb.description,
-              issued: ((_rb = feature == null ? void 0 : feature.properties) == null ? void 0 : _rb.sent) ? new Date((_sb = feature == null ? void 0 : feature.properties) == null ? void 0 : _sb.sent).toISOString() : null,
-              status: (_ub = (_tb = feature == null ? void 0 : feature.properties) == null ? void 0 : _tb.messageType) != null ? _ub : null
-            }
-          ]
-        }
-      }
-    });
-  }
-  validateEvents(processed);
+  setDebug({ title: `@building.validate`, message: `Filtered ${filterd.length} events which took ${performance.now() - tick} ms` });
 });
 
 // src/@building/building.create.ts
-var createEvent = (stanza) => __async(null, null, function* () {
+var createEvent = (stanza, ignorePushing) => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
   const isVtecEvent = stanza.isVTEC && stanza.isUGC;
   const isUgcEvent = !stanza.isVTEC && stanza.isUGC;
   const isTextEvent = !stanza.isVTEC && !stanza.isUGC;
   const isNWWS = stanza.isNWWS;
-  if (!isNWWS) return yield api(stanza);
-  if (!StanzaSettings.DisableVTEC && isVtecEvent) return yield vtec(stanza);
-  if (!StanzaSettings.DisableUGC && isUgcEvent) return yield ugc(stanza);
-  if (!StanzaSettings.DisableText && isTextEvent) return yield text(stanza);
+  switch (true) {
+    case !isNWWS:
+      yield api(stanza);
+      break;
+    case (isNWWS && !StanzaSettings.DisableVTEC && isVtecEvent):
+      yield vtec(stanza);
+      break;
+    case (isNWWS && !StanzaSettings.DisableUGC && isUgcEvent):
+      yield ugc(stanza);
+      break;
+    case (isNWWS && !StanzaSettings.DisableText && isTextEvent):
+      yield text(stanza);
+      break;
+  }
+  if (!ignorePushing) {
+    validateEvents(bootstrap.cache.processed);
+  }
   return "nothing picked";
 });
 
@@ -7326,7 +7413,7 @@ var getCachedEvents = () => __async(null, null, function* () {
     if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
       const max = (_a = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory) != null ? _a : 500;
       const get = yield bootstrap.database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max);
-      setWarning({ message: `Fetched ${get.length} cached events from the database in ${Math.floor(performance.now() - tick)} ms` });
+      setWarning({ message: `Fetched ${get.length} cached stanzas from the database in ${Math.floor(performance.now() - tick)} ms` });
       let events = get.map((row) => JSON.parse(row.stanza)).filter((stanza) => {
         if (!stanza) {
           return;
@@ -7335,11 +7422,12 @@ var getCachedEvents = () => __async(null, null, function* () {
         return !isSkippable;
       });
       events = events.sort((a, b) => b.issued - a.issued);
-      yield Promise.all(events.map((event) => createEvent(event)));
-      setWarning({ message: `Processed ${events.length} cached events in ${Math.floor(performance.now() - tick)} ms` });
+      yield Promise.all(events.map((event) => createEvent(event, true)));
+      setWarning({ message: `Processed ${events.length} cached stanzas in ${Math.floor(performance.now() - tick)} ms` });
+      validateEvents(bootstrap.cache.processed);
     }
   } catch (error) {
-    setWarning({ message: `An error occurred while fetching cached events: ${error.message} -> ${error.stack}` });
+    setWarning({ message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` });
   }
 });
 

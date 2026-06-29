@@ -19,15 +19,15 @@
 
 import { TypeAttributes } from "../@types/type.attributes";
 import { TypeStanzaCompiled } from "../@types/type.compiled"
-import { TypeEvent } from "../@types/type.event";
+import { bootstrap } from "../bootstrap";
 import { properties } from "../@building/building.properties";
 import { getEventHeader } from "../@building/building.headers";
 import { dict_matches } from "../@dictionaries/dictionaries.matches";
 import { getEventTracking } from "../@building/building.tracking";
-import { validateEvents } from "../@building/building.validate";
+import { setDebug } from "../@modules/@utilities/utilities.setDebug";
+
 
 export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    let processed: TypeEvent[] = [];
     const getMessages = stanza?.message
         ?.split(/(?=\$\$)/g)
         ?.map(message => message.trim())
@@ -46,7 +46,7 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
             event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
             isStatement = true;
         }
-        processed.push({
+        bootstrap.cache.processed.push({
             type: `Feature`,
             geometry: {
                 type: `Point`,
@@ -77,6 +77,6 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 }
             }
         })  
+        setDebug({ title: `@events.text`, message: `Event process took ${performance.now() - tick} ms` })
     }
-    validateEvents(processed)
 }

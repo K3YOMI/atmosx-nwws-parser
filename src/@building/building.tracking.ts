@@ -57,12 +57,12 @@ export const getEventTracking = (options: GetTrackingOptions): string => {
             return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
         }
         const wmoMatch = options.organization?.wmoidentifier?.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
-        const station = wmoMatch?.[2] ?? 'N/A';
+        const station = wmoMatch?.[2] ?? '---';
         if (options.organization.featureId) {
             const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
-            return `${station}.${idMatch?.[0]?.replace(/\./g, '') ?? 'N/A'}`;
+            return `${station}.${idMatch?.[0]?.replace(/\./g, '') ?? '---'}`;
         }
-        const id = wmoMatch?.[1] ?? 'N/A';
-        return `${station}.${id?.replace(/\./g, '') ?? 'N/A'}`;
+        const id = wmoMatch?.[1] ?? '---';
+        return `${station}.${id?.replace(/\./g, '') ?? '---'}`;
     }
 }

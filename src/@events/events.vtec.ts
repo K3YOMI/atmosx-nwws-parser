@@ -22,16 +22,16 @@ import { TypeStanzaCompiled } from "../@types/type.compiled"
 import { TypeEvent } from "../@types/type.event";
 import { TypePVTEC } from "../@types/type.pvtec";
 import { TypeHVTEC } from "../@types/type.hvtec";
+import { bootstrap } from "../bootstrap";
 import { pvExtract } from "../@parsers/@pvtec/pvtec.extract";
 import { hvExtract } from "../@parsers/@hvtec/hvtec.extract";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";
 import { properties } from "../@building/building.properties";
 import { getEventHeader } from "../@building/building.headers";
 import { getEventTracking } from "../@building/building.tracking";
-import { validateEvents } from "../@building/building.validate";
+import { setDebug } from "../@modules/@utilities/utilities.setDebug";
 
 export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    let processed: TypeEvent[] = [];
     const getMessages = stanza?.message
         ?.split(/(?=\$\$)/g)
         ?.map(message => message.trim())
@@ -50,7 +50,7 @@ export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 const header = getEventHeader({properties: props, getType: stanza.getType, vtec: vtec})
                 const issued = new Date(attributes.issue)?? new Date()
                 const expires = new Date(vtec.expires)
-                processed.push({
+                bootstrap.cache.processed.push({
                     type: `Feature`,
                     geometry: {
                         type: `Point`,
@@ -81,8 +81,8 @@ export const vtec = async (stanza: TypeStanzaCompiled): Promise<void> => {
                         }
                     }
                 })
+                setDebug({ title: `@events.vtec`, message: `Event process took ${performance.now() - tick} ms` })
             }
         }
     }
-    validateEvents(processed)
 }

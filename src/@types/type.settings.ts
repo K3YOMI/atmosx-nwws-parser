@@ -23,6 +23,7 @@ export type TypeSettings = {
     Database: string
     EnableWireService: boolean
     EnableJournal: boolean
+    EnableDebugging: boolean
     NOAAWeatherWireServiceSettings: {
         ReconnectionSettings: {
             Enabled: boolean

@@ -26,13 +26,14 @@ import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAct
 import { getEmebed } from "../@parsers/@text/text.getEmbed";
 import { getCleanedEvent } from "../@building/building.clean"
 import { createHttp } from "../@modules/@utilities/utilities.createHttp";
+import { setDebug } from "../@modules/@utilities/utilities.setDebug";
+import { getMatched } from "../@modules/@utilities/utilities.getMatched";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from "fs";
-import { setWarning } from "../@modules/@utilities/utilities.setWarning";
-
 
 
 
 export const updateListener = async (event: TypeEvent): Promise<void> => {
+    const tick = performance.now()
     const settings = bootstrap.settings;
     const listeners = settings.ListenerSettings as TypeListener[];
     const properties = event.properties;
@@ -54,16 +55,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
         const events = listener?.events;
         const webhook = listener?.webhook;
         const uploads = listener?.uploads
-        const isMatched = events.some(pattern => {
-            if (!pattern) return false;
-            if (pattern === "*" || pattern === metadata.name) return true;
-            if (pattern.includes("*")) {
-                const regex = "^" +
-                    pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
-                return new RegExp(regex).test(metadata.name);
-            }
-            return false;
-        });
+        const isMatched = getMatched(events ?? [], metadata.name)
 
         if (events?.length == 0 || isMatched) {
             if (uploads?.eas) { 
@@ -77,11 +69,12 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
             if (uploads?.file) {
                 const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
                 if (fDestination) {
+                    const file = (`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
                     if (!existsSync(fDestination)) { mkdirSync(fDestination, { recursive: true }); }
-                    if (existsSync(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`)) {
-                        appendFileSync(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`, metadata.raw);
+                    if (existsSync(file)) {
+                        appendFileSync(file, metadata.raw);
                     } else {
-                        writeFileSync(`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`, metadata.raw);
+                        writeFileSync(file, metadata.raw);
                     }
                 }
                 metadata.file = metadata.raw;
@@ -90,14 +83,15 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
             if (uploads?.event) {
                 const eDestination = settings.GlobalSettings.ArchiveSettings.EventDirectory;
                 if (eDestination) {
+                    const file = (`${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
                     if (!existsSync(eDestination)) { mkdirSync(eDestination, { recursive: true }); }
-                    writeFileSync(`${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`, JSON.stringify(getCleanedEvent(event), null, 2));
+                    writeFileSync(file, JSON.stringify(getCleanedEvent(event), null, 2));
                 }
                 metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
             }
 
-            if (webhook.enabled && webhook.destination) {
-                const ratelimit = setTimeoutAction({ identifier: webhook.destination, interval: webhook.ratelimit * 2, max: webhook.ratelimit, addTime: true })
+            if (webhook?.enabled && webhook?.destination) {
+                const isRatelimited = setTimeoutAction({ identifier: webhook.destination, interval: (webhook.ratelimit ?? 2) * 2, max: (webhook.ratelimit ?? 2), addTime: true })
                 const form = new FormData();
                 const embed = {
                     title: `${metadata.name} (${metadata.status})`,
@@ -108,7 +102,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     footer: { text: webhook.title ?? `AtmosphericX` }
                 };
 
-                if (ratelimit.limited) { return } 
+                if (isRatelimited.limited) { return } 
 
 
                 if (metadata.description && !metadata.expired) {
@@ -135,7 +129,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 }
 
                 if (uploads?.event) { 
-                    form.append("fUpload", new Blob([Buffer.from(metadata.json)], {type: "application/json"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`)
+                    form.append("fUpload2", new Blob([Buffer.from(metadata.json)], {type: "application/json"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`)
                 }
 
                 if (uploads?.eas) { 
@@ -157,8 +151,8 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     method: `POST`,
                     body: form
                 })
-
             }
         }
     }
+    setDebug({ title: `@manager.updateListener`, message: `Listener took ${performance.now() - tick} ms` })
 }

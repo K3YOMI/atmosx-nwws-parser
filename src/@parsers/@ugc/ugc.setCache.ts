@@ -17,18 +17,12 @@
 
 */
 
-import { TypeEvent } from "../@types/type.event";
-import { bootstrap } from "../bootstrap"
-import { rmEvent } from "./manager.rmEvent";
+import { bootstrap } from "../../bootstrap";
 
-
-export const updateEvents = async (selectedEvent?: TypeEvent): Promise<void> => {
-    const events = bootstrap.cache.events.features;
-    async function update(evt: TypeEvent) {
-        if (new Date(evt.properties.expires) < new Date()) {
-            await rmEvent(evt);
-        }
+export const setCache = (key: string, value: string[]) => {
+	if (bootstrap.cache.ugc.size >= 5000) {
+        const firstKey = bootstrap.cache.ugc.keys().next().value;
+        bootstrap.cache.ugc.delete(firstKey);
     }
-    if (!selectedEvent) { await Promise.all(events.map(async (evt) => { await update(evt) })) } 
-    if (selectedEvent) { await update(selectedEvent) }
-}
+    bootstrap.cache.ugc.set(key, value);
+};

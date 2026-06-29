@@ -34,6 +34,7 @@ import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
 import { execSync } from 'child_process'
 import { platform } from 'os'
+import { setDebug } from "../@utilities/utilities.setDebug";
 
 interface GenerateEASOptions { 
     message: string
@@ -42,12 +43,13 @@ interface GenerateEASOptions {
 }
 
 export const setEasTone = async (options: GenerateEASOptions): Promise<string> => {
+    const tick = performance.now()
     const settings = bootstrap.settings as TypeSettings;
     const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
     const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
     let message = options.message;
     let header = options.header;
-    let title = options.title ?? `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}`;
+    let title = (options.title ?? `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
     if (!message || !header) {
         setWarning({
             title: `EAS`,
@@ -68,9 +70,9 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     if (!existsSync(join(directory, `/encoded`))) {
         mkdirSync(join(directory, `/encoded`), { recursive: true });
     }
-
-    const tmpTTS = join(directory, `/tts/${title}.wav`)
-    const outTTS = join(directory, `/encoded/${title}.wav`)
+    // remove stuff like Civil Emergency Message_Issued_N\A.N\A.txt with the \
+    const tmpTTS = join(directory, `/tts/${title.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
+    const outTTS = join(directory, `/encoded/${title.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
     const vPlatform = platform();
 
     if (vPlatform === 'darwin') {
@@ -141,6 +143,7 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     const aBuffer = getPCM16(Array.from(aFinal).map(v => ({ value: v })), 8000);
     writeFileSync(outTTS, aBuffer)
     try{ unlinkSync(tmpTTS) } catch {}
+    setDebug({ title: `@eas.setEasTone`, message: `EAS tone generation took ${performance.now() - tick} ms` })
     return outTTS;
 }
 

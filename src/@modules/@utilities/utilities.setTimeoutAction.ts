@@ -23,7 +23,8 @@ interface SetTimeoutActionOptions {
     identifier: string
     addTime?: boolean
     max?: number
-    interval: number
+    interval?: number
+    expire?: boolean
 }
 
 type SetTimeoutActionResponse = {
@@ -37,6 +38,9 @@ export const setTimeoutAction = (options: SetTimeoutActionOptions): SetTimeoutAc
     if (!target) {
         bootstrap.ratelimits[options?.identifier] = [];
         target = bootstrap.ratelimits[options?.identifier];
+    }
+    if (options?.expire) {
+        delete bootstrap.ratelimits[options?.identifier];
     }
     if (target?.length > 0) {
        bootstrap.ratelimits[options?.identifier] = target.filter((ts: number) => Date.now() - ts < options?.interval * 1000);

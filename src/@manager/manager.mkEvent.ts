@@ -17,13 +17,14 @@
 
 */
 
-import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { TypeEvent } from "../@types/type.event";
+import { TypeSettings } from "../@types/type.settings";
 import { bootstrap } from "../bootstrap"
 import { setHash } from "./manager.setHash";
 import { updateListener } from "./manager.updateListener";
 import { updateNode } from "./manager.updateNodes";
-import { TypeSettings } from "../@types/type.settings";
+import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
+import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
 
 export const mkEvent = async (event: TypeEvent): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
@@ -40,14 +41,18 @@ export const mkEvent = async (event: TypeEvent): Promise<void> => {
     const isFilteredLocation = await updateNode(event).then(() => event.properties.metadata.filtered_proximity);
     if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) { return }
 
-    setEventEmit({
-        event: `onEventStatus`,
-        metadata: {
-            type: getFeature ? `Updated` : `New`,
-            event: event
-        },
-        message: `[${getFeature ? 'Updated' : 'New'}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
-    })
+    const isRatelimited = setTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true })
+    if (!isRatelimited.limited) {
+        setEventEmit({
+            event: `onEventStatus`,
+            metadata: {
+                type: getFeature ? `Updated` : `New`,
+                event: event
+            },
+            message: `[${getFeature ? 'Updated' : 'New'}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+        })
+    }
+
     if (settings.GlobalSettings.EventManagement) {
         if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
             if (getFeature) { 

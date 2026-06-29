@@ -26,6 +26,7 @@ const Client = new Manager({
     Database: `shapefiles.db`,
     EnableWireService: false,
     EnableJournal: true,
+    EnableDebugging: false,
     NOAAWeatherWireServiceSettings: {
         ReconnectionSettings: {
             Enabled: true,
@@ -83,30 +84,23 @@ const Client = new Manager({
         NodeMinDistance: 120,
         EventFiltering: {
             ListeningEvents: [
-                "Tornado Emergency", "PDS Tornado Warning", "Tornado Warning",
-                "Confirmed Tornado Warning", "Radar Indicated Tornado Warning",
-                "Special Marine Warning (TPROB)", "PDS Tornado Watch", "Tornado Watch",
-                "EDS Severe Thunderstorm Warning (TPROB)", "EDS Severe Thunderstorm Warning",
-                "Destructive Severe Thunderstorm Warning (TPROB)", "Destructive Severe Thunderstorm Warning",
-                "Considerable Severe Thunderstorm Warning (TPROB)", "Considerable Severe Thunderstorm Warning",
-                "Severe Thunderstorm Warning (TPROB)", "Severe Thunderstorm Warning",
-                "Severe Thunderstorm Watch",
-                "Flash Flood Emergency", "Flash Flood Warning",
-                "Flash Flood Watch",
-                "Tsunami Warning", "Tsunami Watch",
-                "Tsunami Advisory", "Special Marine Warning",
-                "Earthquake Warning",
-                "Hurricane Warning", "Hurricane Watch",
-                "Tropical Storm Warning",
-                "Winter Storm Warning", "Blizzard Warning",
-                "Ice Storm Warning", "Snow Squall Warning",
-                "Winter Weather Advisory", "Extreme Cold Watch"
+                "*Severe Thunderstorm Warning*",
+                "*Blizzard*", "*Ice Storm*", "*Winter Storm*", "*Snow Squall*",
+                "Tornado Emergency", "*Tornado Warning*",
+                "Special Weather Statement", "Marine Weather Statement",
+                "*Tsunami*", "*Hurricane*", "*Tropical Storm*", "*Special Marine*",
+                "*Flash Flood Warning*", "*Flash Flood Watch*", "*Flash Flood Advisory*",
+                "Mesoscale Discussion",
+                "SPC Day 1 Outlook", "SPC Day 2 Outlook", "SPC Day 3 Outlook",
+                "PDS Tornado Watch", "Tornado Watch", "Severe Thunderstorm Watch", "Flash Flood Watch", "PDS Severe Thunderstorm Watch",
+                "*Administrative*", "National Weather Service Policy",
+                "Fire Weather Warning", "Fire Weather Watch", "Fire Weather Advisory",
             ],
-            ListeningICAO: [],
+            ListeningICAO: [`KLOT`],
             IgnoredICAO: [],
             IgnoredEvents: [],
-            ListeningUGC: [],
-            ListeningStates: [],
+            ListeningUGC: [`WIC001`],
+            ListeningStates: [`MO`, `IA`],
             NodeLocationFiltering: false,
             IgnoreTestProducts: true,
         },
@@ -176,6 +170,27 @@ const Client = new Manager({
 - **TextDirectory**: The location to store text products that are generated.
 - **EasDirectory**: The location to store audio eas files that are generated.
 - **EasToneout**: The toneout prefix to use for generated eas messages.
+
+
+## How do custom listeners work?
+
+Custom listeners are case insensitive rules used by `ListeningEvents`, `IgnoredEvents`, and ListenerSettings `events` to determine whether an input matches.
+
+They support:
+- Exact matches (e.g. `"Tornado Watch"`)
+- Global wildcard (`"*"` matches everything)
+- Partial wildcards (`*text*` matches anything containing that text)
+
+Example rules:
+```json
+["*Severe Thunderstorm Warning*", "Tornado Watch", "*Flash Flood Warning*"]
+```
+
+Example Results:
+- Considerable Severe Thunderstorm Warning: ✅
+- Tornado Warning: ❌
+- Severe Thunderstorm Warning (TPROB): ✅
+- Flash Flood Emergency: ❌
 
 ## Events and Listeners
 
@@ -258,6 +273,18 @@ Client.on(`onEventStatus`, (cache) => {
 	/*
 		type: string
 		event: <TypeEvent>
+	*/
+})
+```
+
+### Event `debug`
+Triggers when a debug message gets emitted, this can automatically be used without the listener by enabling `EnableDebugger`. This also includes the `parent` and the `function` names.
+```ts
+Client.on(`debug`, (debug) => {
+	/*
+		message: string
+		parent: string
+		function: string
 	*/
 })
 ```

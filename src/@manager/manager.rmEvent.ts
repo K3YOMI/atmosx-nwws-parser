@@ -18,6 +18,7 @@
 */
 
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
+import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
 import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
 import { updateListener } from "./manager.updateListener";
@@ -41,6 +42,7 @@ export const rmEvent = async (event: TypeEvent): Promise<void> => {
         if (cachedStatus != `Statement`) await updateListener(event)
         bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
         bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
+        setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true })
     }
     setEventEmit({
         event: `onEventCache`,

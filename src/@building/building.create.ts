@@ -24,8 +24,9 @@ import { text } from "../@events/events.text"
 import { ugc } from "../@events/events.ugc"
 import { vtec } from "../@events/events.vtec"
 import { api } from "../@events/events.api"
+import { validateEvents } from "./building.validate"
 
-export const createEvent = async (stanza: TypeStanzaCompiled): Promise<void | string> => {
+export const createEvent = async (stanza: TypeStanzaCompiled, ignorePushing?: boolean): Promise<void | string> => {
     const settings = bootstrap.settings as TypeSettings
     const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
 
@@ -34,9 +35,22 @@ export const createEvent = async (stanza: TypeStanzaCompiled): Promise<void | st
     const isTextEvent = (!stanza.isVTEC && !stanza.isUGC)
     const isNWWS = (stanza.isNWWS)
 
-    if (!isNWWS) return await api(stanza)
-    if (!StanzaSettings.DisableVTEC && isVtecEvent) return await vtec(stanza)
-    if (!StanzaSettings.DisableUGC && isUgcEvent) return await ugc(stanza);
-    if (!StanzaSettings.DisableText && isTextEvent) return await text(stanza);
+    switch (true) {
+        case (!isNWWS):
+            await api(stanza)
+            break;
+        case (isNWWS && !StanzaSettings.DisableVTEC && isVtecEvent):
+            await vtec(stanza)
+            break;
+        case (isNWWS && !StanzaSettings.DisableUGC && isUgcEvent):
+            await ugc(stanza)
+            break;
+        case (isNWWS && !StanzaSettings.DisableText && isTextEvent):
+            await text(stanza)
+            break;
+    }
+    if (!ignorePushing) {
+        validateEvents(bootstrap.cache.processed)
+    }
     return 'nothing picked';
 }

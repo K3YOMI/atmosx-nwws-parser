@@ -21,7 +21,7 @@ import path from 'path'
 import { EventEmitter } from 'node:events';
 
 export const bootstrap = {
-    version: `3.0.48`,
+    version: `3.0.5`,
     isReady: true,
     ratelimits: {},
     session_xmpp: null,
@@ -42,10 +42,13 @@ export const bootstrap = {
         events: {type: "FeatureCollection", features: []},
         nodes: {type: "FeatureCollection", features: []},
         hashes: [],
+        processed: [],
+        ugc: new Map<string, string[]>()
     },
     settings: {
         Database: path.join(process.cwd(), 'shapefiles.db'),
         EnableWireService: true,
+        EnableDebugging: false,
         EnableJournal: true,
         NOAAWeatherWireServiceSettings: {
             ReconnectionSettings: {

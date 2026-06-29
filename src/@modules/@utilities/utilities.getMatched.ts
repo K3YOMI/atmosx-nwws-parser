@@ -17,18 +17,17 @@
 
 */
 
-import { TypeEvent } from "../@types/type.event";
-import { bootstrap } from "../bootstrap"
-import { rmEvent } from "./manager.rmEvent";
-
-
-export const updateEvents = async (selectedEvent?: TypeEvent): Promise<void> => {
-    const events = bootstrap.cache.events.features;
-    async function update(evt: TypeEvent) {
-        if (new Date(evt.properties.expires) < new Date()) {
-            await rmEvent(evt);
+export const getMatched = (strings: string[], string: string): boolean => {
+    const isMatched = strings.some(pattern => {
+        if (!pattern) return false;
+        const lowerP = pattern.toLowerCase();
+        const lowerS = string.toLowerCase()
+        if (lowerP === "*" || lowerP === lowerS) return true;
+        if (lowerP.includes("*")) {
+            const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
+            return new RegExp(regex).test(lowerS);
         }
-    }
-    if (!selectedEvent) { await Promise.all(events.map(async (evt) => { await update(evt) })) } 
-    if (selectedEvent) { await update(selectedEvent) }
+        return false;
+    });
+    return isMatched;
 }

@@ -19,16 +19,16 @@
 
 import { TypeAttributes } from "../@types/type.attributes";
 import { TypeStanzaCompiled } from "../@types/type.compiled"
-import { TypeEvent } from "../@types/type.event";
+import { bootstrap } from "../bootstrap";
 import { dict_matches } from "../@dictionaries/dictionaries.matches";
 import { ugcExtract } from "../@parsers/@ugc/ugc.extract";
 import { properties } from "../@building/building.properties";
 import { getEventHeader } from "../@building/building.headers";
 import { getEventTracking } from "../@building/building.tracking";
-import { validateEvents } from "../@building/building.validate";
+import { setDebug } from "../@modules/@utilities/utilities.setDebug";
+
 
 export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    let processed: TypeEvent[] = [];
     const getMessages = stanza?.message
         ?.split(/(?=\$\$)/g)
         ?.map(message => message.trim())
@@ -38,6 +38,7 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
         const tick = performance.now();
         const attributes = stanza?.attributes as TypeAttributes
         const ugc = await ugcExtract(message)
+
         if (ugc != null ) {
             const props = properties({ message, attributes, ugc: ugc })
             const issued = new Date(attributes.issue)
@@ -49,7 +50,7 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
                 isStatement = true;
             }
-            processed.push({
+            bootstrap.cache.processed.push({
                 type: `Feature`,
                 geometry: {
                     type: `Point`,
@@ -80,7 +81,7 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     }
                 }
             })
+            setDebug({ title: `@events.ugc`, message: `Event process took ${performance.now() - tick} ms` })
         }
     }
-    validateEvents(processed)
 }

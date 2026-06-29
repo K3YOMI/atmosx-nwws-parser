@@ -17,18 +17,22 @@
 
 */
 
-import { TypeEvent } from "../@types/type.event";
-import { bootstrap } from "../bootstrap"
-import { rmEvent } from "./manager.rmEvent";
+import { bootstrap } from "../../bootstrap"
+import { TypeSettings } from "../../@types/type.settings";
 
+interface SetDebugOptions { 
+    title?: string
+    message: string
+}
 
-export const updateEvents = async (selectedEvent?: TypeEvent): Promise<void> => {
-    const events = bootstrap.cache.events.features;
-    async function update(evt: TypeEvent) {
-        if (new Date(evt.properties.expires) < new Date()) {
-            await rmEvent(evt);
-        }
+export const setDebug = (options: SetDebugOptions): void => {
+    const settings = bootstrap.settings as TypeSettings;
+    bootstrap.listener.emit(`debug`, {
+        message: options.message,
+        parent: options?.title?.split(`.`)[0]?.replace(`@`, ``),
+        function: options?.title?.split(`.`)[1]
+    })
+    if (settings.EnableDebugging) { 
+        console.log(`[${bootstrap.ansi_colors.BLUE}${options.title ?? `debug`}${bootstrap.ansi_colors.RESET}] ${options.message}`)
     }
-    if (!selectedEvent) { await Promise.all(events.map(async (evt) => { await update(evt) })) } 
-    if (selectedEvent) { await update(selectedEvent) }
 }

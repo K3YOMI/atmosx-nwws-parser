@@ -21,6 +21,7 @@ import { TypeSettings } from "../../@types/type.settings"
 import { bootstrap } from '../../bootstrap'
 import { setWarning } from '../@utilities/utilities.setWarning';
 import { createEvent } from '../../@building/building.create';
+import { validateEvents } from "../../@building/building.validate";
 
 export const getCachedEvents = async (): Promise<void> => {
     try { 
@@ -29,7 +30,7 @@ export const getCachedEvents = async (): Promise<void> => {
         if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
             const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory ?? 500;
             const get = await bootstrap.database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max) as { rowid: number; stanza: string }[];
-            setWarning({ message: `Fetched ${get.length} cached events from the database in ${Math.floor(performance.now() - tick)} ms` })
+            setWarning({ message: `Fetched ${get.length} cached stanzas from the database in ${Math.floor(performance.now() - tick)} ms` })
             let events = get.map((row) => JSON.parse(row.stanza))
                 .filter(stanza => {
                     if (!stanza) { return }
@@ -39,10 +40,11 @@ export const getCachedEvents = async (): Promise<void> => {
                     return !isSkippable
                 });
             events = events.sort((a, b) => b.issued - a.issued)
-            await Promise.all(events.map(event => createEvent(event)))
-            setWarning({ message: `Processed ${events.length} cached events in ${Math.floor(performance.now() - tick)} ms` })
+            await Promise.all(events.map(event => createEvent(event, true)))
+            setWarning({ message: `Processed ${events.length} cached stanzas in ${Math.floor(performance.now() - tick)} ms` })
+            validateEvents(bootstrap.cache.processed)
         }
     } catch (error) {
-        setWarning({ message: `An error occurred while fetching cached events: ${error.message} -> ${error.stack}` })
+        setWarning({ message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` })
     }
 }

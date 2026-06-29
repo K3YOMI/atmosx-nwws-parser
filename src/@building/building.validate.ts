@@ -29,9 +29,12 @@ import { getEventGeometry } from "./building.geometry";
 import { getEventAttachments } from "./building.attachments";
 import { updateNode } from "../@manager/manager.updateNodes";
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
+import { setDebug } from "../@modules/@utilities/utilities.setDebug";
+import { getMatched } from "../@modules/@utilities/utilities.getMatched";
 
 export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
-    if (events.length === 0) return;
+    const tick = performance.now();
+    if (events.length === 0) return
     const configurations = bootstrap.settings as TypeSettings
     const sets = {} as Record<string, Set<string>>;
     const bools = {} as Record<string, boolean>;
@@ -42,6 +45,7 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         if (typeof setting === 'boolean') { bools[key] = setting; }
     }
     const filterd = events.filter((event: TypeEvent) => {
+        bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
         const define = getEventSignature(event) as TypeEvent;
         const properties = define.properties;
         const zones = properties.geocode.ugc;
@@ -51,11 +55,11 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         if (filteredProperties?.metadata && 'ms' in filteredProperties.metadata) {
             delete filteredProperties.metadata.ms;
         }
+        
         filteredProperties.metadata = filteredProperties.metadata ?? {} as any;
         properties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex")  
         properties.metadata.attachments = getEventAttachments(event)
         setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`, metadata: define });
-        
         if (properties.status_metadata.is_test) { 
             setEventEmit({ event: `onTestProduct`, metadata: define })
             if (bools?.IgnoreTestProducts) return false; 
@@ -80,14 +84,15 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
 
         for (const key in sets) {
             const setting = sets[key]
-            if (key === 'ListeningEvents' && setting.size > 0 && !setting.has(define.properties.event.toLowerCase())) { 
+            const values = [...setting];
+            if (key === 'ListeningEvents' && setting.size > 0 && !getMatched(values, define.properties.event)) {
                 setEventEmit({
                     event: `onFilteredEvent`,
                     metadata: define
                 }); 
                 return false 
             } 
-            if (key === 'IgnoredEvents' && setting.size > 0 && setting.has(define.properties.event.toLowerCase())) { 
+            if (key === 'IgnoredEvents' && setting.size > 0 && getMatched(values, define.properties.event)) {
                 setEventEmit({
                     event: `onIgnoredEvent`,
                     metadata: define
@@ -126,7 +131,6 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         return true;
     })
 
-    
     if (!configurations?.GlobalSettings?.DisableGeometryParsing) {
         for (const event of filterd) {
             event.geometry = await getEventGeometry(event)
@@ -144,4 +148,5 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         metadata: bootstrap.cache.events,
         limited: true
     })
+    setDebug({ title: `@building.validate`, message: `Filtered ${filterd.length} events which took ${performance.now() - tick} ms` })
 }
