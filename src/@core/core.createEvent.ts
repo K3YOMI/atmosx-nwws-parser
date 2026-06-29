@@ -18,7 +18,6 @@
 */
 
 import { validateEvents } from "../@building/building.validate";
-import { dict_correlations } from "../@dictionaries/dictionaries.correlations";
 
 interface CreateEventOptions { 
     event: string

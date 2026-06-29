@@ -19,8 +19,8 @@
 
 import { TypeEvent } from "../@types/type.event";
 import { TypeSettings } from "../@types/type.settings";
-import { bootstrap } from "../bootstrap"
 import { dict_enhanced } from "../@dictionaries/dictionaries.enhanced"
+import { bootstrap } from "../bootstrap"
 
 export const getEventEnhancedName = (event: TypeEvent): string => {
     const configurations = bootstrap.settings as TypeSettings

@@ -17,19 +17,20 @@
 
 */
 
-import fs from 'fs'
-import sqlite3 from 'better-sqlite3'
+
 import { TypeSettings } from "../../@types/type.settings"
 import { bootstrap } from "../../bootstrap"
 import { setWarning } from '../@utilities/utilities.setWarning'
 import { importShapefiles } from './database.shapefiles'
 import { importBroadcastify } from "./database.broadcastify"
+import { existsSync, writeFileSync } from "fs"
+import sqlite3 from 'better-sqlite3'
 
 export const initializeDatabase = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
     try { 
-        if (!fs.existsSync(settings.Database)) { 
-            fs.writeFileSync(settings.Database, '')
+        if (!existsSync(settings.Database)) { 
+            writeFileSync(settings.Database, '')
             setWarning({ message: `Creating new database at ${settings.Database}` })
         }
         bootstrap.database = new sqlite3(settings.Database);

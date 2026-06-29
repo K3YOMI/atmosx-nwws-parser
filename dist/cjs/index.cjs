@@ -4638,6 +4638,25 @@ var validate = (options) => {
   return { isIgnored: true };
 };
 
+// src/@dictionaries/dictionaries.matches.ts
+var dict_matches = {
+  "Special Weather Statement": "Special Weather Statement",
+  "Hurricane Warning": "Hurricane Warning",
+  "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
+  "Hurricane Watch": "Hurricane Watch",
+  "Tropical Storm Warning": "Tropical Storm Warning",
+  "Tropical Storm Watch": "Tropical Storm Watch",
+  "High Wind Warning": "High Wind Warning",
+  "Gale Warning": "Gale Warning",
+  "Small Craft Advisory": "Small Craft Advisory",
+  "Small Craft Warning": "Small Craft Warning",
+  "Tsunami Warning": "Tsunami Warning",
+  "Tsunami Watch": "Tsunami Watch",
+  "Tsunami Advisory": "Tsunami Advisory",
+  "Tsunami Information Statement": "Tsunami Information Statement",
+  "Subscribers:": "National Weather Service Policy"
+};
+
 // src/@parsers/@text/text.getDescriptionFromProduct.ts
 var getDescriptionFromProduct = (options) => {
   let message = options.message;
@@ -5107,25 +5126,6 @@ var getEventHeader = (options) => {
   return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc2}-${(_b = vtec2 == null ? void 0 : vtec2.status) != null ? _b : `Issued`}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[-:]/g, "").split(".")[0]}-${(_c = properties2.geocode.office.office) != null ? _c : `KWNS`}`;
 };
 
-// src/@dictionaries/dictionaries.matches.ts
-var dict_matches = {
-  "Special Weather Statement": "Special Weather Statement",
-  "Hurricane Warning": "Hurricane Warning",
-  "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
-  "Hurricane Watch": "Hurricane Watch",
-  "Tropical Storm Warning": "Tropical Storm Warning",
-  "Tropical Storm Watch": "Tropical Storm Watch",
-  "High Wind Warning": "High Wind Warning",
-  "Gale Warning": "Gale Warning",
-  "Small Craft Advisory": "Small Craft Advisory",
-  "Small Craft Warning": "Small Craft Warning",
-  "Tsunami Warning": "Tsunami Warning",
-  "Tsunami Watch": "Tsunami Watch",
-  "Tsunami Advisory": "Tsunami Advisory",
-  "Tsunami Information Statement": "Tsunami Information Statement",
-  "Subscribers:": "National Weather Service Policy"
-};
-
 // src/@building/building.tracking.ts
 var getEventTracking = (options) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
@@ -5302,7 +5302,6 @@ var setCache = (key, value) => {
 
 // src/@parsers/@ugc/ugc.locations.ts
 var getLocations = (zones) => __async(null, null, function* () {
-  const tick = performance.now();
   const uniqueZones = Array.from(new Set(zones));
   const results = [];
   const missing = [];
@@ -5732,9 +5731,6 @@ var api = (stanza) => __async(null, null, function* () {
     setDebug({ title: `@events.api`, message: `Event process took ${performance.now() - tick} ms` });
   }
 });
-
-// src/@building/building.validate.ts
-var import_crypto = require("crypto");
 
 // src/@dictionaries/dictionaries.enhanced.ts
 var dict_enhanced = {
@@ -6887,20 +6883,6 @@ var rmEvent = (event) => __async(null, null, function* () {
   });
 });
 
-// src/@modules/@utilities/utilities.getLatestIssuance.ts
-var getLatestIssuance = () => {
-  const now = /* @__PURE__ */ new Date();
-  const current = now.getUTCHours() * 100 + now.getUTCMinutes();
-  const issuances = [100, 600, 1300, 1630, 2e3];
-  let latest = issuances[0];
-  for (const issuance of issuances) {
-    if (current >= issuance) {
-      latest = issuance;
-    }
-  }
-  return latest.toString().padStart(4, "0");
-};
-
 // src/@dictionaries/dictionaries.states.ts
 var dict_states = {
   "AL": "Alabama",
@@ -6956,6 +6938,20 @@ var dict_states = {
   "DC": "District of Columbia"
 };
 
+// src/@modules/@utilities/utilities.getLatestIssuance.ts
+var getLatestIssuance = () => {
+  const now = /* @__PURE__ */ new Date();
+  const current = now.getUTCHours() * 100 + now.getUTCMinutes();
+  const issuances = [100, 600, 1300, 1630, 2e3];
+  let latest = issuances[0];
+  for (const issuance of issuances) {
+    if (current >= issuance) {
+      latest = issuance;
+    }
+  }
+  return latest.toString().padStart(4, "0");
+};
+
 // src/@building/building.attachments.ts
 var getEventAttachments = (event) => {
   var _a, _b, _c, _d, _e, _f, _g;
@@ -7003,6 +6999,7 @@ var getEventAttachments = (event) => {
 };
 
 // src/@building/building.validate.ts
+var import_crypto = require("crypto");
 var validateEvents = (events) => __async(null, null, function* () {
   var _a;
   const tick = performance.now();
@@ -7242,25 +7239,6 @@ var xDeploy = () => __async(null, null, function* () {
   }
 });
 
-// src/@modules/@database/database.init.ts
-var import_fs5 = __toESM(require("fs"));
-var import_better_sqlite3 = __toESM(require("better-sqlite3"));
-
-// src/@modules/@database/database.shapefiles.ts
-var import_fs4 = __toESM(require("fs"));
-var import_path3 = require("path");
-var import_jszip = require("jszip");
-var import_shapefile = require("shapefile");
-
-// src/@modules/@utilities/utilities.setSleep.ts
-var setSleep = (options) => __async(null, null, function* () {
-  return new Promise((resolve6) => {
-    setTimeout(() => {
-      resolve6();
-    }, options.timeout);
-  });
-});
-
 // src/@dictionaries/dictionaries.shapefiles.ts
 var dict_shapefiles = [
   { name: "us_counties", id: "C", link: "https://www.weather.gov/source/gis/Shapefiles/County/c_16ap26.zip" },
@@ -7274,7 +7252,20 @@ var dict_shapefiles = [
   { name: "high_seas_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/hz17fe26.zip" }
 ];
 
+// src/@modules/@utilities/utilities.setSleep.ts
+var setSleep = (options) => __async(null, null, function* () {
+  return new Promise((resolve6) => {
+    setTimeout(() => {
+      resolve6();
+    }, options.timeout);
+  });
+});
+
 // src/@modules/@database/database.shapefiles.ts
+var import_fs4 = require("fs");
+var import_path3 = require("path");
+var import_jszip = require("jszip");
+var import_shapefile = require("shapefile");
 var importShapefiles = () => __async(null, null, function* () {
   var _a, _b;
   const settings = bootstrap.settings;
@@ -7287,14 +7278,14 @@ var importShapefiles = () => __async(null, null, function* () {
         const arrayBuff = yield response2.arrayBuffer();
         const content = yield (0, import_jszip.loadAsync)(arrayBuff);
         const directory = (0, import_path3.resolve)(__dirname, `../../shapefiles`);
-        if (!import_fs4.default.existsSync(directory)) {
-          import_fs4.default.mkdirSync(directory, { recursive: true });
+        if (!(0, import_fs4.existsSync)(directory)) {
+          (0, import_fs4.mkdirSync)(directory, { recursive: true });
         }
         for (const file of Object.keys(content.files)) {
           if (file.endsWith(".shp") || file.endsWith(".dbf")) {
             const data = yield content.files[file].async(`nodebuffer`);
             const output = (0, import_path3.resolve)(directory, `${(_a = shapefile == null ? void 0 : shapefile.name) != null ? _a : ``}_${(_b = shapefile == null ? void 0 : shapefile.id) != null ? _b : ``}${(0, import_path3.extname)(file)}`);
-            import_fs4.default.writeFileSync(output, data);
+            (0, import_fs4.writeFileSync)(output, data);
           }
         }
         const filepath = (0, import_path3.resolve)(__dirname, "../../shapefiles", shapefile.name + "_" + shapefile.id);
@@ -7325,11 +7316,11 @@ var importShapefiles = () => __async(null, null, function* () {
             insert.run(final2, location, JSON.stringify(geometry));
           }
         });
-        import_fs4.default.unlinkSync(`${filepath}.shp`);
-        import_fs4.default.unlinkSync(`${filepath}.dbf`);
+        (0, import_fs4.unlinkSync)(`${filepath}.shp`);
+        (0, import_fs4.unlinkSync)(`${filepath}.dbf`);
         transaction(features);
       }
-      import_fs4.default.rm((0, import_path3.resolve)(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
+      (0, import_fs4.rm)((0, import_path3.resolve)(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
       });
     }
   } catch (error) {
@@ -7381,11 +7372,13 @@ var importBroadcastify = () => __async(null, null, function* () {
 });
 
 // src/@modules/@database/database.init.ts
+var import_fs5 = require("fs");
+var import_better_sqlite3 = __toESM(require("better-sqlite3"));
 var initializeDatabase = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   try {
-    if (!import_fs5.default.existsSync(settings.Database)) {
-      import_fs5.default.writeFileSync(settings.Database, "");
+    if (!(0, import_fs5.existsSync)(settings.Database)) {
+      (0, import_fs5.writeFileSync)(settings.Database, "");
       setWarning({ message: `Creating new database at ${settings.Database}` });
     }
     bootstrap.database = new import_better_sqlite3.default(settings.Database);

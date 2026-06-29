@@ -17,10 +17,9 @@
 
 */
 
-
 import { TypeEvent } from "../@types/type.event"
-import { getEventGeometry } from "./building.geometry"
 import { bootstrap } from "../bootstrap"
+import { getEventGeometry } from "./building.geometry"
 import { getShapeNearestPoint } from "../@modules/@utilities/utilities.getShapeNearestPoint"
 
 interface GetEventNodesResponse { 

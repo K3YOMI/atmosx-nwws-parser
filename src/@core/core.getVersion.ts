@@ -19,7 +19,6 @@
 
 import { bootstrap } from "../bootstrap";
 
-
 export const getVersion = (): any => {
     return bootstrap.version
 }

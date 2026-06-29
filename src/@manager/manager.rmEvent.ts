@@ -17,10 +17,10 @@
 
 */
 
-import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
-import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
 import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
+import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
+import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
 import { updateListener } from "./manager.updateListener";
 
 export const rmEvent = async (event: TypeEvent): Promise<void> => {

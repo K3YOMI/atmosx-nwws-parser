@@ -21,7 +21,6 @@ import { TypeEvent } from "../@types/type.event";
 import { TypeHash } from "../@types/type.hash"
 import { bootstrap } from "../bootstrap"
 
-
 export const setHash = (event: TypeEvent, entry: TypeHash): void => {
     if (entry) {
         entry.hashes.push(event.properties.metadata.hash);

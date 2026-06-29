@@ -17,15 +17,15 @@
 
 */
 
-import fs from 'fs'
-import { resolve, extname} from 'path'
-import { loadAsync } from 'jszip'
-import { read } from 'shapefile'
 import { TypeSettings } from "../../@types/type.settings"
+import { dict_shapefiles } from '../../@dictionaries/dictionaries.shapefiles'
 import { bootstrap } from "../../bootstrap"
 import { setSleep } from '../@utilities/utilities.setSleep'
 import { setWarning } from '../@utilities/utilities.setWarning'
-import { dict_shapefiles } from '../../@dictionaries/dictionaries.shapefiles'
+import { existsSync, mkdirSync, writeFileSync, unlinkSync, rm } from "fs"
+import { resolve, extname} from 'path'
+import { loadAsync } from 'jszip'
+import { read } from 'shapefile'
 
 export const importShapefiles = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
@@ -40,14 +40,14 @@ export const importShapefiles = async (): Promise<void> => {
                 const arrayBuff = await response.arrayBuffer();
                 const content = await loadAsync(arrayBuff);
                 const directory = resolve(__dirname, `../../shapefiles`);
-                if (!fs.existsSync(directory)) {
-                    fs.mkdirSync(directory, { recursive: true });
+                if (!existsSync(directory)) {
+                    mkdirSync(directory, { recursive: true });
                 }
                 for (const file of Object.keys(content.files)) {
                     if (file.endsWith('.shp') || file.endsWith('.dbf')) {
                         const data = await content.files[file].async(`nodebuffer`)
                         const output = resolve(directory, `${shapefile?.name ?? ``}_${shapefile?.id ?? ``}${extname(file)}`)
-                        fs.writeFileSync(output, data)
+                        writeFileSync(output, data)
                     }
                 }
                 const filepath = resolve(__dirname, '../../shapefiles', shapefile.name + '_' + shapefile.id)
@@ -81,11 +81,11 @@ export const importShapefiles = async (): Promise<void> => {
                         insert.run(final, location, JSON.stringify(geometry));
                     }
                 })
-                fs.unlinkSync(`${filepath}.shp`)
-                fs.unlinkSync(`${filepath}.dbf`)
+                unlinkSync(`${filepath}.shp`)
+                unlinkSync(`${filepath}.dbf`)
                 transaction(features)
             }
-            fs.rm(resolve(__dirname, '../../shapefiles'), { recursive: true, force: true }, () => {});
+            rm(resolve(__dirname, '../../shapefiles'), { recursive: true, force: true }, () => {});
         }
     } catch (error) {
         setWarning( {message: `An error occurred while compiling shapefiles: ${error.message}` }) 

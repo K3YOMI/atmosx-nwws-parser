@@ -21,7 +21,6 @@ import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
 import { rmEvent } from "./manager.rmEvent";
 
-
 export const updateEvents = async (selectedEvent?: TypeEvent): Promise<void> => {
     const events = bootstrap.cache.events.features;
     async function update(evt: TypeEvent) {

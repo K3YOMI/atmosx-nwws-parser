@@ -17,15 +17,14 @@
 
 */
 
-import { client } from '@xmpp/client';
 import { TypeSettings } from "../../@types/type.settings";
 import { bootstrap } from "../../bootstrap"
-import { setWarning } from "../@utilities/utilities.setWarning";
 import { xOnline } from "./xmpp.xOnline";
 import { xOffline } from "./xmpp.xOffline";
 import { xError } from "./xmpp.xError";
 import { xStanza } from "./xmpp.xStanza";
 import { setEventEmit } from '../@utilities/utilities.setEventEmit';
+import { client } from '@xmpp/client';
 
 export const xDeploy = async (): Promise<void> => {
     let session;

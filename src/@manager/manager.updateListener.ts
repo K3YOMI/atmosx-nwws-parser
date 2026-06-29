@@ -17,7 +17,6 @@
 
 */
 
-
 import { TypeEvent } from "../@types/type.event";
 import { TypeListener } from "../@types/type.listener";
 import { bootstrap } from "../bootstrap"
@@ -29,8 +28,6 @@ import { createHttp } from "../@modules/@utilities/utilities.createHttp";
 import { setDebug } from "../@modules/@utilities/utilities.setDebug";
 import { getMatched } from "../@modules/@utilities/utilities.getMatched";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from "fs";
-
-
 
 export const updateListener = async (event: TypeEvent): Promise<void> => {
     const tick = performance.now()

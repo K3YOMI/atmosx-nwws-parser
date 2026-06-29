@@ -18,7 +18,6 @@
     
 */
 
-
 export const setAFSK = (bits: number[], sampleRate: number): Int16Array => {
     const baud = 520.83;
     const markFreq = 2083.3;

@@ -16,10 +16,10 @@
     Internal Package: @atmosx/event-product-parser
 
 */
-import { xml } from '@xmpp/client'
+
 import { bootstrap } from "../../bootstrap";
-import { setSleep } from "../@utilities/utilities.setSleep";
 import { setEventEmit } from '../@utilities/utilities.setEventEmit';
+import { xml } from '@xmpp/client'
 
 export const xOnline = () => {
     const settings = bootstrap.settings;

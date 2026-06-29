@@ -17,11 +17,11 @@
 
 */
 
-import { bootstrap } from "../bootstrap"
 import { TypeEvent } from "../@types/type.event"
-import { getLatestIssuance } from "../@modules/@utilities/utilities.getLatestIssuance";
+import { bootstrap } from "../bootstrap"
 import { dict_states } from "../@dictionaries/dictionaries.states"
 import { dict_expressions } from "../@dictionaries/dictionaries.expressions"
+import { getLatestIssuance } from "../@modules/@utilities/utilities.getLatestIssuance";
 
 interface GetEventAttachmentsResponse { 
     name: string

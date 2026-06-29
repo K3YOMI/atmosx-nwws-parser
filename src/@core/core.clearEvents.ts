@@ -20,7 +20,6 @@
 import { bootstrap } from "../bootstrap";
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
-
 export const clearEvents = (): void => {
     bootstrap.cache.events.features = [];
     bootstrap.cache.hashes = [];

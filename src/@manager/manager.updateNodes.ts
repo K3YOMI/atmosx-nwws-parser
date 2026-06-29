@@ -17,11 +17,10 @@
 
 */
 
-import { getEventNodes } from "../@building/building.polygon";
-import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { TypeEvent } from "../@types/type.event";
 import { bootstrap } from "../bootstrap"
-
+import { getEventNodes } from "../@building/building.polygon";
+import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 
 export const updateNode = async (selectedEvent?: TypeEvent): Promise<void> => {
     const events = bootstrap.cache.events.features;

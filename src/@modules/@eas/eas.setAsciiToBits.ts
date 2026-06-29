@@ -18,7 +18,6 @@
     
 */
 
-
 export const setAsciiToBits = (str: string): number[] => {
     const bits = [];
     for (let i = 0; i < str.length; i++) {

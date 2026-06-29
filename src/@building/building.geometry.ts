@@ -17,9 +17,9 @@
 
 */
 
-import { getSettings } from "../@modules/@utilities/utilities.getSettings";
 import { TypeSettings } from "../@types/type.settings"
 import { TypeEvent } from "../@types/type.event"
+import { getSettings } from "../@modules/@utilities/utilities.getSettings";
 import { getZonePolygon } from "../@parsers/@ugc/ugc.coordinates";
 
 interface GetGeometryResponse { 

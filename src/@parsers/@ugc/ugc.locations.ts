@@ -22,7 +22,6 @@ import { getCache } from "./ugc.getCache";
 import { setCache } from "./ugc.setCache";
 
 export const getLocations = async (zones: string[]): Promise<string[]> => {
-    const tick = performance.now();
     const uniqueZones = Array.from(new Set(zones));
 
     const results: string[] = [];

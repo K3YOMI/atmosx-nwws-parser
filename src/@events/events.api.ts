@@ -19,14 +19,13 @@
 
 import { TypeStanzaCompiled } from "../@types/type.compiled"
 import { TypePVTEC } from "../@types/type.pvtec";
+import { dict_icao } from "../@dictionaries/dictionaries.icao";
 import { bootstrap } from "../bootstrap";
 import { getEventTracking } from "../@building/building.tracking";
 import { pvExtract } from "../@parsers/@pvtec/pvtec.extract"
 import { getEventTags } from "../@building/building.tags";
 import { getTextFromProduct } from "../@parsers/@text/text.getTextFromProduct";
-import { dict_icao } from "../@dictionaries/dictionaries.icao";
 import { setDebug } from "../@modules/@utilities/utilities.setDebug";
-
 
 export const api = async (stanza: TypeStanzaCompiled): Promise<void> => {
     const messages = Object.values(JSON.parse(stanza.message).features) as any;

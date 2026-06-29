@@ -19,7 +19,6 @@
 
 import { TypeAttributes } from "../@types/type.attributes";
 import { TypeStanzaCompiled } from "../@types/type.compiled"
-import { TypeEvent } from "../@types/type.event";
 import { TypePVTEC } from "../@types/type.pvtec";
 import { TypeHVTEC } from "../@types/type.hvtec";
 import { bootstrap } from "../bootstrap";

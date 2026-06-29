@@ -19,7 +19,6 @@
 
 import { bootstrap } from "../../bootstrap";
 import { setEventEmit } from "../@utilities/utilities.setEventEmit";
-import { setWarning } from "../@utilities/utilities.setWarning";
 
 export const xOffline = () => {
     bootstrap.session_xmpp.on(`offline`, async () => {

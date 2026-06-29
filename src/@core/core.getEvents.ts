@@ -19,7 +19,6 @@
 
 import { bootstrap } from "../bootstrap";
 
-
 export const getEvents = (): any => {
     return bootstrap.cache.events
 }

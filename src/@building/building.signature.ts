@@ -24,7 +24,6 @@ import { dict_testing} from "../@dictionaries/dictionaries.testing"
 import { dict_products } from "../@dictionaries/dictionaries.products";
 import { dict_hail } from "../@dictionaries/dictionaries.hail"
 
-
 export const getEventSignature = (event: TypeEvent): TypeEvent => {
     const properties = event?.properties;
     const vtec = event?.properties?.metadata?.vtec

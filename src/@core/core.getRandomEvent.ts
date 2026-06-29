@@ -19,7 +19,6 @@
 
 import { bootstrap } from "../bootstrap";
 
-
 export const getRandomEvent = (): any => {
     return bootstrap.cache.events.features[Math.floor(Math.random() * bootstrap.cache.events.features.length)]
 }

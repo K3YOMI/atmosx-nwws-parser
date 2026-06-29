@@ -19,8 +19,6 @@
 
 import { TypeEvent } from "../../@types/type.event"
 
-
-
 export const getEmebed = (event: TypeEvent): string => {
     const line = (label: string, value: unknown, condition = true) => condition && value ? `${label} ${value}` : null;
     const isStatement = event.properties.status_metadata.is_statement;

@@ -4618,6 +4618,25 @@ var validate = (options) => {
   return { isIgnored: true };
 };
 
+// src/@dictionaries/dictionaries.matches.ts
+var dict_matches = {
+  "Special Weather Statement": "Special Weather Statement",
+  "Hurricane Warning": "Hurricane Warning",
+  "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
+  "Hurricane Watch": "Hurricane Watch",
+  "Tropical Storm Warning": "Tropical Storm Warning",
+  "Tropical Storm Watch": "Tropical Storm Watch",
+  "High Wind Warning": "High Wind Warning",
+  "Gale Warning": "Gale Warning",
+  "Small Craft Advisory": "Small Craft Advisory",
+  "Small Craft Warning": "Small Craft Warning",
+  "Tsunami Warning": "Tsunami Warning",
+  "Tsunami Watch": "Tsunami Watch",
+  "Tsunami Advisory": "Tsunami Advisory",
+  "Tsunami Information Statement": "Tsunami Information Statement",
+  "Subscribers:": "National Weather Service Policy"
+};
+
 // src/@parsers/@text/text.getDescriptionFromProduct.ts
 var getDescriptionFromProduct = (options) => {
   let message = options.message;
@@ -5087,25 +5106,6 @@ var getEventHeader = (options) => {
   return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc2}-${(_b = vtec2 == null ? void 0 : vtec2.status) != null ? _b : `Issued`}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[-:]/g, "").split(".")[0]}-${(_c = properties2.geocode.office.office) != null ? _c : `KWNS`}`;
 };
 
-// src/@dictionaries/dictionaries.matches.ts
-var dict_matches = {
-  "Special Weather Statement": "Special Weather Statement",
-  "Hurricane Warning": "Hurricane Warning",
-  "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
-  "Hurricane Watch": "Hurricane Watch",
-  "Tropical Storm Warning": "Tropical Storm Warning",
-  "Tropical Storm Watch": "Tropical Storm Watch",
-  "High Wind Warning": "High Wind Warning",
-  "Gale Warning": "Gale Warning",
-  "Small Craft Advisory": "Small Craft Advisory",
-  "Small Craft Warning": "Small Craft Warning",
-  "Tsunami Warning": "Tsunami Warning",
-  "Tsunami Watch": "Tsunami Watch",
-  "Tsunami Advisory": "Tsunami Advisory",
-  "Tsunami Information Statement": "Tsunami Information Statement",
-  "Subscribers:": "National Weather Service Policy"
-};
-
 // src/@building/building.tracking.ts
 var getEventTracking = (options) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
@@ -5282,7 +5282,6 @@ var setCache = (key, value) => {
 
 // src/@parsers/@ugc/ugc.locations.ts
 var getLocations = (zones) => __async(null, null, function* () {
-  const tick = performance.now();
   const uniqueZones = Array.from(new Set(zones));
   const results = [];
   const missing = [];
@@ -5712,9 +5711,6 @@ var api = (stanza) => __async(null, null, function* () {
     setDebug({ title: `@events.api`, message: `Event process took ${performance.now() - tick} ms` });
   }
 });
-
-// src/@building/building.validate.ts
-import { createHash } from "crypto";
 
 // src/@dictionaries/dictionaries.enhanced.ts
 var dict_enhanced = {
@@ -6867,20 +6863,6 @@ var rmEvent = (event) => __async(null, null, function* () {
   });
 });
 
-// src/@modules/@utilities/utilities.getLatestIssuance.ts
-var getLatestIssuance = () => {
-  const now = /* @__PURE__ */ new Date();
-  const current = now.getUTCHours() * 100 + now.getUTCMinutes();
-  const issuances = [100, 600, 1300, 1630, 2e3];
-  let latest = issuances[0];
-  for (const issuance of issuances) {
-    if (current >= issuance) {
-      latest = issuance;
-    }
-  }
-  return latest.toString().padStart(4, "0");
-};
-
 // src/@dictionaries/dictionaries.states.ts
 var dict_states = {
   "AL": "Alabama",
@@ -6936,6 +6918,20 @@ var dict_states = {
   "DC": "District of Columbia"
 };
 
+// src/@modules/@utilities/utilities.getLatestIssuance.ts
+var getLatestIssuance = () => {
+  const now = /* @__PURE__ */ new Date();
+  const current = now.getUTCHours() * 100 + now.getUTCMinutes();
+  const issuances = [100, 600, 1300, 1630, 2e3];
+  let latest = issuances[0];
+  for (const issuance of issuances) {
+    if (current >= issuance) {
+      latest = issuance;
+    }
+  }
+  return latest.toString().padStart(4, "0");
+};
+
 // src/@building/building.attachments.ts
 var getEventAttachments = (event) => {
   var _a, _b, _c, _d, _e, _f, _g;
@@ -6983,6 +6979,7 @@ var getEventAttachments = (event) => {
 };
 
 // src/@building/building.validate.ts
+import { createHash } from "crypto";
 var validateEvents = (events) => __async(null, null, function* () {
   var _a;
   const tick = performance.now();
@@ -7222,25 +7219,6 @@ var xDeploy = () => __async(null, null, function* () {
   }
 });
 
-// src/@modules/@database/database.init.ts
-import fs2 from "fs";
-import sqlite3 from "better-sqlite3";
-
-// src/@modules/@database/database.shapefiles.ts
-import fs from "fs";
-import { resolve as resolve5, extname } from "path";
-import { loadAsync } from "jszip";
-import { read } from "shapefile";
-
-// src/@modules/@utilities/utilities.setSleep.ts
-var setSleep = (options) => __async(null, null, function* () {
-  return new Promise((resolve6) => {
-    setTimeout(() => {
-      resolve6();
-    }, options.timeout);
-  });
-});
-
 // src/@dictionaries/dictionaries.shapefiles.ts
 var dict_shapefiles = [
   { name: "us_counties", id: "C", link: "https://www.weather.gov/source/gis/Shapefiles/County/c_16ap26.zip" },
@@ -7254,7 +7232,20 @@ var dict_shapefiles = [
   { name: "high_seas_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/hz17fe26.zip" }
 ];
 
+// src/@modules/@utilities/utilities.setSleep.ts
+var setSleep = (options) => __async(null, null, function* () {
+  return new Promise((resolve6) => {
+    setTimeout(() => {
+      resolve6();
+    }, options.timeout);
+  });
+});
+
 // src/@modules/@database/database.shapefiles.ts
+import { existsSync as existsSync3, mkdirSync as mkdirSync3, writeFileSync as writeFileSync4, unlinkSync as unlinkSync2, rm } from "fs";
+import { resolve as resolve5, extname } from "path";
+import { loadAsync } from "jszip";
+import { read } from "shapefile";
 var importShapefiles = () => __async(null, null, function* () {
   var _a, _b;
   const settings = bootstrap.settings;
@@ -7267,14 +7258,14 @@ var importShapefiles = () => __async(null, null, function* () {
         const arrayBuff = yield response2.arrayBuffer();
         const content = yield loadAsync(arrayBuff);
         const directory = resolve5(__dirname, `../../shapefiles`);
-        if (!fs.existsSync(directory)) {
-          fs.mkdirSync(directory, { recursive: true });
+        if (!existsSync3(directory)) {
+          mkdirSync3(directory, { recursive: true });
         }
         for (const file of Object.keys(content.files)) {
           if (file.endsWith(".shp") || file.endsWith(".dbf")) {
             const data = yield content.files[file].async(`nodebuffer`);
             const output = resolve5(directory, `${(_a = shapefile == null ? void 0 : shapefile.name) != null ? _a : ``}_${(_b = shapefile == null ? void 0 : shapefile.id) != null ? _b : ``}${extname(file)}`);
-            fs.writeFileSync(output, data);
+            writeFileSync4(output, data);
           }
         }
         const filepath = resolve5(__dirname, "../../shapefiles", shapefile.name + "_" + shapefile.id);
@@ -7305,11 +7296,11 @@ var importShapefiles = () => __async(null, null, function* () {
             insert.run(final2, location, JSON.stringify(geometry));
           }
         });
-        fs.unlinkSync(`${filepath}.shp`);
-        fs.unlinkSync(`${filepath}.dbf`);
+        unlinkSync2(`${filepath}.shp`);
+        unlinkSync2(`${filepath}.dbf`);
         transaction(features);
       }
-      fs.rm(resolve5(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
+      rm(resolve5(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
       });
     }
   } catch (error) {
@@ -7361,11 +7352,13 @@ var importBroadcastify = () => __async(null, null, function* () {
 });
 
 // src/@modules/@database/database.init.ts
+import { existsSync as existsSync4, writeFileSync as writeFileSync5 } from "fs";
+import sqlite3 from "better-sqlite3";
 var initializeDatabase = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   try {
-    if (!fs2.existsSync(settings.Database)) {
-      fs2.writeFileSync(settings.Database, "");
+    if (!existsSync4(settings.Database)) {
+      writeFileSync5(settings.Database, "");
       setWarning({ message: `Creating new database at ${settings.Database}` });
     }
     bootstrap.database = new sqlite3(settings.Database);
@@ -7457,14 +7450,14 @@ var xReconnect = (interval) => __async(null, null, function* () {
 });
 
 // src/@modules/@utilities/utilities.setCronSchedule.ts
-import { readdirSync, unlinkSync as unlinkSync2, statSync, existsSync as existsSync3 } from "fs";
+import { readdirSync, unlinkSync as unlinkSync3, statSync, existsSync as existsSync5 } from "fs";
 import { join as join2 } from "path";
 var setCronSchedule = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
   const TTLCUT = Date.now() - TTL * 1e3;
   const walk = (dir) => {
-    if (existsSync3(dir)) {
+    if (existsSync5(dir)) {
       const entries = readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = join2(dir, entry.name);
@@ -7475,7 +7468,7 @@ var setCronSchedule = () => __async(null, null, function* () {
         const stats = statSync(fullPath);
         if (stats.mtime.getTime() < TTLCUT) {
           try {
-            unlinkSync2(fullPath);
+            unlinkSync3(fullPath);
           } catch (err) {
             console.error(`Failed to delete ${fullPath}:`, err);
           }

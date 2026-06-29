@@ -19,13 +19,12 @@
 
 import { TypeAttributes } from "../@types/type.attributes";
 import { TypeStanzaCompiled } from "../@types/type.compiled"
+import { dict_matches } from "../@dictionaries/dictionaries.matches";
 import { bootstrap } from "../bootstrap";
 import { properties } from "../@building/building.properties";
 import { getEventHeader } from "../@building/building.headers";
-import { dict_matches } from "../@dictionaries/dictionaries.matches";
 import { getEventTracking } from "../@building/building.tracking";
 import { setDebug } from "../@modules/@utilities/utilities.setDebug";
-
 
 export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
     const getMessages = stanza?.message

@@ -30,11 +30,12 @@ import { setNoise } from "./eas.setNoise";
 import { getPCM16 } from "./eas.getPCM16";
 import { getTTS } from "./eas.getTTS";
 import { getCleanDescription } from "./eas.getCleanDescription";
+import { setDebug } from "../@utilities/utilities.setDebug";
 import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
 import { execSync } from 'child_process'
 import { platform } from 'os'
-import { setDebug } from "../@utilities/utilities.setDebug";
+
 
 interface GenerateEASOptions { 
     message: string

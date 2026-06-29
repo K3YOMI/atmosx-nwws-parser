@@ -19,7 +19,6 @@
 
 import { bootstrap } from "../bootstrap";
 
-
 export const getNodes = (): any => {
     return bootstrap.cache.nodes
 }
