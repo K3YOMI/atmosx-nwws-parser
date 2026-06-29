@@ -54,5 +54,5 @@ export const getLocations = async (zones: string[]): Promise<string[]> => {
             results.push(r.location);
         }
     }
-    return results; // ❌ no sort
+    return results;
 };

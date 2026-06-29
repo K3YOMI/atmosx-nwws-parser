@@ -70,7 +70,7 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     if (!existsSync(join(directory, `/encoded`))) {
         mkdirSync(join(directory, `/encoded`), { recursive: true });
     }
-    // remove stuff like Civil Emergency Message_Issued_N\A.N\A.txt with the \
+    
     const tmpTTS = join(directory, `/tts/${title.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
     const outTTS = join(directory, `/encoded/${title.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
     const vPlatform = platform();
