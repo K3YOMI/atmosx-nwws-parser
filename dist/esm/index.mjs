@@ -6321,8 +6321,8 @@ var setEasTone = (options) => __async(null, null, function* () {
   if (!existsSync(join(directory, `/encoded`))) {
     mkdirSync(join(directory, `/encoded`), { recursive: true });
   }
-  const tmpTTS = join(directory, `/tts/${title.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
-  const outTTS = join(directory, `/encoded/${title.replace(/[^a-zA-Z0-9]/g, "")}.wav`);
+  const tmpTTS = join(directory, `/tts/${title}.wav`);
+  const outTTS = join(directory, `/encoded/${title}.wav`);
   const vPlatform = platform2();
   if (vPlatform === "darwin") {
     setWarning({

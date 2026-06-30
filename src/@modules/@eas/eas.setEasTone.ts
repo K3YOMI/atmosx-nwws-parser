@@ -72,8 +72,8 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
         mkdirSync(join(directory, `/encoded`), { recursive: true });
     }
     
-    const tmpTTS = join(directory, `/tts/${title.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
-    const outTTS = join(directory, `/encoded/${title.replace(/[^a-zA-Z0-9]/g, '')}.wav`)
+    const tmpTTS = join(directory, `/tts/${title}.wav`)
+    const outTTS = join(directory, `/encoded/${title}.wav`)
     const vPlatform = platform();
 
     if (vPlatform === 'darwin') {
