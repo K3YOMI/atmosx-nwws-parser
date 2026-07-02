@@ -21,7 +21,7 @@ import path from 'path'
 import { EventEmitter } from 'node:events';
 
 export const bootstrap = {
-    version: `3.0.5`,
+    version: `3.0.51`,
     isReady: true,
     ratelimits: {},
     session_xmpp: null,
