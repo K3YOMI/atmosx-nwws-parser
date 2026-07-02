@@ -6941,9 +6941,9 @@ var getEventAttachments = (event) => {
   const watchNumber = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.watch_parameters) == null ? void 0 : _d.watch_number;
   const locations = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.locations_array;
   const events = [
-    { target: "Day 1", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${issuanceTime}.png` },
-    { target: "Day 2", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
-    { target: "Day 3", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
+    { target: "SPC Day 1 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${issuanceTime}.png` },
+    { target: "SPC Day 2 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
+    { target: "SPC Day 3 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
     { target: "Mesoscale Discussion", attachment: `https://www.spc.noaa.gov/products/md/mcd${spcNumber}.png` },
     { target: "Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
     { target: "PDS Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
