@@ -277,6 +277,7 @@
 - Satellite Precipitation Estimates
 - Storm Strike Probability Bulletin
 - Special Weather Statement
+- Convective Special Weather Statement
 - Shelter In Place Warning
 - Snow Squall Warning
 - Surf Discussion
@@ -314,7 +315,7 @@
 - Telephone Outage Emergency
 - Tornado Warning
 - Temperature Precipitation Table
-- Tsunami Watch
+- Tsunami Warning/Watches/Advisories
 - Ultraviolet Index
 - Travelers Forecast
 - Transcribed Weather Broadcast

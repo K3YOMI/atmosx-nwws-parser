@@ -232,6 +232,9 @@ Client.on(`onExpiredProduct`, (product: TypeEvent) => {})
 
 ### Event `onProductType`
 Supports all events and product, simply append the event name to the end like `onProductTypeRadarIndicatedTornadoWarning` and you will receive the event in the listener.
+**If the event has been filtered, it will not include attachments and coordinates.** See [`types.event.ts`](./src/@types/type.event.ts) for properties.
+
+```ts
 This listener returns [`types.event.ts`](./src/@types/type.event.ts).
 ```ts
 Client.on(`onProductTypeRadarIndicatedTornadoWarning`, (product: TypeEvent) => {})
@@ -373,21 +376,17 @@ const nodes = getNodes()
 console.log(nodes)
 ```
 
-### Function `createEvent`
+### Function `manualEvent`
 Creates a new event in the parser.
 ```ts
-import { createEvent } from "@atmosx/event-product-parser"
-createEvent({
-    event: `PDS Ice Storm Warning`,
-    status: `Upgraded`,
-    issued: new Date(),
-    expires: new Date(Date.now() + 3600000),
-    locations: `Somewhere USA`,
-    description: `This is a test event sample.`,
-    coordinates: [
-        [-122.4194, 37.7749], 
-        [-122.4194, 37.7749]
-    ]
+import { manualEvent } from "@atmosx/event-product-parser"
+manualEvent({
+    message: `__DESCRIPTION__`,
+    attributes: {
+        "issue": new Date().toISOString(),
+        "cccc": "KLOT",
+        "awipsid": "TORLOT",
+    }
 })
 ```
 

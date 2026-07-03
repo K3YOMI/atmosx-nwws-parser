@@ -27,84 +27,41 @@ type EnhancedEventType = {
 
 export const dict_enhanced: Record<string, Record<string, EnhancedEventType>> = {
     "Tornado Warning": {
-        "Tornado Emergency": { 
-            description: "tornado emergency"
-        },
-        "PDS Tornado Warning": { 
-            description: "particularly dangerous situation", 
-            damage: `CONSIDERABLE`
-        },
-        "Radar Confirmed Tornado Warning": {
-            description: "source...radar confirmed tornado.",
-            tornado: `OBSERVED`
-        },
-        "Confirmed Tornado Warning": { 
-            tornado: `OBSERVED`
-        },
+        "Tornado Emergency": { description: "tornado emergency" },
+        "PDS Tornado Warning": { description: "particularly dangerous situation", damage: `CONSIDERABLE` },
+        "Radar Confirmed Tornado Warning": { description: "source...radar confirmed tornado.", tornado: `OBSERVED` },
+        "Confirmed Tornado Warning": { tornado: `OBSERVED` },
         "Radar Indicated Tornado Warning": { },
     },
     "Fire Weather Warning": {
-        "PDS Fire Weather Warning": {
-            description: "particularly dangerous situation", 
-        },
+        "PDS Fire Weather Warning": { description: "particularly dangerous situation" },
     },
     "Blizzard Warning": {
-        "PDS Blizzard Warning": {
-            description: "particularly dangerous situation", 
-        },
+        "PDS Blizzard Warning": { description: "particularly dangerous situation" },
     },
     "Ice Storm Warning": {
-        "PDS Ice Storm Warning": {
-            description: "particularly dangerous situation", 
-        },
+        "PDS Ice Storm Warning": { description: "particularly dangerous situation" },
     },
     "Special Marine Warning": {
-        "Special Marine Warning (TPROB)": { 
-            tornado: `POSSIBLE`
-        },
+        "Special Marine Warning (TPROB)": { tornado: `POSSIBLE` },
     },
     "Tornado Watch": {
-        "PDS Tornado Watch": { 
-            pdswatch: true,
-        }
+        "PDS Tornado Watch": { pdswatch: true }
     },
     "Severe Thunderstorm Watch": {
-        "PDS Severe Thunderstorm Watch": { 
-            pdswatch: true
-        }
+        "PDS Severe Thunderstorm Watch": { pdswatch: true }
     },
     "Flash Flood Warning": {
-        "Flash Flood Emergency": { 
-            description: "flash flood emergency" 
-        },
-        "Considerable Flash Flood Warning": { 
-            damage: `CONSIDERABLE`
-        },
+        "Flash Flood Emergency": { description: "flash flood emergency" },
+        "Considerable Flash Flood Warning": { damage: `CONSIDERABLE` },
     },
     "Severe Thunderstorm Warning": {
-        "EDS Severe Thunderstorm Warning (TPROB)": { 
-            description: "extremely dangerous situation",
-            tornado: "POSSIBLE"
-        },
-        "EDS Severe Thunderstorm Warning": {
-            description: "extremely dangerous situation"
-        },
-        "Destructive Severe Thunderstorm Warning (TPROB)": {
-            damage: `DESTRUCTIVE`,
-            tornado: `POSSIBLE`
-        },
-        "Destructive Severe Thunderstorm Warning": {
-            damage: `DESTRUCTIVE`
-        },
-        "Considerable Severe Thunderstorm Warning (TPROB)": {
-            damage: `CONSIDERABLE`,
-            tornado: `POSSIBLE`
-        },
-        "Considerable Severe Thunderstorm Warning": {
-            damage: `CONSIDERABLE`
-        },
-        "Severe Thunderstorm Warning (TPROB)": {
-            tornado: `POSSIBLE`
-        },
+        "EDS Severe Thunderstorm Warning (TPROB)": { description: "extremely dangerous situation", tornado: "POSSIBLE" },
+        "EDS Severe Thunderstorm Warning": { description: "extremely dangerous situation" },
+        "Destructive Severe Thunderstorm Warning (TPROB)": { damage: `DESTRUCTIVE`, tornado: `POSSIBLE` },
+        "Destructive Severe Thunderstorm Warning": { damage: `DESTRUCTIVE` },
+        "Considerable Severe Thunderstorm Warning (TPROB)": { damage: `CONSIDERABLE`, tornado: `POSSIBLE` },
+        "Considerable Severe Thunderstorm Warning": { damage: `CONSIDERABLE` },
+        "Severe Thunderstorm Warning (TPROB)": { tornado: `POSSIBLE` },
     },
 }

@@ -40,6 +40,7 @@ export const xOnline = () => {
                 type: `online`,
                 error: false
             },
+            message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
         })
     })
 }

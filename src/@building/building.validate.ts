@@ -24,12 +24,12 @@ import { getEventEnhancedName } from "./building.enhance";
 import { getEventSignature } from "./building.signature"
 import { mkEvent } from "../@manager/manager.mkEvent";
 import { rmEvent } from "../@manager/manager.rmEvent";
-import { getEventGeometry } from "./building.geometry";
 import { getEventAttachments } from "./building.attachments";
 import { updateNode } from "../@manager/manager.updateNodes";
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { setDebug } from "../@modules/@utilities/utilities.setDebug";
 import { getMatched } from "../@modules/@utilities/utilities.getMatched";
+import { getEventGeometry } from "../@building/building.geometry";
 import { createHash } from "crypto"
 
 export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
@@ -44,41 +44,31 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         if (Array.isArray(setting)) { sets[key] = new Set(setting.map(item => item.toLowerCase())); }
         if (typeof setting === 'boolean') { bools[key] = setting; }
     }
-    const filterd = events.filter((event: TypeEvent) => {
-        bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
-        const define = getEventSignature(event) as TypeEvent;
+
+    const isFiltered = (define: TypeEvent): boolean => {
         const properties = define.properties;
         const zones = properties.geocode.ugc;
         const icao = properties.geocode.office.office
-        const enhancedEventName = properties.event = getEventEnhancedName(event)
-        const filteredProperties = JSON.parse(JSON.stringify(properties)) as typeof properties;
-        if (filteredProperties?.metadata && 'ms' in filteredProperties.metadata) {
-            delete filteredProperties.metadata.ms;
-        }
-        
-        filteredProperties.metadata = filteredProperties.metadata ?? {} as any;
-        properties.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex")  
-        properties.metadata.attachments = getEventAttachments(event)
-        setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, '')}`, metadata: define });
+
         if (properties.status_metadata.is_test) { 
             setEventEmit({ event: `onTestProduct`, metadata: define })
-            if (bools?.IgnoreTestProducts) return false; 
+            if (bools?.IgnoreTestProducts) return true; 
         }
         
         if (properties.status_metadata.is_expired) { 
             setEventEmit({ event: `onExpiredProduct`, metadata: define })
             rmEvent(define)
-            return false; 
+            return true; 
         }
         
         if (properties.metadata?.vtec?.is_watch && properties.metadata.source != `events.api`) {
             const isSPC = properties.metadata?.vtec?.prediction_center;
             setEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define })
             if (bools?.SPCWatchesOnly && !isSPC) {
-                return false;
+                return true;
             }
             if ((!bools?.SPCWatchesOnly) && isSPC) {
-                return false 
+                return true 
              }
         }
 
@@ -90,63 +80,74 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
                     event: `onFilteredEvent`,
                     metadata: define
                 }); 
-                return false 
+                return true 
             } 
             if (key === 'IgnoredEvents' && setting.size > 0 && getMatched(values, define.properties.event)) {
                 setEventEmit({
                     event: `onIgnoredEvent`,
                     metadata: define
                 }); 
-                return false 
+                return true 
             } 
             if (key === 'ListeningICAO' && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) { 
                 setEventEmit({
                     event: `onFilteredICAO`,
                     metadata: define
                 }); 
-                return false 
+                return true 
             }
             if (key === 'IgnoredICAO' && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) { 
                 setEventEmit({
                     event: `onIgnoredICAO`,
                     metadata: define
                 }); 
-                return false 
+                return true 
             }
             if (key === 'ListeningUGC' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.toLowerCase()))) { 
                 setEventEmit({
                     event: `onFilteredUGC`,
                     metadata: define
                 }); 
-                return false 
+                return true 
             }
             if (key === 'ListeningStates' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.substring(0, 2).toLowerCase()))) { 
                 setEventEmit({
                     event: `onFilteredState`,
                     metadata: define
                 }); 
-                return false 
+                return true 
             }
         }
-        return true;
-    })
-
-    if (!configurations?.GlobalSettings?.DisableGeometryParsing) {
-        for (const event of filterd) {
-            event.geometry = await getEventGeometry(event)
-        }
+        return false
     }
 
-    if (filterd.length > 0) {
-        for (const event of filterd) {
+    const filtering = events.filter((event: TypeEvent) => {
+        bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
+        const define = getEventSignature(event) as TypeEvent;
+        const properties = define.properties; delete properties?.metadata?.ms;
+        const enhanced = properties.event = getEventEnhancedName(event)
+        const filtered = isFiltered(define)
+        if (!filtered) {
+            event.geometry = !bools?.DisableGeometryParsing ? getEventGeometry(event) : null;
+            properties.metadata.attachments = getEventAttachments(event)
+        }
+        properties.metadata.hash = createHash("sha256").update(JSON.stringify(properties)).digest("hex")  
+        setEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, '')}`, metadata: define });
+        return !filtered
+    })
+
+    
+    if (filtering.length > 0) {
+        for (const event of filtering) {
             await mkEvent(event)
         }
     }
+    
     await updateNode()
     setEventEmit({
         event: `onEventCache`,
         metadata: bootstrap.cache.events,
         limited: true
     })
-    setDebug({ title: `@building.validate`, message: `Filtered ${filterd.length} events which took ${performance.now() - tick} ms` })
+    setDebug({ title: `@building.validate`, message: `Filtered ${filtering.length} events which took ${performance.now() - tick} ms` })
 }

@@ -21,7 +21,7 @@ import path from 'path'
 import { EventEmitter } from 'node:events';
 
 export const bootstrap = {
-    version: `3.0.51`,
+    version: `3.0.52`,
     isReady: true,
     ratelimits: {},
     session_xmpp: null,
@@ -47,7 +47,7 @@ export const bootstrap = {
     },
     settings: {
         Database: path.join(process.cwd(), 'shapefiles.db'),
-        EnableWireService: true,
+        EnableWireService: false,
         EnableDebugging: false,
         EnableJournal: true,
         NOAAWeatherWireServiceSettings: {
@@ -85,7 +85,7 @@ export const bootstrap = {
             EventManagement: true,
             BetterEventNames: true,
             DisableGeometryParsing: false,
-            UseShapefileCoordinates: false,
+            UseShapefileCoordinates: true,
             SPCWatchesOnly: true,
             ShapefileSkipPoints: 15,
             NodeTTL: 60,

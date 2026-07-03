@@ -27,7 +27,7 @@ interface GetGeometryResponse {
     coordinates: any[]
 }
 
-export const getEventGeometry = async (event: TypeEvent): Promise<GetGeometryResponse> => {
+export const getEventGeometry = (event: TypeEvent): GetGeometryResponse  => {
     const settings = getSettings() as TypeSettings
     const generated = event?.properties?.geocode?.polygon ?? null;
     const ugc = event?.properties?.geocode?.ugc ?? null;
@@ -36,7 +36,7 @@ export const getEventGeometry = async (event: TypeEvent): Promise<GetGeometryRes
         coordinates: generated != null ? JSON.parse(Buffer.from(generated, 'base64').toString('utf-8')) : null
     }
     if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) { 
-        geo = await getZonePolygon({zones: ugc, isUnion: false})
+        geo = getZonePolygon({zones: ugc, isUnion: false})
         if (geo == null) {
             geo = {
                 type: `Polygon`,

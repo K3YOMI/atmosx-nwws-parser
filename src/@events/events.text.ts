@@ -39,12 +39,16 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
         const header = getEventHeader({properties: props, getType: stanza.getType})   
         const issued = new Date(attributes.issue)
         const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1000)
-        let event = Object.keys(dict_matches).find(event => message.toLowerCase().includes(event.toLowerCase()));
-        let isStatement = false;
+        const matches = dict_matches[stanza.getType.prefix]?.find(match => match.match.test(message.toUpperCase()));
+        
+        let event = matches?.label;
+        let isStatement = matches?.statement ?? false;
+
         if (!event) { 
             event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
             isStatement = true;
         }
+        
         bootstrap.cache.processed.push({
             type: `Feature`,
             geometry: {

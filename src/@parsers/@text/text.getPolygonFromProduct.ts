@@ -18,15 +18,36 @@
 */
 
 export const getPolygonFromProduct = (message: string): number[][] => {
-    const coordinates: [number, number][] = [];
-    const match = message.match(/LAT\.{3}LON\s+([\d\s]+)/i);
-    if (!match || !match[1]) return coordinates;
-    const coordStrings = match[1].replace(/\n/g, ' ').trim().split(/\s+/);
-    for (let i = 0; i < coordStrings.length - 1; i += 2) {
-        const lat = parseFloat(coordStrings[i]) / 100;
-        const lon = -parseFloat(coordStrings[i + 1]) / 100;
-        if (!isNaN(lat) && !isNaN(lon)) { coordinates.push([lon, lat]); }
+    const coordinates: number[][] = [];
+    const match = message.match(
+        /LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i
+    );
+    if (!match) return coordinates;
+    const text = match[1];
+    const values = text.match(/\d{4,8}/g);
+    if (!values) return coordinates;
+
+    if (values.every(v => v.length === 8)) {
+        for (const value of values) {
+            const lat = parseInt(value.slice(0, 4), 10) / 100;
+            const lon = -parseInt(value.slice(4, 8), 10) / 100;
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                coordinates.push([lon, lat]);
+            }
+        }
     }
-    if (coordinates.length > 2) { coordinates.push(coordinates[0]); }
+
+    else {
+        for (let i = 0; i + 1 < values.length; i += 2) {
+            const lat = parseInt(values[i], 10) / 100;
+            const lon = -parseInt(values[i + 1], 10) / 100;
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                coordinates.push([lon, lat]);
+            }
+        }
+    }
+    if (coordinates.length > 2) {
+        coordinates.push([...coordinates[0]]);
+    }
     return coordinates;
-}
+};

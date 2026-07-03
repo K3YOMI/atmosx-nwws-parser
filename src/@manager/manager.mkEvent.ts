@@ -19,6 +19,7 @@
 
 import { TypeEvent } from "../@types/type.event";
 import { TypeSettings } from "../@types/type.settings";
+import { dict_global } from "../@dictionaries/dictionaries.global";
 import { bootstrap } from "../bootstrap"
 import { setHash } from "./manager.setHash";
 import { updateListener } from "./manager.updateListener";
@@ -35,11 +36,14 @@ export const mkEvent = async (event: TypeEvent): Promise<void> => {
     const isEntry = bootstrap.cache.hashes?.find(hash => hash.tracking === getTracking)
     const isHashed = isEntry?.hashes?.includes(getHash) ?? false;
     const getFeature = features.find(feature => feature.properties.metadata.tracking === getTracking);    
+   
     if (isHashed || event.properties.status_metadata.is_expired) return
     setHash(event, isEntry)
     
     const isFilteredLocation = await updateNode(event).then(() => event.properties.metadata.filtered_proximity);
-    if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) { return }
+    if (!isFilteredLocation && !dict_global.includes(event.properties.event.toLowerCase()) && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) { 
+        return 
+    }
 
     const isRatelimited = setTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true })
     if (!isRatelimited.limited) {

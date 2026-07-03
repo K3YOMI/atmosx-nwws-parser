@@ -1104,7 +1104,7 @@ var require_main3 = __commonJS({
 import path from "path";
 import { EventEmitter } from "events";
 var bootstrap = {
-  version: `3.0.51`,
+  version: `3.0.52`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -1135,7 +1135,7 @@ var bootstrap = {
   },
   settings: {
     Database: path.join(process.cwd(), "shapefiles.db"),
-    EnableWireService: true,
+    EnableWireService: false,
     EnableDebugging: false,
     EnableJournal: true,
     NOAAWeatherWireServiceSettings: {
@@ -1173,7 +1173,7 @@ var bootstrap = {
       EventManagement: true,
       BetterEventNames: true,
       DisableGeometryParsing: false,
-      UseShapefileCoordinates: false,
+      UseShapefileCoordinates: true,
       SPCWatchesOnly: true,
       ShapefileSkipPoints: 15,
       NodeTTL: 60,
@@ -1305,7 +1305,7 @@ var getZonePolygon = (options) => {
 };
 
 // src/@building/building.geometry.ts
-var getEventGeometry = (event) => __async(null, null, function* () {
+var getEventGeometry = (event) => {
   var _a, _b, _c, _d, _e, _f;
   const settings = getSettings();
   const generated = (_c = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.geocode) == null ? void 0 : _b.polygon) != null ? _c : null;
@@ -1315,7 +1315,7 @@ var getEventGeometry = (event) => __async(null, null, function* () {
     coordinates: generated != null ? JSON.parse(Buffer.from(generated, "base64").toString("utf-8")) : null
   };
   if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc2 != null) {
-    geo = yield getZonePolygon({ zones: ugc2, isUnion: false });
+    geo = getZonePolygon({ zones: ugc2, isUnion: false });
     if (geo == null) {
       geo = {
         type: `Polygon`,
@@ -1324,7 +1324,7 @@ var getEventGeometry = (event) => __async(null, null, function* () {
     }
   }
   return geo;
-});
+};
 
 // src/@building/building.clean.ts
 var getCleanedEvent = (event) => {
@@ -4180,7 +4180,8 @@ var xOnline = () => {
         data: {},
         type: `online`,
         error: false
-      }
+      },
+      message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`
     });
   }));
 };
@@ -4502,9 +4503,9 @@ var dict_awips = {
   SVR: `severe-thunderstorm-warning`,
   SVS: `severe-weather-statement`,
   SWOMCD: `mesoscale-discussion`,
-  SWODY1: `spc-day-1-outlook`,
-  SWODY2: `spc-day-2-outlook`,
-  SWODY3: `spc-day-3-outlook`,
+  SWODY1: `SPC-day-1-outlook`,
+  SWODY2: `SPC-day-2-outlook`,
+  SWODY3: `SPC-day-3-outlook`,
   SWS: `state-weather-summary`,
   SYN: `regional-weather-synopsis`,
   TAF: `terminal-aerodrome-forecast`,
@@ -4524,7 +4525,7 @@ var dict_awips = {
   TOE: `telephone-outage-emergency`,
   TOR: `tornado-warning`,
   TPT: `temperature-precipitation-table`,
-  TSU: `tsunami-watch`,
+  TSU: `tsunami-information-statement`,
   TUV: `ultraviolet-index`,
   TVL: `travelers-forecast`,
   TWB: `transcribed-weather-broadcast`,
@@ -4620,21 +4621,39 @@ var validate = (options) => {
 
 // src/@dictionaries/dictionaries.matches.ts
 var dict_matches = {
-  "Special Weather Statement": "Special Weather Statement",
-  "Hurricane Warning": "Hurricane Warning",
-  "Hurricane Force Wind Warning": "Hurricane Force Wind Warning",
-  "Hurricane Watch": "Hurricane Watch",
-  "Tropical Storm Warning": "Tropical Storm Warning",
-  "Tropical Storm Watch": "Tropical Storm Watch",
-  "High Wind Warning": "High Wind Warning",
-  "Gale Warning": "Gale Warning",
-  "Small Craft Advisory": "Small Craft Advisory",
-  "Small Craft Warning": "Small Craft Warning",
-  "Tsunami Warning": "Tsunami Warning",
-  "Tsunami Watch": "Tsunami Watch",
-  "Tsunami Advisory": "Tsunami Advisory",
-  "Tsunami Information Statement": "Tsunami Information Statement",
-  "Subscribers:": "National Weather Service Policy"
+  SPS: [
+    { match: /STRONG THUNDERSTORM/i, label: "Convective Special Weather Statement", statement: false },
+    { match: /SPECIAL WEATHER STATEMENT/i, label: "Special Weather Statement", statement: false }
+  ],
+  TSU: [
+    { match: /TSUNAMI WARNING/i, label: "Tsunami Warning", statement: false },
+    { match: /TSUNAMI WATCH/i, label: "Tsunami Watch", statement: false },
+    { match: /TSUNAMI ADVISORY/i, label: "Tsunami Advisory", statement: false },
+    { match: /TSUNAMI INFORMATION STATEMENT/i, label: "Tsunami Information Statement", statement: false },
+    { match: /TSUNAMI WARNING CANCELLATION/i, label: "Tsunami Cancellation", statement: false }
+  ],
+  TCP: [
+    { match: /HURRICANE WARNING/i, label: "Hurricane Warning", statement: false },
+    { match: /HURRICANE WATCH/i, label: "Hurricane Watch", statement: false },
+    { match: /TROPICAL STORM WARNING/i, label: "Tropical Storm Warning", statement: false },
+    { match: /TROPICAL STORM WATCH/i, label: "Tropical Storm Watch", statement: false },
+    { match: /STORM SURGE WARNING/i, label: "Storm Surge Warning", statement: false },
+    { match: /STORM SURGE WATCH/i, label: "Storm Surge Watch", statement: false }
+  ],
+  MWW: [
+    { match: /SMALL CRAFT ADVISORY/i, label: "Small Craft Advisory", statement: false },
+    { match: /GALE WARNING/i, label: "Gale Warning", statement: false },
+    { match: /STORM WARNING/i, label: "Storm Warning", statement: false },
+    { match: /HURRICANE FORCE WIND WARNING/i, label: "Hurricane Force Wind Warning", statement: false },
+    { match: /HAZARDOUS SEAS WARNING/i, label: "Hazardous Seas Warning", statement: false },
+    { match: /DENSE FOG ADVISORY/i, label: "Dense Fog Advisory", statement: false },
+    { match: /THUNDERSTORMS/i, label: "Convective Marine Weather Statement", statement: false },
+    { match: /MARINE WEATHER STATEMENT/i, label: "Marine Weather Statement", statement: false }
+  ],
+  PNS: [
+    { match: /NOAA WEATHER WIRE SERVICE/i, label: "NOAA Weather Wire Service Report", statement: true },
+    { match: /Public Information Statement/i, label: "Public Information Statement", statement: true }
+  ]
 };
 
 // src/@parsers/@text/text.getDescriptionFromProduct.ts
@@ -4669,18 +4688,32 @@ var getDescriptionFromProduct = (options) => {
 // src/@parsers/@text/text.getPolygonFromProduct.ts
 var getPolygonFromProduct = (message) => {
   const coordinates = [];
-  const match = message.match(/LAT\.{3}LON\s+([\d\s]+)/i);
-  if (!match || !match[1]) return coordinates;
-  const coordStrings = match[1].replace(/\n/g, " ").trim().split(/\s+/);
-  for (let i = 0; i < coordStrings.length - 1; i += 2) {
-    const lat = parseFloat(coordStrings[i]) / 100;
-    const lon = -parseFloat(coordStrings[i + 1]) / 100;
-    if (!isNaN(lat) && !isNaN(lon)) {
-      coordinates.push([lon, lat]);
+  const match = message.match(
+    /LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i
+  );
+  if (!match) return coordinates;
+  const text2 = match[1];
+  const values = text2.match(/\d{4,8}/g);
+  if (!values) return coordinates;
+  if (values.every((v) => v.length === 8)) {
+    for (const value of values) {
+      const lat = parseInt(value.slice(0, 4), 10) / 100;
+      const lon = -parseInt(value.slice(4, 8), 10) / 100;
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        coordinates.push([lon, lat]);
+      }
+    }
+  } else {
+    for (let i = 0; i + 1 < values.length; i += 2) {
+      const lat = parseInt(values[i], 10) / 100;
+      const lon = -parseInt(values[i + 1], 10) / 100;
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        coordinates.push([lon, lat]);
+      }
     }
   }
   if (coordinates.length > 2) {
-    coordinates.push(coordinates[0]);
+    coordinates.push([...coordinates[0]]);
   }
   return coordinates;
 };
@@ -5156,7 +5189,7 @@ var setDebug = (options) => {
 
 // src/@events/events.text.ts
 var text = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c;
+  var _a, _b, _c, _d, _e;
   const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
   if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
   for (const message of getMessages) {
@@ -5166,8 +5199,9 @@ var text = (stanza) => __async(null, null, function* () {
     const header = getEventHeader({ properties: props, getType: stanza.getType });
     const issued = new Date(attributes.issue);
     const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
-    let event = Object.keys(dict_matches).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
-    let isStatement = false;
+    const matches = (_d = dict_matches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
+    let event = matches == null ? void 0 : matches.label;
+    let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
     if (!event) {
       event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
       isStatement = true;
@@ -5325,7 +5359,7 @@ var ugcExtract = (message) => __async(null, null, function* () {
 
 // src/@events/events.ugc.ts
 var ugc = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c;
+  var _a, _b, _c, _d, _e;
   const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
   if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
   for (const message of getMessages) {
@@ -5337,8 +5371,9 @@ var ugc = (stanza) => __async(null, null, function* () {
       const issued = new Date(attributes.issue);
       const expires = new Date(ugc2.expires);
       const header = getEventHeader({ properties: props, getType: stanza.getType });
-      let event = Object.keys(dict_matches).find((event2) => message.toLowerCase().includes(event2.toLowerCase()));
-      let isStatement = false;
+      const matches = (_d = dict_matches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
+      let event = matches == null ? void 0 : matches.label;
+      let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
       if (!event) {
         event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
         isStatement = true;
@@ -5715,85 +5750,42 @@ var api = (stanza) => __async(null, null, function* () {
 // src/@dictionaries/dictionaries.enhanced.ts
 var dict_enhanced = {
   "Tornado Warning": {
-    "Tornado Emergency": {
-      description: "tornado emergency"
-    },
-    "PDS Tornado Warning": {
-      description: "particularly dangerous situation",
-      damage: `CONSIDERABLE`
-    },
-    "Radar Confirmed Tornado Warning": {
-      description: "source...radar confirmed tornado.",
-      tornado: `OBSERVED`
-    },
-    "Confirmed Tornado Warning": {
-      tornado: `OBSERVED`
-    },
+    "Tornado Emergency": { description: "tornado emergency" },
+    "PDS Tornado Warning": { description: "particularly dangerous situation", damage: `CONSIDERABLE` },
+    "Radar Confirmed Tornado Warning": { description: "source...radar confirmed tornado.", tornado: `OBSERVED` },
+    "Confirmed Tornado Warning": { tornado: `OBSERVED` },
     "Radar Indicated Tornado Warning": {}
   },
   "Fire Weather Warning": {
-    "PDS Fire Weather Warning": {
-      description: "particularly dangerous situation"
-    }
+    "PDS Fire Weather Warning": { description: "particularly dangerous situation" }
   },
   "Blizzard Warning": {
-    "PDS Blizzard Warning": {
-      description: "particularly dangerous situation"
-    }
+    "PDS Blizzard Warning": { description: "particularly dangerous situation" }
   },
   "Ice Storm Warning": {
-    "PDS Ice Storm Warning": {
-      description: "particularly dangerous situation"
-    }
+    "PDS Ice Storm Warning": { description: "particularly dangerous situation" }
   },
   "Special Marine Warning": {
-    "Special Marine Warning (TPROB)": {
-      tornado: `POSSIBLE`
-    }
+    "Special Marine Warning (TPROB)": { tornado: `POSSIBLE` }
   },
   "Tornado Watch": {
-    "PDS Tornado Watch": {
-      pdswatch: true
-    }
+    "PDS Tornado Watch": { pdswatch: true }
   },
   "Severe Thunderstorm Watch": {
-    "PDS Severe Thunderstorm Watch": {
-      pdswatch: true
-    }
+    "PDS Severe Thunderstorm Watch": { pdswatch: true }
   },
   "Flash Flood Warning": {
-    "Flash Flood Emergency": {
-      description: "flash flood emergency"
-    },
-    "Considerable Flash Flood Warning": {
-      damage: `CONSIDERABLE`
-    }
+    "Flash Flood Emergency": { description: "flash flood emergency" },
+    "Considerable Flash Flood Warning": { damage: `CONSIDERABLE` }
   },
   "Severe Thunderstorm Warning": {
-    "EDS Severe Thunderstorm Warning (TPROB)": {
-      description: "extremely dangerous situation",
-      tornado: "POSSIBLE"
-    },
-    "EDS Severe Thunderstorm Warning": {
-      description: "extremely dangerous situation"
-    },
-    "Destructive Severe Thunderstorm Warning (TPROB)": {
-      damage: `DESTRUCTIVE`,
-      tornado: `POSSIBLE`
-    },
-    "Destructive Severe Thunderstorm Warning": {
-      damage: `DESTRUCTIVE`
-    },
-    "Considerable Severe Thunderstorm Warning (TPROB)": {
-      damage: `CONSIDERABLE`,
-      tornado: `POSSIBLE`
-    },
-    "Considerable Severe Thunderstorm Warning": {
-      damage: `CONSIDERABLE`
-    },
-    "Severe Thunderstorm Warning (TPROB)": {
-      tornado: `POSSIBLE`
-    }
+    "EDS Severe Thunderstorm Warning (TPROB)": { description: "extremely dangerous situation", tornado: "POSSIBLE" },
+    "EDS Severe Thunderstorm Warning": { description: "extremely dangerous situation" },
+    "Destructive Severe Thunderstorm Warning (TPROB)": { damage: `DESTRUCTIVE`, tornado: `POSSIBLE` },
+    "Destructive Severe Thunderstorm Warning": { damage: `DESTRUCTIVE` },
+    "Considerable Severe Thunderstorm Warning (TPROB)": { damage: `CONSIDERABLE`, tornado: `POSSIBLE` },
+    "Considerable Severe Thunderstorm Warning": { damage: `CONSIDERABLE` },
+    "Severe Thunderstorm Warning (TPROB)": { tornado: `POSSIBLE` }
   }
 };
 
@@ -5923,6 +5915,13 @@ var getEventSignature = (event) => {
   properties2.status_metadata = __spreadValues({}, properties2.status_metadata);
   return event;
 };
+
+// src/@dictionaries/dictionaries.global.ts
+var dict_global = [
+  "spc day 1 outlook",
+  "spc day 2 outlook",
+  "spc day 3 outlook"
+];
 
 // src/@manager/manager.setHash.ts
 var setHash = (event, entry) => {
@@ -6784,7 +6783,7 @@ var mkEvent = (event) => __async(null, null, function* () {
   if (isHashed || event.properties.status_metadata.is_expired) return;
   setHash(event, isEntry);
   const isFilteredLocation = yield updateNode(event).then(() => event.properties.metadata.filtered_proximity);
-  if (!isFilteredLocation && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
+  if (!isFilteredLocation && !dict_global.includes(event.properties.event.toLowerCase()) && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
     return;
   }
   const isRatelimited = setTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
@@ -6842,15 +6841,17 @@ var rmEvent = (event) => __async(null, null, function* () {
   event.properties.status = `Expired`;
   event.properties.status_metadata.is_expired = true;
   if (getEvent) {
-    setEventEmit({
-      event: `onEventStatus`,
-      metadata: {
-        type: `Removed`,
-        event
-      },
-      message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
-    });
-    setEventEmit({ event: `onExpiredProduct`, metadata: event });
+    if (!event.properties.status_metadata.is_statement) {
+      setEventEmit({
+        event: `onEventStatus`,
+        metadata: {
+          type: `Removed`,
+          event
+        },
+        message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+      });
+      setEventEmit({ event: `onExpiredProduct`, metadata: event });
+    }
     if (cachedStatus != `Statement`) yield updateListener(event);
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
@@ -6951,7 +6952,7 @@ var getEventAttachments = (event) => {
     { target: "PDS Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` }
   ];
   if (events.find((e) => e.target === event.properties.event)) {
-    attachments.push({ name: `Image: Graphic`, link: events.find((e) => e.target === event.properties.event).attachment });
+    attachments.push({ name: `Image: Graphic`, link: events.find((e) => e.target.toLowerCase() === event.properties.event.toLowerCase()).attachment });
   }
   for (const location of locations) {
     if (dict_expressions.location.test(location)) {
@@ -6981,7 +6982,6 @@ var getEventAttachments = (event) => {
 // src/@building/building.validate.ts
 import { createHash } from "crypto";
 var validateEvents = (events) => __async(null, null, function* () {
-  var _a;
   const tick = performance.now();
   if (events.length === 0) return;
   const configurations = bootstrap.settings;
@@ -6997,39 +6997,28 @@ var validateEvents = (events) => __async(null, null, function* () {
       bools[key] = setting;
     }
   }
-  const filterd = events.filter((event) => {
-    var _a2, _b, _c, _d, _e;
-    bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
-    const define2 = getEventSignature(event);
+  const isFiltered = (define2) => {
+    var _a, _b, _c, _d;
     const properties2 = define2.properties;
     const zones = properties2.geocode.ugc;
     const icao = properties2.geocode.office.office;
-    const enhancedEventName = properties2.event = getEventEnhancedName(event);
-    const filteredProperties = JSON.parse(JSON.stringify(properties2));
-    if ((filteredProperties == null ? void 0 : filteredProperties.metadata) && "ms" in filteredProperties.metadata) {
-      delete filteredProperties.metadata.ms;
-    }
-    filteredProperties.metadata = (_a2 = filteredProperties.metadata) != null ? _a2 : {};
-    properties2.metadata.hash = createHash("sha256").update(JSON.stringify(filteredProperties)).digest("hex");
-    properties2.metadata.attachments = getEventAttachments(event);
-    setEventEmit({ event: `onProductType${enhancedEventName.replace(/\s+/g, "")}`, metadata: define2 });
     if (properties2.status_metadata.is_test) {
       setEventEmit({ event: `onTestProduct`, metadata: define2 });
-      if (bools == null ? void 0 : bools.IgnoreTestProducts) return false;
+      if (bools == null ? void 0 : bools.IgnoreTestProducts) return true;
     }
     if (properties2.status_metadata.is_expired) {
       setEventEmit({ event: `onExpiredProduct`, metadata: define2 });
       rmEvent(define2);
-      return false;
+      return true;
     }
-    if (((_c = (_b = properties2.metadata) == null ? void 0 : _b.vtec) == null ? void 0 : _c.is_watch) && properties2.metadata.source != `events.api`) {
-      const isSPC = (_e = (_d = properties2.metadata) == null ? void 0 : _d.vtec) == null ? void 0 : _e.prediction_center;
+    if (((_b = (_a = properties2.metadata) == null ? void 0 : _a.vtec) == null ? void 0 : _b.is_watch) && properties2.metadata.source != `events.api`) {
+      const isSPC = (_d = (_c = properties2.metadata) == null ? void 0 : _c.vtec) == null ? void 0 : _d.prediction_center;
       setEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define2 });
       if ((bools == null ? void 0 : bools.SPCWatchesOnly) && !isSPC) {
-        return false;
+        return true;
       }
       if (!(bools == null ? void 0 : bools.SPCWatchesOnly) && isSPC) {
-        return false;
+        return true;
       }
     }
     for (const key in sets) {
@@ -7040,53 +7029,64 @@ var validateEvents = (events) => __async(null, null, function* () {
           event: `onFilteredEvent`,
           metadata: define2
         });
-        return false;
+        return true;
       }
       if (key === "IgnoredEvents" && setting.size > 0 && getMatched(values, define2.properties.event)) {
         setEventEmit({
           event: `onIgnoredEvent`,
           metadata: define2
         });
-        return false;
+        return true;
       }
       if (key === "ListeningICAO" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
         setEventEmit({
           event: `onFilteredICAO`,
           metadata: define2
         });
-        return false;
+        return true;
       }
       if (key === "IgnoredICAO" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
         setEventEmit({
           event: `onIgnoredICAO`,
           metadata: define2
         });
-        return false;
+        return true;
       }
       if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.toLowerCase()))) {
         setEventEmit({
           event: `onFilteredUGC`,
           metadata: define2
         });
-        return false;
+        return true;
       }
       if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.substring(0, 2).toLowerCase()))) {
         setEventEmit({
           event: `onFilteredState`,
           metadata: define2
         });
-        return false;
+        return true;
       }
     }
-    return true;
-  });
-  if (!((_a = configurations == null ? void 0 : configurations.GlobalSettings) == null ? void 0 : _a.DisableGeometryParsing)) {
-    for (const event of filterd) {
-      event.geometry = yield getEventGeometry(event);
+    return false;
+  };
+  const filtering = events.filter((event) => {
+    var _a;
+    bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
+    const define2 = getEventSignature(event);
+    const properties2 = define2.properties;
+    (_a = properties2 == null ? void 0 : properties2.metadata) == null ? true : delete _a.ms;
+    const enhanced = properties2.event = getEventEnhancedName(event);
+    const filtered = isFiltered(define2);
+    if (!filtered) {
+      event.geometry = !(bools == null ? void 0 : bools.DisableGeometryParsing) ? getEventGeometry(event) : null;
+      properties2.metadata.attachments = getEventAttachments(event);
     }
-  }
-  if (filterd.length > 0) {
-    for (const event of filterd) {
+    properties2.metadata.hash = createHash("sha256").update(JSON.stringify(properties2)).digest("hex");
+    setEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, "")}`, metadata: define2 });
+    return !filtered;
+  });
+  if (filtering.length > 0) {
+    for (const event of filtering) {
       yield mkEvent(event);
     }
   }
@@ -7096,7 +7096,7 @@ var validateEvents = (events) => __async(null, null, function* () {
     metadata: bootstrap.cache.events,
     limited: true
   });
-  setDebug({ title: `@building.validate`, message: `Filtered ${filterd.length} events which took ${performance.now() - tick} ms` });
+  setDebug({ title: `@building.validate`, message: `Filtered ${filtering.length} events which took ${performance.now() - tick} ms` });
 });
 
 // src/@building/building.create.ts
@@ -7646,59 +7646,16 @@ var getNodes = () => {
   return bootstrap.cache.nodes;
 };
 
-// src/@core/core.createEvent.ts
-var createEvent2 = (options) => {
-  var _a;
-  const tick = performance.now();
-  validateEvents([{
-    type: `Feature`,
-    geometry: {
-      type: `Point`,
-      coordinates: options.coordinates
-    },
-    properties: {
-      event: options.event,
-      parent: options.event,
-      status: options.status,
-      issued: options.issued.toISOString(),
-      expires: options.expires.toISOString(),
-      locations: options.locations,
-      locations_array: options.locations ? options.locations.split(";") : [],
-      description: options.description,
-      geocode: {
-        office: {
-          office: `ATMX`,
-          name: `AtmosphericX Manual Event`
-        },
-        organization: `AtmosphericX`,
-        ugc: [],
-        polygon: options.coordinates.length > 0 ? Buffer.from(JSON.stringify([options.coordinates[0]])).toString("base64") : null,
-        polygon_generated: options.coordinates.length > 0 ? true : false
-      },
-      status_metadata: {
-        is_issued: options.status == `Issued`,
-        is_updated: options.status == `Updated`,
-        is_expired: options.status == `Expired`,
-        is_test: options.status == `Test`,
-        is_statement: options.status == `Statement`
-      },
-      metadata: {
-        ms: performance.now() - tick,
-        source: `events.manual`,
-        tracking: `ATMX-M-W-01`,
-        header: `ZCZC-ATMOSX-ATMX-M-W-01`,
-        raw: options.description,
-        history: [
-          {
-            description: options.description,
-            issued: options.issued.toISOString(),
-            status: (_a = options.status) != null ? _a : null
-          }
-        ]
-      }
-    }
-  }]);
-};
+// src/@core/core.manualEvent.ts
+var manualEvent = (options) => __async(null, null, function* () {
+  const isCapEvent = options.message.includes(`<?xml`);
+  const isCapAreaDescription = options.message.includes(`<areaDesc>`);
+  const isVTEC = options.message.match(dict_expressions.pvtec) != null;
+  const isUGC = options.message.match(dict_expressions.ugc1) != null;
+  const getType = getAwipsType({ attributes: options.attributes });
+  const result = { message: options.message, attributes: options.attributes, isCapEvent, isVTEC, isUGC, isCapAreaDescription, isIgnored: false, isNWWS: true, getType };
+  yield createEvent(result);
+});
 
 // src/@core/core.getRandomEvent.ts
 var getRandomEvent = () => {
@@ -7759,13 +7716,13 @@ var index_default = Manager;
 export {
   Manager,
   clearEvents,
-  createEvent2 as createEvent,
   index_default as default,
   getCleanedEvent,
   getEventGeometry,
   getEvents,
   getNodes,
   getRandomEvent,
+  manualEvent,
   query,
   setEasTone,
   setNode,

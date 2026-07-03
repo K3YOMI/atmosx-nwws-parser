@@ -54,7 +54,7 @@ export const getEventAttachments = (event: TypeEvent): GetEventAttachmentsRespon
     ]
 
     if (events.find((e) => e.target === event.properties.event)) {
-        attachments.push({ name: `Image: Graphic`, link: events.find((e) => e.target === event.properties.event).attachment });
+        attachments.push({ name: `Image: Graphic`, link: events.find((e) => e.target.toLowerCase() === event.properties.event.toLowerCase()).attachment });
     }
 
     for (const location of locations) {

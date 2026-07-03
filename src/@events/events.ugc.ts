@@ -43,12 +43,16 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
             const issued = new Date(attributes.issue)
             const expires = new Date(ugc.expires)
             const header = getEventHeader({properties: props, getType: stanza.getType })
-            let event = Object.keys(dict_matches).find(event => message.toLowerCase().includes(event.toLowerCase()));
-            let isStatement = false;
+            const matches = dict_matches[stanza.getType.prefix]?.find(match => match.match.test(message.toUpperCase()));
+            
+            let event = matches?.label;
+            let isStatement = matches?.statement ?? false;
+            
             if (!event) { 
                 event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
                 isStatement = true;
             }
+            
             bootstrap.cache.processed.push({
                 type: `Feature`,
                 geometry: {
