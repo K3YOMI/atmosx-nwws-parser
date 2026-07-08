@@ -43,9 +43,9 @@ export const getEventAttachments = (event: TypeEvent): GetEventAttachmentsRespon
     const watchNumber = event?.properties?.watch_parameters?.watch_number;
     const locations = event?.properties?.locations_array;
     const events = [
-        { target: "SPC Day 1 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${issuanceTime}.png` },
-        { target: "SPC Day 2 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
-        { target: "SPC Day 3 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
+        { target: "Storm Prediction Center Day 1 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${issuanceTime}.png` },
+        { target: "Storm Prediction Center Day 2 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
+        { target: "Storm Prediction Center Day 3 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
         { target: "Mesoscale Discussion", attachment: `https://www.spc.noaa.gov/products/md/mcd${spcNumber}.png` },
         { target: "Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
         { target: "PDS Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },

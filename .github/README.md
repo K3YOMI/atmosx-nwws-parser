@@ -91,7 +91,7 @@ const Client = new Manager({
                 "*Tsunami*", "*Hurricane*", "*Tropical Storm*", "*Special Marine*",
                 "*Flash Flood Warning*", "*Flash Flood Watch*", "*Flash Flood Advisory*",
                 "Mesoscale Discussion",
-                "SPC Day 1 Outlook", "SPC Day 2 Outlook", "SPC Day 3 Outlook",
+                "*Storm Prediction Center*",
                 "PDS Tornado Watch", "Tornado Watch", "Severe Thunderstorm Watch", "Flash Flood Watch", "PDS Severe Thunderstorm Watch",
                 "*Administrative*", "National Weather Service Policy",
                 "Fire Weather Warning", "Fire Weather Watch", "Fire Weather Advisory",
