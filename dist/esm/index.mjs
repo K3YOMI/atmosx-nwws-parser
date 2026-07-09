@@ -1104,7 +1104,7 @@ var require_main3 = __commonJS({
 import path from "path";
 import { EventEmitter } from "events";
 var bootstrap = {
-  version: `3.0.53`,
+  version: `3.0.54`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
