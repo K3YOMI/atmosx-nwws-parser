@@ -6947,7 +6947,6 @@ var rmEvent = (event) => __async(null, null, function* () {
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(gEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
     setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true });
-    console.log(gSelect);
     if (!gStatement) yield updateListener(gSelect);
   }
   setEventEmit({
