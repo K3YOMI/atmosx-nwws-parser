@@ -43,10 +43,10 @@ export const rmEvent = async (event: TypeEvent): Promise<void> => {
             })
             setEventEmit({ event: `onExpiredProduct`, metadata: event })
         }
-        if (cachedStatus != `Statement`) await updateListener(event)
         bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
         bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
         setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true })
+        if (cachedStatus != `Statement`) await updateListener(event)
     }
     
     setEventEmit({

@@ -6622,7 +6622,7 @@ var updateListener = (event) => __async(null, null, function* () {
         const server = settings.NotifyServer;
         const auth = ((_b = server.Credentials) == null ? void 0 : _b.Username) && ((_c = server.Credentials) == null ? void 0 : _c.Password) ? { username: settings.NotifyServer.Credentials.Username, password: server.Credentials.Password } : void 0;
         const attachment = metadata.eas && server.Attachments ? `${server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : void 0;
-        const a = yield createHttp(__spreadProps(__spreadValues({
+        yield createHttp(__spreadProps(__spreadValues({
           url: `${server.Server.replace(/\/$/, "")}/${(_d = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _d.Topic}`,
           timeout: 15e3,
           method: "POST"
@@ -6943,10 +6943,10 @@ var rmEvent = (event) => __async(null, null, function* () {
       });
       setEventEmit({ event: `onExpiredProduct`, metadata: event });
     }
-    if (cachedStatus != `Statement`) yield updateListener(event);
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
     setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true });
+    if (cachedStatus != `Statement`) yield updateListener(event);
   }
   setEventEmit({
     event: `onEventCache`,

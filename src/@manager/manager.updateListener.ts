@@ -95,7 +95,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 const server = settings.NotifyServer;
                 const auth = server.Credentials?.Username && server.Credentials?.Password ? { username: settings.NotifyServer.Credentials.Username, password: server.Credentials.Password } : undefined;
                 const attachment = metadata.eas && server.Attachments ? `${server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : undefined;
-                const a = await createHttp({
+                await createHttp({
                     url: `${server.Server.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
                     timeout: 15_000,
                     method: "POST",
