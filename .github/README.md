@@ -23,7 +23,7 @@ const { Manager } = require(`@atmosx/event-product-parser`) // CJS Importing
 import { Manager } from '@atmosx/event-product-parser' // EJS Importing
 
 const Client = new Manager({
-    Database: `shapefiles.db`,
+    Database: `event-product-parser.db`,
     EnableWireService: false,
     EnableJournal: true,
     EnableDebugging: false,
@@ -39,8 +39,8 @@ const Client = new Manager({
         },   
         CacheSettings: {
             Enabled: true,
-            MaxDatabaseHistory: 5000,
-            MaxRetentionHistory: 555,
+            MaxDatabaseHistory: 50000,
+            MaxRetentionHistory: 1500,
         },
         StanzaSettings: {
             DisableUGC: false,
@@ -54,12 +54,13 @@ const Client = new Manager({
     },
     BroadcastifySettings: {
         BroadcastifyAttachments: true,
+        BroadcastifyDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/broadcastify.json`,
         BroadcastifyTags: [`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`]
     },
     NotifyServer: {
         Enabled: false,
-        Server: "https://ntfy.domainname.com",
-        Attachments: "https://domainname.com/Storage/EasScenarios",
+        Server: "https://ntfy.scriptkitty.cafe",
+        Attachments: "https://scriptkitty.cafe/ftp/@bucket/EAS/encoded",
         Credentials: {
             Username: "username",
             Password: "password"
@@ -67,22 +68,16 @@ const Client = new Manager({
     },
     ListenerSettings: [
         {
-            events: [`*Thunderstorm Warning*`, `* Watch`],
-            webhook: {
-                enabled: true,
-                destination: "https://discord.com/api/XXXXXXXXXX/XXXXXXXXXXX",
-                title: "AtmosphericX - (Thunderstorm Warnings and Watches)",
-                message: "<@&XXXXXXXXXXXXXXXXXXXXX>",
-                ratelimit: 1
+            Events: ["*Extreme Heat Warning*"],
+            NotificationServer: {
+                Enabled: false,
+                Topic: "heat-warnings",
+                Priority: 5
             },
-            notify: {
-                enabled: false,
-                topic: "thunderstorm_events",
-            },
-            uploads: {
-                eas: true,
-                file: true,
-                event: true
+            Uploads: {
+                EAS: true,
+                File: true,
+                JSON: true
             }
         }
     ],
@@ -94,106 +89,29 @@ const Client = new Manager({
         SPCWatchesOnly: true,
         ShapefileSkipPoints: 0,
         NodeTTL: 60,
-        NodeMinDistance: 120,
+        NodeMinDistance: 125,
         EventFiltering: {
             ListeningEvents: [
-                "*Severe Thunderstorm Warning*",
-                "*Blizzard*", "*Ice Storm*", "*Winter Storm*", "*Snow Squall*",
-                "Tornado Emergency", "*Tornado Warning*",
-                "Special Weather Statement", "Marine Weather Statement",
-                "*Tsunami*", "*Hurricane*", "*Tropical Storm*", "*Special Marine*",
-                "*Flash Flood Warning*", "*Flash Flood Watch*", "*Flash Flood Advisory*",
-                "Mesoscale Discussion",
-                "*Storm Prediction Center*",
-                "PDS Tornado Watch", "Tornado Watch", "Severe Thunderstorm Watch", "Flash Flood Watch", "PDS Severe Thunderstorm Watch",
-                "*Administrative*", "National Weather Service Policy",
-                "Fire Weather Warning", "Fire Weather Watch", "Fire Weather Advisory",
+               "*Warning*"
             ],
-            ListeningICAO: [`KLOT`],
+            ListeningICAO: [],
+            ListeningUGC: [],
+            ListeningStates: [],
             IgnoredICAO: [],
             IgnoredEvents: [],
-            ListeningUGC: [`WIC001`],
-            ListeningStates: [`MO`, `IA`],
             NodeLocationFiltering: false,
             IgnoreTestProducts: true,
         },
         ArchiveSettings: {
-            TTL: 600,
-            EventDirectory: `Storage/EventProducts`,
-            TextDirectory: `Storage/TextProducts`,
-            EasDirectory: `Storage/EasScenarios`,
-            EasToneout: `tone.wav`,
+            TTL: 30,
+            EventDirectory: `@bucket/ParsedProducts`,
+            TextDirectory: `@bucket/RawTextProducts`,
+            EasDirectory: `@bucket/EAS`,
+            EasToneout: `eas-toneout.wav`,
         }
     }
 })
 ```
-### General Settings
-- **Database**: The database file name and location, please make sure to include the `.db` extension.
-- **EnableWireService**: Whether to enable `NOAA Weather Wire Service` within the parser. This requires credentials from [NOAA Weather Wire Service](https://www.weather.gov/nwws/).
-- **EnableJournal**: Whether to output logs without requiring event `listeners`.
-
-### NOAAWeatherWireServiceSettings
-- **ReconnectionSettings**: When the XMPP client gets disconnected or has an error, choose to reconnect to the service again. This contains a reconnection check interval.
-- **CredentialSettings**: The username (nickname) and password that is required for using `NOAA Weather Wire Service`.
-- **CacheSettings**: The ability to use the cache system so when you relaunch the parser, it will have a event retention history of all the stanzas collected.
-- **StanzaSettings**: Modify what type of products metadata you'd like to receive. (UGC, VTEC, RawText)
-
-### NationalWeatherServiceSettings
-- **CallbackInterval**: The interval at which the parser will check for new alerts from the National Weather Service API.
-- **EventsEndpoint**: The URL that directs to the API.
-
-## BroadcastifySettings
-- **BroadcastifyAttachments**: Whether to enable broadcastify attachments for events.
-- **BroadcastifyDatabase**: The download url to point to for the collection of broadcastify feeds. (Stored locally once downloaded)
-- **BroadcastifyTags**: An array of tags to filter broadcastify feeds. (`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`)
-
-## NotifyServer
-- **Enabled**: Whether to enable the notify server for events. This uses the [ntfy.sh](https://ntfy.sh/) service to send notifications for events. This is optional and can be disabled if not needed.
-- **Server**: The notify server URL (Ex. `https://ntfy.domainname.com`)
-- **Attachments**: The URL to the attachments directory (Ex. `https://domainname.com/Storage/EasScenarios`)
-- **Credentials**: The username and password for the notify server if required. (Optional)
-
-### ListenerSettings
-- **events**: An array of event types that will trigger the listener when they are received by the parser. If this array is empty, the listener will be triggered for all events.
-
-#### Webhook
-- **enabled**: If the webhook is enabled or not
-- **destination**: Webhook URL
-- **title**: The title of the webhook
-- **message**: The message you'd like to use for the webhook
-- **ratelimit**: How many messages can it send before being ratelimited
-
-#### Notify
-- **enabled**: If the notify server is enabled or not
-- **topic**: The topic you'd like to use for the notify server. This is used to send notifications for events. (Ex. `thunderstorm_events`)
-
-#### Uploads
-- **eas**: Whether to enable auto eas generated audio files
-- **file**: Wheather to generate text files
-
-
-### GlobalSettings
-- **EventManagement**: Whether to enable the event management system which includes filtering, tracking nodes, and custom messages.
-- **BetterEventNames**: Changes events to a more specific version depending on parameters, message types, etc. `(Ex. "Tornado Warning" -> "Observed Tornado Warning")`
-- **DisableGeometryParsing**: Disable automatically appending GeoJSON geometry data to the events to save on memory consumption.
-- **UseShapefileCoordinates**: Whether to use the shapefile database to obtain the coordinates for events with specified UGC zones.
-- **SPCWatchesOnly**: Whether to only listen for SPC watches only (TOR/SVR) (If using the API, this is ignored).
-- **ShapefileSkipPoints**: When using the shapefile database to obtain coordinates, you can choose to skip a certain amount of points to reduce the number of coordinates for large events. (Ex. If an event has 1000 coordinates and you set this to `2`, it will only use every other coordinate, therefore using 500 coordinates instead of 1000).
-- **NodeTTL**: How often nodes should be checked per event. (Tracking/Filtering)
-- **NodeMinDistance**: The minimum distance to filter events from the node (Miles)
-- **ListeningEvents**: Events you'd like to listen for. If this array is left empty, it will listen for **ALL** events and products.
-- **ListeningICAO**: ICAO codes for the weather stations you'd like to listen for. Filtering all events that do not contain the codes. `(Ex. ["KLOT", "TORD"])`
-- **IgnoredICAO**: Ignored ICAO codes `(Ex. ["KWNS"])`
-- **IgnoredEvents**: Ignored events / products.
-- **ListeningUGC**: Zones you'd like to listen to `(Ex. ["ILZ001"])`
-- **ListeningStates**: States you'd like to listen to `(Ex. ["IL"])`
-- **NodeLocationFiltering**: If you want tracking nodes to filter out events based on radius. (Miles)\
-- **IgnoreTextProducts**: If you want to ignore test products and events.
-- **TTL**: How long files live for before getting automatically deleted
-- **TextDirectory**: The location to store text products that are generated.
-- **EasDirectory**: The location to store audio eas files that are generated.
-- **EasToneout**: The toneout prefix to use for generated eas messages.
-
 
 ## How do custom listeners work?
 

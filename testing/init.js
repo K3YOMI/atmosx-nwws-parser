@@ -1,7 +1,7 @@
 const { Manager } = require(`../dist/cjs/index.cjs`)
 
 const Client = new Manager({
-    Database: `shapefiles.db`,
+    Database: `event-product-parser.db`,
     EnableWireService: false,
     EnableJournal: true,
     EnableDebugging: false,
@@ -17,8 +17,8 @@ const Client = new Manager({
         },   
         CacheSettings: {
             Enabled: true,
-            MaxDatabaseHistory: 5000,
-            MaxRetentionHistory: 555,
+            MaxDatabaseHistory: 50000,
+            MaxRetentionHistory: 1500,
         },
         StanzaSettings: {
             DisableUGC: false,
@@ -32,12 +32,13 @@ const Client = new Manager({
     },
     BroadcastifySettings: {
         BroadcastifyAttachments: true,
+        BroadcastifyDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/broadcastify.json`,
         BroadcastifyTags: [`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`]
     },
     NotifyServer: {
         Enabled: false,
-        Server: "https://ntfy.domainname.com",
-        Attachments: "https://domainname.com/Storage/EasScenarios",
+        Server: "https://ntfy.scriptkitty.cafe",
+        Attachments: "https://scriptkitty.cafe/ftp/@bucket/EAS/encoded",
         Credentials: {
             Username: "username",
             Password: "password"
@@ -45,22 +46,16 @@ const Client = new Manager({
     },
     ListenerSettings: [
         {
-            events: [`*Thunderstorm Warning*`, `* Watch`],
-            webhook: {
-                enabled: true,
-                destination: "https://discord.com/api/XXXXXXXXXX/XXXXXXXXXXX",
-                title: "AtmosphericX - (Thunderstorm Warnings and Watches)",
-                message: "<@&XXXXXXXXXXXXXXXXXXXXX>",
-                ratelimit: 1
+            Events: ["*Extreme Heat Warning*"],
+            NotificationServer: {
+                Enabled: false,
+                Topic: "heat-warnings",
+                Priority: 5
             },
-            notify: {
-                enabled: false,
-                topic: "thunderstorm_events",
-            },
-            uploads: {
-                eas: true,
-                file: true,
-                event: true
+            Uploads: {
+                EAS: true,
+                File: true,
+                JSON: true
             }
         }
     ],
@@ -72,35 +67,25 @@ const Client = new Manager({
         SPCWatchesOnly: true,
         ShapefileSkipPoints: 0,
         NodeTTL: 60,
-        NodeMinDistance: 120,
+        NodeMinDistance: 125,
         EventFiltering: {
             ListeningEvents: [
-                "*Severe Thunderstorm Warning*",
-                "*Blizzard*", "*Ice Storm*", "*Winter Storm*", "*Snow Squall*",
-                "Tornado Emergency", "*Tornado Warning*",
-                "Special Weather Statement", "Marine Weather Statement",
-                "*Tsunami*", "*Hurricane*", "*Tropical Storm*", "*Special Marine*",
-                "*Flash Flood Warning*", "*Flash Flood Watch*", "*Flash Flood Advisory*",
-                "Mesoscale Discussion",
-                "*Storm Prediction Center*",
-                "PDS Tornado Watch", "Tornado Watch", "Severe Thunderstorm Watch", "Flash Flood Watch", "PDS Severe Thunderstorm Watch",
-                "*Administrative*", "National Weather Service Policy",
-                "Fire Weather Warning", "Fire Weather Watch", "Fire Weather Advisory",
+               "*Warning*"
             ],
-            ListeningICAO: [`KLOT`],
+            ListeningICAO: [],
+            ListeningUGC: [],
+            ListeningStates: [],
             IgnoredICAO: [],
             IgnoredEvents: [],
-            ListeningUGC: [`WIC001`],
-            ListeningStates: [`MO`, `IA`],
             NodeLocationFiltering: false,
             IgnoreTestProducts: true,
         },
         ArchiveSettings: {
-            TTL: 600,
-            EventDirectory: `Storage/EventProducts`,
-            TextDirectory: `Storage/TextProducts`,
-            EasDirectory: `Storage/EasScenarios`,
-            EasToneout: `tone.wav`,
+            TTL: 30,
+            EventDirectory: `@bucket/ParsedProducts`,
+            TextDirectory: `@bucket/RawTextProducts`,
+            EasDirectory: `@bucket/EAS`,
+            EasToneout: `eas-toneout.wav`,
         }
     }
 })

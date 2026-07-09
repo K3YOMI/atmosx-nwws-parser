@@ -22,13 +22,15 @@ import { TypeListener } from "../@types/type.listener";
 import { bootstrap } from "../bootstrap"
 import { setEasTone } from "../@modules/@eas/eas.setEasTone"
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
-import { getEmebed } from "../@parsers/@text/text.getEmbed";
-import { getRaw } from "../@parsers/@text/text.getRaw";
+import { getEmebedText } from "../@parsers/@text/text.getEmbedText";
+import { getStringText } from "../@parsers/@text/text.getStringText";
 import { getCleanedEvent } from "../@building/building.clean"
 import { createHttp } from "../@modules/@utilities/utilities.createHttp";
 import { setDebug } from "../@modules/@utilities/utilities.setDebug";
 import { getMatched } from "../@modules/@utilities/utilities.getMatched";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from "fs";
+import { get } from "http";
+import { setWarning } from "../@modules/@utilities/utilities.setWarning";
 
 export const updateListener = async (event: TypeEvent): Promise<void> => {
     const tick = performance.now()
@@ -50,13 +52,14 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
     }
 
     for (const listener of listeners) {
-        const events = listener?.events;
-        const webhook = listener?.webhook;
-        const uploads = listener?.uploads
+        const events = listener?.Events;
+        const webhook = listener?.Webhook;
+        const notify = listener?.NotificationServer;
+        const uploads = listener?.Uploads
         const isMatched = getMatched(events ?? [], metadata.name)
 
         if (events?.length == 0 || isMatched) {
-            if (uploads?.eas) { 
+            if (uploads?.EAS) { 
                 metadata.eas = await setEasTone({
                     title: `${metadata.name}_${metadata.status}_${metadata.tracking}`,
                     message: metadata.description,
@@ -64,7 +67,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 });
             }
 
-            if (uploads?.file) {
+            if (uploads?.File) {
                 const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
                 if (fDestination) {
                     const file = (`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
@@ -78,7 +81,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 metadata.file = metadata.raw;
             }
 
-            if (uploads?.event) {
+            if (uploads?.JSON) {
                 const eDestination = settings.GlobalSettings.ArchiveSettings.EventDirectory;
                 if (eDestination) {
                     const file = (`${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
@@ -88,40 +91,36 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
             }
 
-            if (settings.NotifyServer.Enabled && listener?.notify?.enabled && listener?.notify?.topic) {
-                const auth = settings.NotifyServer.Credentials?.Username && settings.NotifyServer.Credentials?.Password
-                    ? {
-                        username: settings.NotifyServer.Credentials.Username,
-                        password: settings.NotifyServer.Credentials.Password
-                    }
-                    : undefined;
-                const attachment = metadata.eas && settings.NotifyServer.Attachments ? `${settings.NotifyServer.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : null;
-                await createHttp({
-                    url: `${settings.NotifyServer.Server.replace(/\/$/, "")}/${listener?.notify?.topic}`,
+            if (settings.NotifyServer?.Enabled && notify.Enabled && notify?.Topic) {
+                const server = settings.NotifyServer;
+                const auth = server.Credentials?.Username && server.Credentials?.Password ? { username: settings.NotifyServer.Credentials.Username, password: server.Credentials.Password } : undefined;
+                const attachment = metadata.eas && server.Attachments ? `${server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : undefined;
+                const a = await createHttp({
+                    url: `${server.Server.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
                     timeout: 15_000,
                     method: "POST",
                     ...(auth && { auth }),
                     headers: {
                         "Title": `${metadata.name} (${metadata.status})`,
                         "Tags":  properties.parameters.tags?.join(",") ?? "N/A",
+                        "Expires": new Date(properties.expires).getTime(),
+                        "Priority": notify?.Priority ? notify.Priority.toString() : "5",
                         ... (attachment && { "Attach": attachment }),
-                        "Priority": "max",
-                        "Sound": "siren",
                     },
-                    body: getRaw(event)
+                    body: getStringText(event)
                 })
             }
 
-            if (webhook?.enabled && webhook?.destination) {
-                const isRatelimited = setTimeoutAction({ identifier: webhook.destination, interval: (webhook.ratelimit ?? 2) * 2, max: (webhook.ratelimit ?? 2), addTime: true })
+            if (webhook?.Enabled && webhook?.Destination) {
+                const isRatelimited = setTimeoutAction({ identifier: webhook.Destination, interval: (webhook.Ratelimit ?? 2) * 2, max: (webhook.Ratelimit ?? 2), addTime: true })
                 const form = new FormData();
                 const embed = {
                     title: `${metadata.name} (${metadata.status})`,
-                    description: getEmebed(event),
+                    description: getEmebedText(event),
                     fields: [],
                     color: 16711680,
                     timestamp: new Date().toISOString(),
-                    footer: { text: webhook.title ?? `AtmosphericX` }
+                    footer: { text: webhook.Title ?? `AtmosphericX` }
                 };
 
                 if (isRatelimited.limited) { return } 
@@ -146,15 +145,15 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     });
                 }
 
-                if (uploads?.file) { 
+                if (uploads?.File) { 
                     form.append("fUpload", new Blob([Buffer.from(metadata.file)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
                 }
 
-                if (uploads?.event) { 
+                if (uploads?.JSON) { 
                     form.append("fUpload2", new Blob([Buffer.from(metadata.json)], {type: "application/json"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`)
                 }
 
-                if (uploads?.eas) { 
+                if (uploads?.EAS) { 
                     if (metadata.eas) {
                         const file = readFileSync(metadata.eas)
                         form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`)
@@ -162,13 +161,13 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 }
 
                 form.append("payload_json", JSON.stringify({
-                    username: webhook.title ?? "AtmosphericX",
-                    content: webhook.message ?? "",
+                    username: webhook.Title ?? "AtmosphericX",
+                    content: webhook.Message ?? "",
                     embeds: [embed]
                 }));
 
                 await createHttp({
-                    url: webhook.destination,
+                    url: webhook.Destination,
                     timeout: 15e3,
                     method: `POST`,
                     body: form

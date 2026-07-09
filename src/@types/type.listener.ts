@@ -18,20 +18,21 @@
 */
 
 export type TypeListener = { 
-    events: string[]
-    webhook?: {
-        enabled: boolean
-        destination: string
-        ratelimit: number
-        title: string
-        message: string
+    Events: string[]
+    Webhook?: {
+        Enabled: boolean
+        Destination: string
+        Ratelimit: number
+        Title: string
+        Message: string
     }
-    notify?: {
-        enabled: boolean
-        topic: string
+    NotificationServer?: {
+        Enabled: boolean
+        Topic: string
+        Priority?: 1 | 2 | 3 | 4 | 5 | void
     }
-    uploads?: {
-        file?: boolean, eas?: boolean, event?: boolean
+    Uploads?: {
+        File?: boolean, EAS?: boolean, JSON?: boolean
     }
 
 }
