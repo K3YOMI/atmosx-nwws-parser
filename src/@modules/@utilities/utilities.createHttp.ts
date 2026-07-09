@@ -21,6 +21,10 @@ interface CreateHttpOptions {
     url: string
     headers?: any
     timeout?: number
+    auth?: {
+        username: string
+        password: string
+    }
     method?: `GET` | `POST` | `PUT` | `DELETE`
     body?: any;
     formData?: any;
@@ -42,6 +46,15 @@ export const createHttp = async (options: CreateHttpOptions): Promise<any> => {
 	const returnHttp = function(error: boolean,status: number, message: string) {
 		return { error: error, options: requestOptions, status, message };
 	}
+
+    if (options?.auth) {
+        const authString = `${options.auth.username}:${options.auth.password}`;
+        const encodedAuth = Buffer.from(authString).toString("base64");
+        requestOptions.headers = {
+            ...requestOptions.headers,
+            "Authorization": `Basic ${encodedAuth}`
+        };
+    }
 
 	if (options?.formData) { 
 		requestOptions.body = options.formData;

@@ -21,7 +21,7 @@ import path from 'path'
 import { EventEmitter } from 'node:events';
 
 export const bootstrap = {
-    version: `3.0.52`,
+    version: `3.0.53`,
     isReady: true,
     ratelimits: {},
     session_xmpp: null,
@@ -79,6 +79,15 @@ export const bootstrap = {
             BroadcastifyAttachments: true,
             BroadcastifyDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/broadcastify.json`,
             BroadcastifyTags: [`Ham`, `Air`, `Fire`, `Public Safety`, `Weather`, `EMS`, `Police`, `Rail`]
+        },
+        NotifyServer: {
+            Enabled: false,
+            Server: `https://ntfy.sh`,
+            Attachments: null,
+            Credentials: {
+                Username: null,
+                Password: null
+            }
         },
         ListenerSettings: [],
         GlobalSettings: {

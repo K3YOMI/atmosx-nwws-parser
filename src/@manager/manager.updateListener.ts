@@ -23,6 +23,7 @@ import { bootstrap } from "../bootstrap"
 import { setEasTone } from "../@modules/@eas/eas.setEasTone"
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
 import { getEmebed } from "../@parsers/@text/text.getEmbed";
+import { getRaw } from "../@parsers/@text/text.getRaw";
 import { getCleanedEvent } from "../@building/building.clean"
 import { createHttp } from "../@modules/@utilities/utilities.createHttp";
 import { setDebug } from "../@modules/@utilities/utilities.setDebug";
@@ -85,6 +86,30 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     writeFileSync(file, JSON.stringify(getCleanedEvent(event), null, 2));
                 }
                 metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
+            }
+
+            if (settings.NotifyServer.Enabled && listener?.notify?.enabled && listener?.notify?.topic) {
+                const auth = settings.NotifyServer.Credentials?.Username && settings.NotifyServer.Credentials?.Password
+                    ? {
+                        username: settings.NotifyServer.Credentials.Username,
+                        password: settings.NotifyServer.Credentials.Password
+                    }
+                    : undefined;
+                const attachment = metadata.eas && settings.NotifyServer.Attachments ? `${settings.NotifyServer.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : null;
+                await createHttp({
+                    url: `${settings.NotifyServer.Server.replace(/\/$/, "")}/${listener?.notify?.topic}`,
+                    timeout: 15_000,
+                    method: "POST",
+                    ...(auth && { auth }),
+                    headers: {
+                        "Title": `${metadata.name} (${metadata.status})`,
+                        "Tags":  properties.parameters.tags?.join(",") ?? "N/A",
+                        ... (attachment && { "Attach": attachment }),
+                        "Priority": "max",
+                        "Sound": "siren",
+                    },
+                    body: getRaw(event)
+                })
             }
 
             if (webhook?.enabled && webhook?.destination) {

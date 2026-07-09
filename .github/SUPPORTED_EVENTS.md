@@ -293,9 +293,9 @@
 - Severe Thunderstorm Warning
 - Severe Weather Statement
 - Mesoscale Discussion
-- Day 1 Outlook
-- Day 2 Outlook
-- Day 3 Outlook
+- Storm Prediction Center Day 1 Outlook
+- Storm Prediction Center Day 2 Outlook
+- Storm Prediction Center Day 3 Outlook
 - State Weather Summary
 - Regional Weather Synopsis
 - Terminal Aerodrome Forecast

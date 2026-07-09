@@ -26,7 +26,12 @@ export type TypeListener = {
         title: string
         message: string
     }
+    notify?: {
+        enabled: boolean
+        topic: string
+    }
     uploads?: {
         file?: boolean, eas?: boolean, event?: boolean
     }
+
 }

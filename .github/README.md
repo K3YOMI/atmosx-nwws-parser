@@ -56,6 +56,15 @@ const Client = new Manager({
         BroadcastifyAttachments: true,
         BroadcastifyTags: [`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`]
     },
+    NotifyServer: {
+        Enabled: false,
+        Server: "https://ntfy.domainname.com",
+        Attachments: "https://domainname.com/Storage/EasScenarios",
+        Credentials: {
+            Username: "username",
+            Password: "password"
+        }
+    },
     ListenerSettings: [
         {
             events: [`*Thunderstorm Warning*`, `* Watch`],
@@ -65,6 +74,10 @@ const Client = new Manager({
                 title: "AtmosphericX - (Thunderstorm Warnings and Watches)",
                 message: "<@&XXXXXXXXXXXXXXXXXXXXX>",
                 ratelimit: 1
+            },
+            notify: {
+                enabled: false,
+                topic: "thunderstorm_events",
             },
             uploads: {
                 eas: true,
@@ -134,6 +147,12 @@ const Client = new Manager({
 - **BroadcastifyDatabase**: The download url to point to for the collection of broadcastify feeds. (Stored locally once downloaded)
 - **BroadcastifyTags**: An array of tags to filter broadcastify feeds. (`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`)
 
+## NotifyServer
+- **Enabled**: Whether to enable the notify server for events. This uses the [ntfy.sh](https://ntfy.sh/) service to send notifications for events. This is optional and can be disabled if not needed.
+- **Server**: The notify server URL (Ex. `https://ntfy.domainname.com`)
+- **Attachments**: The URL to the attachments directory (Ex. `https://domainname.com/Storage/EasScenarios`)
+- **Credentials**: The username and password for the notify server if required. (Optional)
+
 ### ListenerSettings
 - **events**: An array of event types that will trigger the listener when they are received by the parser. If this array is empty, the listener will be triggered for all events.
 
@@ -143,6 +162,10 @@ const Client = new Manager({
 - **title**: The title of the webhook
 - **message**: The message you'd like to use for the webhook
 - **ratelimit**: How many messages can it send before being ratelimited
+
+#### Notify
+- **enabled**: If the notify server is enabled or not
+- **topic**: The topic you'd like to use for the notify server. This is used to send notifications for events. (Ex. `thunderstorm_events`)
 
 #### Uploads
 - **eas**: Whether to enable auto eas generated audio files

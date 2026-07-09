@@ -34,6 +34,15 @@ const Client = new Manager({
         BroadcastifyAttachments: true,
         BroadcastifyTags: [`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`]
     },
+    NotifyServer: {
+        Enabled: false,
+        Server: "https://ntfy.domainname.com",
+        Attachments: "https://domainname.com/Storage/EasScenarios",
+        Credentials: {
+            Username: "username",
+            Password: "password"
+        }
+    },
     ListenerSettings: [
         {
             events: [`*Thunderstorm Warning*`, `* Watch`],
@@ -43,6 +52,10 @@ const Client = new Manager({
                 title: "AtmosphericX - (Thunderstorm Warnings and Watches)",
                 message: "<@&XXXXXXXXXXXXXXXXXXXXX>",
                 ratelimit: 1
+            },
+            notify: {
+                enabled: false,
+                topic: "thunderstorm_events",
             },
             uploads: {
                 eas: true,

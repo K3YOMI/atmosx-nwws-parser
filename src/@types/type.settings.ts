@@ -54,6 +54,15 @@ export type TypeSettings = {
         BroadcastifyDatabase: string
         BroadcastifyTags: string[]
     },
+    NotifyServer: {
+        Enabled: boolean
+        Server: string
+        Attachments?: string
+        Credentials?: {
+            Username: string | void
+            Password: string | void
+        }
+    }
     GlobalSettings: {
         EventManagement: boolean
         BetterEventNames: boolean
