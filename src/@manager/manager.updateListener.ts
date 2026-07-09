@@ -29,8 +29,6 @@ import { createHttp } from "../@modules/@utilities/utilities.createHttp";
 import { setDebug } from "../@modules/@utilities/utilities.setDebug";
 import { getMatched } from "../@modules/@utilities/utilities.getMatched";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from "fs";
-import { get } from "http";
-import { setWarning } from "../@modules/@utilities/utilities.setWarning";
 
 export const updateListener = async (event: TypeEvent): Promise<void> => {
     const tick = performance.now()

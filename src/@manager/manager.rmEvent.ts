@@ -24,15 +24,16 @@ import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAct
 import { updateListener } from "./manager.updateListener";
 
 export const rmEvent = async (event: TypeEvent): Promise<void> => {
-    const getEvent = bootstrap.cache.events.features.find(f => f?.properties?.metadata?.tracking === event?.properties?.metadata?.tracking);
-    const cachedStatus = event.properties.status;
+    const gSelect = event;
+    const gEvent = bootstrap.cache.events.features.find(f => f?.properties?.metadata?.tracking === event?.properties?.metadata?.tracking);
+    const gStatement = event.properties.status_metadata.is_statement
 
-    event.properties.expires = new Date().toISOString();
-    event.properties.status = `Expired`;
-    event.properties.status_metadata.is_expired = true;
+    gSelect.properties.expires = new Date().toISOString();
+    gSelect.properties.status = `Expired`;
+    gSelect.properties.status_metadata.is_expired = true;
 
-    if (getEvent) {
-        if (!event.properties.status_metadata.is_statement) {
+    if (gEvent) {
+        if (!gStatement) {
             setEventEmit({
                 event: `onEventStatus`,
                 metadata: {
@@ -43,10 +44,11 @@ export const rmEvent = async (event: TypeEvent): Promise<void> => {
             })
             setEventEmit({ event: `onExpiredProduct`, metadata: event })
         }
-        bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
+
+        bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(gEvent), 1);
         bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
         setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true })
-        if (cachedStatus != `Statement`) await updateListener(event)
+        if (!gStatement) await updateListener(gSelect)
     }
     
     setEventEmit({

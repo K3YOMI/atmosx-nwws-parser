@@ -6903,16 +6903,17 @@ var mkEvent = (event) => __async(null, null, function* () {
 
 // src/@manager/manager.rmEvent.ts
 var rmEvent = (event) => __async(null, null, function* () {
-  const getEvent = bootstrap.cache.events.features.find((f) => {
+  const gSelect = event;
+  const gEvent = bootstrap.cache.events.features.find((f) => {
     var _a, _b, _c, _d;
     return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === ((_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.metadata) == null ? void 0 : _d.tracking);
   });
-  const cachedStatus = event.properties.status;
-  event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
-  event.properties.status = `Expired`;
-  event.properties.status_metadata.is_expired = true;
-  if (getEvent) {
-    if (!event.properties.status_metadata.is_statement) {
+  const gStatement = event.properties.status_metadata.is_statement;
+  gSelect.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
+  gSelect.properties.status = `Expired`;
+  gSelect.properties.status_metadata.is_expired = true;
+  if (gEvent) {
+    if (!gStatement) {
       setEventEmit({
         event: `onEventStatus`,
         metadata: {
@@ -6923,10 +6924,11 @@ var rmEvent = (event) => __async(null, null, function* () {
       });
       setEventEmit({ event: `onExpiredProduct`, metadata: event });
     }
-    bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(getEvent), 1);
+    bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(gEvent), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
     setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true });
-    if (cachedStatus != `Statement`) yield updateListener(event);
+    console.log(gSelect);
+    if (!gStatement) yield updateListener(gSelect);
   }
   setEventEmit({
     event: `onEventCache`,
