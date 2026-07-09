@@ -89,12 +89,12 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
             }
 
-            if (settings.NotifyServer?.Enabled && notify.Enabled && notify?.Topic) {
-                const server = settings.NotifyServer;
-                const auth = server.Credentials?.Username && server.Credentials?.Password ? { username: settings.NotifyServer.Credentials.Username, password: server.Credentials.Password } : undefined;
-                const attachment = metadata.eas && server.Attachments ? `${server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : undefined;
+            if (settings?.NotifyServer?.Enabled && notify?.Enabled && notify?.Topic) {
+                const server = settings?.NotifyServer;
+                const auth = server?.Credentials?.Username && server?.Credentials?.Password ? { username: settings?.NotifyServer?.Credentials?.Username, password: server?.Credentials?.Password } : undefined;
+                const attachment = metadata.eas && server?.Attachments ? `${server?.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : undefined;
                 await createHttp({
-                    url: `${server.Server.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
+                    url: `${server?.Server?.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
                     timeout: 15_000,
                     method: "POST",
                     ...(auth && { auth }),

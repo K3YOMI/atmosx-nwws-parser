@@ -6540,7 +6540,7 @@ var getMatched = (strings, string) => {
 // src/@manager/manager.updateListener.ts
 import { existsSync as existsSync2, mkdirSync as mkdirSync2, writeFileSync as writeFileSync3, readFileSync as readFileSync2, appendFileSync } from "fs";
 var updateListener = (event) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
   const tick = performance.now();
   const settings = bootstrap.settings;
   const listeners2 = settings.ListenerSettings;
@@ -6598,18 +6598,18 @@ var updateListener = (event) => __async(null, null, function* () {
         }
         metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
       }
-      if (((_a = settings.NotifyServer) == null ? void 0 : _a.Enabled) && notify.Enabled && (notify == null ? void 0 : notify.Topic)) {
-        const server = settings.NotifyServer;
-        const auth = ((_b = server.Credentials) == null ? void 0 : _b.Username) && ((_c = server.Credentials) == null ? void 0 : _c.Password) ? { username: settings.NotifyServer.Credentials.Username, password: server.Credentials.Password } : void 0;
-        const attachment = metadata.eas && server.Attachments ? `${server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : void 0;
+      if (((_a = settings == null ? void 0 : settings.NotifyServer) == null ? void 0 : _a.Enabled) && (notify == null ? void 0 : notify.Enabled) && (notify == null ? void 0 : notify.Topic)) {
+        const server = settings == null ? void 0 : settings.NotifyServer;
+        const auth = ((_b = server == null ? void 0 : server.Credentials) == null ? void 0 : _b.Username) && ((_c = server == null ? void 0 : server.Credentials) == null ? void 0 : _c.Password) ? { username: (_e = (_d = settings == null ? void 0 : settings.NotifyServer) == null ? void 0 : _d.Credentials) == null ? void 0 : _e.Username, password: (_f = server == null ? void 0 : server.Credentials) == null ? void 0 : _f.Password } : void 0;
+        const attachment = metadata.eas && (server == null ? void 0 : server.Attachments) ? `${server == null ? void 0 : server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : void 0;
         yield createHttp(__spreadProps(__spreadValues({
-          url: `${server.Server.replace(/\/$/, "")}/${(_d = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _d.Topic}`,
+          url: `${(_g = server == null ? void 0 : server.Server) == null ? void 0 : _g.replace(/\/$/, "")}/${(_h = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _h.Topic}`,
           timeout: 15e3,
           method: "POST"
         }, auth && { auth }), {
           headers: __spreadValues({
             "Title": `${metadata.name} (${metadata.status})`,
-            "Tags": (_f = (_e = properties2.parameters.tags) == null ? void 0 : _e.join(",")) != null ? _f : "N/A",
+            "Tags": (_j = (_i = properties2.parameters.tags) == null ? void 0 : _i.join(",")) != null ? _j : "N/A",
             "Expires": new Date(properties2.expires).getTime(),
             "Priority": (notify == null ? void 0 : notify.Priority) ? notify.Priority.toString() : "5"
           }, attachment && { "Attach": attachment }),
@@ -6617,7 +6617,7 @@ var updateListener = (event) => __async(null, null, function* () {
         }));
       }
       if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
-        const isRatelimited = setTimeoutAction({ identifier: webhook.Destination, interval: ((_g = webhook.Ratelimit) != null ? _g : 2) * 2, max: (_h = webhook.Ratelimit) != null ? _h : 2, addTime: true });
+        const isRatelimited = setTimeoutAction({ identifier: webhook.Destination, interval: ((_k = webhook.Ratelimit) != null ? _k : 2) * 2, max: (_l = webhook.Ratelimit) != null ? _l : 2, addTime: true });
         const form = new FormData();
         const embed = {
           title: `${metadata.name} (${metadata.status})`,
@@ -6625,7 +6625,7 @@ var updateListener = (event) => __async(null, null, function* () {
           fields: [],
           color: 16711680,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-          footer: { text: (_i = webhook.Title) != null ? _i : `AtmosphericX` }
+          footer: { text: (_m = webhook.Title) != null ? _m : `AtmosphericX` }
         };
         if (isRatelimited.limited) {
           return;
@@ -6639,7 +6639,7 @@ var updateListener = (event) => __async(null, null, function* () {
             value: metadata.description ? "```\n" + metadata.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
           });
         }
-        if (((_j = metadata.attachments) == null ? void 0 : _j.length) > 0) {
+        if (((_n = metadata.attachments) == null ? void 0 : _n.length) > 0) {
           metadata.attachments = metadata.attachments.slice(0, 5);
           embed.fields.push({
             name: "Attachments",
@@ -6659,8 +6659,8 @@ var updateListener = (event) => __async(null, null, function* () {
           }
         }
         form.append("payload_json", JSON.stringify({
-          username: (_k = webhook.Title) != null ? _k : "AtmosphericX",
-          content: (_l = webhook.Message) != null ? _l : "",
+          username: (_o = webhook.Title) != null ? _o : "AtmosphericX",
+          content: (_p = webhook.Message) != null ? _p : "",
           embeds: [embed]
         }));
         yield createHttp({
