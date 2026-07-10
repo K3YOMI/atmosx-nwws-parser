@@ -17,19 +17,6 @@
 
 */
 
-import { TypeEvent } from "../@types/type.event";
-import { bootstrap } from "../bootstrap"
-import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
-import { rmEvent } from "./manager.rmEvent";
-
-export const updateEvents = async (selectedEvent?: TypeEvent): Promise<void> => {
-    const events = bootstrap.cache.events.features;
-    async function update(event: TypeEvent) {
-        if (new Date(event.properties.expires) < new Date()) {
-            setEventEmit({ event: `onExpiredProduct`, metadata: event })
-            await rmEvent(event, true)
-        }
-    }
-    if (!selectedEvent) { await Promise.all(events.map(async (event) => { await update(event) })) } 
-    if (selectedEvent) { await update(selectedEvent) }
+export const dict_strings: Record<string, string> = {
+    cancellation: `{EVENT} has been allowed to expire. This product is no longer in effect.`,
 }

@@ -41,6 +41,7 @@ export const setTimeoutAction = (options: SetTimeoutActionOptions): SetTimeoutAc
     }
     if (options?.expire) {
         delete bootstrap.ratelimits[options?.identifier];
+        return { limited: false };
     }
     if (target?.length > 0) {
        bootstrap.ratelimits[options?.identifier] = target.filter((ts: number) => Date.now() - ts < options?.interval * 1000);

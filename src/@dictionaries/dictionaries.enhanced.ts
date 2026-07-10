@@ -64,4 +64,7 @@ export const dict_enhanced: Record<string, Record<string, EnhancedEventType>> = 
         "Considerable Severe Thunderstorm Warning": { damage: `CONSIDERABLE` },
         "Severe Thunderstorm Warning (TPROB)": { tornado: `POSSIBLE` },
     },
+    "Special Weather Statement": {
+        "Convective Special Weather Statement": { description: "strong thunderstorm" },
+    }
 }

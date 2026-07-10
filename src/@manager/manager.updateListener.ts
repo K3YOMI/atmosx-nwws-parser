@@ -68,10 +68,10 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
             if (uploads?.File) {
                 const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
                 if (fDestination) {
-                    const file = (`${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+                    const file = (`${fDestination}/${metadata.name}_${metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
                     if (!existsSync(fDestination)) { mkdirSync(fDestination, { recursive: true }); }
                     if (existsSync(file)) {
-                        appendFileSync(file, metadata.raw);
+                        appendFileSync(file, `${(`\n`).repeat(10)}${metadata.raw}`);
                     } else {
                         writeFileSync(file, metadata.raw);
                     }
@@ -82,7 +82,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
             if (uploads?.JSON) {
                 const eDestination = settings.GlobalSettings.ArchiveSettings.EventDirectory;
                 if (eDestination) {
-                    const file = (`${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+                    const file = (`${eDestination}/${metadata.name}_${metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
                     if (!existsSync(eDestination)) { mkdirSync(eDestination, { recursive: true }); }
                     writeFileSync(file, JSON.stringify(getCleanedEvent(event), null, 2));
                 }
@@ -93,20 +93,23 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 const server = settings?.NotifyServer;
                 const auth = server?.Credentials?.Username && server?.Credentials?.Password ? { username: settings?.NotifyServer?.Credentials?.Username, password: server?.Credentials?.Password } : undefined;
                 const attachment = metadata.eas && server?.Attachments ? `${server?.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : undefined;
-                await createHttp({
-                    url: `${server?.Server?.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
-                    timeout: 15_000,
-                    method: "POST",
-                    ...(auth && { auth }),
-                    headers: {
-                        "Title": `${metadata.name} (${metadata.status})`,
-                        "Tags":  properties.parameters.tags?.join(",") ?? "N/A",
-                        "Expires": new Date(properties.expires).getTime(),
-                        "Priority": notify?.Priority ? notify.Priority.toString() : "5",
-                        ... (attachment && { "Attach": attachment }),
-                    },
-                    body: getStringText(event)
-                })
+                const isRatelimited = setTimeoutAction({ identifier: metadata.tracking + `notify.server`, interval: 1, max: 1, addTime: true })
+                if (!isRatelimited.limited) { 
+                    await createHttp({
+                        url: `${server?.Server?.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
+                        timeout: 15_000,
+                        method: "POST",
+                        ...(auth && { auth }),
+                        headers: {
+                            "Title": `${metadata.name} (${metadata.status})`,
+                            "Tags":  properties.parameters.tags?.join(",") ?? "N/A",
+                            "Expires": new Date(properties.expires).getTime(),
+                            "Priority": notify?.Priority ? notify.Priority.toString() : "5",
+                            ... (attachment && { "Attach": attachment }),
+                        },
+                        body: getStringText(event)
+                    })
+                }
             }
 
             if (webhook?.Enabled && webhook?.Destination) {

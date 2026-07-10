@@ -1124,7 +1124,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.54`,
+  version: `3.0.55`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -1378,6 +1378,7 @@ var setTimeoutAction = (options) => {
   }
   if (options == null ? void 0 : options.expire) {
     delete bootstrap.ratelimits[options == null ? void 0 : options.identifier];
+    return { limited: false };
   }
   if ((target == null ? void 0 : target.length) > 0) {
     bootstrap.ratelimits[options == null ? void 0 : options.identifier] = target.filter((ts) => Date.now() - ts < (options == null ? void 0 : options.interval) * 1e3);
@@ -5815,6 +5816,9 @@ var dict_enhanced = {
     "Considerable Severe Thunderstorm Warning (TPROB)": { damage: `CONSIDERABLE`, tornado: `POSSIBLE` },
     "Considerable Severe Thunderstorm Warning": { damage: `CONSIDERABLE` },
     "Severe Thunderstorm Warning (TPROB)": { tornado: `POSSIBLE` }
+  },
+  "Special Weather Statement": {
+    "Convective Special Weather Statement": { description: "strong thunderstorm" }
   }
 };
 
@@ -6595,12 +6599,13 @@ var updateListener = (event) => __async(null, null, function* () {
       if (uploads == null ? void 0 : uploads.File) {
         const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
         if (fDestination) {
-          const file = `${fDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+          const file = `${fDestination}/${metadata.name}_${metadata.tracking}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
           if (!(0, import_fs3.existsSync)(fDestination)) {
             (0, import_fs3.mkdirSync)(fDestination, { recursive: true });
           }
           if ((0, import_fs3.existsSync)(file)) {
-            (0, import_fs3.appendFileSync)(file, metadata.raw);
+            (0, import_fs3.appendFileSync)(file, `${`
+`.repeat(10)}${metadata.raw}`);
           } else {
             (0, import_fs3.writeFileSync)(file, metadata.raw);
           }
@@ -6610,7 +6615,7 @@ var updateListener = (event) => __async(null, null, function* () {
       if (uploads == null ? void 0 : uploads.JSON) {
         const eDestination = settings.GlobalSettings.ArchiveSettings.EventDirectory;
         if (eDestination) {
-          const file = `${eDestination}/${metadata.name}_${metadata.status}_${metadata.tracking}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+          const file = `${eDestination}/${metadata.name}_${metadata.tracking}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
           if (!(0, import_fs3.existsSync)(eDestination)) {
             (0, import_fs3.mkdirSync)(eDestination, { recursive: true });
           }
@@ -6622,19 +6627,22 @@ var updateListener = (event) => __async(null, null, function* () {
         const server = settings == null ? void 0 : settings.NotifyServer;
         const auth = ((_b = server == null ? void 0 : server.Credentials) == null ? void 0 : _b.Username) && ((_c = server == null ? void 0 : server.Credentials) == null ? void 0 : _c.Password) ? { username: (_e = (_d = settings == null ? void 0 : settings.NotifyServer) == null ? void 0 : _d.Credentials) == null ? void 0 : _e.Username, password: (_f = server == null ? void 0 : server.Credentials) == null ? void 0 : _f.Password } : void 0;
         const attachment = metadata.eas && (server == null ? void 0 : server.Attachments) ? `${server == null ? void 0 : server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : void 0;
-        yield createHttp(__spreadProps(__spreadValues({
-          url: `${(_g = server == null ? void 0 : server.Server) == null ? void 0 : _g.replace(/\/$/, "")}/${(_h = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _h.Topic}`,
-          timeout: 15e3,
-          method: "POST"
-        }, auth && { auth }), {
-          headers: __spreadValues({
-            "Title": `${metadata.name} (${metadata.status})`,
-            "Tags": (_j = (_i = properties2.parameters.tags) == null ? void 0 : _i.join(",")) != null ? _j : "N/A",
-            "Expires": new Date(properties2.expires).getTime(),
-            "Priority": (notify == null ? void 0 : notify.Priority) ? notify.Priority.toString() : "5"
-          }, attachment && { "Attach": attachment }),
-          body: getStringText(event)
-        }));
+        const isRatelimited = setTimeoutAction({ identifier: metadata.tracking + `notify.server`, interval: 1, max: 1, addTime: true });
+        if (!isRatelimited.limited) {
+          yield createHttp(__spreadProps(__spreadValues({
+            url: `${(_g = server == null ? void 0 : server.Server) == null ? void 0 : _g.replace(/\/$/, "")}/${(_h = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _h.Topic}`,
+            timeout: 15e3,
+            method: "POST"
+          }, auth && { auth }), {
+            headers: __spreadValues({
+              "Title": `${metadata.name} (${metadata.status})`,
+              "Tags": (_j = (_i = properties2.parameters.tags) == null ? void 0 : _i.join(",")) != null ? _j : "N/A",
+              "Expires": new Date(properties2.expires).getTime(),
+              "Priority": (notify == null ? void 0 : notify.Priority) ? notify.Priority.toString() : "5"
+            }, attachment && { "Attach": attachment }),
+            body: getStringText(event)
+          }));
+        }
       }
       if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
         const isRatelimited = setTimeoutAction({ identifier: webhook.Destination, interval: ((_k = webhook.Ratelimit) != null ? _k : 2) * 2, max: (_l = webhook.Ratelimit) != null ? _l : 2, addTime: true });
@@ -6921,33 +6929,42 @@ var mkEvent = (event) => __async(null, null, function* () {
   }
 });
 
+// src/@dictionaries/dictionaries.strings.ts
+var dict_strings = {
+  cancellation: `{EVENT} has been allowed to expire. This product is no longer in effect.`
+};
+
 // src/@manager/manager.rmEvent.ts
-var rmEvent = (event) => __async(null, null, function* () {
-  const gSelect = event;
-  const gEvent = bootstrap.cache.events.features.find((f) => {
-    var _a, _b, _c, _d;
-    return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === ((_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.metadata) == null ? void 0 : _d.tracking);
+var rmEvent = (event, isTimeBasedExpiration) => __async(null, null, function* () {
+  const gTracking = event.properties.metadata.tracking;
+  const isTrackingEventLogged = bootstrap.cache.events.features.find((f) => {
+    var _a, _b;
+    return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === gTracking;
   });
-  const gStatement = event.properties.status_metadata.is_statement;
-  gSelect.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
-  gSelect.properties.status = `Expired`;
-  gSelect.properties.status_metadata.is_expired = true;
-  if (gEvent) {
-    if (!gStatement) {
+  const isStatement = event.properties.status_metadata.is_statement;
+  if (isTrackingEventLogged) {
+    event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
+    event.properties.status = `Expired`;
+    event.properties.status_metadata.is_expired = true;
+    const description = isTimeBasedExpiration ? dict_strings.cancellation.replace(`{SENDER}`, event.properties.geocode.office.name).replace(`{EVENT}`, event.properties.event) : event.properties.metadata.raw;
+    event.properties.description = event.properties.metadata.raw = description;
+    event.properties.metadata.history.push({
+      description,
+      issued: event.properties.expires,
+      status: event.properties.status
+    });
+    bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(isTrackingEventLogged), 1);
+    bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== gTracking);
+    if (!isStatement) {
       setEventEmit({
         event: `onEventStatus`,
-        metadata: {
-          type: `Removed`,
-          event
-        },
-        message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+        metadata: { type: `Removed`, event },
+        message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
       });
-      setEventEmit({ event: `onExpiredProduct`, metadata: event });
+      yield updateListener(event);
     }
-    bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(gEvent), 1);
-    bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== event.properties.metadata.tracking);
-    setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true });
-    if (!gStatement) yield updateListener(gSelect);
+    setTimeoutAction({ identifier: gTracking, expire: true });
+    setTimeoutAction({ identifier: gTracking + `notify.server`, expire: true });
   }
   setEventEmit({
     event: `onEventCache`,
@@ -7100,7 +7117,7 @@ var validateEvents = (events) => __async(null, null, function* () {
     }
     if (properties2.status_metadata.is_expired) {
       setEventEmit({ event: `onExpiredProduct`, metadata: define2 });
-      rmEvent(define2);
+      rmEvent(define2, false);
       return true;
     }
     if (((_b = (_a = properties2.metadata) == null ? void 0 : _a.vtec) == null ? void 0 : _b.is_watch) && properties2.metadata.source != `events.api`) {
@@ -7162,18 +7179,19 @@ var validateEvents = (events) => __async(null, null, function* () {
     return false;
   };
   const filtering = events.filter((event) => {
-    var _a;
     bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
     const define2 = getEventSignature(event);
+    const pre = __spreadProps(__spreadValues({}, define2), { properties: __spreadProps(__spreadValues({}, define2.properties), { metadata: __spreadValues({}, define2.properties.metadata) }) });
     const properties2 = define2.properties;
-    (_a = properties2 == null ? void 0 : properties2.metadata) == null ? true : delete _a.ms;
+    delete pre.properties.metadata.ms;
+    delete pre.properties.metadata.header;
     const enhanced = properties2.event = getEventEnhancedName(event);
     const filtered = isFiltered(define2);
     if (!filtered) {
       event.geometry = !(bools == null ? void 0 : bools.DisableGeometryParsing) ? getEventGeometry(event) : null;
       properties2.metadata.attachments = getEventAttachments(event);
     }
-    properties2.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(properties2)).digest("hex");
+    properties2.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(pre)).digest("hex");
     setEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, "")}`, metadata: define2 });
     return !filtered;
   });
@@ -7609,16 +7627,17 @@ var setCronSchedule = () => __async(null, null, function* () {
 // src/@manager/manager.updateEvents.ts
 var updateEvents = (selectedEvent) => __async(null, null, function* () {
   const events = bootstrap.cache.events.features;
-  function update(evt) {
+  function update(event) {
     return __async(this, null, function* () {
-      if (new Date(evt.properties.expires) < /* @__PURE__ */ new Date()) {
-        yield rmEvent(evt);
+      if (new Date(event.properties.expires) < /* @__PURE__ */ new Date()) {
+        setEventEmit({ event: `onExpiredProduct`, metadata: event });
+        yield rmEvent(event, true);
       }
     });
   }
   if (!selectedEvent) {
-    yield Promise.all(events.map((evt) => __async(null, null, function* () {
-      yield update(evt);
+    yield Promise.all(events.map((event) => __async(null, null, function* () {
+      yield update(event);
     })));
   }
   if (selectedEvent) {

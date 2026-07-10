@@ -18,39 +18,52 @@
 */
 
 import { TypeEvent } from "../@types/type.event";
+import { dict_strings } from "../@dictionaries/dictionaries.strings";
 import { bootstrap } from "../bootstrap"
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
 import { updateListener } from "./manager.updateListener";
 
-export const rmEvent = async (event: TypeEvent): Promise<void> => {
-    const gSelect = event;
-    const gEvent = bootstrap.cache.events.features.find(f => f?.properties?.metadata?.tracking === event?.properties?.metadata?.tracking);
-    const gStatement = event.properties.status_metadata.is_statement
 
-    gSelect.properties.expires = new Date().toISOString();
-    gSelect.properties.status = `Expired`;
-    gSelect.properties.status_metadata.is_expired = true;
+export const rmEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):Promise<void> => {
+    const gTracking = event.properties.metadata.tracking;
+    const isTrackingEventLogged = bootstrap.cache.events.features
+        .find(f => f?.properties?.metadata?.tracking === gTracking);
+    const isStatement = event.properties.status_metadata.is_statement;
 
-    if (gEvent) {
-        if (!gStatement) {
+    if (isTrackingEventLogged) { 
+        event.properties.expires = new Date().toISOString();
+        event.properties.status = `Expired`;
+        event.properties.status_metadata.is_expired = true;
+
+        
+        const description = isTimeBasedExpiration ? dict_strings.cancellation
+            .replace(`{SENDER}`, event.properties.geocode.office.name)
+            .replace(`{EVENT}`, event.properties.event) : event.properties.metadata.raw;
+        event.properties.description = event.properties.metadata.raw = description;
+        event.properties.metadata.history.push({
+            description: description,
+            issued: event.properties.expires,
+            status: event.properties.status
+        })
+     
+
+        bootstrap.cache.events.features
+            .splice(bootstrap.cache.events.features.indexOf(isTrackingEventLogged), 1);
+        bootstrap.cache.hashes = bootstrap.cache.hashes
+            .filter(hash => hash.tracking !== gTracking);
+
+        if (!isStatement) { 
             setEventEmit({
                 event: `onEventStatus`,
-                metadata: {
-                    type: `Removed`,
-                    event: event
-                },
-                message: `[Removed] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+                metadata: { type: `Removed`, event: event },
+                message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
             })
-            setEventEmit({ event: `onExpiredProduct`, metadata: event })
+            await updateListener(event)
         }
-
-        bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(gEvent), 1);
-        bootstrap.cache.hashes = bootstrap.cache.hashes.filter(hash => hash.tracking !== event.properties.metadata.tracking);
-        setTimeoutAction({ identifier: event.properties.metadata.tracking, expire: true })
-        if (!gStatement) await updateListener(gSelect)
+        setTimeoutAction({ identifier: gTracking, expire: true })
+        setTimeoutAction({ identifier: gTracking + `notify.server`, expire: true })
     }
-    
     setEventEmit({
         event: `onEventCache`,
         metadata: bootstrap.cache.events,

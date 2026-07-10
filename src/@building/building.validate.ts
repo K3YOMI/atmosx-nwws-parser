@@ -57,7 +57,7 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
         
         if (properties.status_metadata.is_expired) { 
             setEventEmit({ event: `onExpiredProduct`, metadata: define })
-            rmEvent(define)
+            rmEvent(define, false)
             return true; 
         }
         
@@ -124,14 +124,16 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
     const filtering = events.filter((event: TypeEvent) => {
         bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
         const define = getEventSignature(event) as TypeEvent;
-        const properties = define.properties; delete properties?.metadata?.ms;
+        // make a copy of the define object with properites so we can delete values to make hash
+        const pre = {...define,properties: {...define.properties,  metadata: {...define.properties.metadata }}};
+        const properties = define.properties; delete pre.properties.metadata.ms; delete pre.properties.metadata.header;
         const enhanced = properties.event = getEventEnhancedName(event)
         const filtered = isFiltered(define)
         if (!filtered) {
             event.geometry = !bools?.DisableGeometryParsing ? getEventGeometry(event) : null;
             properties.metadata.attachments = getEventAttachments(event)
         }
-        properties.metadata.hash = createHash("sha256").update(JSON.stringify(properties)).digest("hex")  
+        properties.metadata.hash = createHash("sha256").update(JSON.stringify(pre)).digest("hex")  
         setEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, '')}`, metadata: define });
         return !filtered
     })
