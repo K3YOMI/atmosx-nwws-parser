@@ -6627,22 +6627,19 @@ var updateListener = (event) => __async(null, null, function* () {
         const server = settings == null ? void 0 : settings.NotifyServer;
         const auth = ((_b = server == null ? void 0 : server.Credentials) == null ? void 0 : _b.Username) && ((_c = server == null ? void 0 : server.Credentials) == null ? void 0 : _c.Password) ? { username: (_e = (_d = settings == null ? void 0 : settings.NotifyServer) == null ? void 0 : _d.Credentials) == null ? void 0 : _e.Username, password: (_f = server == null ? void 0 : server.Credentials) == null ? void 0 : _f.Password } : void 0;
         const attachment = metadata.eas && (server == null ? void 0 : server.Attachments) ? `${server == null ? void 0 : server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : void 0;
-        const isRatelimited = setTimeoutAction({ identifier: metadata.tracking + `notify.server`, interval: 1, max: 1, addTime: true });
-        if (!isRatelimited.limited) {
-          yield createHttp(__spreadProps(__spreadValues({
-            url: `${(_g = server == null ? void 0 : server.Server) == null ? void 0 : _g.replace(/\/$/, "")}/${(_h = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _h.Topic}`,
-            timeout: 15e3,
-            method: "POST"
-          }, auth && { auth }), {
-            headers: __spreadValues({
-              "Title": `${metadata.name} (${metadata.status})`,
-              "Tags": (_j = (_i = properties2.parameters.tags) == null ? void 0 : _i.join(",")) != null ? _j : "N/A",
-              "Expires": new Date(properties2.expires).getTime(),
-              "Priority": (notify == null ? void 0 : notify.Priority) ? notify.Priority.toString() : "5"
-            }, attachment && { "Attach": attachment }),
-            body: getStringText(event)
-          }));
-        }
+        yield createHttp(__spreadProps(__spreadValues({
+          url: `${(_g = server == null ? void 0 : server.Server) == null ? void 0 : _g.replace(/\/$/, "")}/${(_h = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _h.Topic}`,
+          timeout: 15e3,
+          method: "POST"
+        }, auth && { auth }), {
+          headers: __spreadValues({
+            "Title": `${metadata.name} (${metadata.status})`,
+            "Tags": (_j = (_i = properties2.parameters.tags) == null ? void 0 : _i.join(",")) != null ? _j : "N/A",
+            "Expires": new Date(properties2.expires).getTime(),
+            "Priority": (notify == null ? void 0 : notify.Priority) ? notify.Priority.toString() : "5"
+          }, attachment && { "Attach": attachment }),
+          body: getStringText(event)
+        }));
       }
       if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
         const isRatelimited = setTimeoutAction({ identifier: webhook.Destination, interval: ((_k = webhook.Ratelimit) != null ? _k : 2) * 2, max: (_l = webhook.Ratelimit) != null ? _l : 2, addTime: true });
@@ -6946,10 +6943,11 @@ var rmEvent = (event, isTimeBasedExpiration) => __async(null, null, function* ()
     event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
     event.properties.status = `Expired`;
     event.properties.status_metadata.is_expired = true;
-    const description = isTimeBasedExpiration ? dict_strings.cancellation.replace(`{SENDER}`, event.properties.geocode.office.name).replace(`{EVENT}`, event.properties.event) : event.properties.metadata.raw;
-    event.properties.description = event.properties.metadata.raw = description;
+    const description = isTimeBasedExpiration ? dict_strings.cancellation.replace(`{SENDER}`, event.properties.geocode.office.name).replace(`{EVENT}`, event.properties.event) : event.properties.description;
+    event.properties.description = description;
+    event.properties.metadata.raw = isTimeBasedExpiration ? description : event.properties.metadata.raw;
     event.properties.metadata.history.push({
-      description,
+      description: isTimeBasedExpiration ? description : event.properties.description,
       issued: event.properties.expires,
       status: event.properties.status
     });
@@ -6964,7 +6962,6 @@ var rmEvent = (event, isTimeBasedExpiration) => __async(null, null, function* ()
       yield updateListener(event);
     }
     setTimeoutAction({ identifier: gTracking, expire: true });
-    setTimeoutAction({ identifier: gTracking + `notify.server`, expire: true });
   }
   setEventEmit({
     event: `onEventCache`,

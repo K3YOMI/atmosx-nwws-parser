@@ -36,17 +36,16 @@ export const rmEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):
         event.properties.status = `Expired`;
         event.properties.status_metadata.is_expired = true;
 
-        
         const description = isTimeBasedExpiration ? dict_strings.cancellation
             .replace(`{SENDER}`, event.properties.geocode.office.name)
-            .replace(`{EVENT}`, event.properties.event) : event.properties.metadata.raw;
-        event.properties.description = event.properties.metadata.raw = description;
+            .replace(`{EVENT}`, event.properties.event) : event.properties.description
+        event.properties.description = description; 
+        event.properties.metadata.raw = isTimeBasedExpiration ? description : event.properties.metadata.raw;
         event.properties.metadata.history.push({
-            description: description,
+            description: isTimeBasedExpiration ? description : event.properties.description,
             issued: event.properties.expires,
             status: event.properties.status
         })
-     
 
         bootstrap.cache.events.features
             .splice(bootstrap.cache.events.features.indexOf(isTrackingEventLogged), 1);
@@ -62,7 +61,6 @@ export const rmEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):
             await updateListener(event)
         }
         setTimeoutAction({ identifier: gTracking, expire: true })
-        setTimeoutAction({ identifier: gTracking + `notify.server`, expire: true })
     }
     setEventEmit({
         event: `onEventCache`,

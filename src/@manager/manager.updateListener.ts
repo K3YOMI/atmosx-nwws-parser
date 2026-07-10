@@ -93,23 +93,20 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 const server = settings?.NotifyServer;
                 const auth = server?.Credentials?.Username && server?.Credentials?.Password ? { username: settings?.NotifyServer?.Credentials?.Username, password: server?.Credentials?.Password } : undefined;
                 const attachment = metadata.eas && server?.Attachments ? `${server?.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : undefined;
-                const isRatelimited = setTimeoutAction({ identifier: metadata.tracking + `notify.server`, interval: 1, max: 1, addTime: true })
-                if (!isRatelimited.limited) { 
-                    await createHttp({
-                        url: `${server?.Server?.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
-                        timeout: 15_000,
-                        method: "POST",
-                        ...(auth && { auth }),
-                        headers: {
-                            "Title": `${metadata.name} (${metadata.status})`,
-                            "Tags":  properties.parameters.tags?.join(",") ?? "N/A",
-                            "Expires": new Date(properties.expires).getTime(),
-                            "Priority": notify?.Priority ? notify.Priority.toString() : "5",
-                            ... (attachment && { "Attach": attachment }),
-                        },
-                        body: getStringText(event)
-                    })
-                }
+                await createHttp({
+                    url: `${server?.Server?.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
+                    timeout: 15_000,
+                    method: "POST",
+                    ...(auth && { auth }),
+                    headers: {
+                        "Title": `${metadata.name} (${metadata.status})`,
+                        "Tags":  properties.parameters.tags?.join(",") ?? "N/A",
+                        "Expires": new Date(properties.expires).getTime(),
+                        "Priority": notify?.Priority ? notify.Priority.toString() : "5",
+                        ... (attachment && { "Attach": attachment }),
+                    },
+                    body: getStringText(event)
+                })
             }
 
             if (webhook?.Enabled && webhook?.Destination) {
