@@ -93,14 +93,22 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 let actions = [];
                 const server = settings?.NotifyServer;
                 const auth = server?.Credentials?.Username && server?.Credentials?.Password ? { username: settings?.NotifyServer?.Credentials?.Username, password: server?.Credentials?.Password } : undefined;
-                const attachment = metadata.eas && server?.Attachments ? `${server?.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : undefined;
                 
-                if (server?.Attachments && metadata.attachments?.length > 0 && metadata.attachments.find(a => a.name === "Image: Graphic")) {
-                    actions.push({
-                        "action": "view",
-                        "label": "Graphic Attachment",
-                        "url": metadata.attachments.find(a => a.name === "Image: Graphic").link,
-                    })
+                if (server?.Attachments) {
+                    if (metadata.eas) {
+                        actions.push({
+                            "action": "view",
+                            "label": "EAS Audio",
+                            "url": `${server?.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`,
+                        })
+                    }
+                    if (metadata.attachments?.length > 0 && metadata.attachments.find(a => a.name === "Image: Graphic")) {
+                        actions.push({
+                            "action": "view",
+                            "label": "Map Attachment",
+                            "url": metadata.attachments.find(a => a.name === "Image: Graphic").link,
+                        })
+                    }
                 }
 
                 await createHttp({
@@ -114,7 +122,6 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                         "Expires": new Date(properties.expires).getTime(),
                         "Priority": notify?.Priority ? notify.Priority.toString() : "5",
                         ... (actions.length > 0 && { "Actions": JSON.stringify(actions) }),
-                        ... (attachment && { "Attach": attachment }),
                     },
                     body: getStringText(event)
                 })

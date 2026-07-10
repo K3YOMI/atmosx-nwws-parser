@@ -6627,25 +6627,33 @@ var updateListener = (event) => __async(null, null, function* () {
         let actions = [];
         const server = settings == null ? void 0 : settings.NotifyServer;
         const auth = ((_b = server == null ? void 0 : server.Credentials) == null ? void 0 : _b.Username) && ((_c = server == null ? void 0 : server.Credentials) == null ? void 0 : _c.Password) ? { username: (_e = (_d = settings == null ? void 0 : settings.NotifyServer) == null ? void 0 : _d.Credentials) == null ? void 0 : _e.Username, password: (_f = server == null ? void 0 : server.Credentials) == null ? void 0 : _f.Password } : void 0;
-        const attachment = metadata.eas && (server == null ? void 0 : server.Attachments) ? `${server == null ? void 0 : server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav` : void 0;
-        if ((server == null ? void 0 : server.Attachments) && ((_g = metadata.attachments) == null ? void 0 : _g.length) > 0 && metadata.attachments.find((a) => a.name === "Image: Graphic")) {
-          actions.push({
-            "action": "view",
-            "label": "Graphic Attachment",
-            "url": metadata.attachments.find((a) => a.name === "Image: Graphic").link
-          });
+        if (server == null ? void 0 : server.Attachments) {
+          if (metadata.eas) {
+            actions.push({
+              "action": "view",
+              "label": "EAS Audio",
+              "url": `${server == null ? void 0 : server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
+            });
+          }
+          if (((_g = metadata.attachments) == null ? void 0 : _g.length) > 0 && metadata.attachments.find((a) => a.name === "Image: Graphic")) {
+            actions.push({
+              "action": "view",
+              "label": "Map Attachment",
+              "url": metadata.attachments.find((a) => a.name === "Image: Graphic").link
+            });
+          }
         }
         yield createHttp(__spreadProps(__spreadValues({
           url: `${(_h = server == null ? void 0 : server.Server) == null ? void 0 : _h.replace(/\/$/, "")}/${(_i = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _i.Topic}`,
           timeout: 15e3,
           method: "POST"
         }, auth && { auth }), {
-          headers: __spreadValues(__spreadValues({
+          headers: __spreadValues({
             "Title": `${metadata.name} (${metadata.status})`,
             "Tags": (_k = (_j = properties2.parameters.tags) == null ? void 0 : _j.join(",")) != null ? _k : "N/A",
             "Expires": new Date(properties2.expires).getTime(),
             "Priority": (notify == null ? void 0 : notify.Priority) ? notify.Priority.toString() : "5"
-          }, actions.length > 0 && { "Actions": JSON.stringify(actions) }), attachment && { "Attach": attachment }),
+          }, actions.length > 0 && { "Actions": JSON.stringify(actions) }),
           body: getStringText(event)
         }));
       }
