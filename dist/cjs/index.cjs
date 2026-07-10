@@ -6631,14 +6631,14 @@ var updateListener = (event) => __async(null, null, function* () {
           if (metadata.eas) {
             actions.push({
               "action": "view",
-              "label": "EAS Audio",
+              "label": "Listen",
               "url": `${server == null ? void 0 : server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
             });
           }
           if (((_g = metadata.attachments) == null ? void 0 : _g.length) > 0 && metadata.attachments.find((a) => a.name === "Image: Graphic")) {
             actions.push({
               "action": "view",
-              "label": "Map Attachment",
+              "label": "View Image",
               "url": metadata.attachments.find((a) => a.name === "Image: Graphic").link
             });
           }
@@ -6651,7 +6651,6 @@ var updateListener = (event) => __async(null, null, function* () {
           headers: __spreadValues({
             "Title": `${metadata.name} (${metadata.status})`,
             "Tags": (_k = (_j = properties2.parameters.tags) == null ? void 0 : _j.join(",")) != null ? _k : "N/A",
-            "Expires": new Date(properties2.expires).getTime(),
             "Priority": (notify == null ? void 0 : notify.Priority) ? notify.Priority.toString() : "5"
           }, actions.length > 0 && { "Actions": JSON.stringify(actions) }),
           body: getStringText(event)

@@ -98,14 +98,14 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     if (metadata.eas) {
                         actions.push({
                             "action": "view",
-                            "label": "EAS Audio",
+                            "label": "Listen",
                             "url": `${server?.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`,
                         })
                     }
                     if (metadata.attachments?.length > 0 && metadata.attachments.find(a => a.name === "Image: Graphic")) {
                         actions.push({
                             "action": "view",
-                            "label": "Map Attachment",
+                            "label": "View Image",
                             "url": metadata.attachments.find(a => a.name === "Image: Graphic").link,
                         })
                     }
@@ -119,7 +119,6 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     headers: {
                         "Title": `${metadata.name} (${metadata.status})`,
                         "Tags":  properties.parameters.tags?.join(",") ?? "N/A",
-                        "Expires": new Date(properties.expires).getTime(),
                         "Priority": notify?.Priority ? notify.Priority.toString() : "5",
                         ... (actions.length > 0 && { "Actions": JSON.stringify(actions) }),
                     },
