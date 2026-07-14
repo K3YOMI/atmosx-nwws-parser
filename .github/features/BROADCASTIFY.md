@@ -1,6 +1,6 @@
 # Broadcastify Integration
 
-[Broadcastify](https://broadcastify.com) feeds are automatically sourced and stored in your `database` file. Feed information can be linked to processed events using location and metadata matching. This integration allows related Broadcastify feeds and audio URLs to be attached to events, making it easier to access nearby live communications for affected areas. Supported feed sources include **Public Safety**, **NOAA Weather Radio**, **Marine**, **Aviation**, and **Amateur Radio** based on the counties or zones associated with an event. Additionally, this will auto append with the [Discord Webhook Integration](./github/features/DISCORD_INTEGRATION.md) for a more seamless notification experience.
+[Broadcastify](https://broadcastify.com) feeds are automatically sourced and stored in your `database` file. Feed information can be linked to processed events using location and metadata matching. This integration allows related Broadcastify feeds and audio URLs to be attached to events, making it easier to access nearby live communications for affected areas. Supported feed sources include **Public Safety**, **NOAA Weather Radio**, **Marine**, **Aviation**, and **Amateur Radio** based on the counties or zones associated with an event. Additionally, this will auto append with the [Discord Webhook Integration](./DISCORD_INTEGRATION.md) for a more seamless notification experience.
 
 This integration is optional and can be enabled through the `Manager` initialization:
 ```ts

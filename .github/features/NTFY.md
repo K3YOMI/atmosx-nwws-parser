@@ -11,7 +11,7 @@ If you don't require `username` and `password` for authentication, simply remove
 
 The ntfy client is available through the [Google Play Store](https://play.google.com/store/apps/details?id=io.heckel.ntfy) and the [Apple App Store](https://apps.apple.com/app/ntfy/id1625396347).
 
-This integration is optional and can be enabled through the `Manager` initialization. See [ListenerSettings Documentation](.github/features/LISTENER_SETTINGS.md) for additional formatting options:
+This integration is optional and can be enabled through the `Manager` initialization. See [ListenerSettings Documentation](./LISTENER_SETTINGS.md) for additional formatting options:
 
 ```ts
 NotifyServer: {

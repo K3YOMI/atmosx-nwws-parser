@@ -2,11 +2,11 @@
 
 [Emergency Alert System (EAS)](https://www.fcc.gov/emergency-alert-system) audio generation allows simulated EAS-style audio messages to be created using text-to-speech synthesis and generated EAS tones.
 
-This feature is intended for development, testing, and demonstration purposes by generating audio output from processed weather events without requiring access to broadcast equipment or live EAS systems. You can view a [sample generation here](.github/samples/eas_generation_sample.wav).
+This feature is intended for development, testing, and demonstration purposes by generating audio output from processed weather events without requiring access to broadcast equipment or live EAS systems. You can view a [sample generation here](../samples/eas_generation_sample.wav).
 
 > **Note:** Generated audio messages do not contain real broadcast EAS headers or official activation tones. They are intended for private listening, testing, and development purposes only and must not be used as actual emergency broadcasts.
 
-This integration is optional and can be enabled through the `Manager.ListenerSettings` and `Manager.GlobalSettings.ArchiveSettings` initialization configurations. See [ListenerSettings Documentation](.github/features/LISTENER_SETTINGS.md) for additional configuration options:
+This integration is optional and can be enabled through the `Manager.ListenerSettings` and `Manager.GlobalSettings.ArchiveSettings` initialization configurations. See [ListenerSettings Documentation](./LISTENER_SETTINGS.md) for additional configuration options:
 
 ```ts
 ListenerSettings: [

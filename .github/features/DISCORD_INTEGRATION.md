@@ -8,7 +8,7 @@ This integration uses Discord's HTTP webhook system, allowing notifications to b
 
 By default, timestamps use Discord's standard timestamp formatting. This allows Discord clients to automatically display event times in the user's local timezone regardless of their configured region.
 
-This integration is optional and can be enabled through the `Manager.ListenerSettings` initialization configuration. See [ListenerSettings Documentation](.github/features/LISTENER_SETTINGS.md) for more formatting information:
+This integration is optional and can be enabled through the `Manager.ListenerSettings` initialization configuration. See [ListenerSettings Documentation](./LISTENER_SETTINGS.md) for more formatting information:
 
 ```ts
 ListenerSettings: [
