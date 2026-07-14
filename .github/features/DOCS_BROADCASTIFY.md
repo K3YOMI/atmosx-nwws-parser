@@ -4,7 +4,7 @@
 
 This integration allows processed events to include nearby live communication sources associated with affected areas. Supported feed categories include **Public Safety**, **NOAA Weather Radio**, **Marine**, **Aviation**, **Amateur Radio**, **Rail**, and other available Broadcastify feed types based on the counties, zones, or locations associated with an event.
 
-When combined with the [Discord Webhook Integration](./DOCS_WEBHOOK.md), attached Broadcastify feeds can be included in outgoing notifications, providing direct access to related audio sources from delivered weather alerts.
+When combined with the [Discord Webhook Integration](./DOCS_WEBHOOKS.md), attached Broadcastify feeds can be included in outgoing notifications, providing direct access to related audio sources from delivered weather alerts.
 
 This integration is optional and can be enabled through the `Manager` initialization:
 
