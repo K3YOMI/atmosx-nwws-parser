@@ -8,12 +8,12 @@ This integration uses Discord's HTTP webhook system, allowing notifications to b
 
 By default, timestamps use Discord's standard timestamp formatting. This allows Discord clients to automatically display event times in the user's local timezone regardless of their configured region.
 
-This integration is optional and can be enabled through the `Manager.ListenerSettings` initialization configuration. See [ListenerSettings Documentation](./LISTENER_SETTINGS.md) for more formatting information:
+This integration is optional and can be enabled through the `Manager.ListenerSettings` initialization configuration. See [Listener Documentation](./DOCS_LISTENERS.md) for more formatting information:
 
 ```ts
 ListenerSettings: [
 	{
-		Events: ["*Severe Thunderstorm Warning*"],
+		Events: ["Considerable Severe Thunderstorm Warning"],
 		Webhook: {
 			Enabled: true,
 			Destination: "https://discord.com/api/webhooks/...",
@@ -24,6 +24,24 @@ ListenerSettings: [
 	}
 ],
 ```
+
+## Ratelimit Behavior
+
+**Ratelimit** defines how many messages may be sent per time window, where the
+window length is calculated as:
+
+**interval = Ratelimit × 2 seconds**
+
+This means the system allows `Ratelimit` messages every `Ratelimit x 2` seconds.
+
+| Ratelimit | Messages Allowed | Time Window (seconds) | Calculation |
+|----------|------------------|------------------------:|-------------:|
+| **1** | 1 message | 2 seconds | 1 * 2 |
+| **2** | 2 messages | 4 seconds | 2 * 2 |
+| **3** | 3 messages | 6 seconds | 3 * 2 |
+| **4** | 4 messages | 8 seconds | 4 * 2 |
+
+So a `Ratelimit` of **2** allows **2 messages every 4 seconds**.
 
 ## Webook Example
 ```text

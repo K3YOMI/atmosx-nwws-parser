@@ -11,7 +11,7 @@ If you don't require `username` and `password` for authentication, simply remove
 
 The ntfy client is available through the [Google Play Store](https://play.google.com/store/apps/details?id=io.heckel.ntfy) and the [Apple App Store](https://apps.apple.com/app/ntfy/id1625396347).
 
-This integration is optional and can be enabled through the `Manager` initialization. See [ListenerSettings Documentation](./LISTENER_SETTINGS.md) for additional formatting options:
+This integration is optional and can be enabled through the `Manager` initialization. See [Listener Documentation](./DOCS_LISTENERS.md) for additional formatting options:
 
 ```ts
 NotifyServer: {
@@ -25,7 +25,7 @@ NotifyServer: {
 },
 ListenerSettings: [
 	{
-		Events: ["*Severe Thunderstorm Warning*"],
+		Events: ["Considerable Severe Thunderstorm Warning"],
 		NotificationServer: {
 			Enabled: true,
 			Topic: "severe-thunderstorm-warnings",
@@ -34,6 +34,7 @@ ListenerSettings: [
 	}
 ],
 ```
+> **Attachments** should be the directory where EAS audio messages are stored. Please make sure it's valid and is being properly hosted so NTFY can obtain a direct link to the files
 
 ## Post Notification Card Example
 The following example demonstrates a generated ntfy notification containing structured weather event information, including event metadata, affected locations, severity information, tracking identifiers, tags, and available attachments.

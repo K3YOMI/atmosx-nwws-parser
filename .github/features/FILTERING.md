@@ -1,1 +1,0 @@
-# Event / Stanza Filtering
