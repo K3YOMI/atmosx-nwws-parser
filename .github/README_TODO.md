@@ -1,8 +1,3 @@
-# AtmosphericX - Event Product Parser
-
-
-
-
 <div align="center">
 	<a href="https://atmosphericx.scriptkitty.cafe">
 		<img src="./logo.png" alt="@atmosx/event-product-parser" width="800"/>
