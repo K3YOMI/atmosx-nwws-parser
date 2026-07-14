@@ -1,0 +1,27 @@
+# File Archive Generation
+
+File archive generation allows processed GeoJSON and raw text products to be stored as archived files with configurable expiration times.
+
+A custom `TTL` (seconds) value can be configured to automatically expire and remove archived file entries after the specified duration. This allows automated archive management while preventing outdated products from accumulating over time.
+
+Sample outputs are available for a [raw text product](.github/samples/text_product_sample.txt) and a [GeoJSON product](.github/samples/json_product_sample.json).
+
+This integration is optional and can be enabled through the `Manager.ListenerSettings` and `Manager.GlobalSettings.ArchiveSettings` initialization configurations. See [ListenerSettings Documentation](.github/features/LISTENER_SETTINGS.md) for additional configuration options:
+
+```ts
+ListenerSettings: [
+	{
+		Events: ["*Severe Thunderstorm Warning*"],
+		Uploads: {
+			JSON: true,
+			File: true
+		},
+	}
+],
+GlobalSettings: {
+	ArchiveSettings: {
+		TTL: 30,
+		EventDirectory: `ftp/@bucket/JSONProducts`,
+		TextDirectory: `ftp/@bucket/TextProducts`,
+	}
+}
