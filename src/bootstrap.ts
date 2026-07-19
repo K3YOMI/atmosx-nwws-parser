@@ -102,7 +102,7 @@ export const bootstrap = {
             SPCWatchesOnly: true,
             ShapefileSkipPoints: 15,
             NodeTTL: 60,
-            NodeMinDistance: 120,
+            NodeMaxDistance: 120,
             EventFiltering: {
                 ListeningEvents: [],
                 ListeningICAO: [],

@@ -23,7 +23,6 @@ import { bootstrap } from "../../bootstrap";
 
 export const getStringText = (event: TypeEvent): string => {
     const settings = bootstrap.settings as TypeSettings;
-    //  Timezone?: string | "Los Angeles" | "Phoenix" | "Chicago" | "New York" | "Anchorage" | "Honolulu" | "UTC"
     const timezone = settings.NotifyServer.Timezone ?? `UTC`;
     const line = (label: string, value: unknown, condition = true) => condition && value ? `${label} ${value}` : null;
     const isStatement = event.properties.status_metadata.is_statement;

@@ -78,7 +78,7 @@ export type TypeSettings = {
         SPCWatchesOnly: boolean
         ShapefileSkipPoints: number
         NodeTTL: number
-        NodeMinDistance: number
+        NodeMaxDistance: number
         EventFiltering: {
             ListeningEvents: string[]
             ListeningICAO: string[]

@@ -1210,7 +1210,7 @@ var bootstrap = {
       SPCWatchesOnly: true,
       ShapefileSkipPoints: 15,
       NodeTTL: 60,
-      NodeMinDistance: 120,
+      NodeMaxDistance: 120,
       EventFiltering: {
         ListeningEvents: [],
         ListeningICAO: [],
@@ -6844,7 +6844,7 @@ var getEventNodes = (event) => __async(null, null, function* () {
       proximity: getPoint.proximity
     };
     metadata.nodes.push(info);
-    if (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMinDistance) {
+    if (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMaxDistance) {
       metadata.proximity = true;
       info.proximity = true;
     }

@@ -124,7 +124,6 @@ export const validateEvents = async (events: TypeEvent[]): Promise<void> => {
     const filtering = events.filter((event: TypeEvent) => {
         bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
         const define = getEventSignature(event) as TypeEvent;
-        // make a copy of the define object with properites so we can delete values to make hash
         const pre = {...define,properties: {...define.properties,  metadata: {...define.properties.metadata }}};
         const properties = define.properties; delete pre.properties.metadata.ms; delete pre.properties.metadata.header;
         const enhanced = properties.event = getEventEnhancedName(event)

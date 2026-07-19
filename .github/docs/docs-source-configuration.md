@@ -16,19 +16,17 @@
 
 
 # 3.0 - Source Configurations
-`@atmosx/event-product-parser` supports two primary source configurations for ingesting weather data from the [National Weather Service](https://www.weather.gov/) (NWS) and the [National Oceanic and Atmospheric Administration](https://www.noaa.gov/) (NOAA).
 
-The [NOAA Weather Wire Service](#31-noaa-weather-wire-service) provides real-time weather product delivery through a persistent [XMPP](https://xmpp.org/) connection using the standard [WMO Header Format](#314-geojson-&-wmo-formatting).
 
-The [National Weather Service API](#32-national-weather-service-api) provides access to weather data through a RESTful API.
+`@atmosx/event-product-parser` supports multiple source configurations that allow you to customize how weather data is ingested and processed. These configurations define the external services, connection methods, and parsing used by the parser to receive weather products. The available source configurations provide flexibility for different data ingestion requirements, allowing you to choose the appropriate source based on your application's needs while maintaining a consistent parsing experience.
 
 # 3.1 - NOAA Weather Wire Service
-`NOAA Weather Wire Service` is a real-time dissemination service that delivers official weather information, alerts, and warnings in text format from NWS Weather Forecast Offices and National Centers.
+[NOAA Weather Wire Service](https://www.weather.gov/nwws) is a real-time dissemination service that delivers official weather information, alerts, forecasts, products, and warnings in text format from NWS Weather Forecast Offices and National Centers.
 
 This service is designed for television and radio broadcasters, emergency managers, commercial alerting providers, private weather services, and other organizations that require rapid access to weather products.
 
 
-Each alert, forecast, and observation is delivered over [XMPP](https://xmpp.org/) using the standardized [WMO Header Format](#314-geojson-&-wmo-formatting). This provides a consistent structure for automated processing, although the format can be challenging to parse due to the complexity and variety of available weather products.
+Each alert, forecast, and observation is delivered over [XMPP](https://xmpp.org/) using the standardized [WMO Header Format](#34---geojson--wmo-formatting). This provides a consistent structure for automated processing.
 
 Accessing the NOAA Weather Wire Service requires credentials, which can be obtained by sending an email to [NWWS.Issue@noaa.gov](mailto:NWWS.Issue@noaa.gov).
 
@@ -41,33 +39,39 @@ When requesting access, provide the following information:
 * Telephone Number
 * Account Information: Single or Multiple Accounts
 
+NWS processing of your request may take as long as 10 days or more depending on critical weather days and NWS priority requirements.
+
 
 # 3.2 - National Weather Service API
-The `National Weather Service` provides a [RESTful API](https://www.weather.gov/documentation/services-web-api) for programmatically accessing weather data and products.
+The [National Weather Service](https://www.weather.gov/) provides a [RESTful API](https://www.weather.gov/documentation/services-web-api) for programmatically accessing weather data and products.
 
-Compared to the `NOAA Weather Wire Service`, the API introduces additional latency, with data typically delayed by 1 to 2 minutes on average. This delay is one of the primary tradeoffs when using the API instead of the `NOAA Weather Wire Service` for real-time weather product ingestion.
+Compared to the [NOAA Weather Wire Service](#31---noaa-weather-wire-service), the API introduces additional latency, with data typically delayed by 1 to 2 minutes on average. This delay is one of the primary tradeoffs when using the API instead of NOAA Weather Wire Service for real-time weather product ingestion.
 
 The NWS API is best suited for applications that require on demand access to weather data rather than the lowest possible latency delivery of operational weather products. All responses are provided in [GeoJSON](https://geojson.org/) format, making the data straightforward to parse and integrate into applications.
 
 
 # 3.3 - NOAA Weather Wire Service vs NWS RESTful API
-There are significant differences between these two sources. `NOAA Weather Wire Service` requires authenticated access and is optimized for real-time product delivery, while the NWS RESTful API is publicly accessible and designed for on demand data retrieval.
+There are significant differences between these two sources. [NOAA Weather Wire Service](#31---noaa-weather-wire-service) requires authenticated access and is optimized for real-time product delivery, while the [NWS RESTful API](#32---national-weather-service-api) is publicly accessible and designed for on demand data retrieval.
 
 | Feature | NOAA Weather Wire Service | NWS RESTful API |
 | --- | --- | --- |
 | Authentication | ✅ | ❌ |
-| real-time Delivery | ✅ | ❌ |
-| WMO Header Format | ✅ | ❌ |
+| Real-time Delivery | ✅ | ❌ |
+| WMO Formatting | ✅ | ❌ |
 | Persistent Connection | ✅ | ❌ |
 | Low Latency Products | ✅ | ❌ |
+| Easy to Use | ❌ | ✅ |
+| Publicly Accessible | ❌ | ✅ |
 
 
 # 3.4 - GeoJSON & WMO Formatting
 
-`@atmosx/event-product-parser` supports two primary data formats when ingesting weather products. The `NOAA Weather Wire Service` uses [WMO Format](#342-wmo-format), while the `National Weather Service API` uses [GeoJSON](#341-geojson).
+`@atmosx/event-product-parser` supports two primary data formats when ingesting weather products. The [NOAA Weather Wire Service](#31---noaa-weather-wire-service) uses [WMO Format](#342---wmo-format), while the [National Weather Service API](#32---national-weather-service-api) uses [GeoJSON](#341---geojson).
 
 ## 3.4.1 - GeoJSON
-[GeoJSON](https://geojson.org/) is a format for encoding a variety of geographic data structures. It is based on the JavaScript Object Notation (JSON) standard and is widely used for representing geographic features in web applications. You can view a real-world sample [here](/.github/samples/SAMPLE_GEOJSON.json).
+[GeoJSON](https://geojson.org/) is a format for encoding a variety of geographic data structures. It is based on the JavaScript Object Notation (JSON) standard and is widely used for representing geographic features in web applications.
+
+You can view a real-world sample [here](/.github/samples/SAMPLE_GEOJSON.json).
 
 ```json
 {
@@ -81,7 +85,9 @@ There are significant differences between these two sources. `NOAA Weather Wire 
 ```
 
 ## 3.4.2 - WMO Format
-[WMO Format](https://wmo.int/) is a standard for the exchange of meteorological data, including weather observations, forecasts, and warnings. It is widely used by meteorological services around the world to ensure consistency and interoperability in the sharing of weather information. You can view a real-world sample [here](/.github/samples/SAMPLE_TEXT_PRODUCT.txt).
+**WMO Format** (World Meteorological Organization Format) is a standardized structure used for exchanging meteorological data, including observations, forecasts, and warnings. It provides a consistent format for weather products, allowing meteorological organizations and systems around the world to reliably share and process weather information.
+
+A real-world example of a WMO-formatted product can be found [here](/.github/samples/SAMPLE_TEXT_PRODUCT.txt).
 ```text
 000
 WUUS51 KLOT 000000
@@ -97,7 +103,7 @@ National Weather Service
 
 XXXX PM Timezone Weekday Month DD 2026
 
-TEST EXAMPLE - TEXT EXAMPLE TEST -EXAMPLE
+TEST EXAMPLE - TEXT EXAMPLE - TEST EXAMPLE
 
 &&
 
@@ -119,9 +125,9 @@ TIME...MOT...LOC 1650Z 313DEG 52KT 4600 7042
 
 # 3.5 - Configuring NOAA Weather Wire Service
 
-Configuring `@atmosx/event-product-parser` to use the [NOAA Weather Wire Service](#31-noaa-weather-wire-service) requires setting up the necessary credentials and connection parameters to establish a persistent connection to the service. This can be configured through the `Manager` class within your application.
+Configuring `@atmosx/event-product-parser` to use the [NOAA Weather Wire Service](#31---noaa-weather-wire-service) requires setting up the necessary credentials and connection parameters to establish a persistent connection to the service. This can be configured through the **Manager** class within your application.
 
-* Keep in mind that settings configured within `NOAAWeatherWireServiceSettings` only apply to the `NOAA Weather Wire Service` source and do not affect the `National Weather Service API` source.
+* Keep in mind that settings configured within `NOAAWeatherWireServiceSettings` only apply to the [NOAA Weather Wire Service](#31---noaa-weather-wire-service) source and do not affect the [National Weather Service API](#32---national-weather-service-api) source.
 
 ```ts
 import { Manager } from '@atmosx/event-product-parser';
@@ -142,11 +148,11 @@ const client = new Manager({
 
 ## 3.5.1 - Auto Reconnecting
 
-With [XMPP](https://xmpp.org/) connections, `@atmosx/event-product-parser` can automatically reconnect to the NOAA Weather Wire Service if the connection is interrupted.
+With [XMPP](https://xmpp.org/) connections, `@atmosx/event-product-parser` can automatically reconnect to the [NOAA Weather Wire Service](#31---noaa-weather-wire-service) if the connection is interrupted.
 
 This ensures your application can maintain a persistent connection and continue receiving weather products without requiring manual intervention after temporary network failures or service disruptions.
 
-* This configuration only applies to the `NOAA Weather Wire Service` using `XMPP`. The NWS API source does not require auto reconnect configuration.
+* This configuration only applies to the [NOAA Weather Wire Service](#31---noaa-weather-wire-service) using [XMPP](https://xmpp.org/). The [National Weather Service API](#32---national-weather-service-api) source does not require auto reconnect configuration.
 
 ```ts
 NOAAWeatherWireServiceSettings: {
@@ -159,9 +165,9 @@ NOAAWeatherWireServiceSettings: {
 
 ## 3.5.2 - Stanza Caching
 
-Optionally, you can enable stanza caching to retain previously processed XMPP stanzas. This can help prevent data loss in the event that your application requires a fresh restart.
+Optionally, you can enable stanza caching to retain previously processed [XMPP](https://xmpp.org/) stanzas. This can help prevent data loss in the event that your application requires a fresh restart.
 
-* Keep in mind that increasing `MaxRetentionHistory` will increase the amount of time required for `@atmosx/event-product-parser` to initialize, as more cached stanzas must be loaded and processed during startup.
+* Keep in mind that increasing **MaxRetentionHistory** will increase the amount of time required for `@atmosx/event-product-parser` to initialize, as more cached stanzas must be loaded and processed during startup.
 
 ```ts
 NOAAWeatherWireServiceSettings: {
@@ -197,13 +203,13 @@ NOAAWeatherWireServiceSettings: {
 
 # 3.6 - Configuring National Weather Service API
 
-The `National Weather Service API` requires minimal configuration compared to the `NOAA Weather Wire Service`. While there are fewer available settings, the API source is designed to provide simple access to weather data through RESTful requests without requiring authentication or persistent connections.
+The [National Weather Service API](#32---national-weather-service-api) requires minimal configuration compared to the [NOAA Weather Wire Service](#31---noaa-weather-wire-service). While there are fewer available settings, the API source is designed to provide simple access to weather data through RESTful requests without requiring authentication or persistent connections.
 
 ```ts
 import { Manager } from '@atmosx/event-product-parser';
 
 const client = new Manager({
-	EnableWireService: false, // Enable NOAA Weather Wire Service (NWWS)
+	EnableWireService: false, // Disable NOAA Weather Wire Service (NWWS)
 	NationalWeatherServiceSettings: {
         CallbackInterval: 30, // How often it retrieves new products (Minimum: 15 seconds)
         EventsEndpoint: `https://api.weather.gov/alerts/active`, // RESTful API
