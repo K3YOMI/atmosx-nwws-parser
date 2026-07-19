@@ -24,7 +24,7 @@ import { createEvent } from "../@building/building.create";
 
 interface CreateEventOptions {
     message: string
-    attributes: TypeAttributes
+    awipsid?: string
 }
 
 export const manualEvent = async (options: CreateEventOptions): Promise<void> => {
@@ -32,7 +32,25 @@ export const manualEvent = async (options: CreateEventOptions): Promise<void> =>
     const isCapAreaDescription = options.message.includes(`<areaDesc>`)
     const isVTEC = options.message.match(dict_expressions.pvtec) != null;
     const isUGC = options.message.match(dict_expressions.ugc1) != null;
-    const getType = getAwipsType({ attributes: options.attributes})
-    const result = { message: options.message, attributes: options.attributes, isCapEvent, isVTEC, isUGC, isCapAreaDescription, isIgnored: false, isNWWS: true, getType }
+    const attributes = {
+        "xmlns": "@atmosx/event-product-parser",
+        "id": "manual_processor.0000",
+        "issue": new Date().toISOString(),
+        "ttaaii": "XXXXX",
+        "cccc": "XXX",
+        "awipsid": options.awipsid ?? "XXXXXX",
+    }
+    const getType = getAwipsType({ attributes })
+    const result = { 
+        message: options.message, 
+        attributes,
+        isCapEvent, 
+        isVTEC, 
+        isUGC, 
+        isCapAreaDescription, 
+        isIgnored: false, 
+        isNWWS: true, 
+        getType 
+    }
     await createEvent(result);
 }

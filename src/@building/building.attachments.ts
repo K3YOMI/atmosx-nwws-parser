@@ -38,6 +38,7 @@ type BroadcastifyResponse = {
 
 export const getEventAttachments = (event: TypeEvent): GetEventAttachmentsResponse[] | null => {
     let attachments = [];
+    const settings = bootstrap.settings;
     const issuanceTime = getLatestIssuance();
     const spcNumber = event?.properties?.discussion_parameters?.discussion_number;
     const watchNumber = event?.properties?.watch_parameters?.watch_number;
@@ -57,25 +58,27 @@ export const getEventAttachments = (event: TypeEvent): GetEventAttachmentsRespon
         attachments.push({ name: `Image: Graphic`, link: events.find((e) => e.target.toLowerCase() === event.properties.event.toLowerCase()).attachment });
     }
 
-    for (const location of locations) {
-        if (dict_expressions.location.test(location)) {
-            const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`]
-            const county = location?.split(',')[0]?.trim().replace(new RegExp(`^(${lines.join('|')}) `), '')
-            const state = dict_states[location?.split(',')[1]?.trim()]
-            const feeds = bootstrap.database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
-                const typeOrder = ['Other', 'Public Safety'];
-                const indexA = typeOrder.indexOf(a.type);
-                const indexB = typeOrder.indexOf(b.type);
-                return indexA - indexB;
-            });
-            const tags = bootstrap.settings.BroadcastifySettings.BroadcastifyTags;
-            const filtered = feeds.filter((feed: BroadcastifyResponse) => tags.includes(feed.type));
-            if (filtered.length > 0) {
-                filtered.map((filtered: BroadcastifyResponse) => {
-                    if (!attachments.some((a) => a.link === filtered.link)) {
-                        attachments.push({ name: `${filtered.type}: ${filtered.feed}`, link: filtered.link });
-                    }
-                });
+    if (settings.BroadcastifySettings.BroadcastifyAttachments) {
+        for (const location of locations) {
+            if (dict_expressions.location.test(location)) {
+                const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`]
+                const county = location?.split(',')[0]?.trim().replace(new RegExp(`^(${lines.join('|')}) `), '')
+                const state = dict_states[location?.split(',')[1]?.trim()]
+                const feeds = bootstrap.database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
+                    const typeOrder = ['Other', 'Public Safety'];
+                    const indexA = typeOrder.indexOf(a.type);
+                    const indexB = typeOrder.indexOf(b.type);
+                    return indexA - indexB;
+                })
+                const tags = bootstrap.settings.BroadcastifySettings.BroadcastifyTags;
+                const filtered = feeds.filter((feed: BroadcastifyResponse) => tags.includes(feed.type));
+                if (filtered.length > 0) {
+                    filtered.map((filtered: BroadcastifyResponse) => {
+                        if (!attachments.some((a) => a.link === filtered.link)) {
+                            attachments.push({ name: `${filtered.type}: ${filtered.feed}`, link: filtered.link });
+                        }
+                    });
+                }
             }
         }
     }

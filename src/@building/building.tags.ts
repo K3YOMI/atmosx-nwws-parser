@@ -20,5 +20,10 @@
 import { dict_tags } from "../@dictionaries/dictionaries.tags";
 
 export const getEventTags = (message: string): string[] => {
-    return Object.entries(dict_tags).filter(([key]) => message?.toLowerCase().includes(key.toLowerCase())).map(([, value]) => value)
-}
+    if (!message) return [];
+    return [...new Set(Object.values(dict_tags)
+        .flat()
+        .filter(({ match }) => match.test(message))
+        .map(({ tag }) => tag)
+    )];
+};

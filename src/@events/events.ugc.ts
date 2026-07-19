@@ -49,7 +49,7 @@ export const ugc = async (stanza: TypeStanzaCompiled): Promise<void> => {
             let isStatement = matches?.statement ?? false;
             
             if (!event) { 
-                event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
+                event = stanza.getType.type;
                 if (!stanza.getType.discovered) {
                     event += ` (AWIPSID)`
                 }

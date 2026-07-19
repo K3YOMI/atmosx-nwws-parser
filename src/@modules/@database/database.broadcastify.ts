@@ -64,4 +64,7 @@ export const importBroadcastify = async (): Promise<void> => {
         }
         transaction(batch);
     }
+    if (broadcastify.error) {
+        setWarning({ message: `Error importing Broadcastify data: ${broadcastify.message}` });
+    }
 };
