@@ -5915,12 +5915,14 @@ var dict_testing = [
 
 // src/@dictionaries/dictionaries.hail.ts
 var dict_hail = {
+  "0.25": "Pea",
   ".25": "Pea",
+  "0.50": "Penny",
   ".50": "Penny",
   ".75": "Penny",
   "Up to .75": "Penny",
-  ".88": "Nickel",
   "0.75": "Penny",
+  ".88": "Nickel",
   "0.88": "Nickel",
   "1.00": "Quarter",
   "1.25": "Half Dollar",
