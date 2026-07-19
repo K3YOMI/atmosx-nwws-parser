@@ -8,6 +8,7 @@
 	<p align="center">
 		<a href="https://atmosphericx.scriptkitty.cafe"><b>Documentation</b></a> |
 		<a href="https://github.com/AtmosphericX"><b>Repositories</b></a> |
+		<a href="https://www.npmjs.com/search?q=%40atmosx"><b>NPM Packages</b></a> |
 		<a href="https://atmosphericx-discord.scriptkitty.cafe"><b>Community Discord</b></a>
 	</p>
 </div>
@@ -65,7 +66,7 @@ There are significant differences between these two sources. `NOAA Weather Wire 
 
 `@atmosx/event-product-parser` supports two primary data formats when ingesting weather products. The `NOAA Weather Wire Service` uses [WMO Format](#342-wmo-format), while the `National Weather Service API` uses [GeoJSON](#341-geojson).
 
-## 3.4.1 GeoJSON
+## 3.4.1 - GeoJSON
 [GeoJSON](https://geojson.org/) is a format for encoding a variety of geographic data structures. It is based on the JavaScript Object Notation (JSON) standard and is widely used for representing geographic features in web applications. You can view a real-world sample [here](/.github/samples/SAMPLE_GEOJSON.json).
 
 ```json
@@ -79,9 +80,7 @@ There are significant differences between these two sources. `NOAA Weather Wire 
 }
 ```
 
-
-
-## 3.4.2 WMO Format
+## 3.4.2 - WMO Format
 [WMO Format](https://wmo.int/) is a standard for the exchange of meteorological data, including weather observations, forecasts, and warnings. It is widely used by meteorological services around the world to ensure consistency and interoperability in the sharing of weather information. You can view a real-world sample [here](/.github/samples/SAMPLE_TEXT_PRODUCT.txt).
 ```text
 000
