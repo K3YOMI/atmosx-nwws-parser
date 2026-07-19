@@ -119,7 +119,7 @@ During each update cycle, the system evaluates:
 
 ## 4.3.2 - Max Distance
 
-**NodeMaxDistance**, defined i`n *miles*, specifies the maximum distance an event can be from a tracking node before it is filtered out. Events within this distance threshold will continue to be processed by the tracking node filters, while events beyond the configured distance will be ignored.
+**NodeMaxDistance**, defined in *miles*, specifies the maximum distance an event can be from a tracking node before it is filtered out. Events within this distance threshold will continue to be processed by the tracking node filters, while events beyond the configured distance will be ignored.
 
 ## 4.3.3 - Tracking Node Properties
 ```json

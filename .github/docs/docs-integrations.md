@@ -14,7 +14,7 @@
 </div>
 <br><br>
 
-# 5.0 - Integrations 
+# 5.0 - Actions / Integrations 
 
 # 5.1 - Action Events & Wildcards
 
