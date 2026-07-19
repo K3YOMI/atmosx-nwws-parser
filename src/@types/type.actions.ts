@@ -17,7 +17,7 @@
 
 */
 
-export type TypeListener = { 
+export type TypeActions = { 
     Events: string[]
     Webhook?: {
         Enabled: boolean
@@ -29,10 +29,9 @@ export type TypeListener = {
     NotificationServer?: {
         Enabled: boolean
         Topic: string
-        Priority?: 1 | 2 | 3 | 4 | 5 | void
+        Priority?: string | number
     }
     Uploads?: {
-        File?: boolean, EAS?: boolean, JSON?: boolean
+        TEXT?: boolean, EAS?: boolean, JSON?: boolean
     }
-
 }

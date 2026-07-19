@@ -1171,16 +1171,20 @@ var bootstrap = {
     NotifyServer: {
       Enabled: false,
       Server: `https://ntfy.sh`,
-      Attachments: null,
+      Timezone: "UTC",
+      MediaStorage: {
+        EAS: null,
+        TEXT: null,
+        JSON: null
+      },
       Credentials: {
         Username: null,
         Password: null
       }
     },
-    ListenerSettings: [],
+    ActionSettings: [],
     GlobalSettings: {
       EventManagement: true,
-      BetterEventNames: true,
       DisableGeometryParsing: false,
       UseShapefileCoordinates: true,
       SPCWatchesOnly: true,
@@ -1199,7 +1203,7 @@ var bootstrap = {
       },
       ArchiveSettings: {
         TTL: 60,
-        EventDirectory: null,
+        JSONDirectory: null,
         TextDirectory: null,
         EasDirectory: null,
         EasToneout: null
@@ -4669,12 +4673,17 @@ var dict_matches = {
 // src/@parsers/@text/text.getDescriptionFromProduct.ts
 var getDescriptionFromProduct = (options) => {
   let message = options.message;
+  const predefinedEndMarkers = ["&&", "LAT..."];
+  const getEndIndex = (text2, fromIndex = 0) => {
+    const indices = predefinedEndMarkers.map((marker) => text2.indexOf(marker, fromIndex)).filter((idx) => idx !== -1);
+    return indices.length ? Math.min(...indices) : -1;
+  };
   const dates = Array.from(message.matchAll(dict_expressions.dateline));
   if (dates.length) {
     const lastMatch = dates[dates.length - 1][0];
     const sIndx = message.lastIndexOf(lastMatch);
     if (sIndx !== -1) {
-      const endIndx = message.indexOf("&&", sIndx);
+      const endIndx = getEndIndex(message, sIndx);
       message = message.substring(sIndx + lastMatch.length, endIndx !== -1 ? endIndx : void 0).trimStart();
       if (message.startsWith("/")) message = message.slice(1).trimStart();
       if (options.handle && message.includes(options.handle)) {
@@ -4688,7 +4697,7 @@ var getDescriptionFromProduct = (options) => {
     if (handleIndx !== -1) {
       let afterHandle = message.substring(handleIndx + options.handle.length).trimStart();
       if (afterHandle.startsWith("/")) afterHandle = afterHandle.slice(1).trimStart();
-      const latEnd = afterHandle.indexOf("&&");
+      const latEnd = getEndIndex(afterHandle);
       message = latEnd !== -1 ? afterHandle.substring(0, latEnd).trim() : afterHandle.trim();
     }
   }
@@ -5804,16 +5813,12 @@ var dict_enhanced = {
 
 // src/@building/building.enhance.ts
 var getEventEnhancedName = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
-  const configurations = bootstrap.settings;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i;
   let name = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.event;
-  if (!((_b = configurations == null ? void 0 : configurations.GlobalSettings) == null ? void 0 : _b.BetterEventNames)) {
-    return name;
-  }
-  const damage = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.parameters) == null ? void 0 : _d.damage_threat;
-  const tornado = (_f = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters) == null ? void 0 : _f.tornado_threat;
-  const pdswatch = (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.watch_parameters) == null ? void 0 : _h.pds_watch;
-  const description = (_j = (_i = event == null ? void 0 : event.properties) == null ? void 0 : _i.description) == null ? void 0 : _j.toLowerCase();
+  const damage = (_c = (_b = event == null ? void 0 : event.properties) == null ? void 0 : _b.parameters) == null ? void 0 : _c.damage_threat;
+  const tornado = (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.parameters) == null ? void 0 : _e.tornado_threat;
+  const pdswatch = (_g = (_f = event == null ? void 0 : event.properties) == null ? void 0 : _f.watch_parameters) == null ? void 0 : _g.pds_watch;
+  const description = (_i = (_h = event == null ? void 0 : event.properties) == null ? void 0 : _h.description) == null ? void 0 : _i.toLowerCase();
   for (const [eventKey, eventConfig] of Object.entries(dict_enhanced)) {
     if (eventKey !== name) continue;
     for (const [paramKey, paramValue] of Object.entries(eventConfig)) {
@@ -5931,9 +5936,9 @@ var getEventSignature = (event) => {
 
 // src/@dictionaries/dictionaries.global.ts
 var dict_global = [
-  "spc day 1 outlook",
-  "spc day 2 outlook",
-  "spc day 3 outlook"
+  "storm prediction center day 1 outlook",
+  "storm prediction center day 2 outlook",
+  "storm prediction center day 3 outlook"
 ];
 
 // src/@manager/manager.setHash.ts
@@ -6327,14 +6332,8 @@ var setEasTone = (options) => __async(null, null, function* () {
   if (!existsSync(directory)) {
     mkdirSync(directory, { recursive: true });
   }
-  if (!existsSync(join(directory, `/tts`))) {
-    mkdirSync(join(directory, `/tts`), { recursive: true });
-  }
-  if (!existsSync(join(directory, `/encoded`))) {
-    mkdirSync(join(directory, `/encoded`), { recursive: true });
-  }
-  const tmpTTS = join(directory, `/tts/${title}.wav`);
-  const outTTS = join(directory, `/encoded/${title}.wav`);
+  const tmpTTS = join(directory, `/${title}-tts.wav`);
+  const outTTS = join(directory, `/${title}.wav`);
   const vPlatform = platform2();
   if (vPlatform === "darwin") {
     setWarning({
@@ -6361,7 +6360,7 @@ var setEasTone = (options) => __async(null, null, function* () {
     let tWav = getWavPCM16(tBuffer);
     if (tWav == null) {
       try {
-        const converted = join(directory, `/tts/${title}.converted.wav`);
+        const converted = join(directory, `/${title}-tts-fixed.wav`);
         execSync2(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
         if (existsSync(converted)) {
           tBuffer = readFileSync(converted);
@@ -6448,37 +6447,39 @@ var getEmebedText = (event) => {
 
 // src/@parsers/@text/text.getStringText.ts
 var getStringText = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea;
+  const settings = bootstrap.settings;
+  const timezone = (_a = settings.NotifyServer.Timezone) != null ? _a : `UTC`;
   const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
   const isStatement = event.properties.status_metadata.is_statement;
   const isExpired = event.properties.status_metadata.is_expired;
   return [
-    line(`Locations:`, (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.locations) == null ? void 0 : _b.slice(0, 100)),
-    line(`Issued:`, new Date(event.properties.issued).toUTCString(), !isExpired),
-    line(`Expires:`, new Date(event.properties.expires).toUTCString(), !isStatement),
-    line(`Damage Threat:`, (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.parameters) == null ? void 0 : _d.damage_threat, !isExpired),
-    line(`Flood Threat:`, (_f = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters) == null ? void 0 : _f.flood_threat, !isExpired),
-    line(`Tornado Threat:`, (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.parameters) == null ? void 0 : _h.tornado_threat, !isExpired),
-    line(`Estimated Wind Gusts:`, `${(_j = (_i = event == null ? void 0 : event.properties) == null ? void 0 : _i.parameters) == null ? void 0 : _j.estimated_wind_gusts} ${((_l = (_k = event == null ? void 0 : event.properties) == null ? void 0 : _k.parameters) == null ? void 0 : _l.wind_threat) ? ` (${(_n = (_m = event == null ? void 0 : event.properties) == null ? void 0 : _m.parameters) == null ? void 0 : _n.wind_threat})` : ""}`, !isExpired && ((_p = (_o = event == null ? void 0 : event.properties) == null ? void 0 : _o.parameters) == null ? void 0 : _p.estimated_wind_gusts) != null),
-    line(`Estimated Hail Size:`, `${(_r = (_q = event == null ? void 0 : event.properties) == null ? void 0 : _q.parameters) == null ? void 0 : _r.estimated_hail_size} ${((_t = (_s = event == null ? void 0 : event.properties) == null ? void 0 : _s.parameters) == null ? void 0 : _t.hail_threat) ? ` (${(_v = (_u = event == null ? void 0 : event.properties) == null ? void 0 : _u.parameters) == null ? void 0 : _v.hail_threat})` : ""}`, !isExpired && ((_x = (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.parameters) == null ? void 0 : _x.estimated_hail_size) != null),
-    line(`Discussion:`, (_z = (_y = event == null ? void 0 : event.properties) == null ? void 0 : _y.discussion_parameters) == null ? void 0 : _z.discussion_number, !isExpired),
-    line(`Concern:`, (_B = (_A = event == null ? void 0 : event.properties) == null ? void 0 : _A.discussion_parameters) == null ? void 0 : _B.discussion_concerning, !isExpired),
-    line(`SPC Max Tornado Threat:`, (_D = (_C = event == null ? void 0 : event.properties) == null ? void 0 : _C.discussion_parameters) == null ? void 0 : _D.discussion_max_tornado, !isExpired),
-    line(`SPC Max Hail Threat:`, (_F = (_E = event == null ? void 0 : event.properties) == null ? void 0 : _E.discussion_parameters) == null ? void 0 : _F.discussion_max_hail, !isExpired),
-    line(`SPC Max Wind Threat:`, (_H = (_G = event == null ? void 0 : event.properties) == null ? void 0 : _G.discussion_parameters) == null ? void 0 : _H.discussion_max_wind, !isExpired),
-    line(`SPC Watch Issuance Probability:`, ((_J = (_I = event == null ? void 0 : event.properties) == null ? void 0 : _I.discussion_parameters) == null ? void 0 : _J.discussion_watch_issuance) ? `${(_L = (_K = event == null ? void 0 : event.properties) == null ? void 0 : _K.discussion_parameters) == null ? void 0 : _L.discussion_watch_issuance}%` : null, !isExpired),
-    line(`Watch Number:`, (_N = (_M = event == null ? void 0 : event.properties) == null ? void 0 : _M.watch_parameters) == null ? void 0 : _N.watch_number, !isExpired),
-    line(`Strong Tornadoes Probability:`, ((_P = (_O = event == null ? void 0 : event.properties) == null ? void 0 : _O.watch_parameters) == null ? void 0 : _P.strong_tornadoes_probability) ? `${(_R = (_Q = event == null ? void 0 : event.properties) == null ? void 0 : _Q.watch_parameters) == null ? void 0 : _R.strong_tornadoes_probability}%` : null, !isExpired),
-    line(`Additional Tornadoes Probability:`, ((_T = (_S = event == null ? void 0 : event.properties) == null ? void 0 : _S.watch_parameters) == null ? void 0 : _T.additional_tornadoes_probability) ? `${(_V = (_U = event == null ? void 0 : event.properties) == null ? void 0 : _U.watch_parameters) == null ? void 0 : _V.additional_tornadoes_probability}%` : null, !isExpired),
-    line(`Combined Hail/Wind Probability:`, ((_X = (_W = event == null ? void 0 : event.properties) == null ? void 0 : _W.watch_parameters) == null ? void 0 : _X.combined_hail_wind_probability) ? `${(_Z = (_Y = event == null ? void 0 : event.properties) == null ? void 0 : _Y.watch_parameters) == null ? void 0 : _Z.combined_hail_wind_probability}%` : null, !isExpired),
-    line(`Severe Hail Probability:`, ((_$ = (__ = event == null ? void 0 : event.properties) == null ? void 0 : __.watch_parameters) == null ? void 0 : _$.severe_hail_probability) ? `${(_ba = (_aa = event == null ? void 0 : event.properties) == null ? void 0 : _aa.watch_parameters) == null ? void 0 : _ba.severe_hail_probability}%` : null, !isExpired),
-    line(`Hail >2in Probability:`, ((_da = (_ca = event == null ? void 0 : event.properties) == null ? void 0 : _ca.watch_parameters) == null ? void 0 : _da.hail_2in_probability) ? `${(_fa = (_ea = event == null ? void 0 : event.properties) == null ? void 0 : _ea.watch_parameters) == null ? void 0 : _fa.hail_2in_probability}%` : null, !isExpired),
-    line(`Max Hail Inches:`, (_ha = (_ga = event == null ? void 0 : event.properties) == null ? void 0 : _ga.watch_parameters) == null ? void 0 : _ha.max_hail_in, !isExpired),
-    line(`Severe Wind Probability:`, ((_ja = (_ia = event == null ? void 0 : event.properties) == null ? void 0 : _ia.watch_parameters) == null ? void 0 : _ja.severe_wind_probability) ? `${(_la = (_ka = event == null ? void 0 : event.properties) == null ? void 0 : _ka.watch_parameters) == null ? void 0 : _la.severe_wind_probability}%` : null, !isExpired),
-    line(`Max Surface Wind:`, (_na = (_ma = event == null ? void 0 : event.properties) == null ? void 0 : _ma.watch_parameters) == null ? void 0 : _na.max_wind_surface, !isExpired),
-    line(`Max Tops (x100 feet):`, (_pa = (_oa = event == null ? void 0 : event.properties) == null ? void 0 : _oa.watch_parameters) == null ? void 0 : _pa.max_tops_x100feet, !isExpired),
-    line(`Sender:`, ((_sa = (_ra = (_qa = event == null ? void 0 : event.properties) == null ? void 0 : _qa.geocode) == null ? void 0 : _ra.office) == null ? void 0 : _sa.name) ? `${(_va = (_ua = (_ta = event == null ? void 0 : event.properties) == null ? void 0 : _ta.geocode) == null ? void 0 : _ua.office) == null ? void 0 : _va.name} (${(_ya = (_xa = (_wa = event == null ? void 0 : event.properties) == null ? void 0 : _wa.geocode) == null ? void 0 : _xa.office) == null ? void 0 : _ya.office})` : (_Ba = (_Aa = (_za = event == null ? void 0 : event.properties) == null ? void 0 : _za.geocode) == null ? void 0 : _Aa.office) == null ? void 0 : _Ba.office),
-    line(`Tracking:`, (_Da = (_Ca = event == null ? void 0 : event.properties) == null ? void 0 : _Ca.metadata) == null ? void 0 : _Da.tracking)
+    line(`Locations:`, (_c = (_b = event == null ? void 0 : event.properties) == null ? void 0 : _b.locations) == null ? void 0 : _c.slice(0, 100)),
+    line(`Issued:`, `${new Date(event.properties.issued).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isExpired),
+    line(`Expires:`, `${new Date(event.properties.expires).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isStatement),
+    line(`Damage Threat:`, (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.parameters) == null ? void 0 : _e.damage_threat, !isExpired),
+    line(`Flood Threat:`, (_g = (_f = event == null ? void 0 : event.properties) == null ? void 0 : _f.parameters) == null ? void 0 : _g.flood_threat, !isExpired),
+    line(`Tornado Threat:`, (_i = (_h = event == null ? void 0 : event.properties) == null ? void 0 : _h.parameters) == null ? void 0 : _i.tornado_threat, !isExpired),
+    line(`Estimated Wind Gusts:`, `${(_k = (_j = event == null ? void 0 : event.properties) == null ? void 0 : _j.parameters) == null ? void 0 : _k.estimated_wind_gusts} ${((_m = (_l = event == null ? void 0 : event.properties) == null ? void 0 : _l.parameters) == null ? void 0 : _m.wind_threat) ? ` (${(_o = (_n = event == null ? void 0 : event.properties) == null ? void 0 : _n.parameters) == null ? void 0 : _o.wind_threat})` : ""}`, !isExpired && ((_q = (_p = event == null ? void 0 : event.properties) == null ? void 0 : _p.parameters) == null ? void 0 : _q.estimated_wind_gusts) != null),
+    line(`Estimated Hail Size:`, `${(_s = (_r = event == null ? void 0 : event.properties) == null ? void 0 : _r.parameters) == null ? void 0 : _s.estimated_hail_size} ${((_u = (_t = event == null ? void 0 : event.properties) == null ? void 0 : _t.parameters) == null ? void 0 : _u.hail_threat) ? ` (${(_w = (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.parameters) == null ? void 0 : _w.hail_threat})` : ""}`, !isExpired && ((_y = (_x = event == null ? void 0 : event.properties) == null ? void 0 : _x.parameters) == null ? void 0 : _y.estimated_hail_size) != null),
+    line(`Discussion:`, (_A = (_z = event == null ? void 0 : event.properties) == null ? void 0 : _z.discussion_parameters) == null ? void 0 : _A.discussion_number, !isExpired),
+    line(`Concern:`, (_C = (_B = event == null ? void 0 : event.properties) == null ? void 0 : _B.discussion_parameters) == null ? void 0 : _C.discussion_concerning, !isExpired),
+    line(`SPC Max Tornado Threat:`, (_E = (_D = event == null ? void 0 : event.properties) == null ? void 0 : _D.discussion_parameters) == null ? void 0 : _E.discussion_max_tornado, !isExpired),
+    line(`SPC Max Hail Threat:`, (_G = (_F = event == null ? void 0 : event.properties) == null ? void 0 : _F.discussion_parameters) == null ? void 0 : _G.discussion_max_hail, !isExpired),
+    line(`SPC Max Wind Threat:`, (_I = (_H = event == null ? void 0 : event.properties) == null ? void 0 : _H.discussion_parameters) == null ? void 0 : _I.discussion_max_wind, !isExpired),
+    line(`SPC Watch Issuance Probability:`, ((_K = (_J = event == null ? void 0 : event.properties) == null ? void 0 : _J.discussion_parameters) == null ? void 0 : _K.discussion_watch_issuance) ? `${(_M = (_L = event == null ? void 0 : event.properties) == null ? void 0 : _L.discussion_parameters) == null ? void 0 : _M.discussion_watch_issuance}%` : null, !isExpired),
+    line(`Watch Number:`, (_O = (_N = event == null ? void 0 : event.properties) == null ? void 0 : _N.watch_parameters) == null ? void 0 : _O.watch_number, !isExpired),
+    line(`Strong Tornadoes Probability:`, ((_Q = (_P = event == null ? void 0 : event.properties) == null ? void 0 : _P.watch_parameters) == null ? void 0 : _Q.strong_tornadoes_probability) ? `${(_S = (_R = event == null ? void 0 : event.properties) == null ? void 0 : _R.watch_parameters) == null ? void 0 : _S.strong_tornadoes_probability}%` : null, !isExpired),
+    line(`Additional Tornadoes Probability:`, ((_U = (_T = event == null ? void 0 : event.properties) == null ? void 0 : _T.watch_parameters) == null ? void 0 : _U.additional_tornadoes_probability) ? `${(_W = (_V = event == null ? void 0 : event.properties) == null ? void 0 : _V.watch_parameters) == null ? void 0 : _W.additional_tornadoes_probability}%` : null, !isExpired),
+    line(`Combined Hail/Wind Probability:`, ((_Y = (_X = event == null ? void 0 : event.properties) == null ? void 0 : _X.watch_parameters) == null ? void 0 : _Y.combined_hail_wind_probability) ? `${(__ = (_Z = event == null ? void 0 : event.properties) == null ? void 0 : _Z.watch_parameters) == null ? void 0 : __.combined_hail_wind_probability}%` : null, !isExpired),
+    line(`Severe Hail Probability:`, ((_aa = (_$ = event == null ? void 0 : event.properties) == null ? void 0 : _$.watch_parameters) == null ? void 0 : _aa.severe_hail_probability) ? `${(_ca = (_ba = event == null ? void 0 : event.properties) == null ? void 0 : _ba.watch_parameters) == null ? void 0 : _ca.severe_hail_probability}%` : null, !isExpired),
+    line(`Hail >2in Probability:`, ((_ea = (_da = event == null ? void 0 : event.properties) == null ? void 0 : _da.watch_parameters) == null ? void 0 : _ea.hail_2in_probability) ? `${(_ga = (_fa = event == null ? void 0 : event.properties) == null ? void 0 : _fa.watch_parameters) == null ? void 0 : _ga.hail_2in_probability}%` : null, !isExpired),
+    line(`Max Hail Inches:`, (_ia = (_ha = event == null ? void 0 : event.properties) == null ? void 0 : _ha.watch_parameters) == null ? void 0 : _ia.max_hail_in, !isExpired),
+    line(`Severe Wind Probability:`, ((_ka = (_ja = event == null ? void 0 : event.properties) == null ? void 0 : _ja.watch_parameters) == null ? void 0 : _ka.severe_wind_probability) ? `${(_ma = (_la = event == null ? void 0 : event.properties) == null ? void 0 : _la.watch_parameters) == null ? void 0 : _ma.severe_wind_probability}%` : null, !isExpired),
+    line(`Max Surface Wind:`, (_oa = (_na = event == null ? void 0 : event.properties) == null ? void 0 : _na.watch_parameters) == null ? void 0 : _oa.max_wind_surface, !isExpired),
+    line(`Max Tops (x100 feet):`, (_qa = (_pa = event == null ? void 0 : event.properties) == null ? void 0 : _pa.watch_parameters) == null ? void 0 : _qa.max_tops_x100feet, !isExpired),
+    line(`Sender:`, ((_ta = (_sa = (_ra = event == null ? void 0 : event.properties) == null ? void 0 : _ra.geocode) == null ? void 0 : _sa.office) == null ? void 0 : _ta.name) ? `${(_wa = (_va = (_ua = event == null ? void 0 : event.properties) == null ? void 0 : _ua.geocode) == null ? void 0 : _va.office) == null ? void 0 : _wa.name} (${(_za = (_ya = (_xa = event == null ? void 0 : event.properties) == null ? void 0 : _xa.geocode) == null ? void 0 : _ya.office) == null ? void 0 : _za.office})` : (_Ca = (_Ba = (_Aa = event == null ? void 0 : event.properties) == null ? void 0 : _Aa.geocode) == null ? void 0 : _Ba.office) == null ? void 0 : _Ca.office),
+    line(`Tracking:`, (_Ea = (_Da = event == null ? void 0 : event.properties) == null ? void 0 : _Da.metadata) == null ? void 0 : _Ea.tracking)
   ].filter(Boolean).join("\n");
 };
 
@@ -6541,16 +6542,17 @@ var getMatched = (strings, string) => {
   return isMatched;
 };
 
-// src/@manager/manager.updateListener.ts
+// src/@manager/manager.createActions.ts
 import { existsSync as existsSync2, mkdirSync as mkdirSync2, writeFileSync as writeFileSync3, readFileSync as readFileSync2, appendFileSync } from "fs";
-var updateListener = (event) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q;
+var createActions = (event) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s;
   const tick = performance.now();
   const settings = bootstrap.settings;
-  const listeners2 = settings.ListenerSettings;
+  const notifyServer = settings.NotifyServer;
+  const actions = settings.ActionSettings;
   const properties2 = event.properties;
   const metadata = {
-    file: null,
+    text: null,
     eas: null,
     json: null,
     name: properties2.event,
@@ -6562,11 +6564,11 @@ var updateListener = (event) => __async(null, null, function* () {
     expired: properties2.status_metadata.is_expired,
     attachments: properties2.metadata.attachments
   };
-  for (const listener2 of listeners2) {
-    const events = listener2 == null ? void 0 : listener2.Events;
-    const webhook = listener2 == null ? void 0 : listener2.Webhook;
-    const notify = listener2 == null ? void 0 : listener2.NotificationServer;
-    const uploads = listener2 == null ? void 0 : listener2.Uploads;
+  for (const action of actions) {
+    const events = action == null ? void 0 : action.Events;
+    const webhook = action == null ? void 0 : action.Webhook;
+    const notify = action == null ? void 0 : action.NotificationServer;
+    const uploads = action == null ? void 0 : action.Uploads;
     const isMatched = getMatched(events != null ? events : [], metadata.name);
     if ((events == null ? void 0 : events.length) == 0 || isMatched) {
       if (uploads == null ? void 0 : uploads.EAS) {
@@ -6576,7 +6578,7 @@ var updateListener = (event) => __async(null, null, function* () {
           header: metadata.header
         });
       }
-      if (uploads == null ? void 0 : uploads.File) {
+      if (uploads == null ? void 0 : uploads.TEXT) {
         const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
         if (fDestination) {
           const file = `${fDestination}/${metadata.name}_${metadata.tracking}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
@@ -6590,10 +6592,10 @@ var updateListener = (event) => __async(null, null, function* () {
             writeFileSync3(file, metadata.raw);
           }
         }
-        metadata.file = metadata.raw;
+        metadata.text = metadata.raw;
       }
       if (uploads == null ? void 0 : uploads.JSON) {
-        const eDestination = settings.GlobalSettings.ArchiveSettings.EventDirectory;
+        const eDestination = settings.GlobalSettings.ArchiveSettings.JSONDirectory;
         if (eDestination) {
           const file = `${eDestination}/${metadata.name}_${metadata.tracking}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
           if (!existsSync2(eDestination)) {
@@ -6603,41 +6605,54 @@ var updateListener = (event) => __async(null, null, function* () {
         }
         metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
       }
-      if (((_a = settings == null ? void 0 : settings.NotifyServer) == null ? void 0 : _a.Enabled) && (notify == null ? void 0 : notify.Enabled) && (notify == null ? void 0 : notify.Topic)) {
-        let actions = [];
-        const server = settings == null ? void 0 : settings.NotifyServer;
-        const auth = ((_b = server == null ? void 0 : server.Credentials) == null ? void 0 : _b.Username) && ((_c = server == null ? void 0 : server.Credentials) == null ? void 0 : _c.Password) ? { username: (_e = (_d = settings == null ? void 0 : settings.NotifyServer) == null ? void 0 : _d.Credentials) == null ? void 0 : _e.Username, password: (_f = server == null ? void 0 : server.Credentials) == null ? void 0 : _f.Password } : void 0;
-        if (server == null ? void 0 : server.Attachments) {
+      if ((notifyServer == null ? void 0 : notifyServer.Enabled) && (notify == null ? void 0 : notify.Enabled) && (notify == null ? void 0 : notify.Topic)) {
+        let buttons = [];
+        const auth = ((_a = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _a.Username) && ((_b = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _b.Password) ? { username: (_c = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _c.Username, password: (_d = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _d.Password } : void 0;
+        if ((_e = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _e.EAS) {
           if (metadata.eas) {
-            actions.push({
+            buttons.push({
               "action": "view",
               "label": "Listen",
-              "url": `${server == null ? void 0 : server.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
-            });
-          }
-          if (((_g = metadata.attachments) == null ? void 0 : _g.length) > 0 && metadata.attachments.find((a) => a.name === "Image: Graphic")) {
-            actions.push({
-              "action": "view",
-              "label": "View Image",
-              "url": metadata.attachments.find((a) => a.name === "Image: Graphic").link
+              "url": `${(_f = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _f.EAS}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
             });
           }
         }
+        if (metadata.json) {
+          buttons.push({
+            "action": "view",
+            "label": "View JSON",
+            "url": `${(_g = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _g.JSON}/${metadata.name}_${metadata.tracking}.json`
+          });
+        }
+        if (metadata.text) {
+          buttons.push({
+            "action": "view",
+            "label": "View Text",
+            "url": `${(_h = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _h.TEXT}/${metadata.name}_${metadata.tracking}.txt`
+          });
+        }
+        if (((_i = metadata.attachments) == null ? void 0 : _i.length) > 0 && metadata.attachments.find((a) => a.name === "Image: Graphic")) {
+          buttons.push({
+            "action": "view",
+            "label": "View Image",
+            "url": metadata.attachments.find((a) => a.name === "Image: Graphic").link
+          });
+        }
         yield createHttp(__spreadProps(__spreadValues({
-          url: `${(_h = server == null ? void 0 : server.Server) == null ? void 0 : _h.replace(/\/$/, "")}/${(_i = listener2 == null ? void 0 : listener2.NotificationServer) == null ? void 0 : _i.Topic}`,
+          url: `${(_j = notifyServer == null ? void 0 : notifyServer.Server) == null ? void 0 : _j.replace(/\/$/, "")}/${notify.Topic}`,
           timeout: 15e3,
-          method: "POST"
+          method: "PUT"
         }, auth && { auth }), {
           headers: __spreadValues({
             "Title": `${metadata.name} (${metadata.status})`,
-            "Tags": (_k = (_j = properties2.parameters.tags) == null ? void 0 : _j.join(",")) != null ? _k : "N/A",
-            "Priority": (notify == null ? void 0 : notify.Priority) ? notify.Priority.toString() : "5"
-          }, actions.length > 0 && { "Actions": JSON.stringify(actions) }),
+            "Tags": (_l = (_k = properties2.parameters.tags) == null ? void 0 : _k.join(",")) != null ? _l : "N/A",
+            "Priority": (_m = notify == null ? void 0 : notify.Priority) != null ? _m : "5"
+          }, buttons.length > 0 && { "Actions": JSON.stringify(buttons) }),
           body: getStringText(event)
         }));
       }
       if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
-        const isRatelimited = setTimeoutAction({ identifier: webhook.Destination, interval: ((_l = webhook.Ratelimit) != null ? _l : 2) * 2, max: (_m = webhook.Ratelimit) != null ? _m : 2, addTime: true });
+        const isRatelimited = setTimeoutAction({ identifier: webhook.Destination, interval: ((_n = webhook.Ratelimit) != null ? _n : 2) * 2, max: (_o = webhook.Ratelimit) != null ? _o : 2, addTime: true });
         const form = new FormData();
         const embed = {
           title: `${metadata.name} (${metadata.status})`,
@@ -6645,7 +6660,7 @@ var updateListener = (event) => __async(null, null, function* () {
           fields: [],
           color: 16711680,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-          footer: { text: (_n = webhook.Title) != null ? _n : `AtmosphericX` }
+          footer: { text: (_p = webhook.Title) != null ? _p : `AtmosphericX` }
         };
         if (isRatelimited.limited) {
           return;
@@ -6659,15 +6674,15 @@ var updateListener = (event) => __async(null, null, function* () {
             value: metadata.description ? "```\n" + metadata.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
           });
         }
-        if (((_o = metadata.attachments) == null ? void 0 : _o.length) > 0) {
+        if (((_q = metadata.attachments) == null ? void 0 : _q.length) > 0) {
           metadata.attachments = metadata.attachments.slice(0, 5);
           embed.fields.push({
             name: "Attachments",
             value: metadata.attachments.map((attachment) => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + "..." : attachment.name}](${attachment.link})`).join("\n")
           });
         }
-        if (uploads == null ? void 0 : uploads.File) {
-          form.append("fUpload", new Blob([Buffer.from(metadata.file)], { type: "application/text" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`);
+        if (uploads == null ? void 0 : uploads.TEXT) {
+          form.append("fUpload", new Blob([Buffer.from(metadata.text)], { type: "application/text" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`);
         }
         if (uploads == null ? void 0 : uploads.JSON) {
           form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.json`);
@@ -6679,8 +6694,8 @@ var updateListener = (event) => __async(null, null, function* () {
           }
         }
         form.append("payload_json", JSON.stringify({
-          username: (_p = webhook.Title) != null ? _p : "AtmosphericX",
-          content: (_q = webhook.Message) != null ? _q : "",
+          username: (_r = webhook.Title) != null ? _r : "AtmosphericX",
+          content: (_s = webhook.Message) != null ? _s : "",
           embeds: [embed]
         }));
         yield createHttp({
@@ -6692,7 +6707,7 @@ var updateListener = (event) => __async(null, null, function* () {
       }
     }
   }
-  setDebug({ title: `@manager.updateListener`, message: `Listener took ${performance.now() - tick} ms` });
+  setDebug({ title: `@manager.createActions`, message: `Listener took ${performance.now() - tick} ms` });
 });
 
 // src/@modules/@utilities/utilities.getShapeNearestPoint.ts
@@ -6912,10 +6927,10 @@ var mkEvent = (event) => __async(null, null, function* () {
             })
           })
         });
-        yield updateListener(bootstrap.cache.events.features[getIndex]);
+        yield createActions(bootstrap.cache.events.features[getIndex]);
       } else {
         features.push(event);
-        yield updateListener(event);
+        yield createActions(event);
       }
     }
   }
@@ -6923,7 +6938,7 @@ var mkEvent = (event) => __async(null, null, function* () {
 
 // src/@dictionaries/dictionaries.strings.ts
 var dict_strings = {
-  cancellation: `{EVENT} has been allowed to expire. This product is no longer in effect.`
+  cancellation: `{EVENT} has been allowed to expire. This event is no longer in effect.`
 };
 
 // src/@manager/manager.rmEvent.ts
@@ -6954,7 +6969,7 @@ var rmEvent = (event, isTimeBasedExpiration) => __async(null, null, function* ()
         metadata: { type: `Removed`, event },
         message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
       });
-      yield updateListener(event);
+      yield createActions(event);
     }
     setTimeoutAction({ identifier: gTracking, expire: true });
   }
@@ -7580,7 +7595,7 @@ var setCronSchedule = () => __async(null, null, function* () {
   };
   walk(settings.GlobalSettings.ArchiveSettings.TextDirectory);
   walk(settings.GlobalSettings.ArchiveSettings.EasDirectory);
-  walk(settings.GlobalSettings.ArchiveSettings.EventDirectory);
+  walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory);
   if (settings.EnableWireService) {
     if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
       void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);

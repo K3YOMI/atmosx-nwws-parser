@@ -22,7 +22,7 @@ import { TypeSettings } from "../@types/type.settings";
 import { dict_global } from "../@dictionaries/dictionaries.global";
 import { bootstrap } from "../bootstrap"
 import { setHash } from "./manager.setHash";
-import { updateListener } from "./manager.updateListener";
+import { createActions } from "./manager.createActions";
 import { updateNode } from "./manager.updateNodes";
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
@@ -88,10 +88,10 @@ export const mkEvent = async (event: TypeEvent): Promise<void> => {
                         },
                     }
                 };
-                await updateListener(bootstrap.cache.events.features[getIndex])
+                await createActions(bootstrap.cache.events.features[getIndex])
             } else { 
                 features.push(event)
-                await updateListener(event)
+                await createActions(event)
             }
         }
     }

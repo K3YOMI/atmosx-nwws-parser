@@ -65,15 +65,8 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
     if (!existsSync(directory)) {
         mkdirSync(directory, { recursive: true });
     }
-    if (!existsSync(join(directory, `/tts`))) {
-        mkdirSync(join(directory, `/tts`), { recursive: true });
-    }
-    if (!existsSync(join(directory, `/encoded`))) {
-        mkdirSync(join(directory, `/encoded`), { recursive: true });
-    }
-    
-    const tmpTTS = join(directory, `/tts/${title}.wav`)
-    const outTTS = join(directory, `/encoded/${title}.wav`)
+    const tmpTTS = join(directory, `/${title}-tts.wav`)
+    const outTTS = join(directory, `/${title}.wav`)
     const vPlatform = platform();
 
     if (vPlatform === 'darwin') {
@@ -105,7 +98,7 @@ export const setEasTone = async (options: GenerateEASOptions): Promise<string> =
 
         if (tWav == null) {
             try {
-                const converted = join(directory, `/tts/${title}.converted.wav`)
+                const converted = join(directory, `/${title}-tts-fixed.wav`)
                 execSync(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: 'ignore' })
                 if (existsSync(converted)) {
                     tBuffer = readFileSync(converted)

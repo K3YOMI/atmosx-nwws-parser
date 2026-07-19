@@ -18,5 +18,5 @@
 */
 
 export const dict_strings: Record<string, string> = {
-    cancellation: `{EVENT} has been allowed to expire. This product is no longer in effect.`,
+    cancellation: `{EVENT} has been allowed to expire. This event is no longer in effect.`,
 }

@@ -1,384 +1,176 @@
-# Project AtmosphericX - Event Product Parser (v3.0.0)
-
 <div align="center">
-	<div align="center" style="border: none;">
-		<img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/AtmosphericX/event-product-parser">
-		<img alt="GitHub forks" src="https://img.shields.io/github/forks/AtmosphericX/event-product-parser">
-		<img alt="GitHub issues" src="https://img.shields.io/github/issues/AtmosphericX/event-product-parser">
-		<img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/AtmosphericX/event-product-parser">
-	</div>
+	<a href="https://atmosphericx.scriptkitty.cafe">
+		<img src="./logo.png" alt="@atmosx/event-product-parser" width="800"/>
+	</a>
+	<br>
+	<p>A TypeScript/JavaScript library for parsing and ingesting NOAA and NWS Weather Text Products</p>
+	<small>A project built and maintained with ❤️ by the AtmosphericX team</small>
+	<p align="center">
+		<a href="https://atmosphericx.scriptkitty.cafe"><b>Documentation</b></a> |
+		<a href="https://github.com/AtmosphericX"><b>Repositories</b></a> |
+		<a href="https://atmosphericx-discord.scriptkitty.cafe"><b>Community Discord</b></a>
+	</p>
+	<a href="https://www.npmjs.com/package/@atmosx/event-product-parser">
+		<img src="https://img.shields.io/npm/v/@atmosx/event-product-parser.svg?style=flat-square" alt="npm version">
+	</a>
+		<a href="https://npm-stat.com/charts.html?package=@atmosx/event-product-parser">
+		<img src="https://img.shields.io/npm/dm/@atmosx/event-product-parser.svg?style=flat-square" alt="npm downloads">
+	</a>
+		<a href="https://github.com/AtmosphericX/event-product-parser/stargazers">
+		<img src="https://img.shields.io/github/stars/AtmosphericX/event-product-parser.svg?style=flat-square" alt="GitHub stars">
+	</a>
+		<a href="https://github.com/AtmosphericX/event-product-parser/issues">
+		<img src="https://img.shields.io/github/issues/AtmosphericX/event-product-parser.svg?style=flat-square" alt="GitHub issues">
+	</a>
+		<a href="https://github.com/AtmosphericX/event-product-parser/network">
+		<img src="https://img.shields.io/github/forks/AtmosphericX/event-product-parser.svg?style=flat-square" alt="GitHub forks">
+	</a>
+		<a href="./CONTRIBUTORS.md">
+		<img src="https://img.shields.io/github/contributors/AtmosphericX/event-product-parser.svg?style=flat-square" alt="Contributors">
+	</a>
 </div>
 
-## What is `@atmosx/event-product-parser`
-This repository contains the primary function to obtain, parse, cache, and deliver products and events from the National Weather Service. There are two primary sources to obtain these products. By default, the repository uses the **National Weather Service API**. However, there is **FULL** support for **NOAA Weather Wire Service (Open Interface)**. This parser is intended for developers who want to integrate real-time weather alerts, watches, warnings, and forecast data from the NWS seamlessly into their applications or services without having to use external APIs from other sources / parsers. If you wish to access data without programming, consider using our end user project, which leverages this parser and provides an easy-to-use interface for tracking weather alerts. See [Documentation](https://atmosphericx.scriptkitty.cafe).
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Installation](#installation)
+3. [Sources](.github/docs/source-configurations.md)
+	- 3.1 [NOAA Weather Wire Service](.github/docs/source-configurations.md#31-noaa-weather-wire-service)
+	- 3.2 [National Weather Service API](.github/docs/source-configurations.md#32-national-weather-service-api)
+	- 3.3 [NOAA Weather Wire Service vs NWS RESTful API](.github/docs/source-configurations.md#33-noaa-weather-wire-service-vs-nws-restful-api)
+	- 3.4 [GeoJSON & WMO Formatting](.github/docs/source-configurations.md#34-geojson--wmo-formatting)
+		- 3.4.1 [GeoJSON](.github/docs/source-configurations.md#341-geojson)
+		- 3.4.2 [WMO Format](.github/docs/source-configurations.md#342-wmo-format)
+	- 3.5 [Configuring NOAA Weather Wire Service](.github/docs/source-configurations.md#35-configuring-noaa-weather-wire-service)
+		- 3.5.1 [Auto Reconnecting](.github/docs/source-configurations.md#351-auto-reconnecting)
+		- 3.5.2 [Stanza Caching](.github/docs/source-configurations.md#352-stanza-caching)
+		- 3.5.3 [Stanza Processing Settings](.github/docs/source-configurations.md#353-stanza-processing-settings)
+	- 3.6 [Configuring National Weather Service API](.github/docs/source-configurations.md#36-configuring-national-weather-service-api)
+4. [General Configurations](.github/docs/general-configurations.md)
+	- 4.1 [Event Management & History](.github/docs/general-configurations.md#41-event-management--history)
+	- 4.2 [Geometry Configurations](.github/docs/general-configurations.md#42-geometry-configurations)
+		- 4.2.1 [Disable Geometry Processing](.github/docs/general-configurations.md#421-disable-geometry-processing)
+		- 4.2.2 [Force Shapefile Coordinates](.github/docs/general-configurations.md#422-force-shapefile-coordinates)
+	- 4.3 [Tracking Node Settings](.github/docs/general-configurations.md#43-tracking-node-settings)
+	- 4.4 [Advanced Event Filters](.github/docs/general-configurations.md#44-advanced-event-filters)
+		- 4.4.1 [Events & Wildcards](.github/docs/general-configurations.md#441-events--wildcards)
+		- 4.4.2 [ICAOs](.github/docs/general-configurations.md#442-icaos)
+		- 4.4.3 [UGC](.github/docs/general-configurations.md#443-ugc)
+		- 4.4.4 [States](.github/docs/general-configurations.md#444-states)
+		- 4.4.5 [Ignoring Filters](.github/docs/general-configurations.md#445-ignoring-filters)
+		- 4.4.6 [Node Location Filtering](.github/docs/general-configurations.md#446-node-location-filtering)
+		- 4.4.7 [Test Products](.github/docs/general-configurations.md#447-test-products)
+	- 4.5 [Archive Configurations](.github/docs/general-configurations.md#45-archive-configurations)
+		- 4.5.1 [TTL (Time-to-Live)](.github/docs/general-configurations.md#451-ttl-time-to-live)
+		- 4.5.2 [EAS Toneout](.github/docs/general-configurations.md#452-eas-toneout)
+5. [Actions / Integrations](.github/docs/integrations.md)
+	- 5.1 [Action Events & Wildcards](.github/docs/integrations.md#51-action-events--wildcards)
+	- 5.2 [Discord Webhooks](.github/docs/integrations.md#52-discord-webhooks)
+		- 5.2.1 [Ratelimiting](.github/docs/integrations.md#521-ratelimiting)
+	- 5.3 [NTFY Push Notifications](.github/docs/integrations.md#53-ntfy-push-notifications)
+		- 5.3.1 [Server Configuration](.github/docs/integrations.md#531-server-configuration)
+		- 5.3.2 [Action Configuration](.github/docs/integrations.md#532-action-configuration)
+	- 5.4 [Broadcastify Feed Attachments](.github/docs/integrations.md#54-broadcastify-feed-attachments)
+		- 5.4.1 [Tag Filtering](.github/docs/integrations.md#541-tag-filtering)
+	- 5.5 [Mock EAS Generator](.github/docs/integrations.md#55-mock-eas-generator)
+		- 5.5.1 [Linux Prerequisites](.github/docs/integrations.md#551-linux-prerequisites)
+		- 5.5.2 [Limitations](.github/docs/integrations.md#552-limitations)
+	- 5.6 [Event Archiving](.github/docs/integrations.md#56-event-archiving)
+		- 5.6.1 [Raw Text Product Archiving](.github/docs/integrations.md#561-raw-text-product-archiving)
+		- 5.6.2 [GeoJSON Archiving](.github/docs/integrations.md#562-geojson-archiving)
+6. [Listeners](.github/docs/listeners.md)
+	- 6.1 [XMPP / NWS Status](.github/docs/listeners.md#61-xmpp--nws-status)
+	- 6.2 [Test Products](.github/docs/listeners.md#62-test-products)
+	- 6.3 [Expired Products](.github/docs/listeners.md#63-expired-products)
+	- 6.4 [Specific Product Types](.github/docs/listeners.md#64-specific-product-types)
+	- 6.5 [Filtered Products](.github/docs/listeners.md#65-filtered-products)
+	- 6.6 [Cache Updates](.github/docs/listeners.md#66-cache-updates)
+	- 6.7 [Tracking Node Updates](.github/docs/listeners.md#67-tracking-node-updates)
+	- 6.8 [Storm Prediction Center Products](.github/docs/listeners.md#68-storm-prediction-center-products)
+	- 6.9 [Debugging](.github/docs/listeners.md#69-debugging)
+	- 6.10 [Logs / Journal](.github/docs/listeners.md#610-logs--journal)
+	- 6.11 [Wildcard](.github/docs/listeners.md#611-wildcard)
+7. [Utility Functions](.github/docs/utility-functions.md)
+	- 7.1 [Dynamic Configuration Setter](.github/docs/utility-functions.md#71-dynamic-configuration-setter)
+	- 7.2 [Event Geometry Getter](.github/docs/utility-functions.md#72-event-geometry-getter)
+	- 7.3 [Random Event Getter](.github/docs/utility-functions.md#73-random-event-getter)
+	- 7.4 [Package Information Getter](.github/docs/utility-functions.md#74-package-information-getter)
+	- 7.5 [Cleaned Event Getter](.github/docs/utility-functions.md#75-cleaned-event-getter)
+	- 7.6 [Management Functions](.github/docs/utility-functions.md#76-management-functions)
+	- 7.7 [Creating & Configuring Tracking Nodes](.github/docs/utility-functions.md#77-creating--configuring-tracking-nodes)
+	- 7.8 [Event Cache Getter](.github/docs/utility-functions.md#78-event-cache-getter)
+	- 7.9 [Tracking Node Cache Getter](.github/docs/utility-functions.md#79-tracking-node-cache-getter)
+	- 7.10 [Creating Manual WMO Events](.github/docs/utility-functions.md#710-creating-manual-wmo-events)
+	- 7.11 [Database Queries](.github/docs/utility-functions.md#711-database-queries)
+		- 7.11.1 [Stanza Query](.github/docs/utility-functions.md#7111-stanza-query)
+	- 7.12 [Manual Mock EAS Generator](.github/docs/utility-functions.md#712-manual-mock-eas-generator)
+8. [Technical Parser Functionality](.github/docs/technical-parser-functionality.md)
+	- 8.1 [Workflow and Pipeline](.github/docs/technical-parser-functionality.md#81-workflow-and-pipeline)
+	- 8.2 [Core Parsing Logic](.github/docs/technical-parser-functionality.md#82-core-parsing-logic)
+		- 8.2.1 [VTEC](.github/docs/technical-parser-functionality.md#821-vtec)
+			- 8.2.1.1 [Product Dictionary](.github/docs/technical-parser-functionality.md#8211-dictionary-events)
+			- 8.2.1.2 [Tracking](.github/docs/technical-parser-functionality.md#8212-tracking)
+			- 8.2.1.3 [Event Dictionary](.github/docs/technical-parser-functionality.md#8213-event-dictionary)
+			- 8.2.1.4 [Status Dictionary](.github/docs/technical-parser-functionality.md#8214-status-dictionary)
+			- 8.2.1.5 [Organization (WMO)](.github/docs/technical-parser-functionality.md#8215-organization-wmo)
+			- 8.2.1.6 [Expiry Parsing](.github/docs/technical-parser-functionality.md#8216-expiry-parsing)
+			- 8.2.1.7 [Watch Parsing](.github/docs/technical-parser-functionality.md#8217-watch-parsing)
+			- 8.2.1.8 [KWNS / SPC](.github/docs/technical-parser-functionality.md#8218-kwns)
+		- 8.2.2 [UGC](.github/docs/technical-parser-functionality.md#822-ugc)
+			- 8.2.2.1 [Extracting Headers](.github/docs/technical-parser-functionality.md#8221-extracting-headers)
+			- 8.2.2.2 [Getting Zones](.github/docs/technical-parser-functionality.md#8222-getting-zones)
+			- 8.2.2.3 [Extracting Expiry](.github/docs/technical-parser-functionality.md#8223-extracting-expiry)
+			- 8.2.2.4 [UGC to Zones](.github/docs/technical-parser-functionality.md#8224-ugc-to-zones)
+		- 8.2.3 [HVTEC](.github/docs/technical-parser-functionality.md#823-hvtec)
+			- 8.2.3.1 [Flood Severity](.github/docs/technical-parser-functionality.md#8231-flood-severity)
+			- 8.2.3.2 [Flood Causes](.github/docs/technical-parser-functionality.md#8232-flood-causes)
+			- 8.2.3.3 [Flood Records](.github/docs/technical-parser-functionality.md#8233-flood-records)
+		- 8.2.4 [Raw Text](.github/docs/technical-parser-functionality.md#824-raw-text)
+			- 8.2.4.1 [Extracting Descriptions](.github/docs/technical-parser-functionality.md#8241-extracting-descriptions)
+			- 8.2.4.2 [Extracting Coordinates](.github/docs/technical-parser-functionality.md#8242-extracting-coordinates)
+			- 8.2.4.3 [Extracting String Specifics](.github/docs/technical-parser-functionality.md#8243-extracting-string-specifics)
+			- 8.2.4.4 [Extracting XML](.github/docs/technical-parser-functionality.md#8244-extracting-xml)
+		- 8.2.5 [Building Properties](.github/docs/technical-parser-functionality.md#825-building-properties)
+		- 8.2.6 [Building Geometry](.github/docs/technical-parser-functionality.md#826-building-geometry)
+	- 8.3 [Event Validation & Filtering](.github/docs/technical-parser-functionality.md#83-event-validation--filtering)
+		- 8.3.1 [Enhanced Event Naming](.github/docs/technical-parser-functionality.md#831-enhanced-event-naming)
+		- 8.3.2 [Appending Attachments](.github/docs/technical-parser-functionality.md#832-appending-attachments)
+		- 8.3.3 [Generating Hashes](.github/docs/technical-parser-functionality.md#833-generating-hashes)
+	- 8.4 [Event & History Management](.github/docs/technical-parser-functionality.md#84-event--history-management)
+	- 8.5 [Action Pipeline](.github/docs/technical-parser-functionality.md#85-action-pipeline)
 
-## Installation (NPM)
+
+
+## Introduction
+
+Formerly known as `atmosx-nwws-parser`, **`@atmosx/event-product-parser`** is an open-source [TypeScript](https://www.typescriptlang.org/)/[JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) library for ingesting, parsing, caching, and distributing [NOAA](https://www.noaa.gov/) and [NWS](https://www.weather.gov/) weather text products. The library handles event processing within [AtmosphericX](https://atmosxphericx.scriptkitty.cafe), providing a lightweight and extensible foundation for working with [GeoJSON](https://geojson.org/) and [WMO](https://www.wmo.int/) data. Built with simplicity and flexibility in mind, it is easy to integrate, straightforward to extend, and suitable for both standalone applications and larger services.
+
+With support for the [NOAA Weather Wire Service Open Interface](https://www.weather.gov/nwws/) and the [National Weather Service API](https://www.weather.gov/documentation/services-web-api), the library enables reliable access to a wide range of operational weather products while providing a consistent interface for downstream processing and distribution.
+
+Beyond core product processing, the library provides support for integrating [Storm Prediction Center](https://www.spc.noaa.gov) graphics, [Broadcastify](https://www.broadcastify.com) feeds, [NTFY](https://ntfy.sh) and [Discord Webhook](https://discord.com/developers/docs/resources/webhook) push notifications, as well as automated emergency audio generation.
+
+**Note:** *This package is designed specifically for NOAA/NWS weather products and currently supports weather data originating from the United States and its territories.*
+
+
+## Installation
+**NPM**: 
 ```bash
-npm install @atmosx/event-product-parser
+$ npm install @atmosx/event-product-parser
 ```
 
-## Configurations & Usage
-```ts
-const { Manager } = require(`@atmosx/event-product-parser`) // CJS Importing
-import { Manager } from '@atmosx/event-product-parser' // EJS Importing
-
-const Client = new Manager({
-    Database: `event-product-parser.db`,
-    EnableWireService: false,
-    EnableJournal: true,
-    EnableDebugging: false,
-    NOAAWeatherWireServiceSettings: {
-        ReconnectionSettings: {
-            Enabled: true,
-            ReconnectionInterval: 60,
-        },
-        CredentialSettings: {
-            Username: `username`,
-            Password: `password`,
-            Nickname: "nickname (@atmosx/event-product-parser/3.0)",
-        },   
-        CacheSettings: {
-            Enabled: true,
-            MaxDatabaseHistory: 50000,
-            MaxRetentionHistory: 1500,
-        },
-        StanzaSettings: {
-            DisableUGC: false,
-            DisableVTEC: false,
-            DisableText: false,
-        }
-    },
-    NationalWeatherServiceSettings: {
-        CallbackInterval: 30,
-        EventsEndpoint: `https://api.weather.gov/alerts/active`,
-    },
-    BroadcastifySettings: {
-        BroadcastifyAttachments: true,
-        BroadcastifyDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/broadcastify.json`,
-        BroadcastifyTags: [`Public Safety`, `Amateur Radio`, `Other`, `Rail`, `Aviation`, `Marine`, `Disaster Event`, `Special Event`]
-    },
-    NotifyServer: {
-        Enabled: false,
-        Server: "https://ntfy.scriptkitty.cafe",
-        Attachments: "https://scriptkitty.cafe/ftp/@bucket/EAS/encoded",
-        Credentials: {
-            Username: "username",
-            Password: "password"
-        }
-    },
-    ListenerSettings: [
-        {
-            Events: ["*Extreme Heat Warning*"],
-            NotificationServer: {
-                Enabled: false,
-                Topic: "heat-warnings",
-                Priority: 5
-            },
-            Uploads: {
-                EAS: true,
-                File: true,
-                JSON: true
-            }
-        }
-    ],
-    GlobalSettings: {
-        EventManagement: true,
-        BetterEventNames: true,
-        DisableGeometryParsing: false,
-        UseShapefileCoordinates: true,
-        SPCWatchesOnly: true,
-        ShapefileSkipPoints: 0,
-        NodeTTL: 60,
-        NodeMinDistance: 125,
-        EventFiltering: {
-            ListeningEvents: [
-               "*Warning*"
-            ],
-            ListeningICAO: [],
-            ListeningUGC: [],
-            ListeningStates: [],
-            IgnoredICAO: [],
-            IgnoredEvents: [],
-            NodeLocationFiltering: false,
-            IgnoreTestProducts: true,
-        },
-        ArchiveSettings: {
-            TTL: 30,
-            EventDirectory: `@bucket/ParsedProducts`,
-            TextDirectory: `@bucket/RawTextProducts`,
-            EasDirectory: `@bucket/EAS`,
-            EasToneout: `eas-toneout.wav`,
-        }
-    }
-})
+**PNPM**:
+```bash
+$ pnpm install @atmosx/event-product-parser
 ```
 
-## How do custom listeners work?
-
-Custom listeners are case insensitive rules used by `ListeningEvents`, `IgnoredEvents`, and ListenerSettings `events` to determine whether an input matches.
-
-They support:
-- Exact matches (e.g. `"Tornado Watch"`)
-- Global wildcard (`"*"` matches everything)
-- Partial wildcards (`*text*` matches anything containing that text)
-
-Example rules:
-```json
-["*Severe Thunderstorm Warning*", "Tornado Watch", "*Flash Flood Warning*"]
-```
-
-Example Results:
-- Considerable Severe Thunderstorm Warning: ✅
-- Tornado Warning: ❌
-- Severe Thunderstorm Warning (TPROB): ✅
-- Flash Flood Emergency: ❌
-
-## Events and Listeners
-
-### Event `*`
-Triggers for every event and product received by the parser. This is useful if you want to handle all events with a single listener.
-```ts
-Client.on(`*`, (data: any) => {
-   	/*
-		event: string
-		data: object
-	*/
-})
-```
-
-### Event `onServiceStatus`
-Triggers when an update to the XMPP / API service status occurs.
-```ts
-Client.on(`onServiceStatus`, (xmpp) => {
-	/*
-		message: string
-		data: object
-		type: string
-		error: boolean
-	*/
-})
-```
-
-### Event `onTestProduct`
-Triggers when a event is labeled as a **test message**. See [`types.event.ts`](./src/@types/type.event.ts) for properties.
-```ts
-Client.on(`onTestProduct`, (product: TypeEvent) => {})
-```
-
-### Event `onExpiredProduct`
-Triggers when a event is cancelled, expired, or terminated. See [`types.event.ts`](./src/@types/type.event.ts) for properties.
-```ts
-Client.on(`onExpiredProduct`, (product: TypeEvent) => {})
-```
-
-### Event `onProductType`
-Supports all events and product, simply append the event name to the end like `onProductTypeRadarIndicatedTornadoWarning` and you will receive the event in the listener.
-**If the event has been filtered, it will not include attachments and coordinates.** See [`types.event.ts`](./src/@types/type.event.ts) for properties.
+After installation, import the package using `import` or `require`:
 
 ```ts
-This listener returns [`types.event.ts`](./src/@types/type.event.ts).
-```ts
-Client.on(`onProductTypeRadarIndicatedTornadoWarning`, (product: TypeEvent) => {})
+import { Manager } from "@atmosx/event-product-parser"
+const client = new Manager({})
 ```
 
-### Event `onFilteredEvent`, `onIgnoredEvent`, `onFilteredICAO`, `onIgnoredICAO`, `onFilteredUGC`, `onFilteredState`
-These events all support [`types.event.ts`](./src/@types/type.event.ts) and are used to filter out events and products based on your settings.
-```ts
-Client.on(`onFilteredEvent`, (product: TypeEvent) => {})
+Using `require`:
+```js
+const { Manager } = require("@atmosx/event-product-parser")
+const client = new Manager({})
 ```
-
-### Event `onEventCache`
-When all events in a batch have finished processing, a cache update will trigger allowing you to get a copy of all registered events in a listener. (**GeoJSON**)
-```ts
-Client.on(`onEventCache`, (cache) => {})
-```
-
-### Event `onNodeAdd`,  `onNodeUpdate`, `onNodeDelete`
-Triggers when a tracking node gets added, updated, or deleted.
-```ts
-Client.on(`onNodeAdd`, (cache) => {
-	/*
-		type: string
-		node: object
-	*/
-})
-```
-
-### Event `onStormPredictionWatch`, `onNonStormPredictionWatch`
-Triggers when a SPC watch gets added, updated, or cancelled. This will also add a custom message if using jorunal or the `log` listener.
-```ts
-Client.on(`onProductTypeRadarIndicatedTornadoWarning`, (product: TypeEvent) => {})
-```
-
-### Event `onEventStatus`
-Triggers when a single event gets added, updated, or cancelled. This will also add a custom message if using jorunal or the `log` listener.
-```ts
-Client.on(`onEventStatus`, (cache) => {
-	/*
-		type: string
-		event: <TypeEvent>
-	*/
-})
-```
-
-### Event `debug`
-Triggers when a debug message gets emitted, this can automatically be used without the listener by enabling `EnableDebugger`. This also includes the `parent` and the `function` names.
-```ts
-Client.on(`debug`, (debug) => {
-	/*
-		message: string
-		parent: string
-		function: string
-	*/
-})
-```
-
-### Function `setSettings`
-Allows you to dynamically update parser settings without restarting the service.
-```ts
-import { setSettings } from "@atmosx/event-product-parser"
-setSettings({
-	Database: `NewDatabaseFile.db`
-})
-```
-
-### Function `getEventGeometry`
-Fetches the `events` geometry (GeoJSON) coordinates table.
-```ts
-import { getEventGeometry } from "@atmosx/event-product-parser"
-const event = {...}
-const geometry = await getEventGeometry(event); // Returns GeoJSON 
-```
-
-### Function `getRandomEvent`
-Fetches a random event from the cache
-```ts
-import { getRandomEvent } from "@atmosx/event-product-parser"
-const event = getRandomEvent(event); // Returns GeoJSON of an event.
-```
-
-### Function `getVersion`
-Returns the current version of the parser.
-```ts
-import { getVersion } from "@atmosx/event-product-parser"
-const version = getVersion(); // Returns the current version of the parser.
-```
-
-
-### Function `getCleanedEvent`
-Removed any `NULL` values from the event itself. Therefore cleaning it up from any properties that are `NULL`.
-```ts
-import { getCleanedEvent } from "@atmosx/event-product-parser"
-const event = {...}
-const cleanedEvent = await getCleanedEvent(event); // Returns cleaned event object.
-```
-
-
-### Function `startService`
-Starts the event product parser service.
-```ts
-import { startService } from "@atmosx/event-product-parser"
-startService()
-```
-
-
-### Function `setNode`
-Sets up a tracking node using an identifier, longitude, and latitude values.
-```ts
-import { setNode } from "@atmosx/event-product-parser"
-setNode({
-	identifier: `TestNode`, 
-	coordinates: {longitude: -122.4194, latitude: 37.7749}, 
-	delete: false
-})
-```
-
-
-### Function `getEvents`
-Fetches the list of events from the parser.
-```ts
-import { getEvents } from "@atmosx/event-product-parser"
-const events = getEvents() // Returns in GeoJSON (Similar to the onEventCache listener)
-console.log(events)
-```
-
-### Function `clearEvents`
-Clears the event cache of all events.
-```ts
-import { clearEvents } from "@atmosx/event-product-parser"
-clearEvents() // Clears the event cache of all events.
-```
-
-### Function `getNodes`
-Fetches the list of tracking nodes from the parser.
-```ts
-import { getNodes } from "@atmosx/event-product-parser"
-const nodes = getNodes()
-console.log(nodes)
-```
-
-### Function `manualEvent`
-Creates a new event in the parser.
-```ts
-import { manualEvent } from "@atmosx/event-product-parser"
-manualEvent({
-    message: `__DESCRIPTION__`,
-    attributes: {
-        "issue": new Date().toISOString(),
-        "cccc": "KLOT",
-        "awipsid": "TORLOT",
-    }
-})
-```
-
-### Function `query`
-Queries the event cache (datbase) for specific events based on text.
-```ts 
-import { query } from "@atmosx/event-product-parser"
-query({search: "Tornado Warning", limit: 3}).then(results => {
-    console.log(results)
-})
-````
-
-### Function `setEasTone`
-Fetches an EAS audio message for an event (Simulated)
-```ts
-import { setEasTone } from "@atmosx/event-product-parser"
-const event = {...}
-await setEasTone({message: event.properties.description, header: event.properties.metadata.header, title: `eas_audio_message`})
-```
-
-
-## Types
-[Event](./src/@types/type.event.ts) | 
-[Properties](./src/@types/type.properties.ts)  |
-[HVTec](./src/@types/type.hvtec.ts) |
-[PVTec](./src/@types/type.pvtec.ts) |\
-[UGC](./src/@types/type.ugc.ts) |
-[Stanzas](./src/@types/type.stanza.ts) |
-[Attributes](./src/@types/type.attributes.ts) |
-
-## Supported Events
-`@atmosx/event-product-parser` natively supports and ingests **300+** NWS Text products using VTEC, UGC, and various text parsing techniues.
-If you wish to view all supported products, please see: [SUPPORTED_EVENTS.md](./SUPPORTED_EVENTS.md)
-
-
-## Performance Recommendations
-- Enable cache retention
-- Disable geometry parsing if GeoJSON is unnecessary.
-
-## References
-[NOAA NWWS Information](https://www.weather.gov/nwws/) | 
-[NWS API Documentation](https://www.weather.gov/documentation/services-web-api) |
-[XMPP Protocol](https://xmpp.org/about/technology-overview/) |
-[AtmosphericX](https://github.com/k3yomi/AtmosphericX) |\
-[Documentation](https://atmosphericx.scriptkitty.cafe/documentation) |
-[Discord Server](https://atmosphericx-discord.scriptkitty.cafe) |
-[Project Board](https://github.com/users/AtmosphericX/projects/2) |\
-[Code of Conduct](/.github/CODE_OF_CONDUCT.md) |
-[Contributing](/.github/CONTRIBUTING.md) |
-[License](/.github/LICENSE) | 
-[Security](/.github/SECURITY.md) | 
-
-## Acknowledgements
-- [k3yomi](https://github.com/k3yomi)

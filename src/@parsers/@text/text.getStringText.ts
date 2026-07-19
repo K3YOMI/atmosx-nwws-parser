@@ -18,15 +18,20 @@
 */
 
 import { TypeEvent } from "../../@types/type.event"
+import { TypeSettings } from "../../@types/type.settings";
+import { bootstrap } from "../../bootstrap";
 
 export const getStringText = (event: TypeEvent): string => {
+    const settings = bootstrap.settings as TypeSettings;
+    //  Timezone?: string | "Los Angeles" | "Phoenix" | "Chicago" | "New York" | "Anchorage" | "Honolulu" | "UTC"
+    const timezone = settings.NotifyServer.Timezone ?? `UTC`;
     const line = (label: string, value: unknown, condition = true) => condition && value ? `${label} ${value}` : null;
     const isStatement = event.properties.status_metadata.is_statement;
     const isExpired = event.properties.status_metadata.is_expired;
     return [
         line(`Locations:`, event?.properties?.locations?.slice(0, 100)),
-        line(`Issued:`, new Date(event.properties.issued).toUTCString(), !isExpired),
-        line(`Expires:`, new Date(event.properties.expires).toUTCString(), !isStatement),
+        line(`Issued:`, `${new Date(event.properties.issued).toLocaleString([], { timeZone: timezone })} (${(timezone.replace(`America/`, ``))})`, !isExpired),
+        line(`Expires:`, `${new Date(event.properties.expires).toLocaleString([], { timeZone: timezone })} (${(timezone.replace(`America/`, ``))})`, !isStatement),
         line(`Damage Threat:`, event?.properties?.parameters?.damage_threat, !isExpired),
         line(`Flood Threat:`, event?.properties?.parameters?.flood_threat, !isExpired),
         line(`Tornado Threat:`, event?.properties?.parameters?.tornado_threat, !isExpired),

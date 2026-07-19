@@ -17,8 +17,9 @@
 
 */
 
+import { TypeSettings } from "../@types/type.settings";
 import { TypeEvent } from "../@types/type.event";
-import { TypeListener } from "../@types/type.listener";
+import { TypeActions } from "../@types/type.actions";
 import { bootstrap } from "../bootstrap"
 import { setEasTone } from "../@modules/@eas/eas.setEasTone"
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
@@ -30,13 +31,15 @@ import { setDebug } from "../@modules/@utilities/utilities.setDebug";
 import { getMatched } from "../@modules/@utilities/utilities.getMatched";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from "fs";
 
-export const updateListener = async (event: TypeEvent): Promise<void> => {
+
+export const createActions = async (event: TypeEvent): Promise<void> => {
     const tick = performance.now()
-    const settings = bootstrap.settings;
-    const listeners = settings.ListenerSettings as TypeListener[];
+    const settings = bootstrap.settings as TypeSettings;
+    const notifyServer = settings.NotifyServer;
+    const actions = settings.ActionSettings as TypeActions[];
     const properties = event.properties;
     const metadata = { 
-        file: null,
+        text: null,
         eas: null,
         json: null,
         name: properties.event,
@@ -49,11 +52,11 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
         attachments: properties.metadata.attachments
     }
 
-    for (const listener of listeners) {
-        const events = listener?.Events;
-        const webhook = listener?.Webhook;
-        const notify = listener?.NotificationServer;
-        const uploads = listener?.Uploads
+    for (const action of actions) {
+        const events = action?.Events;
+        const webhook = action?.Webhook;
+        const notify = action?.NotificationServer;
+        const uploads = action?.Uploads
         const isMatched = getMatched(events ?? [], metadata.name)
 
         if (events?.length == 0 || isMatched) {
@@ -65,7 +68,7 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 });
             }
 
-            if (uploads?.File) {
+            if (uploads?.TEXT) {
                 const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
                 if (fDestination) {
                     const file = (`${fDestination}/${metadata.name}_${metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
@@ -76,11 +79,11 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                         writeFileSync(file, metadata.raw);
                     }
                 }
-                metadata.file = metadata.raw;
+                metadata.text = metadata.raw;
             }
 
             if (uploads?.JSON) {
-                const eDestination = settings.GlobalSettings.ArchiveSettings.EventDirectory;
+                const eDestination = settings.GlobalSettings.ArchiveSettings.JSONDirectory;
                 if (eDestination) {
                     const file = (`${eDestination}/${metadata.name}_${metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
                     if (!existsSync(eDestination)) { mkdirSync(eDestination, { recursive: true }); }
@@ -89,38 +92,49 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                 metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
             }
 
-            if (settings?.NotifyServer?.Enabled && notify?.Enabled && notify?.Topic) {
-                let actions = [];
-                const server = settings?.NotifyServer;
-                const auth = server?.Credentials?.Username && server?.Credentials?.Password ? { username: settings?.NotifyServer?.Credentials?.Username, password: server?.Credentials?.Password } : undefined;
-                
-                if (server?.Attachments) {
+            if (notifyServer?.Enabled && notify?.Enabled && notify?.Topic) {
+                let buttons = [];
+                const auth = notifyServer?.Credentials?.Username && notifyServer?.Credentials?.Password ? { username: notifyServer?.Credentials?.Username, password: notifyServer?.Credentials?.Password } : undefined;
+                if (notifyServer?.MediaStorage?.EAS) {
                     if (metadata.eas) {
-                        actions.push({
+                        buttons.push({
                             "action": "view",
                             "label": "Listen",
-                            "url": `${server?.Attachments}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`,
-                        })
-                    }
-                    if (metadata.attachments?.length > 0 && metadata.attachments.find(a => a.name === "Image: Graphic")) {
-                        actions.push({
-                            "action": "view",
-                            "label": "View Image",
-                            "url": metadata.attachments.find(a => a.name === "Image: Graphic").link,
+                            "url": `${notifyServer?.MediaStorage?.EAS}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`,
                         })
                     }
                 }
-
+                if (metadata.json) {
+                    buttons.push({
+                        "action": "view",
+                        "label": "View JSON",
+                        "url": `${notifyServer?.MediaStorage?.JSON}/${metadata.name}_${metadata.tracking}.json`,
+                    })
+                }
+                if (metadata.text) {
+                    buttons.push({
+                        "action": "view",
+                        "label": "View Text",
+                        "url": `${notifyServer?.MediaStorage?.TEXT}/${metadata.name}_${metadata.tracking}.txt`,
+                    })
+                }
+                if (metadata.attachments?.length > 0 && metadata.attachments.find(a => a.name === "Image: Graphic")) {
+                    buttons.push({
+                        "action": "view",
+                        "label": "View Image",
+                        "url": metadata.attachments.find(a => a.name === "Image: Graphic").link,
+                    })
+                }
                 await createHttp({
-                    url: `${server?.Server?.replace(/\/$/, "")}/${listener?.NotificationServer?.Topic}`,
+                    url: `${notifyServer?.Server?.replace(/\/$/, "")}/${notify.Topic}`,
                     timeout: 15_000,
-                    method: "POST",
+                    method: "PUT",
                     ...(auth && { auth }),
                     headers: {
                         "Title": `${metadata.name} (${metadata.status})`,
                         "Tags":  properties.parameters.tags?.join(",") ?? "N/A",
-                        "Priority": notify?.Priority ? notify.Priority.toString() : "5",
-                        ... (actions.length > 0 && { "Actions": JSON.stringify(actions) }),
+                        "Priority": notify?.Priority ?? "5",
+                        ... (buttons.length > 0 && { "Actions": JSON.stringify(buttons) }),
                     },
                     body: getStringText(event)
                 })
@@ -160,8 +174,8 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
                     });
                 }
 
-                if (uploads?.File) { 
-                    form.append("fUpload", new Blob([Buffer.from(metadata.file)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
+                if (uploads?.TEXT) { 
+                    form.append("fUpload", new Blob([Buffer.from(metadata.text)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
                 }
 
                 if (uploads?.JSON) { 
@@ -190,5 +204,5 @@ export const updateListener = async (event: TypeEvent): Promise<void> => {
             }
         }
     }
-    setDebug({ title: `@manager.updateListener`, message: `Listener took ${performance.now() - tick} ms` })
+    setDebug({ title: `@manager.createActions`, message: `Listener took ${performance.now() - tick} ms` })
 }

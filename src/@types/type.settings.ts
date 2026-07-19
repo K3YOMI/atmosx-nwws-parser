@@ -17,7 +17,9 @@
 
 */
 
-import { TypeListener } from "./type.listener"
+import { TypeActions } from "./type.actions"
+
+type TypeTimezones = "CST" | "CDT" | "MDT" | "MST" | "EST" | "EDT" | "HST" | "HDT" | "PDT" | "UTC"
 
 export type TypeSettings = {
     Database: string
@@ -57,22 +59,26 @@ export type TypeSettings = {
     NotifyServer: {
         Enabled: boolean
         Server: string
-        Attachments?: string
+        Timezone?: TypeTimezones
+        MediaStorage: {
+            TEXT?: string
+            JSON?: string
+            EAS?: string
+        }
         Credentials?: {
             Username: string | void
             Password: string | void
         }
     }
+    ActionSettings?: TypeActions[]
     GlobalSettings: {
         EventManagement: boolean
-        BetterEventNames: boolean
         DisableGeometryParsing: boolean
         UseShapefileCoordinates: boolean
         SPCWatchesOnly: boolean
         ShapefileSkipPoints: number
         NodeTTL: number
         NodeMinDistance: number
-        ListenerSettings?: TypeListener[]
         EventFiltering: {
             ListeningEvents: string[]
             ListeningICAO: string[]
@@ -85,7 +91,7 @@ export type TypeSettings = {
         },
         ArchiveSettings: {
             TTL: number
-            EventDirectory: string
+            JSONDirectory: string
             TextDirectory: string
             EasDirectory: string
             EasToneout: string

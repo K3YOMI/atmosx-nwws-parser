@@ -1,6 +1,6 @@
 # Contributing
 
-This project is community driven and primarily maintained by `k3yomi` and `StarflightWx`
+This project is community driven and primarily maintained by `k3yomi`.
 
 ## How to Contribute
 

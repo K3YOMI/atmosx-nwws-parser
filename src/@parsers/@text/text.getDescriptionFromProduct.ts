@@ -26,12 +26,19 @@ interface GetDescriptionFromProductOptions {
 
 export const getDescriptionFromProduct = (options: GetDescriptionFromProductOptions): string => {
     let message = options.message;
+    const predefinedEndMarkers = ['&&', 'LAT...'];
+    const getEndIndex = (text: string, fromIndex = 0): number => {
+        const indices = predefinedEndMarkers
+            .map((marker) => text.indexOf(marker, fromIndex))
+            .filter((idx) => idx !== -1);
+        return indices.length ? Math.min(...indices) : -1;
+    };
     const dates = Array.from(message.matchAll(dict_expressions.dateline));
     if (dates.length) {
         const lastMatch = dates[dates.length - 1][0];
         const sIndx = message.lastIndexOf(lastMatch);
         if (sIndx !== -1) {
-            const endIndx = message.indexOf('&&', sIndx);
+            const endIndx = getEndIndex(message, sIndx);
             message = message.substring(sIndx + lastMatch.length, endIndx !== -1 ? endIndx : undefined).trimStart();
             if (message.startsWith('/')) message = message.slice(1).trimStart();
             if (options.handle && message.includes(options.handle)) {
@@ -45,7 +52,7 @@ export const getDescriptionFromProduct = (options: GetDescriptionFromProductOpti
         if (handleIndx !== -1) {
             let afterHandle = message.substring(handleIndx + options.handle.length).trimStart();
             if (afterHandle.startsWith('/')) afterHandle = afterHandle.slice(1).trimStart();
-            const latEnd = afterHandle.indexOf('&&')
+            const latEnd = getEndIndex(afterHandle);
             message = latEnd !== -1 ? afterHandle.substring(0, latEnd).trim() : afterHandle.trim();
         }
     }

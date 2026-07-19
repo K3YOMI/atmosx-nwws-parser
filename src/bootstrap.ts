@@ -83,16 +83,20 @@ export const bootstrap = {
         NotifyServer: {
             Enabled: false,
             Server: `https://ntfy.sh`,
-            Attachments: null,
+            Timezone: "UTC",
+            MediaStorage: {
+                EAS: null,
+                TEXT: null,
+                JSON: null,
+            },
             Credentials: {
                 Username: null,
                 Password: null
             }
         },
-        ListenerSettings: [],
+        ActionSettings: [],
         GlobalSettings: {
             EventManagement: true,
-            BetterEventNames: true,
             DisableGeometryParsing: false,
             UseShapefileCoordinates: true,
             SPCWatchesOnly: true,
@@ -111,7 +115,7 @@ export const bootstrap = {
             },
             ArchiveSettings: {
                 TTL: 60,
-                EventDirectory: null,
+                JSONDirectory: null,
                 TextDirectory: null,
                 EasDirectory: null,
                 EasToneout: null

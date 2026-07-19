@@ -23,12 +23,7 @@ import { dict_enhanced } from "../@dictionaries/dictionaries.enhanced"
 import { bootstrap } from "../bootstrap"
 
 export const getEventEnhancedName = (event: TypeEvent): string => {
-    const configurations = bootstrap.settings as TypeSettings
-    let name = event?.properties?.event
-
-    if (!configurations?.GlobalSettings?.BetterEventNames) {
-        return name 
-    }
+    let name = event?.properties?.event;
 
     const damage = event?.properties?.parameters?.damage_threat
     const tornado = event?.properties?.parameters?.tornado_threat;

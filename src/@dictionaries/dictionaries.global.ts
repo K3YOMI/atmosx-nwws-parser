@@ -18,7 +18,7 @@
 */
 
 export const dict_global: string[] = [
-    "spc day 1 outlook",
-    "spc day 2 outlook",
-    "spc day 3 outlook"
+    "storm prediction center day 1 outlook",
+    "storm prediction center day 2 outlook",
+    "storm prediction center day 3 outlook"
 ]

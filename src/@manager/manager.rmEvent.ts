@@ -22,7 +22,7 @@ import { dict_strings } from "../@dictionaries/dictionaries.strings";
 import { bootstrap } from "../bootstrap"
 import { setEventEmit } from "../@modules/@utilities/utilities.setEventEmit";
 import { setTimeoutAction } from "../@modules/@utilities/utilities.setTimeoutAction";
-import { updateListener } from "./manager.updateListener";
+import { createActions } from "./manager.createActions";
 
 
 export const rmEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):Promise<void> => {
@@ -58,7 +58,7 @@ export const rmEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):
                 metadata: { type: `Removed`, event: event },
                 message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
             })
-            await updateListener(event)
+            await createActions(event)
         }
         setTimeoutAction({ identifier: gTracking, expire: true })
     }
