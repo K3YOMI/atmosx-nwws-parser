@@ -31,5 +31,6 @@ export type TypeStanzaCompiled = {
     getType?: {
         type: string
         prefix: string
+        discovered: boolean
     }
 }

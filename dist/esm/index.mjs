@@ -4594,15 +4594,16 @@ var getAwipsType = (options) => {
   if (!attributes.awipsid) {
     return {
       type: null,
-      prefix: null
+      prefix: null,
+      discovered: false
     };
   }
   for (const [prefix, type] of Object.entries(dict_awips)) {
     if (attributes.awipsid.startsWith(prefix)) {
-      return { type, prefix };
+      return { type, prefix, discovered: true };
     }
   }
-  return { type: null, prefix: null };
+  return { type: options.attributes.awipsid, prefix: options.attributes.awipsid, discovered: false };
 };
 
 // src/@modules/@stanza/stanza.validate.ts
@@ -5227,6 +5228,9 @@ var text = (stanza) => __async(null, null, function* () {
     let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
     if (!event) {
       event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
+      if (!stanza.getType.discovered) {
+        event += ` (AWIPSID)`;
+      }
       isStatement = true;
     }
     bootstrap.cache.processed.push({
@@ -5399,6 +5403,9 @@ var ugc = (stanza) => __async(null, null, function* () {
       let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
       if (!event) {
         event = stanza.getType.type.split(`-`).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `);
+        if (!stanza.getType.discovered) {
+          event += ` (AWIPSID)`;
+        }
         isStatement = true;
       }
       bootstrap.cache.processed.push({

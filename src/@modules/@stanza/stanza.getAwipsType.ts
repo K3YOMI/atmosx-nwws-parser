@@ -27,6 +27,7 @@ interface ValidateOptions {
 interface ValidiateResponse { 
     type: string
     prefix: string
+    discovered: boolean
 }
 
 export const getAwipsType = (options: ValidateOptions): ValidiateResponse => {
@@ -34,13 +35,14 @@ export const getAwipsType = (options: ValidateOptions): ValidiateResponse => {
     if (!attributes.awipsid) { 
         return { 
             type: null, 
-            prefix: null
+            prefix: null,
+            discovered: false
         }
     }
     for (const [prefix, type] of Object.entries(dict_awips)) {
         if (attributes.awipsid.startsWith(prefix)) {
-            return { type, prefix }
+            return { type, prefix, discovered: true }
         }
     }
-    return { type: null, prefix: null }
+    return { type: options.attributes.awipsid, prefix: options.attributes.awipsid, discovered: false }
 }

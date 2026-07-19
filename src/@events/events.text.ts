@@ -46,6 +46,9 @@ export const text = async (stanza: TypeStanzaCompiled): Promise<void> => {
 
         if (!event) { 
             event = stanza.getType.type.split(`-`).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(` `)
+            if (!stanza.getType.discovered) {
+                event += ` (AWIPSID)`
+            }
             isStatement = true;
         }
         
