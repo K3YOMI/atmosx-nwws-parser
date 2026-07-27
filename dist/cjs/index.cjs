@@ -299,13 +299,13 @@ var require_Element = __commonJS({
         return result;
       }
       getText() {
-        let text2 = "";
+        let text = "";
         for (const child of this.children) {
           if (typeof child === "string" || typeof child === "number") {
-            text2 += child;
+            text += child;
           }
         }
-        return text2;
+        return text;
       }
       getChildText(name, xmlns) {
         const child = this.getChild(name, xmlns);
@@ -364,8 +364,8 @@ var require_Element = __commonJS({
         }
       }
       /** add text node and return element */
-      t(text2) {
-        this.children.push(text2);
+      t(text) {
+        this.children.push(text);
         return this;
       }
       /* Manipulation */
@@ -578,9 +578,9 @@ var require_ltx = __commonJS({
             switch (state) {
               case STATE_TEXT:
                 if (c === 60) {
-                  const text2 = endRecording();
-                  if (text2) {
-                    this.emit("text", escape2.unescapeXML(text2));
+                  const text = endRecording();
+                  if (text) {
+                    this.emit("text", escape2.unescapeXML(text));
                   }
                   state = STATE_TAG_NAME;
                   recordStart = pos + 1;
@@ -813,10 +813,10 @@ var require_bitops = __commonJS({
       }
       return new Uint8Array(res);
     };
-    exports2.H = function(text2) {
+    exports2.H = function(text) {
       return __async(this, null, function* () {
         return new Uint8Array(
-          yield crypto.subtle.digest("SHA-1", text2)
+          yield crypto.subtle.digest("SHA-1", text)
         );
       });
     };
@@ -838,9 +838,9 @@ var require_bitops = __commonJS({
         ));
       });
     };
-    exports2.Hi = function(text2, salt, iterations) {
+    exports2.Hi = function(text, salt, iterations) {
       return __async(this, null, function* () {
-        const key = new TextEncoder().encode(text2);
+        const key = new TextEncoder().encode(text);
         var concat = new Uint8Array(salt.length + 4);
         concat.set(salt);
         concat.set(new Uint8Array([0, 0, 0, 1]), salt.length);
@@ -1102,21 +1102,21 @@ var require_main3 = __commonJS({
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  ClearEvents: () => ClearEvents,
+  GenerateEASMessage: () => GenerateEASMessage,
+  GetCleanedEvent: () => GetCleanedEvent,
+  GetEventGeometry: () => GetEventGeometry,
+  GetEvents: () => GetEvents,
+  GetNodes: () => GetNodes,
+  GetRandomEvent: () => GetRandomEvent,
   Manager: () => Manager,
-  clearEvents: () => clearEvents,
-  default: () => index_default,
-  getCleanedEvent: () => getCleanedEvent,
-  getEventGeometry: () => getEventGeometry,
-  getEvents: () => getEvents,
-  getNodes: () => getNodes,
-  getRandomEvent: () => getRandomEvent,
-  manualEvent: () => manualEvent,
-  query: () => query,
-  setEasTone: () => setEasTone,
-  setNode: () => setNode,
-  setSettings: () => setSettings,
-  startService: () => startService,
-  stopService: () => stopService
+  ManualEvent: () => ManualEvent,
+  QueryStanza: () => QueryStanza,
+  SetNode: () => SetNode,
+  SetSettings: () => SetSettings,
+  StartService: () => StartService,
+  StopService: () => StopService,
+  default: () => index_default
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -1232,8 +1232,8 @@ var bootstrap = {
   }
 };
 
-// src/@modules/@utilities/utilities.setSettings.ts
-var setSettings = (newSettings) => {
+// src/@modules/@utilities/SetSettings.ts
+var SetSettings = (newSettings) => {
   const settings = bootstrap.settings;
   const merge = (target, source) => {
     for (const key in source) {
@@ -1254,12 +1254,12 @@ var setSettings = (newSettings) => {
   return settings;
 };
 
-// src/@modules/@utilities/utilities.getSettings.ts
-var getSettings = () => {
+// src/@modules/@utilities/GetSettings.ts
+var GetSettings = () => {
   return bootstrap.settings;
 };
 
-// src/@parsers/@ugc/ugc.coordinates.ts
+// src/@parsers/@ugc/GetZonePolygon.ts
 var import_polygon_clipping = require("polygon-clipping");
 var getZonePolygon = (options) => {
   var _a, _b;
@@ -1337,18 +1337,18 @@ var getZonePolygon = (options) => {
   }
 };
 
-// src/@building/building.geometry.ts
-var getEventGeometry = (event) => {
+// src/@building/GetEventGeometry.ts
+var GetEventGeometry = (event) => {
   var _a, _b, _c, _d, _e, _f;
-  const settings = getSettings();
+  const settings = GetSettings();
   const generated = (_c = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.geocode) == null ? void 0 : _b.polygon) != null ? _c : null;
-  const ugc2 = (_f = (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.geocode) == null ? void 0 : _e.ugc) != null ? _f : null;
+  const ugc = (_f = (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.geocode) == null ? void 0 : _e.ugc) != null ? _f : null;
   let geo = {
     type: `Polygon`,
     coordinates: generated != null ? JSON.parse(Buffer.from(generated, "base64").toString("utf-8")) : null
   };
-  if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc2 != null) {
-    geo = getZonePolygon({ zones: ugc2, isUnion: false });
+  if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) {
+    geo = getZonePolygon({ zones: ugc, isUnion: false });
     if (geo == null) {
       geo = {
         type: `Polygon`,
@@ -1359,21 +1359,21 @@ var getEventGeometry = (event) => {
   return geo;
 };
 
-// src/@building/building.clean.ts
-var getCleanedEvent = (event) => {
+// src/@building/GetCleanedEvent.ts
+var GetCleanedEvent = (event) => {
   for (const key of Object.keys(event)) {
     const value = event[key];
     if (value === null || value === void 0) {
       delete event[key];
     } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-      event[key] = getCleanedEvent(value);
+      event[key] = GetCleanedEvent(value);
     }
   }
   return event;
 };
 
-// src/@modules/@utilities/utilities.setTimeoutAction.ts
-var setTimeoutAction = (options) => {
+// src/@modules/@utilities/SetTimeoutAction.ts
+var SetTimeoutAction = (options) => {
   var _a, _b, _c;
   let target = (_b = (_a = bootstrap) == null ? void 0 : _a.ratelimits) == null ? void 0 : _b[options == null ? void 0 : options.identifier];
   if (!target) {
@@ -1402,8 +1402,8 @@ var setTimeoutAction = (options) => {
   return { limited: false };
 };
 
-// src/@modules/@utilities/utilities.setWarning.ts
-var setWarning = (options) => {
+// src/@modules/@utilities/SetWarning.ts
+var SetWarning = (options) => {
   var _a, _b;
   const settings = bootstrap.settings;
   bootstrap.listener.emit(`log`, `${(_a = options.title) != null ? _a : `[${bootstrap.ansi_colors.YELLOW}@atmosx/product-parser${bootstrap.ansi_colors.RESET}]`} ${options.message}`);
@@ -1412,10 +1412,10 @@ var setWarning = (options) => {
   }
 };
 
-// src/@modules/@utilities/utilities.setEventEmit.ts
-var setEventEmit = (options) => {
+// src/@modules/@utilities/SetEventEmit.ts
+var SetEventEmit = (options) => {
   if (options.limited) {
-    const isTimeout = setTimeoutAction({ identifier: `event.${options.event}`, addTime: true, max: 1, interval: 1 });
+    const isTimeout = SetTimeoutAction({ identifier: `event.${options.event}`, addTime: true, max: 1, interval: 1 });
     if (isTimeout.limited) return;
   }
   bootstrap.listener.emit(options.event, options.metadata);
@@ -1423,21 +1423,21 @@ var setEventEmit = (options) => {
     bootstrap.listener.emit(`*`, { event: options.event, data: options.metadata });
   }
   if (options.message) {
-    setWarning({ message: options.message });
+    SetWarning({ message: options.message });
   }
 };
 
-// src/@modules/@utilities/utilities.setListener.ts
-var setListener = (options) => {
+// src/@modules/@utilities/SetListener.ts
+var SetListener = (options) => {
   bootstrap.listener.on(options.event, options.callback);
   return () => {
     void bootstrap.listener.off(options.event, options.callback);
   };
 };
 
-// src/@core/core.createListener.ts
-var createListener = (event, callback) => {
-  setListener({ event, callback });
+// src/@core/CreateListener.ts
+var CreateListener = (event, callback) => {
+  SetListener({ event, callback });
 };
 
 // node_modules/@xmpp/xml/index.js
@@ -1826,20 +1826,20 @@ var jid_default = j;
 
 // node_modules/@xmpp/error/index.js
 var XMPPError = class extends Error {
-  constructor(condition, text2, application) {
-    super(condition + (text2 ? ` - ${text2}` : ""));
+  constructor(condition, text, application) {
+    super(condition + (text ? ` - ${text}` : ""));
     this.name = "XMPPError";
     this.condition = condition;
-    this.text = text2;
+    this.text = text;
     this.application = application;
   }
   static fromElement(element) {
     const [condition, second, third] = element.getChildElements();
-    let text2;
+    let text;
     let application;
     if (second) {
       if (second.is("text")) {
-        text2 = second;
+        text = second;
       } else if (second) {
         application = second;
       }
@@ -1847,7 +1847,7 @@ var XMPPError = class extends Error {
     }
     const error = new this(
       condition.name,
-      text2 ? text2.text() : "",
+      text ? text.text() : "",
       application
     );
     error.element = element;
@@ -2765,8 +2765,8 @@ function id() {
 
 // node_modules/@xmpp/middleware/lib/StanzaError.js
 var StanzaError = class extends error_default {
-  constructor(condition, text2, application, type) {
-    super(condition, text2, application);
+  constructor(condition, text, application, type) {
+    super(condition, text, application);
     this.type = type;
     this.name = "StanzaError";
   }
@@ -4195,8 +4195,8 @@ function setupIfAvailable(module2, ...args) {
   return module2(...args);
 }
 
-// src/@modules/@xmpp/xmpp.xOnline.ts
-var xOnline = () => {
+// src/@modules/@xmpp/OnlineXMPP.ts
+var OnlineXMPP = () => {
   const settings = bootstrap.settings;
   bootstrap.session_xmpp.on(`online`, (address) => __async(null, null, function* () {
     bootstrap.cache.sigHault = false;
@@ -4207,7 +4207,7 @@ var xOnline = () => {
       to: `nwws@conference.nwws-oi.weather.gov/${nickname}`,
       xmlns: "http://jabber.org/protocol/muc"
     }));
-    setEventEmit({
+    SetEventEmit({
       event: `onServiceStatus`,
       metadata: {
         message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
@@ -4220,12 +4220,12 @@ var xOnline = () => {
   }));
 };
 
-// src/@modules/@xmpp/xmpp.xOffline.ts
-var xOffline = () => {
+// src/@modules/@xmpp/OfflineXMPP.ts
+var OfflineXMPP = () => {
   bootstrap.session_xmpp.on(`offline`, () => __async(null, null, function* () {
     bootstrap.cache.isConnected = false;
     bootstrap.cache.sigHault = true;
-    setEventEmit({
+    SetEventEmit({
       event: `onServiceStatus`,
       metadata: {
         message: `Client has gone offline`,
@@ -4237,16 +4237,16 @@ var xOffline = () => {
   }));
 };
 
-// src/@modules/@xmpp/xmpp.xError.ts
-var xError = () => {
+// src/@modules/@xmpp/ErrorXMPP.ts
+var ErrorXMPP = () => {
   bootstrap.session_xmpp.on(`error`, (error) => __async(null, null, function* () {
     bootstrap.cache.isConnected = false;
     bootstrap.cache.sigHault = true;
   }));
 };
 
-// src/@dictionaries/dictionaries.expressions.ts
-var dict_expressions = {
+// src/@enums/Expressions.ts
+var EnumExpressions = {
   location: new RegExp(/^([A-Za-z.\-' ]+),\s*([A-Z]{2})$/),
   pvtec: new RegExp(`[OTEX].(NEW|CON|EXT|EXA|EXB|UPG|CAN|EXP|COR|ROU).[A-Z]{4}.[A-Z]{2}.[WAYSFON].[0-9]{4}.[0-9]{6}T[0-9]{4}Z-[0-9]{6}T[0-9]{4}Z`, "g"),
   hvtec: new RegExp(`[a-zA-Z0-9]{4}.[A-Z0-9].[A-Z]{2}.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[A-Z]{2}`, "imu"),
@@ -4257,8 +4257,8 @@ var dict_expressions = {
   dateline: new RegExp(`\\d{3,4}\\s*(AM|PM)?\\s*[A-Z]{2,4}\\s+[A-Z]{3,}\\s+[A-Z]{3,}\\s+\\d{1,2}\\s+\\d{4}`, "gim")
 };
 
-// src/@dictionaries/dictionaries.awips.ts
-var dict_awips = {
+// src/@enums/AWIPS.ts
+var EnumAWIPS = {
   ABV: `Rawinsonde Data Above 100 Millibars`,
   ADA: `Alarm Alert Administrative Message`,
   ADM: `Alert Administrative Message`,
@@ -4606,8 +4606,8 @@ var dict_awips = {
   ZFP: `Zone Forecast Product`
 };
 
-// src/@modules/@stanza/stanza.getAwipsType.ts
-var getAwipsType = (options) => {
+// src/@modules/@stanza/GetAwipsType.ts
+var GetAwipsType = (options) => {
   const attributes = options.attributes;
   if (!attributes.awipsid) {
     return {
@@ -4616,7 +4616,7 @@ var getAwipsType = (options) => {
       discovered: false
     };
   }
-  for (const [prefix, type] of Object.entries(dict_awips)) {
+  for (const [prefix, type] of Object.entries(EnumAWIPS)) {
     if (attributes.awipsid.startsWith(prefix)) {
       return { type, prefix, discovered: true };
     }
@@ -4624,8 +4624,8 @@ var getAwipsType = (options) => {
   return { type: options.attributes.awipsid, prefix: options.attributes.awipsid, discovered: false };
 };
 
-// src/@modules/@stanza/stanza.validate.ts
-var validate = (options) => {
+// src/@modules/@stanza/ValidateStanza.ts
+var ValidateStanza = (options) => {
   if (options.stanza.is(`message`)) {
     const cb = options.stanza.getChild(`x`);
     if (cb && cb.children) {
@@ -4634,9 +4634,9 @@ var validate = (options) => {
       if (attributes.awipsid && attributes.awipsid.length > 1) {
         const isCapEvent = message.includes(`<?xml`);
         const isCapAreaDescription = message.includes(`<areaDesc>`);
-        const isVTEC = message.match(dict_expressions.pvtec) != null;
-        const isUGC = message.match(dict_expressions.ugc1) != null;
-        const getType = getAwipsType({ attributes });
+        const isVTEC = message.match(EnumExpressions.pvtec) != null;
+        const isUGC = message.match(EnumExpressions.ugc1) != null;
+        const getType = GetAwipsType({ attributes });
         if (getType.type != null) {
           return {
             message,
@@ -4656,8 +4656,8 @@ var validate = (options) => {
   return { isIgnored: true };
 };
 
-// src/@dictionaries/dictionaries.matches.ts
-var dict_matches = {
+// src/@enums/Matches.ts
+var EnumMatches = {
   SPS: [
     { match: /STRONG THUNDERSTORM/i, label: "Convective Special Weather Statement", statement: false },
     { match: /SPECIAL WEATHER STATEMENT/i, label: "Special Weather Statement", statement: false }
@@ -4693,15 +4693,15 @@ var dict_matches = {
   ]
 };
 
-// src/@parsers/@text/text.getDescriptionFromProduct.ts
-var getDescriptionFromProduct = (options) => {
+// src/@parsers/@text/GetDescriptionFromProduct.ts
+var GetDescriptionFromProduct = (options) => {
   let message = options.message;
   const predefinedEndMarkers = ["&&", "LAT..."];
-  const getEndIndex = (text2, fromIndex = 0) => {
-    const indices = predefinedEndMarkers.map((marker) => text2.indexOf(marker, fromIndex)).filter((idx) => idx !== -1);
+  const getEndIndex = (text, fromIndex = 0) => {
+    const indices = predefinedEndMarkers.map((marker) => text.indexOf(marker, fromIndex)).filter((idx) => idx !== -1);
     return indices.length ? Math.min(...indices) : -1;
   };
-  const dates = Array.from(message.matchAll(dict_expressions.dateline));
+  const dates = Array.from(message.matchAll(EnumExpressions.dateline));
   if (dates.length) {
     const lastMatch = dates[dates.length - 1][0];
     const sIndx = message.lastIndexOf(lastMatch);
@@ -4727,15 +4727,15 @@ var getDescriptionFromProduct = (options) => {
   return message.trim();
 };
 
-// src/@parsers/@text/text.getPolygonFromProduct.ts
+// src/@parsers/@text/GetPolygonFromProduct.ts
 var getPolygonFromProduct = (message) => {
   const coordinates = [];
   const match = message.match(
     /LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i
   );
   if (!match) return coordinates;
-  const text2 = match[1];
-  const values = text2.match(/\d{4,8}/g);
+  const text = match[1];
+  const values = text.match(/\d{4,8}/g);
   if (!values) return coordinates;
   if (values.every((v) => v.length === 8)) {
     for (const value of values) {
@@ -4760,8 +4760,8 @@ var getPolygonFromProduct = (message) => {
   return coordinates;
 };
 
-// src/@parsers/@text/text.getTextFromProduct.ts
-var getTextFromProduct = (options) => {
+// src/@parsers/@text/GetTextFromProduct.ts
+var GetTextFromProduct = (options) => {
   var _a;
   const lines = options.message.split(`
 `);
@@ -4781,8 +4781,8 @@ var getTextFromProduct = (options) => {
   return null;
 };
 
-// src/@dictionaries/dictionaries.icao.ts
-var dict_icao = {
+// src/@enums/ICAO.ts
+var EnumICAO = {
   "KLUB": "Lubbock, TX",
   "KLCH": "Lake Charles, LA",
   "TSTL": "St. Louis, MO",
@@ -5023,16 +5023,16 @@ var dict_icao = {
   "PAJK": "Juneau, AK"
 };
 
-// src/@building/building.office.ts
-var getEventOffice = (options) => {
+// src/@building/GetEventOffice.ts
+var GetEventOffice = (options) => {
   var _a, _b, _c, _d, _e, _f, _g;
   const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`.`)[0] : (_e = (_c = options.attributes) == null ? void 0 : _c.cccc) != null ? _e : options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null;
-  const name = (_g = (_f = dict_icao) == null ? void 0 : _f[office]) != null ? _g : null;
+  const name = (_g = (_f = EnumICAO) == null ? void 0 : _f[office]) != null ? _g : null;
   return { office, name };
 };
 
-// src/@dictionaries/dictionaries.tags.ts
-var dict_tags = {
+// src/@enums/Tags.ts
+var EnumTags = {
   SEVERE_WEATHER: [
     { match: /A Large And Extremely Dangerous Tornado/i, tag: "Large and Dangerous Tornado" },
     { match: /This Is A Particularly Dangerous Situation/i, tag: "Particularly Dangerous Situation" },
@@ -5175,99 +5175,99 @@ var dict_tags = {
   ]
 };
 
-// src/@building/building.tags.ts
-var getEventTags = (message) => {
+// src/@building/GetEventTags.ts
+var GetEventTags = (message) => {
   if (!message) return [];
   return [...new Set(
-    Object.values(dict_tags).flat().filter(({ match }) => match.test(message)).map(({ tag }) => tag)
+    Object.values(EnumTags).flat().filter(({ match }) => match.test(message)).map(({ tag }) => tag)
   )];
 };
 
-// src/@building/building.properties.ts
-var properties = (options) => {
+// src/@building/GetEventProperties.ts
+var GetEventProperties = (options) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X;
-  const organization = (_b = (_a = options.message.match(dict_expressions.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
+  const organization = (_b = (_a = options.message.match(EnumExpressions.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
   const polygons = getPolygonFromProduct(options.message);
-  const properties2 = {
+  const properties = {
     locations: (_e = (_d = (_c = options == null ? void 0 : options.ugc) == null ? void 0 : _c.locations) == null ? void 0 : _d.join(`; `)) != null ? _e : null,
     locations_array: (_g = (_f = options == null ? void 0 : options.ugc) == null ? void 0 : _f.locations) != null ? _g : [],
-    description: getDescriptionFromProduct({ message: options.message, handle: (_i = (_h = options == null ? void 0 : options.pVtec) == null ? void 0 : _h.vtec) != null ? _i : null }),
+    description: GetDescriptionFromProduct({ message: options.message, handle: (_i = (_h = options == null ? void 0 : options.pVtec) == null ? void 0 : _h.vtec) != null ? _i : null }),
     attributes: options.attributes,
     geocode: {
-      office: getEventOffice({ attributes: options.attributes, organization, pVtec: options.pVtec }),
+      office: GetEventOffice({ attributes: options.attributes, organization, pVtec: options.pVtec }),
       organization,
       ugc: (_k = (_j = options == null ? void 0 : options.ugc) == null ? void 0 : _j.zones) != null ? _k : [],
       polygon: polygons.length > 0 ? Buffer.from(JSON.stringify([polygons])).toString("base64") : null,
       polygon_generated: polygons.length > 0 ? true : false
     },
     parameters: {
-      tags: getEventTags(options.message),
-      instructions: (_l = getTextFromProduct({ message: options.message, find: [`For your protection`, `do not`, `use extreme caution`], append: `...`, removal: [`.`] })) != null ? _l : null,
-      source: (_m = getTextFromProduct({ message: options.message, find: [`SOURCE...`], removal: [`.`] })) != null ? _m : null,
-      hazards: (_n = getTextFromProduct({ message: options.message, find: [`HAZARD...`], removal: [`.`] })) != null ? _n : null,
-      impacts: (_o = getTextFromProduct({ message: options.message, find: [`IMPACT...`], removal: [`.`] })) != null ? _o : null,
-      estimated_hail_size: (_p = getTextFromProduct({ message: options.message, find: [`MAX HAIL SIZE...`, `HAIL...`], removal: ["in"] })) != null ? _p : null,
-      estimated_wind_gusts: (_q = getTextFromProduct({ message: options.message, find: [`MAX WIND GUST...`, `WIND...`] })) != null ? _q : null,
-      damage_threat: (_r = getTextFromProduct({ message: options.message, find: [`DAMAGE THREAT...`], removal: [] })) != null ? _r : null,
-      tornado_threat: (_s = getTextFromProduct({ message: options.message, find: [`TORNADO...`, `WATERSPOUT...`] })) != null ? _s : null,
-      flood_threat: (_t = getTextFromProduct({ message: options.message, find: [`FLASH FLOOD...`] })) != null ? _t : null,
-      wind_threat: (_u = getTextFromProduct({ message: options.message, find: [`WIND THREAT...`] })) != null ? _u : null,
-      hail_threat: (_v = getTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: [] })) != null ? _v : null
+      tags: GetEventTags(options.message),
+      instructions: (_l = GetTextFromProduct({ message: options.message, find: [`For your protection`, `do not`, `use extreme caution`], append: `...`, removal: [`.`] })) != null ? _l : null,
+      source: (_m = GetTextFromProduct({ message: options.message, find: [`SOURCE...`], removal: [`.`] })) != null ? _m : null,
+      hazards: (_n = GetTextFromProduct({ message: options.message, find: [`HAZARD...`], removal: [`.`] })) != null ? _n : null,
+      impacts: (_o = GetTextFromProduct({ message: options.message, find: [`IMPACT...`], removal: [`.`] })) != null ? _o : null,
+      estimated_hail_size: (_p = GetTextFromProduct({ message: options.message, find: [`MAX HAIL SIZE...`, `HAIL...`], removal: ["in"] })) != null ? _p : null,
+      estimated_wind_gusts: (_q = GetTextFromProduct({ message: options.message, find: [`MAX WIND GUST...`, `WIND...`] })) != null ? _q : null,
+      damage_threat: (_r = GetTextFromProduct({ message: options.message, find: [`DAMAGE THREAT...`], removal: [] })) != null ? _r : null,
+      tornado_threat: (_s = GetTextFromProduct({ message: options.message, find: [`TORNADO...`, `WATERSPOUT...`] })) != null ? _s : null,
+      flood_threat: (_t = GetTextFromProduct({ message: options.message, find: [`FLASH FLOOD...`] })) != null ? _t : null,
+      wind_threat: (_u = GetTextFromProduct({ message: options.message, find: [`WIND THREAT...`] })) != null ? _u : null,
+      hail_threat: (_v = GetTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: [] })) != null ? _v : null
     },
     discussion_parameters: {
-      discussion_number: (_y = (_x = (_w = getTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _w.toString()) == null ? void 0 : _x.padStart(4, "0")) != null ? _y : null,
-      discussion_concerning: (_z = getTextFromProduct({ message: options.message, find: [`Concerning...`] })) != null ? _z : null,
-      discussion_max_tornado: (_A = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _A : null,
-      discussion_max_hail: (_B = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _B : null,
-      discussion_max_wind: (_C = getTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _C : null,
-      discussion_watch_issuance: (_D = getTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _D : null
+      discussion_number: (_y = (_x = (_w = GetTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _w.toString()) == null ? void 0 : _x.padStart(4, "0")) != null ? _y : null,
+      discussion_concerning: (_z = GetTextFromProduct({ message: options.message, find: [`Concerning...`] })) != null ? _z : null,
+      discussion_max_tornado: (_A = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _A : null,
+      discussion_max_hail: (_B = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _B : null,
+      discussion_max_wind: (_C = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _C : null,
+      discussion_watch_issuance: (_D = GetTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _D : null
     },
     watch_parameters: {
-      watch_number: ((_E = options == null ? void 0 : options.pVtec) == null ? void 0 : _E.is_watch) && ((_O = (_N = (_I = (_H = (_G = (_F = getTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _F.replace(/(WT|WS|)/g, "")) == null ? void 0 : _G.trim()) == null ? void 0 : _H.toString()) == null ? void 0 : _I.padStart(4, "0")) != null ? _N : (_M = (_L = (_K = (_J = options == null ? void 0 : options.pVtec) == null ? void 0 : _J.tracking) == null ? void 0 : _K.slice(-4)) == null ? void 0 : _L.toString()) == null ? void 0 : _M.padStart(4, "0")) != null ? _O : null),
+      watch_number: ((_E = options == null ? void 0 : options.pVtec) == null ? void 0 : _E.is_watch) && ((_O = (_N = (_I = (_H = (_G = (_F = GetTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _F.replace(/(WT|WS|)/g, "")) == null ? void 0 : _G.trim()) == null ? void 0 : _H.toString()) == null ? void 0 : _I.padStart(4, "0")) != null ? _N : (_M = (_L = (_K = (_J = options == null ? void 0 : options.pVtec) == null ? void 0 : _J.tracking) == null ? void 0 : _K.slice(-4)) == null ? void 0 : _L.toString()) == null ? void 0 : _M.padStart(4, "0")) != null ? _O : null),
       watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : (options == null ? void 0 : options.message.includes(`SEVERE`)) ? `Severe` : null,
-      additional_tornadoes_probability: (_P = getTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _P : null,
-      strong_tornadoes_probability: (_Q = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Q : null,
-      severe_wind_probability: (_R = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _R : null,
-      severe_hail_probability: (_S = getTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _S : null,
-      hail_2in_probability: (_T = getTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _T : null,
-      combined_hail_wind_probability: (_U = getTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _U : null,
-      max_hail_in: (_V = getTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _V : null,
-      max_wind_surface: (_W = getTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _W : null,
-      max_tops_x100feet: (_X = getTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _X : null,
-      pds_watch: getTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES` ? true : null
+      additional_tornadoes_probability: (_P = GetTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _P : null,
+      strong_tornadoes_probability: (_Q = GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Q : null,
+      severe_wind_probability: (_R = GetTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _R : null,
+      severe_hail_probability: (_S = GetTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _S : null,
+      hail_2in_probability: (_T = GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _T : null,
+      combined_hail_wind_probability: (_U = GetTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _U : null,
+      max_hail_in: (_V = GetTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _V : null,
+      max_wind_surface: (_W = GetTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _W : null,
+      max_tops_x100feet: (_X = GetTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _X : null,
+      pds_watch: GetTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES` ? true : null
     }
   };
-  if (isNaN(Number(properties2.watch_parameters.watch_number))) {
-    properties2.watch_parameters.watch_number = null;
+  if (isNaN(Number(properties.watch_parameters.watch_number))) {
+    properties.watch_parameters.watch_number = null;
   }
-  return properties2;
+  return properties;
 };
 
-// src/@building/building.headers.ts
-var getEventHeader = (options) => {
+// src/@building/GetEventHeader.ts
+var GetEventHeader = (options) => {
   var _a, _b, _c;
-  const properties2 = options.properties;
-  const vtec2 = (_a = options.vtec) != null ? _a : null;
-  const ugc2 = properties2.geocode.ugc != null ? properties2.geocode.ugc.join(`-`) : `0`;
-  return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc2}-${(_b = vtec2 == null ? void 0 : vtec2.status) != null ? _b : `Issued`}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[-:]/g, "").split(".")[0]}-${(_c = properties2.geocode.office.office) != null ? _c : `KWNS`}`;
+  const properties = options.properties;
+  const vtec = (_a = options.vtec) != null ? _a : null;
+  const ugc = properties.geocode.ugc != null ? properties.geocode.ugc.join(`-`) : `0`;
+  return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc}-${(_b = vtec == null ? void 0 : vtec.status) != null ? _b : `Issued`}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[-:]/g, "").split(".")[0]}-${(_c = properties.geocode.office.office) != null ? _c : `KWNS`}`;
 };
 
-// src/@building/building.tracking.ts
-var getEventTracking = (options) => {
+// src/@building/GetEventTracking.ts
+var GetEventTracking = (options) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
-  const properties2 = options.properties;
+  const properties = options.properties;
   const attributes = options.attributes;
   const stanza = options.stanza;
-  const vtec2 = options.vtec;
+  const vtec = options.vtec;
   if (options.type === `RAW`) {
-    const getWatchNumber = (_a = properties2.watch_parameters.watch_number) != null ? _a : null;
+    const getWatchNumber = (_a = properties.watch_parameters.watch_number) != null ? _a : null;
     if (getWatchNumber) {
-      return `${properties2.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`;
+      return `${properties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`;
     }
-    return `${properties2.geocode.office.office}.${attributes.ttaaii}.${(_b = attributes.id.slice(-4).replace(`.`, ``)) != null ? _b : "0"}`;
+    return `${properties.geocode.office.office}.${attributes.ttaaii}.${(_b = attributes.id.slice(-4).replace(`.`, ``)) != null ? _b : "0"}`;
   }
   if (options.type === `VTEC`) {
-    return vtec2.tracking;
+    return vtec.tracking;
   }
   if (options.type === `API`) {
     if (options.vtec) {
@@ -5286,8 +5286,8 @@ var getEventTracking = (options) => {
   }
 };
 
-// src/@modules/@utilities/utilities.setDebug.ts
-var setDebug = (options) => {
+// src/@modules/@utilities/SetDebug.ts
+var SetDebug = (options) => {
   var _a, _b, _c, _d;
   const settings = bootstrap.settings;
   bootstrap.listener.emit(`debug`, {
@@ -5300,19 +5300,19 @@ var setDebug = (options) => {
   }
 };
 
-// src/@events/events.text.ts
-var text = (stanza) => __async(null, null, function* () {
+// src/@events/ParseText.ts
+var ParseText = (stanza) => __async(null, null, function* () {
   var _a, _b, _c, _d, _e;
   const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
   if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
   for (const message of getMessages) {
     const tick = performance.now();
     const attributes = stanza == null ? void 0 : stanza.attributes;
-    const props = properties({ message, attributes });
-    const header = getEventHeader({ properties: props, getType: stanza.getType });
+    const props = GetEventProperties({ message, attributes });
+    const header = GetEventHeader({ properties: props, getType: stanza.getType });
     const issued = new Date(attributes.issue);
     const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
-    const matches = (_d = dict_matches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
+    const matches = (_d = EnumMatches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
     let event = matches == null ? void 0 : matches.label;
     let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
     if (!event) {
@@ -5338,7 +5338,7 @@ var text = (stanza) => __async(null, null, function* () {
         metadata: {
           ms: performance.now() - tick,
           source: `events.text`,
-          tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+          tracking: GetEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
           header,
           vtec: null,
           hvtec: null,
@@ -5353,20 +5353,20 @@ var text = (stanza) => __async(null, null, function* () {
         }
       })
     });
-    setDebug({ title: `@events.text`, message: `Event process took ${performance.now() - tick} ms` });
+    SetDebug({ title: `@events.text`, message: `Event process took ${performance.now() - tick} ms` });
   }
 });
 
-// src/@parsers/@ugc/ugc.header.ts
+// src/@parsers/@ugc/GetUGCHeader.ts
 var getUGCHeader = (message) => {
-  const start = message.search(dict_expressions.ugc1);
+  const start = message.search(EnumExpressions.ugc1);
   const sub = message.substring(start);
-  const end = sub.search(dict_expressions.ugc2);
+  const end = sub.search(EnumExpressions.ugc2);
   const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
   return fin != null ? fin : null;
 };
 
-// src/@parsers/@ugc/ugc.zones.ts
+// src/@parsers/@ugc/GetZones.ts
 var getZones = (header) => {
   const splits = header.split("-");
   const zones = [];
@@ -5401,8 +5401,8 @@ var getZones = (header) => {
   return zones.filter((item) => item !== "");
 };
 
-// src/@parsers/@ugc/ugc.expiry.ts
-var getExpiry = (message) => {
+// src/@parsers/@ugc/GetExpiry.ts
+var GetExpiry = (message) => {
   const match = message.match(/\b(\d{6})-/);
   if (!match) {
     return null;
@@ -5416,12 +5416,12 @@ var getExpiry = (message) => {
   return expires.toISOString();
 };
 
-// src/@parsers/@ugc/ugc.getCache.ts
+// src/@parsers/@ugc/GetCache.ts
 var getCache = (key) => {
   return bootstrap.cache.ugc.get(key);
 };
 
-// src/@parsers/@ugc/ugc.setCache.ts
+// src/@parsers/@ugc/SetCache.ts
 var setCache = (key, value) => {
   if (bootstrap.cache.ugc.size >= 5e3) {
     const firstKey = bootstrap.cache.ugc.keys().next().value;
@@ -5430,7 +5430,7 @@ var setCache = (key, value) => {
   bootstrap.cache.ugc.set(key, value);
 };
 
-// src/@parsers/@ugc/ugc.locations.ts
+// src/@parsers/@ugc/GetLocations.ts
 var getLocations = (zones) => __async(null, null, function* () {
   const uniqueZones = Array.from(new Set(zones));
   const results = [];
@@ -5459,11 +5459,11 @@ var getLocations = (zones) => __async(null, null, function* () {
   return results;
 });
 
-// src/@parsers/@ugc/ugc.extract.ts
+// src/@parsers/@ugc/UGCExtract.ts
 var ugcExtract = (message) => __async(null, null, function* () {
   const head = getUGCHeader(message);
   const ugcs = getZones(head);
-  const expires = getExpiry(message);
+  const expires = GetExpiry(message);
   const areas = yield getLocations(ugcs);
   if (!head || (ugcs == null ? void 0 : ugcs.length) == 0) return;
   return {
@@ -5473,21 +5473,21 @@ var ugcExtract = (message) => __async(null, null, function* () {
   };
 });
 
-// src/@events/events.ugc.ts
-var ugc = (stanza) => __async(null, null, function* () {
+// src/@events/ParseUGC.ts
+var ParseUGC = (stanza) => __async(null, null, function* () {
   var _a, _b, _c, _d, _e;
   const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
   if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
   for (const message of getMessages) {
     const tick = performance.now();
     const attributes = stanza == null ? void 0 : stanza.attributes;
-    const ugc2 = yield ugcExtract(message);
-    if (ugc2 != null) {
-      const props = properties({ message, attributes, ugc: ugc2 });
+    const ugc = yield ugcExtract(message);
+    if (ugc != null) {
+      const props = GetEventProperties({ message, attributes, ugc });
       const issued = new Date(attributes.issue);
-      const expires = new Date(ugc2.expires);
-      const header = getEventHeader({ properties: props, getType: stanza.getType });
-      const matches = (_d = dict_matches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
+      const expires = new Date(ugc.expires);
+      const header = GetEventHeader({ properties: props, getType: stanza.getType });
+      const matches = (_d = EnumMatches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
       let event = matches == null ? void 0 : matches.label;
       let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
       if (!event) {
@@ -5513,7 +5513,7 @@ var ugc = (stanza) => __async(null, null, function* () {
           metadata: {
             ms: performance.now() - tick,
             source: `events.ugc`,
-            tracking: getEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+            tracking: GetEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
             header,
             vtec: null,
             hvtec: null,
@@ -5528,21 +5528,21 @@ var ugc = (stanza) => __async(null, null, function* () {
           }
         })
       });
-      setDebug({ title: `@events.ugc`, message: `Event process took ${performance.now() - tick} ms` });
+      SetDebug({ title: `@events.ugc`, message: `Event process took ${performance.now() - tick} ms` });
     }
   }
 });
 
-// src/@dictionaries/dictionaries.products.ts
-var dict_products = {
+// src/@enums/Products.ts
+var EnumProducts = {
   "O": "Operational Product",
   "T": "Test Product",
   "E": "Experimental Product",
   "X": "Experimental Product (Non-Operational)"
 };
 
-// src/@dictionaries/dictionaries.events.ts
-var dict_events = {
+// src/@enums/Events.ts
+var EnumEvents = {
   "AF": "Ashfall",
   "AS": "Air Stagnation",
   "BH": "Beach Hazard",
@@ -5606,8 +5606,8 @@ var dict_events = {
   "ZY": "Freezing Spray"
 };
 
-// src/@dictionaries/dictionaries.actions.ts
-var dict_actions = {
+// src/@enums/Actions.ts
+var EnumActions = {
   "W": "Warning",
   "F": "Forecast",
   "A": "Watch",
@@ -5617,8 +5617,8 @@ var dict_actions = {
   "S": "Statement"
 };
 
-// src/@dictionaries/dictionaries.status.ts
-var dict_status = {
+// src/@enums/Status.ts
+var EnumStatus = {
   "NEW": "Issued",
   "CON": "Updated",
   "EXT": "Extended",
@@ -5631,8 +5631,8 @@ var dict_status = {
   "EXP": "Expired"
 };
 
-// src/@parsers/@pvtec/pvtec.expires.ts
-var getExpiry2 = (dates) => {
+// src/@parsers/@pvtec/GetExpiry.ts
+var GetExpiry2 = (dates) => {
   if ((dates == null ? void 0 : dates[1]) == `000000T0000Z`) return "Invalid Date Format";
   const expires = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
   const local = new Date(new Date(expires).getTime() - 4 * 60 * 6e4);
@@ -5640,24 +5640,24 @@ var getExpiry2 = (dates) => {
   return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}:00.000-04:00`;
 };
 
-// src/@parsers/@pvtec/pvtec.extract.ts
-var pvExtract = (message) => {
+// src/@parsers/@pvtec/VTECExtract.ts
+var VTECExtract = (message) => {
   var _a, _b, _c, _d;
   if (!message) return null;
-  const getVTECs = (_a = message.match(dict_expressions.pvtec)) != null ? _a : [];
+  const getVTECs = (_a = message.match(EnumExpressions.pvtec)) != null ? _a : [];
   const vtecs = [];
-  for (const vtec2 of getVTECs) {
-    const sub = vtec2.split(`.`);
+  for (const vtec of getVTECs) {
+    const sub = vtec.split(`.`);
     if ((sub == null ? void 0 : sub.length) < 7) continue;
     const dates = (_b = sub[6]) == null ? void 0 : _b.split(`-`);
     vtecs.push({
-      vtec: vtec2,
-      product: dict_products[sub[0]],
+      vtec,
+      product: EnumProducts[sub[0]],
       tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
-      event: `${dict_events[sub[3]]} ${dict_actions[sub[4]]}`,
-      status: dict_status[sub[1]],
-      organization: (_d = (_c = message.match(dict_expressions.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
-      expires: getExpiry2(dates),
+      event: `${EnumEvents[sub[3]]} ${EnumActions[sub[4]]}`,
+      status: EnumStatus[sub[1]],
+      organization: (_d = (_c = message.match(EnumExpressions.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
+      expires: GetExpiry2(dates),
       is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
       prediction_center: sub[2] == `KWNS` ? true : false
     });
@@ -5665,8 +5665,8 @@ var pvExtract = (message) => {
   return vtecs.length > 0 ? vtecs : null;
 };
 
-// src/@dictionaries/dictionaries.causes.ts
-var dict_causes = {
+// src/@enums/Causes.ts
+var EnumCauses = {
   "SM": "Snow Melt",
   "RS": "Rain/Snow Melt",
   "ER": "Excessive Rain",
@@ -5684,16 +5684,16 @@ var dict_causes = {
   "OT": "Other Effects"
 };
 
-// src/@dictionaries/dictionaries.records.ts
-var dict_records = {
+// src/@enums/Records.ts
+var EnumRecords = {
   "NO": "No Record Expected",
   "NR": "Near Record or possible record",
   "UU": "Unknown history of records",
   "OO": "Other"
 };
 
-// src/@dictionaries/dictionaries.severity.ts
-var dict_severity = {
+// src/@enums/Severity.ts
+var EnumSeverity = {
   N: "Not Expected",
   0: "Areal Flood or FF Product",
   1: "Minor",
@@ -5702,42 +5702,42 @@ var dict_severity = {
   U: "Unknown"
 };
 
-// src/@parsers/@hvtec/hvtec.extract.ts
-var hvExtract = (message) => {
+// src/@parsers/@hvtec/HVExtract.ts
+var HVExtract = (message) => {
   var _a;
-  const getHVTECs = (_a = message.match(dict_expressions.hvtec)) != null ? _a : [];
+  const getHVTECs = (_a = message.match(EnumExpressions.hvtec)) != null ? _a : [];
   const vtecs = [];
-  for (const vtec2 of getHVTECs) {
-    const sub = vtec2.split(`.`);
+  for (const vtec of getHVTECs) {
+    const sub = vtec.split(`.`);
     if (sub.length < 7) continue;
     vtecs.push({
-      hvtec: vtec2,
-      severity: dict_severity[sub[1]],
-      cause: dict_causes[sub[2]],
-      record: dict_records[sub[6]]
+      hvtec: vtec,
+      severity: EnumSeverity[sub[1]],
+      cause: EnumCauses[sub[2]],
+      record: EnumRecords[sub[6]]
     });
   }
   return vtecs.length > 0 ? vtecs : null;
 };
 
-// src/@events/events.vtec.ts
-var vtec = (stanza) => __async(null, null, function* () {
+// src/@events/ParseVTEC.ts
+var ParseVTEC = (stanza) => __async(null, null, function* () {
   var _a, _b, _c, _d, _e;
   const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
   if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
   for (const message of getMessages) {
     const tick = performance.now();
     const attributes = stanza == null ? void 0 : stanza.attributes;
-    const pVtec = pvExtract(message);
-    const hVtec = hvExtract(message);
-    const ugc2 = yield ugcExtract(message);
-    if (pVtec != null && ugc2 != null) {
+    const pVtec = VTECExtract(message);
+    const hVtec = HVExtract(message);
+    const ugc = yield ugcExtract(message);
+    if (pVtec != null && ugc != null) {
       for (const pv of pVtec) {
-        const vtec2 = pv;
-        const props = properties({ message, attributes, ugc: ugc2, pVtec: vtec2 });
-        const header = getEventHeader({ properties: props, getType: stanza.getType, vtec: vtec2 });
+        const vtec = pv;
+        const props = GetEventProperties({ message, attributes, ugc, pVtec: vtec });
+        const header = GetEventHeader({ properties: props, getType: stanza.getType, vtec });
         const issued = (_d = new Date(attributes.issue)) != null ? _d : /* @__PURE__ */ new Date();
-        const expires = new Date(vtec2.expires);
+        const expires = new Date(vtec.expires);
         bootstrap.cache.processed.push({
           type: `Feature`,
           geometry: {
@@ -5749,12 +5749,12 @@ var vtec = (stanza) => __async(null, null, function* () {
             parent: pv.event,
             status: pv.status,
             issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-            expires: !isNaN(expires.getTime()) ? expires.toISOString() : (_e = ugc2.expires) != null ? _e : new Date(issued.getTime() + 60 * 60 * 1e3).toISOString()
+            expires: !isNaN(expires.getTime()) ? expires.toISOString() : (_e = ugc.expires) != null ? _e : new Date(issued.getTime() + 60 * 60 * 1e3).toISOString()
           }, props), {
             metadata: {
               ms: performance.now() - tick,
               source: `events.vtec`,
-              tracking: getEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec: vtec2 }),
+              tracking: GetEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec }),
               header,
               vtec: pv,
               hvtec: hVtec,
@@ -5769,19 +5769,19 @@ var vtec = (stanza) => __async(null, null, function* () {
             }
           })
         });
-        setDebug({ title: `@events.vtec`, message: `Event process took ${performance.now() - tick} ms` });
+        SetDebug({ title: `@events.vtec`, message: `Event process took ${performance.now() - tick} ms` });
       }
     }
   }
 });
 
-// src/@events/events.api.ts
-var api = (stanza) => __async(null, null, function* () {
+// src/@events/ParseAPI.ts
+var ParseAPI = (stanza) => __async(null, null, function* () {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb, _hb, _ib, _jb, _kb, _lb, _mb, _nb, _ob, _pb, _qb, _rb, _sb, _tb, _ub;
   const messages = Object.values(JSON.parse(stanza.message).features);
   for (const feature of messages) {
     const tick = performance.now();
-    const pVtec = (_d = pvExtract((_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0])) != null ? _d : null;
+    const pVtec = (_d = VTECExtract((_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0])) != null ? _d : null;
     bootstrap.cache.processed.push({
       type: `Feature`,
       geometry: {
@@ -5801,7 +5801,7 @@ var api = (stanza) => __async(null, null, function* () {
         geocode: {
           office: {
             office: pVtec ? (_w = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _w.tracking.split(`.`)[0] : null,
-            name: (_y = dict_icao[pVtec ? (_x = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _x.tracking.split(`.`)[0] : null]) != null ? _y : null
+            name: (_y = EnumICAO[pVtec ? (_x = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _x.tracking.split(`.`)[0] : null]) != null ? _y : null
           },
           organization: (_B = (_A = (_z = feature == null ? void 0 : feature.properties) == null ? void 0 : _z.parameters) == null ? void 0 : _A.WMOidentifier) == null ? void 0 : _B[0],
           ugc: (_E = (_D = (_C = feature == null ? void 0 : feature.properties) == null ? void 0 : _C.geocode) == null ? void 0 : _D.UGC) != null ? _E : [],
@@ -5809,11 +5809,11 @@ var api = (stanza) => __async(null, null, function* () {
           polygon_generated: ((_H = feature == null ? void 0 : feature.geometry) == null ? void 0 : _H.coordinates.length) > 0 ? true : false
         },
         parameters: {
-          tags: getEventTags((_I = feature == null ? void 0 : feature.properties) == null ? void 0 : _I.description),
+          tags: GetEventTags((_I = feature == null ? void 0 : feature.properties) == null ? void 0 : _I.description),
           instructions: (_K = (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.instruction) != null ? _K : null,
-          source: (_M = getTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _M : null,
-          hazards: (_O = getTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _O : null,
-          impacts: (_Q = getTextFromProduct({ message: (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _Q : null,
+          source: (_M = GetTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _M : null,
+          hazards: (_O = GetTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _O : null,
+          impacts: (_Q = GetTextFromProduct({ message: (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _Q : null,
           estimated_hail_size: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxHailSize) == null ? void 0 : _T[0]) != null ? _U : null,
           estimated_wind_gusts: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.maxWindGust) == null ? void 0 : _X[0]) != null ? _Y : null,
           damage_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.thunderstormDamageThreat) == null ? void 0 : _$[0]) != null ? _aa : null,
@@ -5823,31 +5823,31 @@ var api = (stanza) => __async(null, null, function* () {
           hail_threat: (_qa = (_pa = (_oa = (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.parameters) == null ? void 0 : _oa.hailThreat) == null ? void 0 : _pa[0]) != null ? _qa : null
         },
         discussion_parameters: {
-          discussion_number: (_ua = (_ta = (_sa = getTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _sa.toString()) == null ? void 0 : _ta.padStart(4, "0")) != null ? _ua : null,
-          discussion_concerning: (_wa = getTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`Concerning...`] })) != null ? _wa : null,
-          discussion_max_tornado: (_ya = getTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _ya : null,
-          discussion_max_hail: (_Aa = getTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _Aa : null,
-          discussion_max_wind: (_Ca = getTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _Ca : null,
-          discussion_watch_issuance: (_Ea = getTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _Ea : null
+          discussion_number: (_ua = (_ta = (_sa = GetTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _sa.toString()) == null ? void 0 : _ta.padStart(4, "0")) != null ? _ua : null,
+          discussion_concerning: (_wa = GetTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`Concerning...`] })) != null ? _wa : null,
+          discussion_max_tornado: (_ya = GetTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _ya : null,
+          discussion_max_hail: (_Aa = GetTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _Aa : null,
+          discussion_max_wind: (_Ca = GetTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _Ca : null,
+          discussion_watch_issuance: (_Ea = GetTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _Ea : null
         },
         watch_parameters: {
-          watch_number: ((_Fa = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _Fa.is_watch) && ((_Qa = (_Pa = (_Ka = (_Ja = (_Ia = (_Ha = getTextFromProduct({ message: (_Ga = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ga.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Ha.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ia.trim()) == null ? void 0 : _Ja.toString()) == null ? void 0 : _Ka.padStart(4, "0")) != null ? _Pa : (_Oa = (_Na = (_Ma = (_La = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _La.tracking) == null ? void 0 : _Ma.slice(-4)) == null ? void 0 : _Na.toString()) == null ? void 0 : _Oa.padStart(4, "0")) != null ? _Qa : null),
+          watch_number: ((_Fa = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _Fa.is_watch) && ((_Qa = (_Pa = (_Ka = (_Ja = (_Ia = (_Ha = GetTextFromProduct({ message: (_Ga = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ga.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Ha.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ia.trim()) == null ? void 0 : _Ja.toString()) == null ? void 0 : _Ka.padStart(4, "0")) != null ? _Pa : (_Oa = (_Na = (_Ma = (_La = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _La.tracking) == null ? void 0 : _Ma.slice(-4)) == null ? void 0 : _Na.toString()) == null ? void 0 : _Oa.padStart(4, "0")) != null ? _Qa : null),
           watch_type: ((_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Sa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Sa.description.includes(`SEVERE`)) ? `Severe` : null,
-          additional_tornadoes_probability: (_Ua = getTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
-          strong_tornadoes_probability: (_Wa = getTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
-          severe_wind_probability: (_Ya = getTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ya : null,
-          severe_hail_probability: (__a = getTextFromProduct({ message: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? __a : null,
-          hail_2in_probability: (_ab = getTextFromProduct({ message: (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _ab : null,
-          combined_hail_wind_probability: (_cb = getTextFromProduct({ message: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _cb : null,
-          max_hail_in: (_eb = getTextFromProduct({ message: (_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _eb : null,
-          max_wind_surface: (_gb = getTextFromProduct({ message: (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _gb : null,
-          max_tops_x100feet: (_ib = getTextFromProduct({ message: (_hb = feature == null ? void 0 : feature.properties) == null ? void 0 : _hb.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _ib : null,
-          pds_watch: getTextFromProduct({ message: (_jb = feature == null ? void 0 : feature.properties) == null ? void 0 : _jb.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+          additional_tornadoes_probability: (_Ua = GetTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
+          strong_tornadoes_probability: (_Wa = GetTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
+          severe_wind_probability: (_Ya = GetTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ya : null,
+          severe_hail_probability: (__a = GetTextFromProduct({ message: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? __a : null,
+          hail_2in_probability: (_ab = GetTextFromProduct({ message: (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _ab : null,
+          combined_hail_wind_probability: (_cb = GetTextFromProduct({ message: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _cb : null,
+          max_hail_in: (_eb = GetTextFromProduct({ message: (_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _eb : null,
+          max_wind_surface: (_gb = GetTextFromProduct({ message: (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _gb : null,
+          max_tops_x100feet: (_ib = GetTextFromProduct({ message: (_hb = feature == null ? void 0 : feature.properties) == null ? void 0 : _hb.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _ib : null,
+          pds_watch: GetTextFromProduct({ message: (_jb = feature == null ? void 0 : feature.properties) == null ? void 0 : _jb.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
         },
         metadata: {
           ms: performance.now() - tick,
           source: `events.api`,
-          tracking: getEventTracking({ type: `API`, organization: { wmoidentifier: (_mb = (_lb = (_kb = feature == null ? void 0 : feature.properties) == null ? void 0 : _kb.parameters) == null ? void 0 : _lb.WMOidentifier) == null ? void 0 : _mb[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec == null ? void 0 : pVtec[0] }),
+          tracking: GetEventTracking({ type: `API`, organization: { wmoidentifier: (_mb = (_lb = (_kb = feature == null ? void 0 : feature.properties) == null ? void 0 : _kb.parameters) == null ? void 0 : _lb.WMOidentifier) == null ? void 0 : _mb[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec == null ? void 0 : pVtec[0] }),
           header: `ZCZC-ATMOSX-${(_ob = (_nb = feature == null ? void 0 : feature.properties) == null ? void 0 : _nb.parameters) == null ? void 0 : _ob.WMOidentifier}`,
           vtec: pVtec == null ? void 0 : pVtec[0],
           hvtec: null,
@@ -5862,12 +5862,12 @@ var api = (stanza) => __async(null, null, function* () {
         }
       }
     });
-    setDebug({ title: `@events.api`, message: `Event process took ${performance.now() - tick} ms` });
+    SetDebug({ title: `@events.api`, message: `Event process took ${performance.now() - tick} ms` });
   }
 });
 
-// src/@dictionaries/dictionaries.enhanced.ts
-var dict_enhanced = {
+// src/@enums/Enhanced.ts
+var EnumEnhanced = {
   "Tornado Warning": {
     "Tornado Emergency": { description: "tornado emergency" },
     "PDS Tornado Warning": { description: "particularly dangerous situation", damage: `CONSIDERABLE` },
@@ -5911,15 +5911,15 @@ var dict_enhanced = {
   }
 };
 
-// src/@building/building.enhance.ts
-var getEventEnhancedName = (event) => {
+// src/@building/GetEventEnhancedName.ts
+var GetEventEnhancedName = (event) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i;
   let name = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.event;
   const damage = (_c = (_b = event == null ? void 0 : event.properties) == null ? void 0 : _b.parameters) == null ? void 0 : _c.damage_threat;
   const tornado = (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.parameters) == null ? void 0 : _e.tornado_threat;
   const pdswatch = (_g = (_f = event == null ? void 0 : event.properties) == null ? void 0 : _f.watch_parameters) == null ? void 0 : _g.pds_watch;
   const description = (_i = (_h = event == null ? void 0 : event.properties) == null ? void 0 : _h.description) == null ? void 0 : _i.toLowerCase();
-  for (const [eventKey, eventConfig] of Object.entries(dict_enhanced)) {
+  for (const [eventKey, eventConfig] of Object.entries(EnumEnhanced)) {
     if (eventKey !== name) continue;
     for (const [paramKey, paramValue] of Object.entries(eventConfig)) {
       let matches = true;
@@ -5944,8 +5944,8 @@ var getEventEnhancedName = (event) => {
   return name;
 };
 
-// src/@dictionaries/dictionaries.correlations.ts
-var dict_correlations = [
+// src/@enums/Correlations.ts
+var EnumCorrelations = [
   { type: "Statement", name: "Statement", isCancel: false, isUpdate: false, isIssued: true, isStatement: true },
   { type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
   { type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
@@ -5960,8 +5960,8 @@ var dict_correlations = [
   { type: "Routine", name: "Routine", isCancel: false, isUpdate: true, isIssued: false, isStatement: false }
 ];
 
-// src/@dictionaries/dictionaries.cancellation.ts
-var dict_cancellation = [
+// src/@enums/Cancellation.ts
+var EnumCancellation = [
   "has been cancelled",
   "subsided sufficiently for the advisory to be cancelled",
   "has been cancelled",
@@ -5974,16 +5974,16 @@ var dict_cancellation = [
   "has weakened below severe"
 ];
 
-// src/@dictionaries/dictionaries.testing.ts
-var dict_testing = [
+// src/@enums/Testing.ts
+var EnumTesting = [
   `This is a test message`,
   `Monitoring message only.`,
   `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
   "TEST MESSAGE"
 ];
 
-// src/@dictionaries/dictionaries.hail.ts
-var dict_hail = {
+// src/@enums/Hail.ts
+var EnumHail = {
   "0.25": "Pea",
   ".25": "Pea",
   "0.50": "Penny",
@@ -6003,48 +6003,48 @@ var dict_hail = {
   "4.00": "CD/DVD"
 };
 
-// src/@building/building.signature.ts
-var getEventSignature = (event) => {
+// src/@building/GetEventSignature.ts
+var GetEventSignature = (event) => {
   var _a, _b, _c, _d, _e, _f, _g, _h;
-  const properties2 = event == null ? void 0 : event.properties;
-  const vtec2 = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.vtec;
-  const status = dict_correlations.find((c) => c.type === (properties2 == null ? void 0 : properties2.status));
-  const csig = dict_cancellation.find((sig) => properties2.description.toLowerCase().includes(sig.toLowerCase()));
-  properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_issued: true, is_test: false });
-  if ((_c = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _c.estimated_hail_size) {
-    properties2.parameters.estimated_hail_size += ` (${(_e = dict_hail[(_d = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _d.estimated_hail_size]) != null ? _e : "--"})`;
+  const properties = event == null ? void 0 : event.properties;
+  const vtec = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.vtec;
+  const status = EnumCorrelations.find((c) => c.type === (properties == null ? void 0 : properties.status));
+  const csig = EnumCancellation.find((sig) => properties.description.toLowerCase().includes(sig.toLowerCase()));
+  properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_issued: true, is_test: false });
+  if ((_c = properties == null ? void 0 : properties.parameters) == null ? void 0 : _c.estimated_hail_size) {
+    properties.parameters.estimated_hail_size += ` (${(_e = EnumHail[(_d = properties == null ? void 0 : properties.parameters) == null ? void 0 : _d.estimated_hail_size]) != null ? _e : "--"})`;
   }
   if (status) {
-    properties2.status = (_f = status.name) != null ? _f : properties2.status;
-    properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel, is_statement: !!status.isStatement });
+    properties.status = (_f = status.name) != null ? _f : properties.status;
+    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel, is_statement: !!status.isStatement });
   }
   if (csig) {
-    properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
+    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_expired: true });
   }
-  const getProduct = (_h = (_g = vtec2 == null ? void 0 : vtec2.vtec) == null ? void 0 : _g.split(`.`)[0]) == null ? void 0 : _h.replace(`/`, ``);
-  const isTestProduct = dict_products[getProduct] == `Test Product`;
-  if (isTestProduct || dict_testing.some((sig) => {
+  const getProduct = (_h = (_g = vtec == null ? void 0 : vtec.vtec) == null ? void 0 : _g.split(`.`)[0]) == null ? void 0 : _h.replace(`/`, ``);
+  const isTestProduct = EnumProducts[getProduct] == `Test Product`;
+  if (isTestProduct || EnumTesting.some((sig) => {
     var _a2, _b2, _c2, _d2;
-    return (_d2 = (_a2 = properties2.description) == null ? void 0 : _a2.toLowerCase().includes(sig.toLowerCase())) != null ? _d2 : (_c2 = (_b2 = properties2 == null ? void 0 : properties2.parameters) == null ? void 0 : _b2.instructions) == null ? void 0 : _c2.toLowerCase().includes(sig.toLowerCase());
+    return (_d2 = (_a2 = properties.description) == null ? void 0 : _a2.toLowerCase().includes(sig.toLowerCase())) != null ? _d2 : (_c2 = (_b2 = properties == null ? void 0 : properties.parameters) == null ? void 0 : _b2.instructions) == null ? void 0 : _c2.toLowerCase().includes(sig.toLowerCase());
   })) {
-    properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_test: true });
+    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_test: true });
   }
-  if (new Date(properties2.expires).getTime() < Date.now()) {
-    properties2.status_metadata = __spreadProps(__spreadValues({}, properties2.status_metadata), { is_expired: true });
+  if (new Date(properties.expires).getTime() < Date.now()) {
+    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_expired: true });
   }
-  properties2.status_metadata = __spreadValues({}, properties2.status_metadata);
+  properties.status_metadata = __spreadValues({}, properties.status_metadata);
   return event;
 };
 
-// src/@dictionaries/dictionaries.global.ts
-var dict_global = [
+// src/@enums/GlobalFilter.ts
+var EnumGlobalFilter = [
   "storm prediction center day 1 outlook",
   "storm prediction center day 2 outlook",
   "storm prediction center day 3 outlook"
 ];
 
-// src/@manager/manager.setHash.ts
-var setHash = (event, entry) => {
+// src/@manager/SetHash.ts
+var SetHash = (event, entry) => {
   if (entry) {
     entry.hashes.push(event.properties.metadata.hash);
     entry.expires = event.properties.expires;
@@ -6057,8 +6057,8 @@ var setHash = (event, entry) => {
   }
 };
 
-// src/@modules/@eas/eas.getWavPCM16.ts
-var getWavPCM16 = (buffer) => {
+// src/@modules/@eas/GetWavPCM16.ts
+var GetWavPCM16 = (buffer) => {
   if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
     return null;
   }
@@ -6086,8 +6086,8 @@ var getWavPCM16 = (buffer) => {
   return { samples: new Int16Array(samples), sampleRate, channels, bitsPerSample };
 };
 
-// src/@modules/@eas/eas.getSampledPCM16.ts
-var getSampledPCM16 = (int16, originalRate, targetRate) => {
+// src/@modules/@eas/GetSampledPCM16.ts
+var GetSampledPCM16 = (int16, originalRate, targetRate) => {
   if (originalRate === targetRate) return int16;
   const ratio = targetRate / originalRate;
   const outLen = Math.max(1, Math.round(int16.length * ratio));
@@ -6103,15 +6103,15 @@ var getSampledPCM16 = (int16, originalRate, targetRate) => {
   return out;
 };
 
-// src/@modules/@eas/eas.getPCMToFloat.ts
-var getPCMToFloat = (int16) => {
+// src/@modules/@eas/GetPCMToFloat.ts
+var GetPCMToFloat = (int16) => {
   const out = new Float32Array(int16.length);
   for (let i = 0; i < int16.length; i++) out[i] = int16[i] / 32768;
   return out;
 };
 
-// src/@modules/@eas/eas.getFloatPCM16.ts
-var getFloatPCM16 = (float32) => {
+// src/@modules/@eas/GetFloatPCM16.ts
+var GetFloatPCM16 = (float32) => {
   const out = new Int16Array(float32.length);
   for (let i = 0; i < float32.length; i++) {
     let v = Math.max(-1, Math.min(1, float32[i]));
@@ -6120,11 +6120,11 @@ var getFloatPCM16 = (float32) => {
   return out;
 };
 
-// src/@modules/@eas/eas.setRadioEffect.ts
-var setRadioEffect = (int16, sampleRate) => {
+// src/@modules/@eas/SetRadioEffect.ts
+var SetRadioEffect = (int16, sampleRate) => {
   const hpCut = 3555;
   const lpCut = 1600;
-  const x = getPCMToFloat(int16);
+  const x = GetPCMToFloat(int16);
   const dt = 1 / sampleRate;
   const rcHP = 1 / (2 * Math.PI * hpCut);
   const aHP = rcHP / (rcHP + dt);
@@ -6145,11 +6145,11 @@ var setRadioEffect = (int16, sampleRate) => {
   const compGain = 2;
   const norm = Math.tanh(compGain);
   for (let i = 0; i < x.length; i++) x[i] = Math.tanh(x[i] * compGain) / norm;
-  return getFloatPCM16(x);
+  return GetFloatPCM16(x);
 };
 
-// src/@modules/@eas/eas.setAFSK.ts
-var setAFSK = (bits, sampleRate) => {
+// src/@modules/@eas/SetAFSK.ts
+var SetAFSK = (bits, sampleRate) => {
   const baud = 520.83;
   const markFreq = 2083.3;
   const spaceFreq = 1562.5;
@@ -6180,8 +6180,8 @@ var setAFSK = (bits, sampleRate) => {
   return Int16Array.from(result);
 };
 
-// src/@modules/@eas/eas.setAsciiToBits.ts
-var setAsciiToBits = (str) => {
+// src/@modules/@eas/SetAsciiToBits.ts
+var SetAsciiToBits = (str) => {
   const bits = [];
   for (let i = 0; i < str.length; i++) {
     const c = str.charCodeAt(i) & 255;
@@ -6192,8 +6192,8 @@ var setAsciiToBits = (str) => {
   return bits;
 };
 
-// src/@modules/@eas/eas.getMergedPCM16.ts
-var getMergedPCM16 = (arrays) => {
+// src/@modules/@eas/GetMergedPCM16.ts
+var GetMergedPCM16 = (arrays) => {
   let total = 0;
   for (const a of arrays) total += a.length;
   const out = new Int16Array(total);
@@ -6205,16 +6205,16 @@ var getMergedPCM16 = (arrays) => {
   return out;
 };
 
-// src/@modules/@eas/eas.setSameHeader.ts
-var setSameHeader = (vtec2, repeats, sampleRate = 8e3, options = {}) => {
+// src/@modules/@eas/SetSameHeader.ts
+var SetSameHeader = (vtec, repeats, sampleRate = 8e3, options = {}) => {
   var _a, _b;
   const preMarkSec = (_a = options.preMarkSec) != null ? _a : 0.3;
   const gapSec = (_b = options.gapSec) != null ? _b : 0.1;
   const bursts = [];
   const gap = new Int16Array(Math.floor(gapSec * sampleRate));
   for (let i = 0; i < repeats; i++) {
-    const bodyBits = setAsciiToBits(vtec2);
-    const body = setAFSK(bodyBits, sampleRate);
+    const bodyBits = SetAsciiToBits(vtec);
+    const body = SetAFSK(bodyBits, sampleRate);
     const extendedBodyDuration = Math.round(preMarkSec * sampleRate);
     const extendedBody = new Int16Array(extendedBodyDuration + gap.length);
     for (let j2 = 0; j2 < extendedBodyDuration; j2++) {
@@ -6224,11 +6224,11 @@ var setSameHeader = (vtec2, repeats, sampleRate = 8e3, options = {}) => {
     bursts.push(extendedBody);
     if (i !== repeats - 1) bursts.push(gap);
   }
-  return getMergedPCM16(bursts);
+  return GetMergedPCM16(bursts);
 };
 
-// src/@modules/@eas/eas.setAttentionTone.ts
-var setAttentionTone = (ms, sampleRate) => {
+// src/@modules/@eas/SetAttentionTone.ts
+var SetAttentionTone = (ms, sampleRate) => {
   const len = Math.floor(ms * sampleRate);
   const out = new Int16Array(len);
   const f1 = 853;
@@ -6248,18 +6248,18 @@ var setAttentionTone = (ms, sampleRate) => {
   return out;
 };
 
-// src/@modules/@eas/eas.setNoise.ts
-var setNoise = (int16, noiseLevel = 0.02) => {
-  const x = getPCMToFloat(int16);
+// src/@modules/@eas/SetNoise.ts
+var SetNoise = (int16, noiseLevel = 0.02) => {
+  const x = GetPCMToFloat(int16);
   for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * noiseLevel;
   let peak = 0;
   for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
   if (peak > 1) for (let i = 0; i < x.length; i++) x[i] *= 0.98 / peak;
-  return getFloatPCM16(x);
+  return GetFloatPCM16(x);
 };
 
-// src/@modules/@eas/eas.getPCM16.ts
-var getPCM16 = (samples, sampleRate) => {
+// src/@modules/@eas/GetPCM16.ts
+var GetPCM16 = (samples, sampleRate) => {
   let o = 0;
   const bytesPerSample = 2;
   const blockAlign = 1 * bytesPerSample;
@@ -6299,17 +6299,17 @@ var getPCM16 = (samples, sampleRate) => {
   return buffer;
 };
 
-// src/@modules/@eas/eas.getTTS.ts
+// src/@modules/@eas/GetTTS.ts
 var import_os = require("os");
 var import_fs = require("fs");
 var import_child_process = require("child_process");
-var getTTS = (text2, outputPath) => __async(null, null, function* () {
+var GetTTS = (text, outputPath) => __async(null, null, function* () {
   const vPlatform = (0, import_os.platform)();
   switch (vPlatform) {
     case "win32": {
       try {
         const txtPath = outputPath + ".txt";
-        (0, import_fs.writeFileSync)(txtPath, text2, "utf8");
+        (0, import_fs.writeFileSync)(txtPath, text, "utf8");
         const command = [
           "Add-Type -AssemblyName System.Speech;",
           `$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;`,
@@ -6326,7 +6326,7 @@ var getTTS = (text2, outputPath) => __async(null, null, function* () {
     }
     case "linux":
       try {
-        (0, import_child_process.execSync)(`espeak -w "${outputPath}" "${text2.replace(/"/g, '\\"')}"`);
+        (0, import_child_process.execSync)(`espeak -w "${outputPath}" "${text.replace(/"/g, '\\"')}"`);
       } catch (e) {
       }
       break;
@@ -6335,8 +6335,8 @@ var getTTS = (text2, outputPath) => __async(null, null, function* () {
   }
 });
 
-// src/@modules/@eas/eas.getCleanDescription.ts
-var getCleanDescription = (message) => {
+// src/@modules/@eas/GetCleanDescription.ts
+var GetCleanDescription = (message) => {
   const patches = [
     { regex: /\.{3,}/g, replacement: ". " },
     { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
@@ -6407,12 +6407,12 @@ var getCleanDescription = (message) => {
   return message.replace(/'/g, "''").replace(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(\d{2})\s+(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{2})(\d{2})\s+(AM|PM)\b/gi, (_, hh, mm, ap) => fmt(+hh, +mm, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(AM|PM)\b/gi, (_, h, ap) => fmt(+h, 0, ap.toUpperCase())).replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").trim();
 };
 
-// src/@modules/@eas/eas.setEasTone.ts
+// src/@modules/@eas/GenerateEASMessage.ts
 var import_path2 = require("path");
 var import_fs2 = require("fs");
 var import_child_process2 = require("child_process");
 var import_os2 = require("os");
-var setEasTone = (options) => __async(null, null, function* () {
+var GenerateEASMessage = (options) => __async(null, null, function* () {
   var _a;
   const tick = performance.now();
   const settings = bootstrap.settings;
@@ -6422,7 +6422,7 @@ var setEasTone = (options) => __async(null, null, function* () {
   let header = options.header;
   let title = ((_a = options.title) != null ? _a : `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
   if (!message || !header) {
-    setWarning({
+    SetWarning({
       title: `EAS`,
       message: `Message and header are required to generate an EAS tone.`
     });
@@ -6438,15 +6438,15 @@ var setEasTone = (options) => __async(null, null, function* () {
   const outTTS = (0, import_path2.join)(directory, `/${title}.wav`);
   const vPlatform = (0, import_os2.platform)();
   if (vPlatform === "darwin") {
-    setWarning({
+    SetWarning({
       title: `EAS`,
       message: `EAS tone generation is not supported on macOS.`
     });
     return null;
   }
   yield new Promise((resolve6, reject) => {
-    const tMsg = getCleanDescription(message);
-    getTTS(tMsg, tmpTTS).then(() => {
+    const tMsg = GetCleanDescription(message);
+    GetTTS(tMsg, tmpTTS).then(() => {
       resolve6();
     });
   });
@@ -6454,19 +6454,19 @@ var setEasTone = (options) => __async(null, null, function* () {
     return null;
   }
   buffTTS = (0, import_fs2.readFileSync)(tmpTTS);
-  const vWav = getWavPCM16(buffTTS);
-  const vSamples = getSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
-  const vRadio = setRadioEffect(vSamples, 8e3);
+  const vWav = GetWavPCM16(buffTTS);
+  const vSamples = GetSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
+  const vRadio = SetRadioEffect(vSamples, 8e3);
   if ((0, import_fs2.existsSync)(prefix)) {
     let tBuffer = (0, import_fs2.readFileSync)(prefix);
-    let tWav = getWavPCM16(tBuffer);
+    let tWav = GetWavPCM16(tBuffer);
     if (tWav == null) {
       try {
         const converted = (0, import_path2.join)(directory, `/${title}-tts-fixed.wav`);
         (0, import_child_process2.execSync)(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
         if ((0, import_fs2.existsSync)(converted)) {
           tBuffer = (0, import_fs2.readFileSync)(converted);
-          tWav = getWavPCM16(tBuffer);
+          tWav = GetWavPCM16(tBuffer);
           try {
             (0, import_fs2.unlinkSync)(converted);
           } catch (e) {
@@ -6476,41 +6476,41 @@ var setEasTone = (options) => __async(null, null, function* () {
       }
     }
     if (tWav == null) {
-      setWarning({ title: `EAS`, message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` });
+      SetWarning({ title: `EAS`, message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` });
       return null;
     }
-    const tSamples = tWav.sampleRate != 8e3 ? getSampledPCM16(tWav.samples, tWav.sampleRate, 8e3) : tWav.samples;
-    buffRadio = setRadioEffect(tSamples, 8e3);
+    const tSamples = tWav.sampleRate != 8e3 ? GetSampledPCM16(tWav.samples, tWav.sampleRate, 8e3) : tWav.samples;
+    buffRadio = SetRadioEffect(tSamples, 8e3);
   }
   buffFull = buffRadio != null ? [buffRadio, new Int16Array(Math.floor(0.5 * 8e3))] : [];
   buffFull.push(
-    setSameHeader(header, 3, 8e3, {
+    SetSameHeader(header, 3, 8e3, {
       preMarkSec: 1.1,
       gapSec: 0.5
     }),
     new Int16Array(Math.floor(0.5 * 8e3)),
-    setAttentionTone(8, 8e3),
+    SetAttentionTone(8, 8e3),
     new Int16Array(Math.floor(0.5 * 8e3)),
     vRadio
   );
   for (let i = 0; i < 3; i++) {
-    buffFull.push(setSameHeader(header, 1, 8e3, { preMarkSec: 0.5, gapSec: 0.1 }));
+    buffFull.push(SetSameHeader(header, 1, 8e3, { preMarkSec: 0.5, gapSec: 0.1 }));
     buffFull.push(new Int16Array(Math.floor(0.5 * 8e3)));
   }
-  const aSamples = getMergedPCM16(buffFull);
-  const aFinal = setNoise(aSamples, 2e-3);
-  const aBuffer = getPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
+  const aSamples = GetMergedPCM16(buffFull);
+  const aFinal = SetNoise(aSamples, 2e-3);
+  const aBuffer = GetPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
   (0, import_fs2.writeFileSync)(outTTS, aBuffer);
   try {
     (0, import_fs2.unlinkSync)(tmpTTS);
   } catch (e) {
   }
-  setDebug({ title: `@eas.setEasTone`, message: `EAS tone generation took ${performance.now() - tick} ms` });
+  SetDebug({ title: `@eas.GenerateEASMessage`, message: `EAS tone generation took ${performance.now() - tick} ms` });
   return outTTS;
 });
 
-// src/@parsers/@text/text.getEmbedText.ts
-var getEmebedText = (event) => {
+// src/@parsers/@text/GetEmbededText.ts
+var GetEmebedText = (event) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na;
   const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
   const isStatement = event.properties.status_metadata.is_statement;
@@ -6547,8 +6547,8 @@ var getEmebedText = (event) => {
   ].filter(Boolean).join("\n");
 };
 
-// src/@parsers/@text/text.getStringText.ts
-var getStringText = (event) => {
+// src/@parsers/@text/GetStringText.ts
+var GetStringText = (event) => {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea;
   const settings = bootstrap.settings;
   const timezone = (_a = settings.NotifyServer.Timezone) != null ? _a : `UTC`;
@@ -6585,8 +6585,8 @@ var getStringText = (event) => {
   ].filter(Boolean).join("\n");
 };
 
-// src/@modules/@utilities/utilities.createHttp.ts
-var createHttp = (options) => __async(null, null, function* () {
+// src/@modules/@utilities/CreateHttp.ts
+var CreateHttp = (options) => __async(null, null, function* () {
   var _a, _b, _c, _d;
   const requestOptions = {
     method: (_a = options.method) != null ? _a : "GET",
@@ -6628,8 +6628,8 @@ var createHttp = (options) => __async(null, null, function* () {
   }
 });
 
-// src/@modules/@utilities/utilities.getMatched.ts
-var getMatched = (strings, string) => {
+// src/@modules/@utilities/GetMatched.ts
+var GetMatched = (strings, string) => {
   const isMatched = strings.some((pattern) => {
     if (!pattern) return false;
     const lowerP = pattern.toLowerCase();
@@ -6644,37 +6644,37 @@ var getMatched = (strings, string) => {
   return isMatched;
 };
 
-// src/@manager/manager.createActions.ts
+// src/@manager/CreateActions.ts
 var import_fs3 = require("fs");
-var createActions = (event) => __async(null, null, function* () {
+var CreateActions = (event) => __async(null, null, function* () {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s;
   const tick = performance.now();
   const settings = bootstrap.settings;
   const notifyServer = settings.NotifyServer;
   const actions = settings.ActionSettings;
-  const properties2 = event.properties;
+  const properties = event.properties;
   const metadata = {
     text: null,
     eas: null,
     json: null,
-    name: properties2.event,
-    status: properties2.status,
-    description: properties2.description,
-    tracking: properties2.metadata.tracking,
-    header: properties2.metadata.header,
-    raw: properties2.metadata.raw,
-    expired: properties2.status_metadata.is_expired,
-    attachments: properties2.metadata.attachments
+    name: properties.event,
+    status: properties.status,
+    description: properties.description,
+    tracking: properties.metadata.tracking,
+    header: properties.metadata.header,
+    raw: properties.metadata.raw,
+    expired: properties.status_metadata.is_expired,
+    attachments: properties.metadata.attachments
   };
   for (const action of actions) {
     const events = action == null ? void 0 : action.Events;
     const webhook = action == null ? void 0 : action.Webhook;
     const notify = action == null ? void 0 : action.NotificationServer;
     const uploads = action == null ? void 0 : action.Uploads;
-    const isMatched = getMatched(events != null ? events : [], metadata.name);
+    const isMatched = GetMatched(events != null ? events : [], metadata.name);
     if ((events == null ? void 0 : events.length) == 0 || isMatched) {
       if (uploads == null ? void 0 : uploads.EAS) {
-        metadata.eas = yield setEasTone({
+        metadata.eas = yield GenerateEASMessage({
           title: `${metadata.name}_${metadata.status}_${metadata.tracking}`,
           message: metadata.description,
           header: metadata.header
@@ -6703,9 +6703,9 @@ var createActions = (event) => __async(null, null, function* () {
           if (!(0, import_fs3.existsSync)(eDestination)) {
             (0, import_fs3.mkdirSync)(eDestination, { recursive: true });
           }
-          (0, import_fs3.writeFileSync)(file, JSON.stringify(getCleanedEvent(event), null, 2));
+          (0, import_fs3.writeFileSync)(file, JSON.stringify(GetCleanedEvent(event), null, 2));
         }
-        metadata.json = JSON.stringify(getCleanedEvent(event), null, 2);
+        metadata.json = JSON.stringify(GetCleanedEvent(event), null, 2);
       }
       if ((notifyServer == null ? void 0 : notifyServer.Enabled) && (notify == null ? void 0 : notify.Enabled) && (notify == null ? void 0 : notify.Topic)) {
         let buttons = [];
@@ -6740,25 +6740,25 @@ var createActions = (event) => __async(null, null, function* () {
             "url": metadata.attachments.find((a) => a.name === "Image: Graphic").link
           });
         }
-        yield createHttp(__spreadProps(__spreadValues({
+        yield CreateHttp(__spreadProps(__spreadValues({
           url: `${(_j = notifyServer == null ? void 0 : notifyServer.Server) == null ? void 0 : _j.replace(/\/$/, "")}/${notify.Topic}`,
           timeout: 15e3,
           method: "PUT"
         }, auth && { auth }), {
           headers: __spreadValues({
             "Title": `${metadata.name} (${metadata.status})`,
-            "Tags": (_l = (_k = properties2.parameters.tags) == null ? void 0 : _k.join(",")) != null ? _l : "N/A",
+            "Tags": (_l = (_k = properties.parameters.tags) == null ? void 0 : _k.join(",")) != null ? _l : "N/A",
             "Priority": (_m = notify == null ? void 0 : notify.Priority) != null ? _m : "5"
           }, buttons.length > 0 && { "Actions": JSON.stringify(buttons) }),
-          body: getStringText(event)
+          body: GetStringText(event)
         }));
       }
       if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
-        const isRatelimited = setTimeoutAction({ identifier: webhook.Destination, interval: ((_n = webhook.Ratelimit) != null ? _n : 2) * 2, max: (_o = webhook.Ratelimit) != null ? _o : 2, addTime: true });
+        const isRatelimited = SetTimeoutAction({ identifier: webhook.Destination, interval: ((_n = webhook.Ratelimit) != null ? _n : 2) * 2, max: (_o = webhook.Ratelimit) != null ? _o : 2, addTime: true });
         const form = new FormData();
         const embed = {
           title: `${metadata.name} (${metadata.status})`,
-          description: getEmebedText(event),
+          description: GetEmebedText(event),
           fields: [],
           color: 16711680,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
@@ -6784,15 +6784,15 @@ var createActions = (event) => __async(null, null, function* () {
           });
         }
         if (uploads == null ? void 0 : uploads.TEXT) {
-          form.append("fUpload", new Blob([Buffer.from(metadata.text)], { type: "application/text" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.txt`);
+          form.append("fUpload", new Blob([Buffer.from(metadata.text)], { type: "application/text" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`);
         }
         if (uploads == null ? void 0 : uploads.JSON) {
-          form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}.json`);
+          form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
         }
         if (uploads == null ? void 0 : uploads.EAS) {
           if (metadata.eas) {
             const file = (0, import_fs3.readFileSync)(metadata.eas);
-            form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties2.event}_${properties2.status}_${properties2.metadata.tracking}_eas.mp3`);
+            form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`);
           }
         }
         form.append("payload_json", JSON.stringify({
@@ -6800,7 +6800,7 @@ var createActions = (event) => __async(null, null, function* () {
           content: (_s = webhook.Message) != null ? _s : "",
           embeds: [embed]
         }));
-        yield createHttp({
+        yield CreateHttp({
           url: webhook.Destination,
           timeout: 15e3,
           method: `POST`,
@@ -6809,11 +6809,11 @@ var createActions = (event) => __async(null, null, function* () {
       }
     }
   }
-  setDebug({ title: `@manager.createActions`, message: `Listener took ${performance.now() - tick} ms` });
+  SetDebug({ title: `@manager.CreateActions`, message: `Listener took ${performance.now() - tick} ms` });
 });
 
-// src/@modules/@utilities/utilities.getShapeNearestPoint.ts
-var getShapeNearestPoint = (coordinates, point) => {
+// src/@modules/@utilities/GetShapeNearestPoint.ts
+var GetShapeNearestPoint = (coordinates, point) => {
   if (!coordinates || !point) {
     return { proximity: false, point: [0, 0], distance: null };
   }
@@ -6903,18 +6903,18 @@ var getShapeNearestPoint = (coordinates, point) => {
   return { proximity: distanceMiles === 0, point: closestPoint, distance: distanceMiles, distanceKm, distanceMeters };
 };
 
-// src/@building/building.polygon.ts
-var getEventNodes = (event) => __async(null, null, function* () {
+// src/@building/GetEventNodes.ts
+var GetEventNodes = (event) => __async(null, null, function* () {
   var _a, _b;
   const metadata = { nodes: [], proximity: false, filtered: false };
-  const geometry = yield getEventGeometry(event);
+  const geometry = yield GetEventGeometry(event);
   if (!geometry || !geometry.coordinates) {
     return { nodes: [], filtered: false, updated: Date.now() };
   }
   const nodes = bootstrap.cache.nodes.features;
   for (const node of nodes) {
     const [longitude, latitude] = node.geometry.coordinates;
-    const getPoint = getShapeNearestPoint(geometry.coordinates, [longitude, latitude]);
+    const getPoint = GetShapeNearestPoint(geometry.coordinates, [longitude, latitude]);
     const miles = (_a = getPoint.distance) != null ? _a : null;
     const kilometers = Number((miles * 1.609344).toFixed(3));
     const info = {
@@ -6938,8 +6938,8 @@ var getEventNodes = (event) => __async(null, null, function* () {
   };
 });
 
-// src/@manager/manager.updateNodes.ts
-var updateNode = (selectedEvent) => __async(null, null, function* () {
+// src/@manager/UpdateNode.ts
+var UpdateNode = (selectedEvent) => __async(null, null, function* () {
   const events = bootstrap.cache.events.features;
   const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
   let total = 0;
@@ -6950,7 +6950,7 @@ var updateNode = (selectedEvent) => __async(null, null, function* () {
       if (lastUpdate != null && Date.now() - lastUpdate < ttl) {
         return evt;
       }
-      const node = yield getEventNodes(evt);
+      const node = yield GetEventNodes(evt);
       if (node.nodes.length > 0) {
         total++;
       }
@@ -6968,7 +6968,7 @@ var updateNode = (selectedEvent) => __async(null, null, function* () {
     yield update(selectedEvent);
   }
   if (total > 0) {
-    setEventEmit({
+    SetEventEmit({
       event: `onNodeUpdate`,
       metadata: {
         type: `global-update`,
@@ -6978,8 +6978,8 @@ var updateNode = (selectedEvent) => __async(null, null, function* () {
   }
 });
 
-// src/@manager/manager.mkEvent.ts
-var mkEvent = (event) => __async(null, null, function* () {
+// src/@manager/MakeEvent.ts
+var MakeEvent = (event) => __async(null, null, function* () {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
   const settings = bootstrap.settings;
   const features = bootstrap.cache.events.features;
@@ -6989,14 +6989,14 @@ var mkEvent = (event) => __async(null, null, function* () {
   const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
   const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
   if (isHashed || event.properties.status_metadata.is_expired) return;
-  setHash(event, isEntry);
-  const isFilteredLocation = yield updateNode(event).then(() => event.properties.metadata.filtered_proximity);
-  if (!isFilteredLocation && !dict_global.includes(event.properties.event.toLowerCase()) && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
+  SetHash(event, isEntry);
+  const isFilteredLocation = yield UpdateNode(event).then(() => event.properties.metadata.filtered_proximity);
+  if (!isFilteredLocation && !EnumGlobalFilter.includes(event.properties.event.toLowerCase()) && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
     return;
   }
-  const isRatelimited = setTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
+  const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
   if (!isRatelimited.limited) {
-    setEventEmit({
+    SetEventEmit({
       event: `onEventStatus`,
       metadata: {
         type: getFeature ? `Updated` : `New`,
@@ -7029,22 +7029,22 @@ var mkEvent = (event) => __async(null, null, function* () {
             })
           })
         });
-        yield createActions(bootstrap.cache.events.features[getIndex]);
+        yield CreateActions(bootstrap.cache.events.features[getIndex]);
       } else {
         features.push(event);
-        yield createActions(event);
+        yield CreateActions(event);
       }
     }
   }
 });
 
-// src/@dictionaries/dictionaries.strings.ts
-var dict_strings = {
+// src/@enums/Strings.ts
+var EnumStrings = {
   cancellation: `{EVENT} has been allowed to expire. This event is no longer in effect.`
 };
 
-// src/@manager/manager.rmEvent.ts
-var rmEvent = (event, isTimeBasedExpiration) => __async(null, null, function* () {
+// src/@manager/RemoveEvent.ts
+var RemoveEvent = (event, isTimeBasedExpiration) => __async(null, null, function* () {
   const gTracking = event.properties.metadata.tracking;
   const isTrackingEventLogged = bootstrap.cache.events.features.find((f) => {
     var _a, _b;
@@ -7055,7 +7055,7 @@ var rmEvent = (event, isTimeBasedExpiration) => __async(null, null, function* ()
     event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
     event.properties.status = `Expired`;
     event.properties.status_metadata.is_expired = true;
-    const description = isTimeBasedExpiration ? dict_strings.cancellation.replace(`{SENDER}`, event.properties.geocode.office.name).replace(`{EVENT}`, event.properties.event) : event.properties.description;
+    const description = isTimeBasedExpiration ? EnumStrings.cancellation.replace(`{SENDER}`, event.properties.geocode.office.name).replace(`{EVENT}`, event.properties.event) : event.properties.description;
     event.properties.description = description;
     event.properties.metadata.raw = isTimeBasedExpiration ? description : event.properties.metadata.raw;
     event.properties.metadata.history.push({
@@ -7066,24 +7066,24 @@ var rmEvent = (event, isTimeBasedExpiration) => __async(null, null, function* ()
     bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(isTrackingEventLogged), 1);
     bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== gTracking);
     if (!isStatement) {
-      setEventEmit({
+      SetEventEmit({
         event: `onEventStatus`,
         metadata: { type: `Removed`, event },
         message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
       });
-      yield createActions(event);
+      yield CreateActions(event);
     }
-    setTimeoutAction({ identifier: gTracking, expire: true });
+    SetTimeoutAction({ identifier: gTracking, expire: true });
   }
-  setEventEmit({
+  SetEventEmit({
     event: `onEventCache`,
     metadata: bootstrap.cache.events,
     limited: true
   });
 });
 
-// src/@dictionaries/dictionaries.states.ts
-var dict_states = {
+// src/@enums/States.ts
+var EnumStates = {
   "AL": "Alabama",
   "AK": "Alaska",
   "AZ": "Arizona",
@@ -7137,8 +7137,8 @@ var dict_states = {
   "DC": "District of Columbia"
 };
 
-// src/@modules/@utilities/utilities.getLatestIssuance.ts
-var getLatestIssuance = () => {
+// src/@modules/@utilities/GetLatestIssuance.ts
+var GetLatestIssuance = () => {
   const now = /* @__PURE__ */ new Date();
   const current = now.getUTCHours() * 100 + now.getUTCMinutes();
   const issuances = [100, 600, 1300, 1630, 2e3];
@@ -7151,12 +7151,12 @@ var getLatestIssuance = () => {
   return latest.toString().padStart(4, "0");
 };
 
-// src/@building/building.attachments.ts
-var getEventAttachments = (event) => {
+// src/@building/GetEventAttachments.ts
+var GetEventAttachments = (event) => {
   var _a, _b, _c, _d, _e, _f, _g;
   let attachments = [];
   const settings = bootstrap.settings;
-  const issuanceTime = getLatestIssuance();
+  const issuanceTime = GetLatestIssuance();
   const spcNumber = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.discussion_parameters) == null ? void 0 : _b.discussion_number;
   const watchNumber = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.watch_parameters) == null ? void 0 : _d.watch_number;
   const locations = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.locations_array;
@@ -7175,10 +7175,10 @@ var getEventAttachments = (event) => {
   }
   if (settings.BroadcastifySettings.BroadcastifyAttachments) {
     for (const location of locations) {
-      if (dict_expressions.location.test(location)) {
+      if (EnumExpressions.location.test(location)) {
         const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`];
         const county = (_f = location == null ? void 0 : location.split(",")[0]) == null ? void 0 : _f.trim().replace(new RegExp(`^(${lines.join("|")}) `), "");
-        const state = dict_states[(_g = location == null ? void 0 : location.split(",")[1]) == null ? void 0 : _g.trim()];
+        const state = EnumStates[(_g = location == null ? void 0 : location.split(",")[1]) == null ? void 0 : _g.trim()];
         const feeds = bootstrap.database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
           const typeOrder = ["Other", "Public Safety"];
           const indexA = typeOrder.indexOf(a.type);
@@ -7200,9 +7200,9 @@ var getEventAttachments = (event) => {
   return attachments;
 };
 
-// src/@building/building.validate.ts
+// src/@building/ValidateEvents.ts
 var import_crypto = require("crypto");
-var validateEvents = (events) => __async(null, null, function* () {
+var ValidateEvents = (events) => __async(null, null, function* () {
   const tick = performance.now();
   if (events.length === 0) return;
   const configurations = bootstrap.settings;
@@ -7220,21 +7220,21 @@ var validateEvents = (events) => __async(null, null, function* () {
   }
   const isFiltered = (define2) => {
     var _a, _b, _c, _d;
-    const properties2 = define2.properties;
-    const zones = properties2.geocode.ugc;
-    const icao = properties2.geocode.office.office;
-    if (properties2.status_metadata.is_test) {
-      setEventEmit({ event: `onTestProduct`, metadata: define2 });
+    const properties = define2.properties;
+    const zones = properties.geocode.ugc;
+    const icao = properties.geocode.office.office;
+    if (properties.status_metadata.is_test) {
+      SetEventEmit({ event: `onTestProduct`, metadata: define2 });
       if (bools == null ? void 0 : bools.IgnoreTestProducts) return true;
     }
-    if (properties2.status_metadata.is_expired) {
-      setEventEmit({ event: `onExpiredProduct`, metadata: define2 });
-      rmEvent(define2, false);
+    if (properties.status_metadata.is_expired) {
+      SetEventEmit({ event: `onExpiredProduct`, metadata: define2 });
+      RemoveEvent(define2, false);
       return true;
     }
-    if (((_b = (_a = properties2.metadata) == null ? void 0 : _a.vtec) == null ? void 0 : _b.is_watch) && properties2.metadata.source != `events.api`) {
-      const isSPC = (_d = (_c = properties2.metadata) == null ? void 0 : _c.vtec) == null ? void 0 : _d.prediction_center;
-      setEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define2 });
+    if (((_b = (_a = properties.metadata) == null ? void 0 : _a.vtec) == null ? void 0 : _b.is_watch) && properties.metadata.source != `events.api`) {
+      const isSPC = (_d = (_c = properties.metadata) == null ? void 0 : _c.vtec) == null ? void 0 : _d.prediction_center;
+      SetEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define2 });
       if ((bools == null ? void 0 : bools.SPCWatchesOnly) && !isSPC) {
         return true;
       }
@@ -7245,43 +7245,43 @@ var validateEvents = (events) => __async(null, null, function* () {
     for (const key in sets) {
       const setting = sets[key];
       const values = [...setting];
-      if (key === "ListeningEvents" && setting.size > 0 && !getMatched(values, define2.properties.event)) {
-        setEventEmit({
+      if (key === "ListeningEvents" && setting.size > 0 && !GetMatched(values, define2.properties.event)) {
+        SetEventEmit({
           event: `onFilteredEvent`,
           metadata: define2
         });
         return true;
       }
-      if (key === "IgnoredEvents" && setting.size > 0 && getMatched(values, define2.properties.event)) {
-        setEventEmit({
+      if (key === "IgnoredEvents" && setting.size > 0 && GetMatched(values, define2.properties.event)) {
+        SetEventEmit({
           event: `onIgnoredEvent`,
           metadata: define2
         });
         return true;
       }
       if (key === "ListeningICAO" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
-        setEventEmit({
+        SetEventEmit({
           event: `onFilteredICAO`,
           metadata: define2
         });
         return true;
       }
       if (key === "IgnoredICAO" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
-        setEventEmit({
+        SetEventEmit({
           event: `onIgnoredICAO`,
           metadata: define2
         });
         return true;
       }
-      if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.toLowerCase()))) {
-        setEventEmit({
+      if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc) => setting.has(ugc.toLowerCase()))) {
+        SetEventEmit({
           event: `onFilteredUGC`,
           metadata: define2
         });
         return true;
       }
-      if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc2) => setting.has(ugc2.substring(0, 2).toLowerCase()))) {
-        setEventEmit({
+      if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc) => setting.has(ugc.substring(0, 2).toLowerCase()))) {
+        SetEventEmit({
           event: `onFilteredState`,
           metadata: define2
         });
@@ -7292,37 +7292,37 @@ var validateEvents = (events) => __async(null, null, function* () {
   };
   const filtering = events.filter((event) => {
     bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
-    const define2 = getEventSignature(event);
+    const define2 = GetEventSignature(event);
     const pre = __spreadProps(__spreadValues({}, define2), { properties: __spreadProps(__spreadValues({}, define2.properties), { metadata: __spreadValues({}, define2.properties.metadata) }) });
-    const properties2 = define2.properties;
+    const properties = define2.properties;
     delete pre.properties.metadata.ms;
     delete pre.properties.metadata.header;
-    const enhanced = properties2.event = getEventEnhancedName(event);
+    const enhanced = properties.event = GetEventEnhancedName(event);
     const filtered = isFiltered(define2);
     if (!filtered) {
-      event.geometry = !(bools == null ? void 0 : bools.DisableGeometryParsing) ? getEventGeometry(event) : null;
-      properties2.metadata.attachments = getEventAttachments(event);
+      event.geometry = !(bools == null ? void 0 : bools.DisableGeometryParsing) ? GetEventGeometry(event) : null;
+      properties.metadata.attachments = GetEventAttachments(event);
     }
-    properties2.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(pre)).digest("hex");
-    setEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, "")}`, metadata: define2 });
+    properties.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(pre)).digest("hex");
+    SetEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, "")}`, metadata: define2 });
     return !filtered;
   });
   if (filtering.length > 0) {
     for (const event of filtering) {
-      yield mkEvent(event);
+      yield MakeEvent(event);
     }
   }
-  yield updateNode();
-  setEventEmit({
+  yield UpdateNode();
+  SetEventEmit({
     event: `onEventCache`,
     metadata: bootstrap.cache.events,
     limited: true
   });
-  setDebug({ title: `@building.validate`, message: `Filtered ${filtering.length} events which took ${performance.now() - tick} ms` });
+  SetDebug({ title: `@building.ValidateEvents`, message: `Filtered ${filtering.length} events which took ${performance.now() - tick} ms` });
 });
 
-// src/@building/building.create.ts
-var createEvent = (stanza, ignorePushing) => __async(null, null, function* () {
+// src/@building/CreateEvent.ts
+var CreateEvent = (stanza, ignorePushing) => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
   const isVtecEvent = stanza.isVTEC && stanza.isUGC;
@@ -7331,26 +7331,26 @@ var createEvent = (stanza, ignorePushing) => __async(null, null, function* () {
   const isNWWS = stanza.isNWWS;
   switch (true) {
     case !isNWWS:
-      yield api(stanza);
+      yield ParseAPI(stanza);
       break;
     case (isNWWS && !StanzaSettings.DisableVTEC && isVtecEvent):
-      yield vtec(stanza);
+      yield ParseVTEC(stanza);
       break;
     case (isNWWS && !StanzaSettings.DisableUGC && isUgcEvent):
-      yield ugc(stanza);
+      yield ParseUGC(stanza);
       break;
     case (isNWWS && !StanzaSettings.DisableText && isTextEvent):
-      yield text(stanza);
+      yield ParseText(stanza);
       break;
   }
   if (!ignorePushing) {
-    validateEvents(bootstrap.cache.processed);
+    ValidateEvents(bootstrap.cache.processed);
   }
   return "nothing picked";
 });
 
-// src/@modules/@database/database.stanza.ts
-var importStanza = (stanza) => __async(null, null, function* () {
+// src/@modules/@database/ImportStanza.ts
+var ImportStanza = (stanza) => __async(null, null, function* () {
   const settings = bootstrap.settings;
   try {
     if (!settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
@@ -7366,17 +7366,17 @@ var importStanza = (stanza) => __async(null, null, function* () {
       }
     }
   } catch (error) {
-    setWarning({ message: `An error occurred while importing stanza: ${error.message}` });
+    SetWarning({ message: `An error occurred while importing stanza: ${error.message}` });
   }
 });
 
-// src/@modules/@xmpp/xmpp.xStanza.ts
-var xStanza = () => {
+// src/@modules/@xmpp/StanzaXMPP.ts
+var StanzaXMPP = () => {
   bootstrap.session_xmpp.on(`stanza`, (stanza) => __async(null, null, function* () {
     var _a, _b, _c, _d;
     const msgFrom = (_b = (_a = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _a.from) != null ? _b : ``;
     const msgType = (_d = (_c = stanza == null ? void 0 : stanza.attrs) == null ? void 0 : _c.type) != null ? _d : ``;
-    setEventEmit({
+    SetEventEmit({
       event: `onServiceStatus`,
       metadata: {
         message: stanza,
@@ -7386,18 +7386,18 @@ var xStanza = () => {
     });
     bootstrap.cache.lastStanza = Date.now();
     if (stanza.is(`message`)) {
-      const result = validate({ stanza });
+      const result = ValidateStanza({ stanza });
       const isSkippable = result.isIgnored || result.isCapEvent || result.isCapEvent && !result.isCapAreaDescription;
       if (isSkippable) {
         return;
       }
-      yield createEvent(result);
-      yield importStanza(result);
+      yield CreateEvent(result);
+      yield ImportStanza(result);
     }
     if (stanza.is(`presence`) && msgFrom.startsWith("nwws@conference.nwws-oi.weather.gov/")) {
       const getOccupant = msgFrom.split(`/`).slice(1).join(`/`);
       const getAvailability = msgType === `unavailable`;
-      setEventEmit({
+      SetEventEmit({
         event: `onServiceStatus`,
         metadata: {
           message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
@@ -7410,8 +7410,8 @@ var xStanza = () => {
   }));
 };
 
-// src/@modules/@xmpp/xmpp.xDeploy.ts
-var xDeploy = () => __async(null, null, function* () {
+// src/@modules/@xmpp/DeployXMPP.ts
+var DeployXMPP = () => __async(null, null, function* () {
   var _a, _b;
   let session;
   const settings = bootstrap.settings;
@@ -7423,13 +7423,13 @@ var xDeploy = () => __async(null, null, function* () {
     password: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Password
   });
   try {
-    yield xOffline();
-    yield xError();
-    yield xStanza();
-    yield xOnline();
+    yield OfflineXMPP();
+    yield ErrorXMPP();
+    yield StanzaXMPP();
+    yield OnlineXMPP();
     yield session.start();
   } catch (error) {
-    setEventEmit({
+    SetEventEmit({
       event: `onServiceStatus`,
       metadata: {
         message: `Error occured while starting XMPP Session: ${error}`,
@@ -7441,8 +7441,8 @@ var xDeploy = () => __async(null, null, function* () {
   }
 });
 
-// src/@dictionaries/dictionaries.shapefiles.ts
-var dict_shapefiles = [
+// src/@enums/Shapefiles.ts
+var EnumShapefiles = [
   { name: "us_counties", id: "C", link: "https://www.weather.gov/source/gis/Shapefiles/County/c_16ap26.zip" },
   { name: "us_states_territories", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/County/s_16ap26.zip" },
   { name: "fire_weather_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/fz16ap26.zip" },
@@ -7454,8 +7454,8 @@ var dict_shapefiles = [
   { name: "high_seas_marine_zones", id: "Z", link: "https://www.weather.gov/source/gis/Shapefiles/WSOM/hz17fe26.zip" }
 ];
 
-// src/@modules/@utilities/utilities.setSleep.ts
-var setSleep = (options) => __async(null, null, function* () {
+// src/@modules/@utilities/SetSleep.ts
+var SetSleep = (options) => __async(null, null, function* () {
   return new Promise((resolve6) => {
     setTimeout(() => {
       resolve6();
@@ -7463,19 +7463,19 @@ var setSleep = (options) => __async(null, null, function* () {
   });
 });
 
-// src/@modules/@database/database.shapefiles.ts
+// src/@modules/@database/ImportShapefiles.ts
 var import_fs4 = require("fs");
 var import_path3 = require("path");
 var import_jszip = require("jszip");
 var import_shapefile = require("shapefile");
-var importShapefiles = () => __async(null, null, function* () {
+var ImportShapefiles = () => __async(null, null, function* () {
   var _a, _b;
   const settings = bootstrap.settings;
   try {
     const tShapefiles = bootstrap.database.prepare(`SELECT COUNT(*) AS count FROM shapefiles`).get().count;
     if (tShapefiles === 0) {
-      yield setSleep({ timeout: 1e3 });
-      for (const shapefile of dict_shapefiles) {
+      yield SetSleep({ timeout: 1e3 });
+      for (const shapefile of EnumShapefiles) {
         const response2 = yield fetch(shapefile.link);
         const arrayBuff = yield response2.arrayBuffer();
         const content = yield (0, import_jszip.loadAsync)(arrayBuff);
@@ -7495,25 +7495,25 @@ var importShapefiles = () => __async(null, null, function* () {
           filepath,
           filepath
         );
-        setWarning({ message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` });
+        SetWarning({ message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` });
         const insert = bootstrap.database.prepare(`INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`);
         const transaction = bootstrap.database.transaction((entries) => {
           var _a2, _b2, _c;
           for (const entry of entries) {
-            const { properties: properties2, geometry } = entry;
+            const { properties, geometry } = entry;
             let final2, location;
-            if (properties2.FIPS) {
-              final2 = `${properties2.STATE}${shapefile.id}${properties2.FIPS.substring(2)}`;
-              location = `${properties2.COUNTYNAME}, ${properties2.STATE}`;
-            } else if (properties2.FULLSTAID) {
-              final2 = `${properties2.ST}${shapefile.id}${properties2.WFO}`;
-              location = `${properties2.CITY}, ${properties2.STATE}`;
-            } else if (properties2.STATE) {
-              final2 = `${properties2.STATE}${shapefile.id}${(_a2 = properties2.ZONE) != null ? _a2 : properties2.SITE_ID}`;
-              location = `${(_b2 = properties2.NAME) != null ? _b2 : `${properties2.RFC_NAME} ${properties2.RFC_CITY}`}, ${properties2.STATE}`;
+            if (properties.FIPS) {
+              final2 = `${properties.STATE}${shapefile.id}${properties.FIPS.substring(2)}`;
+              location = `${properties.COUNTYNAME}, ${properties.STATE}`;
+            } else if (properties.FULLSTAID) {
+              final2 = `${properties.ST}${shapefile.id}${properties.WFO}`;
+              location = `${properties.CITY}, ${properties.STATE}`;
+            } else if (properties.STATE) {
+              final2 = `${properties.STATE}${shapefile.id}${(_a2 = properties.ZONE) != null ? _a2 : properties.SITE_ID}`;
+              location = `${(_b2 = properties.NAME) != null ? _b2 : `${properties.RFC_NAME} ${properties.RFC_CITY}`}, ${properties.STATE}`;
             } else {
-              final2 = (_c = properties2.ID) != null ? _c : properties2.WFO;
-              location = properties2.NAME;
+              final2 = (_c = properties.ID) != null ? _c : properties.WFO;
+              location = properties.NAME;
             }
             insert.run(final2, location, JSON.stringify(geometry));
           }
@@ -7526,12 +7526,12 @@ var importShapefiles = () => __async(null, null, function* () {
       });
     }
   } catch (error) {
-    setWarning({ message: `An error occurred while compiling shapefiles: ${error.message}` });
+    SetWarning({ message: `An error occurred while compiling shapefiles: ${error.message}` });
   }
 });
 
-// src/@modules/@database/database.broadcastify.ts
-var importBroadcastify = () => __async(null, null, function* () {
+// src/@modules/@database/ImportBroadcastify.ts
+var ImportBroadcastify = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const isBroadcastifyImported = bootstrap.database.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';`).get();
   if (!settings.BroadcastifySettings.BroadcastifyAttachments) {
@@ -7540,7 +7540,7 @@ var importBroadcastify = () => __async(null, null, function* () {
   if (isBroadcastifyImported) {
     return;
   }
-  const broadcastify = yield createHttp({
+  const broadcastify = yield CreateHttp({
     url: settings.BroadcastifySettings.BroadcastifyDatabase,
     timeout: 5e3
   });
@@ -7555,7 +7555,7 @@ var importBroadcastify = () => __async(null, null, function* () {
     });
     const batch = [];
     for (const state of states) {
-      setWarning({ message: `Importing ${state.counties.length} counties from ${state.state} for Broadcastify` });
+      SetWarning({ message: `Importing ${state.counties.length} counties from ${state.state} for Broadcastify` });
       for (const county of state.counties) {
         const countyName = county.county;
         for (const feed of county.feeds) {
@@ -7572,19 +7572,19 @@ var importBroadcastify = () => __async(null, null, function* () {
     transaction(batch);
   }
   if (broadcastify.error) {
-    setWarning({ message: `Error importing Broadcastify data: ${broadcastify.message}` });
+    SetWarning({ message: `Error importing Broadcastify data: ${broadcastify.message}` });
   }
 });
 
-// src/@modules/@database/database.init.ts
+// src/@modules/@database/InitializeDatabase.ts
 var import_fs5 = require("fs");
 var import_better_sqlite3 = __toESM(require("better-sqlite3"));
-var initializeDatabase = () => __async(null, null, function* () {
+var InitializeDatabase = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   try {
     if (!(0, import_fs5.existsSync)(settings.Database)) {
       (0, import_fs5.writeFileSync)(settings.Database, "");
-      setWarning({ message: `Creating new database at ${settings.Database}` });
+      SetWarning({ message: `Creating new database at ${settings.Database}` });
     }
     bootstrap.database = new import_better_sqlite3.default(settings.Database);
     bootstrap.database.prepare(`CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )`).run();
@@ -7592,18 +7592,18 @@ var initializeDatabase = () => __async(null, null, function* () {
     const isNeedingShapefiles = bootstrap.database.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='shapefiles';`).get();
     const isNeedingBroadcastify = bootstrap.database.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';`).get();
     if (!isNeedingShapefiles || !isNeedingBroadcastify) {
-      setWarning({ message: `Required database tables are currently building, please ${bootstrap.ansi_colors.RED}DO NOT${bootstrap.ansi_colors.RESET} close your terminal. The building will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` });
-      yield importBroadcastify();
-      yield importShapefiles();
-      setWarning({ message: `Building has completed, you can now continue or close the terminal` });
+      SetWarning({ message: `Required database tables are currently building, please ${bootstrap.ansi_colors.RED}DO NOT${bootstrap.ansi_colors.RESET} close your terminal. The building will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` });
+      yield ImportBroadcastify();
+      yield ImportShapefiles();
+      SetWarning({ message: `Building has completed, you can now continue or close the terminal` });
     }
   } catch (error) {
-    setWarning({ message: `An error occurred while initializing the database: ${error.message}` });
+    SetWarning({ message: `An error occurred while initializing the database: ${error.message}` });
   }
 });
 
-// src/@modules/@database/database.cache.ts
-var getCachedEvents = () => __async(null, null, function* () {
+// src/@modules/@database/GetCachedEvents.ts
+var GetCachedEvents = () => __async(null, null, function* () {
   var _a;
   try {
     const settings = bootstrap.settings;
@@ -7611,7 +7611,7 @@ var getCachedEvents = () => __async(null, null, function* () {
     if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
       const max = (_a = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory) != null ? _a : 500;
       const get = yield bootstrap.database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max);
-      setWarning({ message: `Fetched ${get.length} cached stanzas from the database in ${Math.floor(performance.now() - tick)} ms` });
+      SetWarning({ message: `Fetched ${get.length} cached stanzas from the database in ${Math.floor(performance.now() - tick)} ms` });
       let events = get.map((row) => JSON.parse(row.stanza)).filter((stanza) => {
         if (!stanza) {
           return;
@@ -7620,21 +7620,21 @@ var getCachedEvents = () => __async(null, null, function* () {
         return !isSkippable;
       });
       events = events.sort((a, b) => b.issued - a.issued);
-      yield Promise.all(events.map((event) => createEvent(event, true)));
-      setWarning({ message: `Processed ${events.length} cached stanzas in ${Math.floor(performance.now() - tick)} ms` });
-      validateEvents(bootstrap.cache.processed);
+      yield Promise.all(events.map((event) => CreateEvent(event, true)));
+      SetWarning({ message: `Processed ${events.length} cached stanzas in ${Math.floor(performance.now() - tick)} ms` });
+      ValidateEvents(bootstrap.cache.processed);
     }
   } catch (error) {
-    setWarning({ message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` });
+    SetWarning({ message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` });
   }
 });
 
-// src/@modules/@xmpp/xmpp.xReconnect.ts
-var xReconnect = (interval) => __async(null, null, function* () {
+// src/@modules/@xmpp/ReconnectXMPP.ts
+var ReconnectXMPP = (interval) => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const lastStanza = Date.now() - bootstrap.cache.lastStanza;
   if (interval < 15) {
-    setWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` });
+    SetWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` });
     interval = 15;
     bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
   }
@@ -7648,7 +7648,7 @@ var xReconnect = (interval) => __async(null, null, function* () {
       bootstrap.cache.isConnected = false;
       bootstrap.cache.tReconnects += 1;
       try {
-        setEventEmit({
+        SetEventEmit({
           event: `onServiceStatus`,
           metadata: {
             message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
@@ -7666,7 +7666,7 @@ var xReconnect = (interval) => __async(null, null, function* () {
         yield bootstrap.session_xmpp.start().catch(() => {
         });
       } catch (error) {
-        setWarning({ message: `XMPP Reconnect Failed - ${error.message}` });
+        SetWarning({ message: `XMPP Reconnect Failed - ${error.message}` });
       } finally {
         bootstrap.cache.isReconnecting = false;
       }
@@ -7674,10 +7674,10 @@ var xReconnect = (interval) => __async(null, null, function* () {
   }
 });
 
-// src/@modules/@utilities/utilities.setCronSchedule.ts
+// src/@modules/@utilities/SetCronSchedule.ts
 var import_fs6 = require("fs");
 var import_path4 = require("path");
-var setCronSchedule = () => __async(null, null, function* () {
+var SetCronSchedule = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
   const TTLCUT = Date.now() - TTL * 1e3;
@@ -7706,17 +7706,17 @@ var setCronSchedule = () => __async(null, null, function* () {
   walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory);
   if (settings.EnableWireService) {
     if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
-      void xReconnect(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
+      void ReconnectXMPP(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
     }
   } else {
-    const response2 = yield createHttp({
+    const response2 = yield CreateHttp({
       url: settings.NationalWeatherServiceSettings.EventsEndpoint,
       headers: {
         "User-Agent": "@atmosx/event-product-parser"
       }
     });
     if (response2.error) {
-      return setEventEmit({
+      return SetEventEmit({
         event: `onServiceStatus`,
         metadata: {
           type: "fetch-api",
@@ -7726,7 +7726,7 @@ var setCronSchedule = () => __async(null, null, function* () {
         }
       });
     }
-    setEventEmit({
+    SetEventEmit({
       event: `onServiceStatus`,
       metadata: {
         message: `Fetched latest events from National Weather Service API`,
@@ -7735,18 +7735,18 @@ var setCronSchedule = () => __async(null, null, function* () {
         error: false
       }
     });
-    createEvent({ message: response2.message, isNWWS: false });
+    CreateEvent({ message: response2.message, isNWWS: false });
   }
 });
 
-// src/@manager/manager.updateEvents.ts
-var updateEvents = (selectedEvent) => __async(null, null, function* () {
+// src/@manager/UpdateEvents.ts
+var UpdateEvents = (selectedEvent) => __async(null, null, function* () {
   const events = bootstrap.cache.events.features;
   function update(event) {
     return __async(this, null, function* () {
       if (new Date(event.properties.expires) < /* @__PURE__ */ new Date()) {
-        setEventEmit({ event: `onExpiredProduct`, metadata: event });
-        yield rmEvent(event, true);
+        SetEventEmit({ event: `onExpiredProduct`, metadata: event });
+        yield RemoveEvent(event, true);
       }
     });
   }
@@ -7760,41 +7760,41 @@ var updateEvents = (selectedEvent) => __async(null, null, function* () {
   }
 });
 
-// src/@core/core.start.ts
+// src/@core/StartService.ts
 var import_croner = require("croner");
-var startService = (configurations) => __async(null, null, function* () {
+var StartService = (configurations) => __async(null, null, function* () {
   if (!bootstrap.isReady) {
-    return setWarning({
+    return SetWarning({
       message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!`
     });
   }
-  const settings = setSettings(configurations);
+  const settings = SetSettings(configurations);
   bootstrap.isReady = true;
-  yield initializeDatabase();
+  yield InitializeDatabase();
   if (settings.EnableWireService) {
     (() => __async(null, null, function* () {
-      yield getCachedEvents();
-      yield xDeploy();
+      yield GetCachedEvents();
+      yield DeployXMPP();
     }))();
   }
-  yield setCronSchedule();
+  yield SetCronSchedule();
   let scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 1;
   if (!settings.EnableWireService && scheduleInterval < 15) {
-    setWarning({ message: `Schedule interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` });
+    SetWarning({ message: `Schedule interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` });
     bootstrap.settings.NationalWeatherServiceSettings.CallbackInterval = 15;
     scheduleInterval = 15;
   }
   bootstrap.cron = new import_croner.Cron(`*/${scheduleInterval} * * * * *`, () => __async(null, null, function* () {
-    yield setCronSchedule();
+    yield SetCronSchedule();
   }));
   bootstrap.cron = new import_croner.Cron(`* * * * * *`, () => __async(null, null, function* () {
-    yield updateNode();
-    yield updateEvents();
+    yield UpdateNode();
+    yield UpdateEvents();
   }));
 });
 
-// src/@core/core.stop.ts
-var stopService = () => __async(null, null, function* () {
+// src/@core/StopService.ts
+var StopService = () => __async(null, null, function* () {
   if (bootstrap.isReady) {
     bootstrap.isReady = false;
     if (bootstrap.session_xmpp) {
@@ -7809,15 +7809,15 @@ var stopService = () => __async(null, null, function* () {
   }
 });
 
-// src/@core/core.setNode.ts
-var setNode = (options) => {
+// src/@core/SetNode.ts
+var SetNode = (options) => {
   const nodes = bootstrap.cache.nodes.features;
   const exists = nodes.find((node) => node.properties.identifier === options.identifier);
   if (options.delete) {
     if (exists) {
       const index = nodes.indexOf(exists);
       nodes.splice(index, 1);
-      return setEventEmit({
+      return SetEventEmit({
         event: `onNodeDelete`,
         metadata: {
           type: `node-delete`,
@@ -7825,7 +7825,7 @@ var setNode = (options) => {
         }
       });
     }
-    return setWarning({ message: `Node with identifier '${options.identifier}' not found.` });
+    return SetWarning({ message: `Node with identifier '${options.identifier}' not found.` });
   }
   if (exists) {
     const index = nodes.indexOf(exists);
@@ -7835,7 +7835,7 @@ var setNode = (options) => {
         coordinates: [options.coordinates.longitude, options.coordinates.latitude]
       }
     });
-    return setEventEmit({
+    return SetEventEmit({
       event: `onNodeUpdate`,
       metadata: {
         type: `node-update`,
@@ -7853,7 +7853,7 @@ var setNode = (options) => {
       identifier: options.identifier
     }
   });
-  return setEventEmit({
+  return SetEventEmit({
     event: `onNodeAdd`,
     metadata: {
       type: `node-add`,
@@ -7862,23 +7862,23 @@ var setNode = (options) => {
   });
 };
 
-// src/@core/core.getEvents.ts
-var getEvents = () => {
+// src/@core/GetEvents.ts
+var GetEvents = () => {
   return bootstrap.cache.events;
 };
 
-// src/@core/core.getNodes.ts
-var getNodes = () => {
+// src/@core/GetNodes.ts
+var GetNodes = () => {
   return bootstrap.cache.nodes;
 };
 
-// src/@core/core.manualEvent.ts
-var manualEvent = (options) => __async(null, null, function* () {
+// src/@core/ManualEvent.ts
+var ManualEvent = (options) => __async(null, null, function* () {
   var _a;
   const isCapEvent = options.message.includes(`<?xml`);
   const isCapAreaDescription = options.message.includes(`<areaDesc>`);
-  const isVTEC = options.message.match(dict_expressions.pvtec) != null;
-  const isUGC = options.message.match(dict_expressions.ugc1) != null;
+  const isVTEC = options.message.match(EnumExpressions.pvtec) != null;
+  const isUGC = options.message.match(EnumExpressions.ugc1) != null;
   const attributes = {
     "xmlns": "@atmosx/event-product-parser",
     "id": "manual_processor.0000",
@@ -7887,7 +7887,7 @@ var manualEvent = (options) => __async(null, null, function* () {
     "cccc": "XXX",
     "awipsid": (_a = options.awipsid) != null ? _a : "XXXXXX"
   };
-  const getType = getAwipsType({ attributes });
+  const getType = GetAwipsType({ attributes });
   const result = {
     message: options.message,
     attributes,
@@ -7899,16 +7899,16 @@ var manualEvent = (options) => __async(null, null, function* () {
     isNWWS: true,
     getType
   };
-  yield createEvent(result);
+  yield CreateEvent(result);
 });
 
-// src/@core/core.getRandomEvent.ts
-var getRandomEvent = () => {
+// src/@core/GetRandomEvent.ts
+var GetRandomEvent = () => {
   return bootstrap.cache.events.features[Math.floor(Math.random() * bootstrap.cache.events.features.length)];
 };
 
-// src/@core/core.query.ts
-var query = (options) => __async(null, null, function* () {
+// src/@core/QueryStanza.ts
+var QueryStanza = (options) => __async(null, null, function* () {
   var _a;
   const get = yield bootstrap.database.prepare(
     `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`
@@ -7917,11 +7917,11 @@ var query = (options) => __async(null, null, function* () {
   return events;
 });
 
-// src/@core/core.clearEvents.ts
-var clearEvents = () => {
+// src/@core/ClearEvents.ts
+var ClearEvents = () => {
   bootstrap.cache.events.features = [];
   bootstrap.cache.hashes = [];
-  setEventEmit({
+  SetEventEmit({
     event: `onEventCache`,
     metadata: bootstrap.cache.events,
     message: `Manually cleared event cache.`
@@ -7932,17 +7932,17 @@ var clearEvents = () => {
 var Manager = class {
   constructor(settings) {
     this.trycatch();
-    startService(settings);
+    StartService(settings);
   }
   on(event, callback) {
-    createListener(event, callback);
+    CreateListener(event, callback);
   }
   trycatch() {
     process.on("uncaughtException", (err) => {
       var _a, _b;
       const ignored = ["ETIMEDOUT", "ECONNRESET", "EHOSTUNREACH", "ENOTFOUND", "ECONNREFUSED", "EPIPE", "EADDRINUSE", "EALREADY", "EACCES", "EAGAIN", "EHOSTDOWN", "STARTTLS_FAILURE"];
       if (ignored.includes(err == null ? void 0 : err.code)) {
-        setEventEmit({
+        SetEventEmit({
           event: `onServiceStatus`,
           metadata: {
             message: `Ignored Critical Error: ${(_a = err == null ? void 0 : err.code) != null ? _a : "Unknown error code"}. This may indicate a connection issue. Attempting to continue...`,
@@ -7953,25 +7953,25 @@ var Manager = class {
         });
         return;
       }
-      setWarning({ message: `Uncaught Exception: ${err instanceof Error ? (_b = err.stack) != null ? _b : err.message : String(err)}` });
+      SetWarning({ message: `Uncaught Exception: ${err instanceof Error ? (_b = err.stack) != null ? _b : err.message : String(err)}` });
     });
   }
 };
 var index_default = Manager;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  ClearEvents,
+  GenerateEASMessage,
+  GetCleanedEvent,
+  GetEventGeometry,
+  GetEvents,
+  GetNodes,
+  GetRandomEvent,
   Manager,
-  clearEvents,
-  getCleanedEvent,
-  getEventGeometry,
-  getEvents,
-  getNodes,
-  getRandomEvent,
-  manualEvent,
-  query,
-  setEasTone,
-  setNode,
-  setSettings,
-  startService,
-  stopService
+  ManualEvent,
+  QueryStanza,
+  SetNode,
+  SetSettings,
+  StartService,
+  StopService
 });

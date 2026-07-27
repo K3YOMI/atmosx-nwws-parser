@@ -17,36 +17,36 @@
 
 */
 
-import { TypeSettings } from './@types/type.settings'
-import { setSettings } from "./@modules/@utilities/utilities.setSettings"
-import { getEventGeometry } from "./@building/building.geometry";
-import { getCleanedEvent } from "./@building/building.clean"
-import { setEventEmit } from './@modules/@utilities/utilities.setEventEmit';
-import { setWarning } from './@modules/@utilities/utilities.setWarning';
-import { createListener } from "./@core/core.createListener"
-import { startService } from "./@core/core.start"
-import { stopService } from "./@core/core.stop"
-import { setEasTone } from './@modules/@eas/eas.setEasTone';
-import { setNode } from "./@core/core.setNode"
-import { getEvents } from "./@core/core.getEvents"
-import { getNodes } from "./@core/core.getNodes"
-import { manualEvent } from "./@core/core.manualEvent"
-import { getRandomEvent } from './@core/core.getRandomEvent';
-import { query } from './@core/core.query';
-import { clearEvents } from './@core/core.clearEvents';
+import { TypeSettings } from './@types/Settings'
+import { SetSettings } from "./@modules/@utilities/SetSettings"
+import { GetEventGeometry } from "./@building/GetEventGeometry";
+import { GetCleanedEvent } from "./@building/GetCleanedEvent"
+import { SetEventEmit } from './@modules/@utilities/SetEventEmit';
+import { SetWarning } from './@modules/@utilities/SetWarning';
+import { CreateListener } from "./@core/CreateListener"
+import { StartService } from "./@core/StartService"
+import { StopService } from "./@core/StopService"
+import { GenerateEASMessage } from './@modules/@eas/GenerateEASMessage';
+import { SetNode } from "./@core/SetNode"
+import { GetEvents } from "./@core/GetEvents"
+import { GetNodes } from "./@core/GetNodes"
+import { ManualEvent } from "./@core/ManualEvent"
+import { GetRandomEvent } from './@core/GetRandomEvent';
+import { QueryStanza } from './@core/QueryStanza';
+import { ClearEvents } from './@core/ClearEvents';
 
 export class Manager { 
-    constructor(settings: TypeSettings) { this.trycatch(); startService(settings) }
+    constructor(settings: TypeSettings) { this.trycatch(); StartService(settings) }
 
     on(event: string, callback: () => void) {
-        createListener(event, callback)
+        CreateListener(event, callback)
     }
 
     trycatch() {
         process.on('uncaughtException', (err: any) => {
             const ignored = ['ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENOTFOUND', 'ECONNREFUSED', 'EPIPE', 'EADDRINUSE', 'EALREADY', 'EACCES', 'EAGAIN', 'EHOSTDOWN', 'STARTTLS_FAILURE'];
             if (ignored.includes(err?.code)) { 
-                setEventEmit({
+                SetEventEmit({
                     event: `onServiceStatus`,
                     metadata: {
                         message: `Ignored Critical Error: ${err?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
@@ -57,18 +57,18 @@ export class Manager {
                 })
                 return; 
             }
-            setWarning({message: `Uncaught Exception: ${err instanceof Error ? err.stack ?? err.message : String(err)}`})
+            SetWarning({message: `Uncaught Exception: ${err instanceof Error ? err.stack ?? err.message : String(err)}`})
         })
     }
 }
 
 export default Manager;
-export type { TypeEvent } from './@types/type.event';
+export type { TypeEvent } from './@types/Event';
 export { 
-    setSettings, getEventGeometry, manualEvent,
-    getCleanedEvent, stopService, clearEvents,
-    startService, setNode, getRandomEvent,
-    getEvents, getNodes, setEasTone, query
+    SetSettings, GetEventGeometry, ManualEvent,
+    GetCleanedEvent, StopService, ClearEvents,
+    StartService, SetNode, GetRandomEvent,
+    GetEvents, GetNodes, GenerateEASMessage, QueryStanza
 }
 
 
