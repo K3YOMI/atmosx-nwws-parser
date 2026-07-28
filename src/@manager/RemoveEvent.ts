@@ -22,7 +22,7 @@ import { EnumStrings } from "../@enums/Strings";
 import { bootstrap } from "../bootstrap"
 import { SetEventEmit } from "../@modules/@utilities/SetEventEmit";
 import { SetTimeoutAction } from "../@modules/@utilities/SetTimeoutAction";
-import { CreateActions } from "./CreateActions";
+import { Tasks } from "./Tasks";
 
 
 export const RemoveEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):Promise<void> => {
@@ -58,7 +58,7 @@ export const RemoveEvent = async (event: TypeEvent, isTimeBasedExpiration: boole
                 metadata: { type: `Removed`, event: event },
                 message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
             })
-            await CreateActions(event)
+            await Tasks([event])
         }
         SetTimeoutAction({ identifier: gTracking, expire: true })
     }

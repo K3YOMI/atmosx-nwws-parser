@@ -20,15 +20,15 @@
 import { TypeEvent } from "../@types/Event";
 import { TypeSettings } from "../@types/Settings";
 import { bootstrap } from "../bootstrap"
-import { GetEventEnhancedName } from "./GetEventEnhancedName";
-import { GetEventSignature } from "./GetEventSignature"
-import { MakeEvent } from "../@manager/MakeEvent";
-import { RemoveEvent } from "../@manager/RemoveEvent";
-import { GetEventAttachments } from "./GetEventAttachments";
+import { GetEventEnhancedName } from "../@building/GetEventEnhancedName";
+import { GetEventSignature } from "../@building/GetEventSignature"
+import { MakeEvents } from "./MakeEvents";
+import { RemoveEvent } from "./RemoveEvent";
+import { GetEventAttachments } from "../@building/GetEventAttachments";
 import { SetEventEmit } from "../@modules/@utilities/SetEventEmit";
 import { SetDebug } from "../@modules/@utilities/SetDebug";
 import { GetMatched } from "../@modules/@utilities/GetMatched";
-import { GetEventGeometry } from "./GetEventGeometry";
+import { GetEventGeometry } from "../@building/GetEventGeometry";
 import { createHash } from "crypto"
 
 export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
@@ -137,18 +137,6 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
     })
     
     SetDebug({ title: `ValidateEvents (PRE) (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
-
-    if (filtering.length > 0) {
-        for (const event of filtering) {
-            await MakeEvent(event)
-        }
-    }
-    
-    SetEventEmit({
-        event: `onEventCache`,
-        metadata: bootstrap.cache.events,
-        limited: true
-    })
-
-    SetDebug({ title: `ValidateEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
+    await MakeEvents(filtering)
+    SetDebug({ title: `MakeEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
 }

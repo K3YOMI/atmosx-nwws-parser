@@ -38,7 +38,7 @@ interface GetEventNodesResponse {
 export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResponse> => {
     const nodes = bootstrap.cache.nodes.features;
     if (!nodes || nodes.length === 0) {
-        return { nodes: [], filtered: false, updated: Date.now() };
+        return { nodes: [], filtered: true, updated: Date.now() };
     }
     const metadata = { nodes: [], proximity: false, filtered: false };
     const geometry = await GetEventGeometry(event);

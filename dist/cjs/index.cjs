@@ -5223,7 +5223,7 @@ var GetEventProperties = (options) => {
       discussion_watch_issuance: (_D = GetTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _D : null
     },
     watch_parameters: {
-      watch_number: ((_E = options == null ? void 0 : options.pVtec) == null ? void 0 : _E.is_watch) && ((_O = (_N = (_I = (_H = (_G = (_F = GetTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _F.replace(/(WT|WS|)/g, "")) == null ? void 0 : _G.trim()) == null ? void 0 : _H.toString()) == null ? void 0 : _I.padStart(4, "0")) != null ? _N : (_M = (_L = (_K = (_J = options == null ? void 0 : options.pVtec) == null ? void 0 : _J.tracking) == null ? void 0 : _K.slice(-4)) == null ? void 0 : _L.toString()) == null ? void 0 : _M.padStart(4, "0")) != null ? _O : null),
+      watch_number: ((_E = options == null ? void 0 : options.pVtec) == null ? void 0 : _E.is_watch) ? (_O = (_N = (_I = (_H = (_G = (_F = GetTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _F.replace(/(WT|WS|)/g, "")) == null ? void 0 : _G.trim()) == null ? void 0 : _H.toString()) == null ? void 0 : _I.padStart(4, "0")) != null ? _N : (_M = (_L = (_K = (_J = options == null ? void 0 : options.pVtec) == null ? void 0 : _J.tracking) == null ? void 0 : _K.slice(-4)) == null ? void 0 : _L.toString()) == null ? void 0 : _M.padStart(4, "0")) != null ? _O : null : null,
       watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : (options == null ? void 0 : options.message.includes(`SEVERE`)) ? `Severe` : null,
       additional_tornadoes_probability: (_P = GetTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _P : null,
       strong_tornadoes_probability: (_Q = GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Q : null,
@@ -6643,177 +6643,200 @@ var GetMatched = (strings, string) => {
   return isMatched;
 };
 
-// src/@manager/CreateActions.ts
-var import_fs3 = require("fs");
-var CreateActions = (event) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s;
+// src/@manager/Tasks.ts
+var import_promises = require("fs/promises");
+var Tasks = (events) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t;
   const tick = performance.now();
   const settings = bootstrap.settings;
   const notifyServer = settings.NotifyServer;
   const actions = settings.ActionSettings;
-  const properties = event.properties;
-  const hasActions = Array.isArray(actions) && actions.length > 0;
-  if (!hasActions) {
-    SetDebug({ title: `CreateActions`, message: `${Math.round(performance.now() - tick)}ms` });
-    return;
-  }
-  const metadata = {
-    text: null,
-    eas: null,
-    json: null,
-    name: properties.event,
-    status: properties.status,
-    description: properties.description,
-    tracking: properties.metadata.tracking,
-    header: properties.metadata.header,
-    raw: properties.metadata.raw,
-    expired: properties.status_metadata.is_expired,
-    attachments: properties.metadata.attachments
-  };
-  for (const action of actions) {
-    const events = action == null ? void 0 : action.Events;
-    const webhook = action == null ? void 0 : action.Webhook;
-    const notify = action == null ? void 0 : action.NotificationServer;
-    const uploads = action == null ? void 0 : action.Uploads;
-    const isMatched = GetMatched(events != null ? events : [], metadata.name);
-    if ((events == null ? void 0 : events.length) == 0 || isMatched) {
-      if (uploads == null ? void 0 : uploads.EAS) {
-        metadata.eas = yield GenerateEASMessage({
-          title: `${metadata.name}_${metadata.status}_${metadata.tracking}`,
-          message: metadata.description,
-          header: metadata.header
-        });
-      }
-      if (uploads == null ? void 0 : uploads.TEXT) {
-        const fDestination = settings.GlobalSettings.ArchiveSettings.TextDirectory;
-        if (fDestination) {
-          const file = `${fDestination}/${metadata.name}_${metadata.tracking}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
-          if (!(0, import_fs3.existsSync)(fDestination)) {
-            (0, import_fs3.mkdirSync)(fDestination, { recursive: true });
-          }
-          if ((0, import_fs3.existsSync)(file)) {
-            (0, import_fs3.appendFileSync)(file, `${`
-`.repeat(10)}${metadata.raw}`);
-          } else {
-            (0, import_fs3.writeFileSync)(file, metadata.raw);
-          }
+  for (const event of events) {
+    const properties = event.properties;
+    const hasActions = Array.isArray(actions) && actions.length > 0;
+    if (!hasActions) {
+      SetDebug({ title: `Tasks`, message: `${Math.round(performance.now() - tick)}ms` });
+      return;
+    }
+    const metadata = {
+      text: null,
+      eas: null,
+      json: null,
+      name: properties.event,
+      status: properties.status,
+      description: properties.description,
+      tracking: properties.metadata.tracking,
+      header: properties.metadata.header,
+      raw: properties.metadata.raw,
+      expired: properties.status_metadata.is_expired,
+      attachments: properties.metadata.attachments
+    };
+    const archiveSettings = (_a = settings.GlobalSettings) == null ? void 0 : _a.ArchiveSettings;
+    const textArchiveDir = archiveSettings == null ? void 0 : archiveSettings.TextDirectory;
+    const jsonArchiveDir = archiveSettings == null ? void 0 : archiveSettings.JSONDirectory;
+    const eventBaseName = `${metadata.name}_${metadata.tracking}`;
+    const easTitle = `${metadata.name}_${metadata.status}_${metadata.tracking}`;
+    const cleanedEventText = JSON.stringify(GetCleanedEvent(event), null, 2);
+    const stringText = GetStringText(event);
+    const embedText = GetEmebedText(event);
+    for (const action of actions) {
+      const events2 = action == null ? void 0 : action.Events;
+      const webhook = action == null ? void 0 : action.Webhook;
+      const notify = action == null ? void 0 : action.NotificationServer;
+      const uploads = action == null ? void 0 : action.Uploads;
+      const isMatched = GetMatched(events2 != null ? events2 : [], metadata.name);
+      if ((events2 == null ? void 0 : events2.length) == 0 || isMatched) {
+        const t = performance.now();
+        if ((uploads == null ? void 0 : uploads.EAS) && !metadata.eas) {
+          metadata.eas = yield GenerateEASMessage({
+            title: easTitle,
+            message: metadata.description,
+            header: metadata.header
+          });
+          SetDebug({
+            title: "Tasks/EAS",
+            message: `${Math.round(performance.now() - t)}ms`
+          });
         }
-        metadata.text = metadata.raw;
-      }
-      if (uploads == null ? void 0 : uploads.JSON) {
-        const eDestination = settings.GlobalSettings.ArchiveSettings.JSONDirectory;
-        if (eDestination) {
-          const file = `${eDestination}/${metadata.name}_${metadata.tracking}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
-          if (!(0, import_fs3.existsSync)(eDestination)) {
-            (0, import_fs3.mkdirSync)(eDestination, { recursive: true });
-          }
-          (0, import_fs3.writeFileSync)(file, JSON.stringify(GetCleanedEvent(event), null, 2));
-        }
-        metadata.json = JSON.stringify(GetCleanedEvent(event), null, 2);
-      }
-      if ((notifyServer == null ? void 0 : notifyServer.Enabled) && (notify == null ? void 0 : notify.Enabled) && (notify == null ? void 0 : notify.Topic)) {
-        let buttons = [];
-        const auth = ((_a = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _a.Username) && ((_b = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _b.Password) ? { username: (_c = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _c.Username, password: (_d = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _d.Password } : void 0;
-        if ((_e = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _e.EAS) {
-          if (metadata.eas) {
-            buttons.push({
-              "action": "view",
-              "label": "Listen",
-              "url": `${(_f = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _f.EAS}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
+        if ((uploads == null ? void 0 : uploads.TEXT) && metadata.text === null) {
+          const t2 = performance.now();
+          if (textArchiveDir) {
+            const file = `${textArchiveDir}/${eventBaseName}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+            yield (0, import_promises.mkdir)(textArchiveDir, { recursive: true });
+            yield (0, import_promises.appendFile)(file, `${"\n".repeat(7)}${metadata.raw}`);
+            SetDebug({
+              title: "Tasks/TEXT",
+              message: `${Math.round(performance.now() - t2)}ms`
             });
           }
+          metadata.text = metadata.raw;
         }
-        if (metadata.json) {
-          buttons.push({
-            "action": "view",
-            "label": "View JSON",
-            "url": `${(_g = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _g.JSON}/${metadata.name}_${metadata.tracking}.json`
-          });
-        }
-        if (metadata.text) {
-          buttons.push({
-            "action": "view",
-            "label": "View Text",
-            "url": `${(_h = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _h.TEXT}/${metadata.name}_${metadata.tracking}.txt`
-          });
-        }
-        if (((_i = metadata.attachments) == null ? void 0 : _i.length) > 0 && metadata.attachments.find((a) => a.name === "Image: Graphic")) {
-          buttons.push({
-            "action": "view",
-            "label": "View Image",
-            "url": metadata.attachments.find((a) => a.name === "Image: Graphic").link
-          });
-        }
-        yield CreateHttp(__spreadProps(__spreadValues({
-          url: `${(_j = notifyServer == null ? void 0 : notifyServer.Server) == null ? void 0 : _j.replace(/\/$/, "")}/${notify.Topic}`,
-          timeout: 15e3,
-          method: "PUT"
-        }, auth && { auth }), {
-          headers: __spreadValues({
-            "Title": `${metadata.name} (${metadata.status})`,
-            "Tags": (_l = (_k = properties.parameters.tags) == null ? void 0 : _k.join(",")) != null ? _l : "N/A",
-            "Priority": (_m = notify == null ? void 0 : notify.Priority) != null ? _m : "5"
-          }, buttons.length > 0 && { "Actions": JSON.stringify(buttons) }),
-          body: GetStringText(event)
-        }));
-      }
-      if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
-        const isRatelimited = SetTimeoutAction({ identifier: webhook.Destination, interval: ((_n = webhook.Ratelimit) != null ? _n : 2) * 2, max: (_o = webhook.Ratelimit) != null ? _o : 2, addTime: true });
-        const form = new FormData();
-        const embed = {
-          title: `${metadata.name} (${metadata.status})`,
-          description: GetEmebedText(event),
-          fields: [],
-          color: 16711680,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-          footer: { text: (_p = webhook.Title) != null ? _p : `AtmosphericX` }
-        };
-        if (isRatelimited.limited) {
-          return;
-        }
-        if (metadata.description && !metadata.expired) {
-          if (metadata.description.length > 900) {
-            metadata.description = metadata.description.substring(0, 900) + "\n\n[Message truncated due to length]";
+        if ((uploads == null ? void 0 : uploads.JSON) && metadata.json === null) {
+          const t2 = performance.now();
+          if (jsonArchiveDir) {
+            const file = `${jsonArchiveDir}/${eventBaseName}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+            yield (0, import_promises.mkdir)(jsonArchiveDir, { recursive: true });
+            yield (0, import_promises.writeFile)(file, cleanedEventText);
+            SetDebug({
+              title: "Tasks/JSON",
+              message: `${Math.round(performance.now() - t2)}ms`
+            });
           }
-          embed.fields.push({
-            name: "Description",
-            value: metadata.description ? "```\n" + metadata.description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
-          });
+          metadata.json = cleanedEventText;
         }
-        if (((_q = metadata.attachments) == null ? void 0 : _q.length) > 0) {
-          metadata.attachments = metadata.attachments.slice(0, 5);
-          embed.fields.push({
-            name: "Attachments",
-            value: metadata.attachments.map((attachment) => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + "..." : attachment.name}](${attachment.link})`).join("\n")
-          });
-        }
-        if (uploads == null ? void 0 : uploads.TEXT) {
-          form.append("fUpload", new Blob([Buffer.from(metadata.text)], { type: "application/text" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`);
-        }
-        if (uploads == null ? void 0 : uploads.JSON) {
-          form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
-        }
-        if (uploads == null ? void 0 : uploads.EAS) {
-          if (metadata.eas) {
-            const file = (0, import_fs3.readFileSync)(metadata.eas);
-            form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`);
+        if ((notifyServer == null ? void 0 : notifyServer.Enabled) && (notify == null ? void 0 : notify.Enabled) && (notify == null ? void 0 : notify.Topic)) {
+          let buttons = [];
+          const t2 = performance.now();
+          const auth = ((_b = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _b.Username) && ((_c = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _c.Password) ? { username: (_d = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _d.Username, password: (_e = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _e.Password } : void 0;
+          const image = (_f = metadata.attachments) == null ? void 0 : _f.find((a) => a.name === "Image: Graphic");
+          if ((_g = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _g.EAS) {
+            if (metadata.eas) {
+              buttons.push({
+                "action": "view",
+                "label": "Listen",
+                "url": `${(_h = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _h.EAS}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
+              });
+            }
           }
+          if (metadata.json) {
+            buttons.push({
+              "action": "view",
+              "label": "View JSON",
+              "url": `${(_i = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _i.JSON}/${metadata.name}_${metadata.tracking}.json`
+            });
+          }
+          if (metadata.text) {
+            buttons.push({
+              "action": "view",
+              "label": "View Text",
+              "url": `${(_j = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _j.TEXT}/${metadata.name}_${metadata.tracking}.txt`
+            });
+          }
+          if (image) {
+            buttons.push({
+              "action": "view",
+              "label": "View Image",
+              "url": image.link
+            });
+          }
+          yield CreateHttp(__spreadProps(__spreadValues({
+            url: `${(_k = notifyServer == null ? void 0 : notifyServer.Server) == null ? void 0 : _k.replace(/\/$/, "")}/${notify.Topic}`,
+            timeout: 15e3,
+            method: "PUT"
+          }, auth && { auth }), {
+            headers: __spreadValues({
+              "Title": `${metadata.name} (${metadata.status})`,
+              "Tags": (_m = (_l = properties.parameters.tags) == null ? void 0 : _l.join(",")) != null ? _m : "N/A",
+              "Priority": (_n = notify == null ? void 0 : notify.Priority) != null ? _n : "5"
+            }, buttons.length > 0 && { "Actions": JSON.stringify(buttons) }),
+            body: stringText
+          }));
+          SetDebug({
+            title: "Tasks/NTFY",
+            message: `${Math.round(performance.now() - t2)}ms`
+          });
         }
-        form.append("payload_json", JSON.stringify({
-          username: (_r = webhook.Title) != null ? _r : "AtmosphericX",
-          content: (_s = webhook.Message) != null ? _s : "",
-          embeds: [embed]
-        }));
-        yield CreateHttp({
-          url: webhook.Destination,
-          timeout: 15e3,
-          method: `POST`,
-          body: form
-        });
+        if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
+          const t2 = performance.now();
+          const isRatelimited = SetTimeoutAction({ identifier: webhook.Destination, interval: ((_o = webhook.Ratelimit) != null ? _o : 2) * 2, max: (_p = webhook.Ratelimit) != null ? _p : 2, addTime: true });
+          const form = new FormData();
+          const embed = {
+            title: `${metadata.name} (${metadata.status})`,
+            description: embedText,
+            fields: [],
+            color: 16711680,
+            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+            footer: { text: (_q = webhook.Title) != null ? _q : `AtmosphericX` }
+          };
+          if (isRatelimited.limited) {
+            return;
+          }
+          if (metadata.description && !metadata.expired) {
+            const description = metadata.description.length > 900 ? metadata.description.substring(0, 900) + "\n\n[Message truncated due to length]" : metadata.description;
+            embed.fields.push({
+              name: "Description",
+              value: description ? "```\n" + description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
+            });
+          }
+          if (((_r = metadata.attachments) == null ? void 0 : _r.length) > 0) {
+            const attachments = metadata.attachments.slice(0, 5);
+            embed.fields.push({
+              name: "Attachments",
+              value: attachments.map((attachment) => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + "..." : attachment.name}](${attachment.link})`).join("\n")
+            });
+          }
+          if (uploads == null ? void 0 : uploads.TEXT) {
+            form.append("fUpload", new Blob([Buffer.from(metadata.text)], { type: "application/text" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`);
+          }
+          if (uploads == null ? void 0 : uploads.JSON) {
+            form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
+          }
+          if (uploads == null ? void 0 : uploads.EAS) {
+            if (metadata.eas) {
+              const file = yield (0, import_promises.readFile)(metadata.eas);
+              form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`);
+            }
+          }
+          form.append("payload_json", JSON.stringify({
+            username: (_s = webhook.Title) != null ? _s : "AtmosphericX",
+            content: (_t = webhook.Message) != null ? _t : "",
+            embeds: [embed]
+          }));
+          yield CreateHttp({
+            url: webhook.Destination,
+            timeout: 15e3,
+            method: `POST`,
+            body: form
+          });
+          SetDebug({
+            title: "Tasks/Webhook",
+            message: `${Math.round(performance.now() - t2)}ms`
+          });
+        }
       }
     }
   }
-  SetDebug({ title: `CreateActions`, message: `${Math.round(performance.now() - tick)}ms` });
+  SetDebug({ title: `Tasks`, message: `${Math.round(performance.now() - tick)}ms` });
 });
 
 // src/@modules/@utilities/GetShapeNearestPoint.ts
@@ -6912,7 +6935,7 @@ var GetEventNodes = (event) => __async(null, null, function* () {
   var _a, _b;
   const nodes = bootstrap.cache.nodes.features;
   if (!nodes || nodes.length === 0) {
-    return { nodes: [], filtered: false, updated: Date.now() };
+    return { nodes: [], filtered: true, updated: Date.now() };
   }
   const metadata = { nodes: [], proximity: false, filtered: false };
   const geometry = yield GetEventGeometry(event);
@@ -6983,65 +7006,73 @@ var UpdateNode = (selectedEvent) => __async(null, null, function* () {
   }
 });
 
-// src/@manager/MakeEvent.ts
-var MakeEvent = (event) => __async(null, null, function* () {
+// src/@manager/MakeEvents.ts
+var MakeEvents = (events) => __async(null, null, function* () {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+  let tasked = [];
   const settings = bootstrap.settings;
-  const features = bootstrap.cache.events.features;
-  const getHash = event.properties.metadata.hash;
-  const getTracking = event.properties.metadata.tracking;
-  const isEntry = (_a = bootstrap.cache.hashes) == null ? void 0 : _a.find((hash) => hash.tracking === getTracking);
-  const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
-  const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
-  if (isHashed || event.properties.status_metadata.is_expired) return;
-  SetHash(event, isEntry);
-  yield UpdateNode(event);
-  const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering;
-  if (isNodeFiltering && !event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) {
-    return;
-  }
-  const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
-  if (!isRatelimited.limited) {
-    SetEventEmit({
-      event: `onEventStatus`,
-      metadata: {
-        type: getFeature ? `Updated` : `New`,
-        event
-      },
-      message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
-    });
-  }
-  if (settings.GlobalSettings.EventManagement) {
-    if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
-      if (getFeature) {
-        const getIndex = features.indexOf(getFeature);
-        const cHistory = (_f = (_e = (_d = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _d.metadata) == null ? void 0 : _e.history) != null ? _f : [];
-        const cLocations = (_i = (_h = (_g = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _g.locations) == null ? void 0 : _h.split(";").map((l) => l.trim())) != null ? _i : [];
-        const cUgc = (_l = (_k = (_j = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _j.geocode) == null ? void 0 : _k.ugc) != null ? _l : [];
-        const iHistory = (_o = (_n = (_m = event.properties) == null ? void 0 : _m.metadata) == null ? void 0 : _n.history) != null ? _o : [];
-        const iLocations = (_r = (_q = (_p = event.properties) == null ? void 0 : _p.locations) == null ? void 0 : _q.split(";").map((l) => l.trim())) != null ? _r : [];
-        const iUgc = (_u = (_t = (_s = event.properties) == null ? void 0 : _s.geocode) == null ? void 0 : _t.ugc) != null ? _u : [];
-        const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i).filter((v, i, a) => a.findIndex((h) => h.description === v.description && h.issued === v.issued) === i);
-        const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join("; ");
-        const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
-        bootstrap.cache.events.features[getIndex] = __spreadProps(__spreadValues({}, event), {
-          properties: __spreadProps(__spreadValues({}, event.properties), {
-            metadata: __spreadProps(__spreadValues({}, (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.metadata), {
-              history: mHistory
-            }),
-            locations: mLocations,
-            geocode: __spreadProps(__spreadValues({}, (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.geocode), {
-              ugc: mUgc
+  if (events.length === 0) return;
+  for (const event of events) {
+    const features = bootstrap.cache.events.features;
+    const getHash = event.properties.metadata.hash;
+    const getTracking = event.properties.metadata.tracking;
+    const isEntry = (_a = bootstrap.cache.hashes) == null ? void 0 : _a.find((hash) => hash.tracking === getTracking);
+    const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
+    const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering;
+    const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
+    if (isHashed || event.properties.status_metadata.is_expired) return;
+    SetHash(event, isEntry);
+    if (isNodeFiltering) {
+      yield UpdateNode(event);
+      if (!event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) {
+        return;
+      }
+    }
+    const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
+    if (!isRatelimited.limited) {
+      SetEventEmit({
+        event: `onEventStatus`,
+        metadata: {
+          type: getFeature ? `Updated` : `New`,
+          event
+        },
+        message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+      });
+    }
+    if (settings.GlobalSettings.EventManagement) {
+      if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
+        if (getFeature) {
+          const getIndex = features.indexOf(getFeature);
+          const cHistory = (_f = (_e = (_d = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _d.metadata) == null ? void 0 : _e.history) != null ? _f : [];
+          const cLocations = (_i = (_h = (_g = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _g.locations) == null ? void 0 : _h.split(";").map((l) => l.trim())) != null ? _i : [];
+          const cUgc = (_l = (_k = (_j = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _j.geocode) == null ? void 0 : _k.ugc) != null ? _l : [];
+          const iHistory = (_o = (_n = (_m = event.properties) == null ? void 0 : _m.metadata) == null ? void 0 : _n.history) != null ? _o : [];
+          const iLocations = (_r = (_q = (_p = event.properties) == null ? void 0 : _p.locations) == null ? void 0 : _q.split(";").map((l) => l.trim())) != null ? _r : [];
+          const iUgc = (_u = (_t = (_s = event.properties) == null ? void 0 : _s.geocode) == null ? void 0 : _t.ugc) != null ? _u : [];
+          const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i).filter((v, i, a) => a.findIndex((h) => h.description === v.description && h.issued === v.issued) === i);
+          const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join("; ");
+          const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
+          bootstrap.cache.events.features[getIndex] = __spreadProps(__spreadValues({}, event), {
+            properties: __spreadProps(__spreadValues({}, event.properties), {
+              metadata: __spreadProps(__spreadValues({}, (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.metadata), {
+                history: mHistory
+              }),
+              locations: mLocations,
+              geocode: __spreadProps(__spreadValues({}, (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.geocode), {
+                ugc: mUgc
+              })
             })
-          })
-        });
-        yield CreateActions(bootstrap.cache.events.features[getIndex]);
-      } else {
-        features.push(event);
-        yield CreateActions(event);
+          });
+          tasked.push(bootstrap.cache.events.features[getIndex]);
+        } else {
+          features.push(event);
+          tasked.push(event);
+        }
       }
     }
   }
+  yield Tasks(tasked);
+  SetEventEmit({ event: `onEventCache`, metadata: bootstrap.cache.events, limited: true });
 });
 
 // src/@enums/Strings.ts
@@ -7077,7 +7108,7 @@ var RemoveEvent = (event, isTimeBasedExpiration) => __async(null, null, function
         metadata: { type: `Removed`, event },
         message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
       });
-      yield CreateActions(event);
+      yield Tasks([event]);
     }
     SetTimeoutAction({ identifier: gTracking, expire: true });
   }
@@ -7206,7 +7237,7 @@ var GetEventAttachments = (event) => {
   return attachments;
 };
 
-// src/@building/ValidateEvents.ts
+// src/@manager/ValidateEvents.ts
 var import_crypto = require("crypto");
 var ValidateEvents = (events) => __async(null, null, function* () {
   const tick = performance.now();
@@ -7314,17 +7345,8 @@ var ValidateEvents = (events) => __async(null, null, function* () {
     return !filtered;
   });
   SetDebug({ title: `ValidateEvents (PRE) (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
-  if (filtering.length > 0) {
-    for (const event of filtering) {
-      yield MakeEvent(event);
-    }
-  }
-  SetEventEmit({
-    event: `onEventCache`,
-    metadata: bootstrap.cache.events,
-    limited: true
-  });
-  SetDebug({ title: `ValidateEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
+  yield MakeEvents(filtering);
+  SetDebug({ title: `MakeEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
 });
 
 // src/@building/CreateEvent.ts
@@ -7470,7 +7492,7 @@ var SetSleep = (options) => __async(null, null, function* () {
 });
 
 // src/@modules/@database/ImportShapefiles.ts
-var import_fs4 = require("fs");
+var import_fs3 = require("fs");
 var import_path3 = require("path");
 var import_jszip = require("jszip");
 var import_shapefile = require("shapefile");
@@ -7486,14 +7508,14 @@ var ImportShapefiles = () => __async(null, null, function* () {
         const arrayBuff = yield response2.arrayBuffer();
         const content = yield (0, import_jszip.loadAsync)(arrayBuff);
         const directory = (0, import_path3.resolve)(__dirname, `../../shapefiles`);
-        if (!(0, import_fs4.existsSync)(directory)) {
-          (0, import_fs4.mkdirSync)(directory, { recursive: true });
+        if (!(0, import_fs3.existsSync)(directory)) {
+          (0, import_fs3.mkdirSync)(directory, { recursive: true });
         }
         for (const file of Object.keys(content.files)) {
           if (file.endsWith(".shp") || file.endsWith(".dbf")) {
             const data = yield content.files[file].async(`nodebuffer`);
             const output = (0, import_path3.resolve)(directory, `${(_a = shapefile == null ? void 0 : shapefile.name) != null ? _a : ``}_${(_b = shapefile == null ? void 0 : shapefile.id) != null ? _b : ``}${(0, import_path3.extname)(file)}`);
-            (0, import_fs4.writeFileSync)(output, data);
+            (0, import_fs3.writeFileSync)(output, data);
           }
         }
         const filepath = (0, import_path3.resolve)(__dirname, "../../shapefiles", shapefile.name + "_" + shapefile.id);
@@ -7524,11 +7546,11 @@ var ImportShapefiles = () => __async(null, null, function* () {
             insert.run(final2, location, JSON.stringify(geometry));
           }
         });
-        (0, import_fs4.unlinkSync)(`${filepath}.shp`);
-        (0, import_fs4.unlinkSync)(`${filepath}.dbf`);
+        (0, import_fs3.unlinkSync)(`${filepath}.shp`);
+        (0, import_fs3.unlinkSync)(`${filepath}.dbf`);
         transaction(features);
       }
-      (0, import_fs4.rm)((0, import_path3.resolve)(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
+      (0, import_fs3.rm)((0, import_path3.resolve)(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
       });
     }
   } catch (error) {
@@ -7583,13 +7605,13 @@ var ImportBroadcastify = () => __async(null, null, function* () {
 });
 
 // src/@modules/@database/InitializeDatabase.ts
-var import_fs5 = require("fs");
+var import_fs4 = require("fs");
 var import_better_sqlite3 = __toESM(require("better-sqlite3"));
 var InitializeDatabase = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   try {
-    if (!(0, import_fs5.existsSync)(settings.Database)) {
-      (0, import_fs5.writeFileSync)(settings.Database, "");
+    if (!(0, import_fs4.existsSync)(settings.Database)) {
+      (0, import_fs4.writeFileSync)(settings.Database, "");
       SetWarning({ message: `Creating new database at ${settings.Database}` });
     }
     bootstrap.database = new import_better_sqlite3.default(settings.Database);
@@ -7681,25 +7703,25 @@ var ReconnectXMPP = (interval) => __async(null, null, function* () {
 });
 
 // src/@modules/@utilities/SetCronSchedule.ts
-var import_fs6 = require("fs");
+var import_fs5 = require("fs");
 var import_path4 = require("path");
 var SetCronSchedule = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
   const TTLCUT = Date.now() - TTL * 1e3;
   const walk = (dir) => {
-    if ((0, import_fs6.existsSync)(dir)) {
-      const entries = (0, import_fs6.readdirSync)(dir, { withFileTypes: true });
+    if ((0, import_fs5.existsSync)(dir)) {
+      const entries = (0, import_fs5.readdirSync)(dir, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = (0, import_path4.join)(dir, entry.name);
         if (entry.isDirectory()) {
           walk(fullPath);
           continue;
         }
-        const stats = (0, import_fs6.statSync)(fullPath);
+        const stats = (0, import_fs5.statSync)(fullPath);
         if (stats.mtime.getTime() < TTLCUT) {
           try {
-            (0, import_fs6.unlinkSync)(fullPath);
+            (0, import_fs5.unlinkSync)(fullPath);
           } catch (err) {
             console.error(`Failed to delete ${fullPath}:`, err);
           }

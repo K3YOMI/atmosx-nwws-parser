@@ -21,7 +21,7 @@ import { TypeSettings } from "../../@types/Settings"
 import { bootstrap } from '../../bootstrap'
 import { SetWarning } from '../@utilities/SetWarning';
 import { CreateEvent } from '../../@building/CreateEvent';
-import { ValidateEvents } from "../../@building/ValidateEvents";
+import { ValidateEvents } from "../../@manager/ValidateEvents";
 
 export const GetCachedEvents = async (): Promise<void> => {
     try { 

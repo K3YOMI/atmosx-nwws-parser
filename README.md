@@ -124,6 +124,10 @@
 		- 8.3.3 [Generating Hashes](/.github/docs/docs-technical.md#833---generating-hashes)
 	- 8.4 [Event & History Management](/.github/docs/docs-technical.md#84---event---history-management)
 	- 8.5 [Action Workflow](/.github/docs/docs-technical.md#85---action-workflow)
+9. [Workers & Performance](/.github/docs/docs-technical.md#9---workers---performance)
+	- 9.1 [Setting up Workers](/.github/docs/docs-technical.md#91---setting-up-workers)
+	- 9.2 [IO/CPU Issues](/.github/docs/docs-technical.md#92---iocpu-issues)
+	- 9.3 [Recommended Hardware Specifications](/.github/docs/docs-technical.md#93---recommended-hardware-specifications)
 
 
 

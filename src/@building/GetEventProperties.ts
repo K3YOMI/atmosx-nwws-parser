@@ -75,7 +75,7 @@ export const GetEventProperties = (options: GetEventPropertiesOptions): TypeEven
             discussion_watch_issuance: GetTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`]}) ?? null,
         },
         watch_parameters: {
-            watch_number: (options?.pVtec?.is_watch) && (GetTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, '')?.trim()?.toString()?.padStart(4, "0") ?? options?.pVtec?.tracking?.slice(-4)?.toString()?.padStart(4, "0") ?? null),
+            watch_number: options?.pVtec?.is_watch ? ( GetTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, '')?.trim()?.toString()?.padStart(4, "0") ?? options?.pVtec?.tracking?.slice(-4)?.toString()?.padStart(4, "0") ?? null) : null,
             watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : options?.message.includes(`SEVERE`) ? `Severe` : null,
             additional_tornadoes_probability: GetTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] }) ?? null,
             strong_tornadoes_probability: GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] }) ?? null,
