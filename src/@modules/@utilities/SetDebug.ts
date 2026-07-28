@@ -29,8 +29,7 @@ export const SetDebug = (options: SetDebugOptions): void => {
     const settings = bootstrap.settings as TypeSettings;
     bootstrap.listener.emit(`debug`, {
         message: options.message,
-        parent: options?.title?.split(`.`)[0]?.replace(`@`, ``),
-        function: options?.title?.split(`.`)[1]
+        function: options.title ?? `debug`,
     })
     if (settings.EnableDebugging) { 
         console.log(`[${bootstrap.ansi_colors.BLUE}${options.title ?? `debug`}${bootstrap.ansi_colors.RESET}] ${options.message}`)

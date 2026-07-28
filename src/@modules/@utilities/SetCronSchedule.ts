@@ -87,7 +87,7 @@ export const SetCronSchedule = async (): Promise<void> => {
                 error: false
             },
         })
-        CreateEvent({ message: response.message, isNWWS: false })
+        await CreateEvent({ message: response.message, isNWWS: false })
     }
 }
 

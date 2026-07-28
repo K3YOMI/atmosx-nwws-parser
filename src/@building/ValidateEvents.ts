@@ -25,13 +25,11 @@ import { GetEventSignature } from "./GetEventSignature"
 import { MakeEvent } from "../@manager/MakeEvent";
 import { RemoveEvent } from "../@manager/RemoveEvent";
 import { GetEventAttachments } from "./GetEventAttachments";
-import { UpdateNode } from "../@manager/UpdateNode";
 import { SetEventEmit } from "../@modules/@utilities/SetEventEmit";
 import { SetDebug } from "../@modules/@utilities/SetDebug";
 import { GetMatched } from "../@modules/@utilities/GetMatched";
 import { GetEventGeometry } from "./GetEventGeometry";
 import { createHash } from "crypto"
-import { SetWarning } from "../@modules/@utilities/SetWarning";
 
 export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
     const tick = performance.now();
@@ -138,6 +136,8 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         return !filtered
     })
     
+    SetDebug({ title: `ValidateEvents (PRE) (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
+
     if (filtering.length > 0) {
         for (const event of filtering) {
             await MakeEvent(event)
@@ -149,6 +149,6 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         metadata: bootstrap.cache.events,
         limited: true
     })
-    
-    SetDebug({ title: `ValidateEvents`, message: `Filtered ${filtering.length}/${events.length} events which took ${Math.round(performance.now() - tick)}ms` })
+
+    SetDebug({ title: `ValidateEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
 }

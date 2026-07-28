@@ -54,7 +54,7 @@ export const StartService = async (configurations: TypeSettings): Promise<void> 
     bootstrap.cron = new Cron(`*/${scheduleInterval} * * * * *`, async () => {
         await SetCronSchedule();
     })
-    bootstrap.cron = new Cron(`* * * * * *`, async () => {
+    bootstrap.cron = new Cron(`* * * * * *`, async () => { 
         await UpdateNode();
         await UpdateEvents();
     })

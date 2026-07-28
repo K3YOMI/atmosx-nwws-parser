@@ -5288,15 +5288,14 @@ var GetEventTracking = (options) => {
 
 // src/@modules/@utilities/SetDebug.ts
 var SetDebug = (options) => {
-  var _a, _b, _c, _d;
+  var _a, _b;
   const settings = bootstrap.settings;
   bootstrap.listener.emit(`debug`, {
     message: options.message,
-    parent: (_b = (_a = options == null ? void 0 : options.title) == null ? void 0 : _a.split(`.`)[0]) == null ? void 0 : _b.replace(`@`, ``),
-    function: (_c = options == null ? void 0 : options.title) == null ? void 0 : _c.split(`.`)[1]
+    function: (_a = options.title) != null ? _a : `debug`
   });
   if (settings.EnableDebugging) {
-    console.log(`[${bootstrap.ansi_colors.BLUE}${(_d = options.title) != null ? _d : `debug`}${bootstrap.ansi_colors.RESET}] ${options.message}`);
+    console.log(`[${bootstrap.ansi_colors.BLUE}${(_b = options.title) != null ? _b : `debug`}${bootstrap.ansi_colors.RESET}] ${options.message}`);
   }
 };
 
@@ -5353,7 +5352,7 @@ var ParseText = (stanza) => __async(null, null, function* () {
         }
       })
     });
-    SetDebug({ title: `ParseText`, message: `Event process took ${Math.round(performance.now() - tick)}ms` });
+    SetDebug({ title: `ParseText`, message: `${Math.round(performance.now() - tick)}ms` });
   }
 });
 
@@ -5528,7 +5527,7 @@ var ParseUGC = (stanza) => __async(null, null, function* () {
           }
         })
       });
-      SetDebug({ title: `ParseUGC`, message: `Event process took ${Math.round(performance.now() - tick)}ms` });
+      SetDebug({ title: `ParseUGC`, message: `${Math.round(performance.now() - tick)}ms` });
     }
   }
 });
@@ -5769,7 +5768,7 @@ var ParseVTEC = (stanza) => __async(null, null, function* () {
             }
           })
         });
-        SetDebug({ title: `ParseVTEC`, message: `Event process took ${Math.round(performance.now() - tick)}ms` });
+        SetDebug({ title: `ParseVTEC`, message: `${Math.round(performance.now() - tick)}ms` });
       }
     }
   }
@@ -5862,7 +5861,7 @@ var ParseAPI = (stanza) => __async(null, null, function* () {
         }
       }
     });
-    SetDebug({ title: `ParseAPI`, message: `Event process took ${Math.round(performance.now() - tick)}ms` });
+    SetDebug({ title: `ParseAPI`, message: `${Math.round(performance.now() - tick)}ms` });
   }
 });
 
@@ -6505,7 +6504,7 @@ var GenerateEASMessage = (options) => __async(null, null, function* () {
     (0, import_fs2.unlinkSync)(tmpTTS);
   } catch (e) {
   }
-  SetDebug({ title: `GenerateEASMessage`, message: `EAS tone generation took ${Math.round(performance.now() - tick)}ms` });
+  SetDebug({ title: `GenerateEASMessage`, message: `${Math.round(performance.now() - tick)}ms` });
   return outTTS;
 });
 
@@ -6655,7 +6654,7 @@ var CreateActions = (event) => __async(null, null, function* () {
   const properties = event.properties;
   const hasActions = Array.isArray(actions) && actions.length > 0;
   if (!hasActions) {
-    SetDebug({ title: `CreateActions`, message: `Listener took ${Math.round(performance.now() - tick)}ms` });
+    SetDebug({ title: `CreateActions`, message: `${Math.round(performance.now() - tick)}ms` });
     return;
   }
   const metadata = {
@@ -6814,7 +6813,7 @@ var CreateActions = (event) => __async(null, null, function* () {
       }
     }
   }
-  SetDebug({ title: `CreateActions`, message: `Listener took ${Math.round(performance.now() - tick)}ms` });
+  SetDebug({ title: `CreateActions`, message: `${Math.round(performance.now() - tick)}ms` });
 });
 
 // src/@modules/@utilities/GetShapeNearestPoint.ts
@@ -7313,6 +7312,7 @@ var ValidateEvents = (events) => __async(null, null, function* () {
     SetEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, "")}`, metadata: define2 });
     return !filtered;
   });
+  SetDebug({ title: `ValidateEvents (PRE) (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
   if (filtering.length > 0) {
     for (const event of filtering) {
       yield MakeEvent(event);
@@ -7323,7 +7323,7 @@ var ValidateEvents = (events) => __async(null, null, function* () {
     metadata: bootstrap.cache.events,
     limited: true
   });
-  SetDebug({ title: `ValidateEvents`, message: `Filtered ${filtering.length}/${events.length} events which took ${Math.round(performance.now() - tick)}ms` });
+  SetDebug({ title: `ValidateEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
 });
 
 // src/@building/CreateEvent.ts
@@ -7740,7 +7740,7 @@ var SetCronSchedule = () => __async(null, null, function* () {
         error: false
       }
     });
-    CreateEvent({ message: response2.message, isNWWS: false });
+    yield CreateEvent({ message: response2.message, isNWWS: false });
   }
 });
 
