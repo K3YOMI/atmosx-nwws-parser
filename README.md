@@ -1,6 +1,6 @@
 <div align="center">
 	<a href="https://atmosphericx.scriptkitty.cafe">
-		<img src=".github/logo.png" alt="@atmosx/event-product-parser" width="800"/>
+		<img src="https://scriptkitty.cafe/ftp/@atmosphericx/assets/logo-event-product-parser.png" alt="@atmosx/event-product-parser" width="800"/>
 	</a>
 	<br>
 	<p>A TypeScript/JavaScript library for parsing and ingesting NOAA and NWS Weather Text Products</p>
