@@ -32,7 +32,6 @@
 	},
 	"homepage": "https://github.com/AtmosphericX/event-product-parser#readme",
 	"dependencies": {
-		"@atmosx/event-product-parser": "link:",
 		"@xmpp/client": "0.14.0",
 		"better-sqlite3": "12.9.0",
 		"croner": "10.0.1",

@@ -1,5 +1,4 @@
 /test
 /node_modules
 package-lock.json
-README_REV.md
-CONFIGURATIONS.md
+pnpm-lock.yaml
