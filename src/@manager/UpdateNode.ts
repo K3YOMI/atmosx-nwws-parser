@@ -27,21 +27,31 @@ export const UpdateNode = async (selectedEvent?: TypeEvent): Promise<void> => {
     const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
     let total = 0;
 
+    const TTLEvents = selectedEvent
+        ? [selectedEvent]
+        : events.filter((evt) => {
+            const lastUpdate = evt?.properties?.metadata?.updated ?? null;
+            return lastUpdate == null || (Date.now() - lastUpdate) >= ttl;
+        });
+
+    if (TTLEvents.length === 0) return;
+
     async function update(evt: TypeEvent) {
-        const lastUpdate = evt?.properties?.metadata?.updated ?? null;
-        if (lastUpdate != null && (Date.now() - lastUpdate) < ttl) {
-            return evt;
-        }
         const node = await GetEventNodes(evt);
         if (node.nodes.length > 0) {
-            total++
+            total++;
         }
-        evt.properties.metadata.nodes = node.nodes
-        evt.properties.metadata.filtered_proximity = node.filtered
-        evt.properties.metadata.updated = node.updated
+        evt.properties.metadata.nodes = node.nodes;
+        evt.properties.metadata.filtered_proximity = node.filtered;
+        evt.properties.metadata.updated = node.updated;
     }
-    if (!selectedEvent) { await Promise.all(events.map(async (evt) => { await update(evt) })) } 
-    if (selectedEvent) { await update(selectedEvent) }
+
+    const concurrency = 4;
+    for (let index = 0; index < TTLEvents.length; index += concurrency) {
+        const batch = TTLEvents.slice(index, index + concurrency);
+        await Promise.all(batch.map((evt) => update(evt)));
+    }
+
     if (total > 0) {
         SetEventEmit({
             event: `onNodeUpdate`,

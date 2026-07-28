@@ -38,6 +38,11 @@ export const CreateActions = async (event: TypeEvent): Promise<void> => {
     const notifyServer = settings.NotifyServer;
     const actions = settings.ActionSettings as TypeActions[];
     const properties = event.properties;
+    const hasActions = Array.isArray(actions) && actions.length > 0;
+    if (!hasActions) {
+        SetDebug({ title: `CreateActions`, message: `Listener took ${Math.round(performance.now() - tick)}ms` });
+        return;
+    }
     const metadata = { 
         text: null,
         eas: null,
@@ -204,5 +209,5 @@ export const CreateActions = async (event: TypeEvent): Promise<void> => {
             }
         }
     }
-    SetDebug({ title: `CreateActions`, message: `Listener took ${performance.now() - tick} ms` })
+    SetDebug({ title: `CreateActions`, message: `Listener took ${Math.round(performance.now() - tick)}ms` })
 }

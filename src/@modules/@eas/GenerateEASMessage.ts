@@ -137,7 +137,7 @@ export const GenerateEASMessage = async (options: GenerateEASMessageOptions): Pr
     const aBuffer = GetPCM16(Array.from(aFinal).map(v => ({ value: v })), 8000);
     writeFileSync(outTTS, aBuffer)
     try{ unlinkSync(tmpTTS) } catch {}
-    SetDebug({ title: `GenerateEASMessage`, message: `EAS tone generation took ${performance.now() - tick} ms` })
+    SetDebug({ title: `GenerateEASMessage`, message: `EAS tone generation took ${Math.round(performance.now() - tick)}ms` })
     return outTTS;
 }
 

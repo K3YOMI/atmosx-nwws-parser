@@ -5353,7 +5353,7 @@ var ParseText = (stanza) => __async(null, null, function* () {
         }
       })
     });
-    SetDebug({ title: `ParseText`, message: `Event process took ${performance.now() - tick} ms` });
+    SetDebug({ title: `ParseText`, message: `Event process took ${Math.round(performance.now() - tick)}ms` });
   }
 });
 
@@ -5528,7 +5528,7 @@ var ParseUGC = (stanza) => __async(null, null, function* () {
           }
         })
       });
-      SetDebug({ title: `ParseUGC`, message: `Event process took ${performance.now() - tick} ms` });
+      SetDebug({ title: `ParseUGC`, message: `Event process took ${Math.round(performance.now() - tick)}ms` });
     }
   }
 });
@@ -5769,7 +5769,7 @@ var ParseVTEC = (stanza) => __async(null, null, function* () {
             }
           })
         });
-        SetDebug({ title: `ParseVTEC`, message: `Event process took ${performance.now() - tick} ms` });
+        SetDebug({ title: `ParseVTEC`, message: `Event process took ${Math.round(performance.now() - tick)}ms` });
       }
     }
   }
@@ -5862,7 +5862,7 @@ var ParseAPI = (stanza) => __async(null, null, function* () {
         }
       }
     });
-    SetDebug({ title: `ParseAPI`, message: `Event process took ${performance.now() - tick} ms` });
+    SetDebug({ title: `ParseAPI`, message: `Event process took ${Math.round(performance.now() - tick)}ms` });
   }
 });
 
@@ -6045,16 +6045,16 @@ var EnumGlobalFilter = [
 
 // src/@manager/SetHash.ts
 var SetHash = (event, entry) => {
-  if (entry) {
-    entry.hashes.push(event.properties.metadata.hash);
-    entry.expires = event.properties.expires;
-  } else {
+  if (!entry) {
     bootstrap.cache.hashes.push({
       tracking: event.properties.metadata.tracking,
       hashes: [event.properties.metadata.hash],
       expires: event.properties.expires
     });
+    return;
   }
+  entry.hashes.push(event.properties.metadata.hash);
+  entry.expires = event.properties.expires;
 };
 
 // src/@modules/@eas/GetWavPCM16.ts
@@ -6505,7 +6505,7 @@ var GenerateEASMessage = (options) => __async(null, null, function* () {
     (0, import_fs2.unlinkSync)(tmpTTS);
   } catch (e) {
   }
-  SetDebug({ title: `GenerateEASMessage`, message: `EAS tone generation took ${performance.now() - tick} ms` });
+  SetDebug({ title: `GenerateEASMessage`, message: `EAS tone generation took ${Math.round(performance.now() - tick)}ms` });
   return outTTS;
 });
 
@@ -6653,6 +6653,11 @@ var CreateActions = (event) => __async(null, null, function* () {
   const notifyServer = settings.NotifyServer;
   const actions = settings.ActionSettings;
   const properties = event.properties;
+  const hasActions = Array.isArray(actions) && actions.length > 0;
+  if (!hasActions) {
+    SetDebug({ title: `CreateActions`, message: `Listener took ${Math.round(performance.now() - tick)}ms` });
+    return;
+  }
   const metadata = {
     text: null,
     eas: null,
@@ -6809,7 +6814,7 @@ var CreateActions = (event) => __async(null, null, function* () {
       }
     }
   }
-  SetDebug({ title: `CreateActions`, message: `Listener took ${performance.now() - tick} ms` });
+  SetDebug({ title: `CreateActions`, message: `Listener took ${Math.round(performance.now() - tick)}ms` });
 });
 
 // src/@modules/@utilities/GetShapeNearestPoint.ts
@@ -6946,13 +6951,14 @@ var UpdateNode = (selectedEvent) => __async(null, null, function* () {
   const events = bootstrap.cache.events.features;
   const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
   let total = 0;
+  const TTLEvents = selectedEvent ? [selectedEvent] : events.filter((evt) => {
+    var _a, _b, _c;
+    const lastUpdate = (_c = (_b = (_a = evt == null ? void 0 : evt.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.updated) != null ? _c : null;
+    return lastUpdate == null || Date.now() - lastUpdate >= ttl;
+  });
+  if (TTLEvents.length === 0) return;
   function update(evt) {
     return __async(this, null, function* () {
-      var _a, _b, _c;
-      const lastUpdate = (_c = (_b = (_a = evt == null ? void 0 : evt.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.updated) != null ? _c : null;
-      if (lastUpdate != null && Date.now() - lastUpdate < ttl) {
-        return evt;
-      }
       const node = yield GetEventNodes(evt);
       if (node.nodes.length > 0) {
         total++;
@@ -6962,13 +6968,10 @@ var UpdateNode = (selectedEvent) => __async(null, null, function* () {
       evt.properties.metadata.updated = node.updated;
     });
   }
-  if (!selectedEvent) {
-    yield Promise.all(events.map((evt) => __async(null, null, function* () {
-      yield update(evt);
-    })));
-  }
-  if (selectedEvent) {
-    yield update(selectedEvent);
+  const concurrency = 4;
+  for (let index = 0; index < TTLEvents.length; index += concurrency) {
+    const batch = TTLEvents.slice(index, index + concurrency);
+    yield Promise.all(batch.map((evt) => update(evt)));
   }
   if (total > 0) {
     SetEventEmit({
@@ -7320,7 +7323,7 @@ var ValidateEvents = (events) => __async(null, null, function* () {
     metadata: bootstrap.cache.events,
     limited: true
   });
-  SetDebug({ title: `ValidateEvents`, message: `Filtered ${filtering.length}/${events.length} events which took ${performance.now() - tick} ms` });
+  SetDebug({ title: `ValidateEvents`, message: `Filtered ${filtering.length}/${events.length} events which took ${Math.round(performance.now() - tick)}ms` });
 });
 
 // src/@building/CreateEvent.ts

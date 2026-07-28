@@ -31,6 +31,7 @@ import { SetDebug } from "../@modules/@utilities/SetDebug";
 import { GetMatched } from "../@modules/@utilities/GetMatched";
 import { GetEventGeometry } from "./GetEventGeometry";
 import { createHash } from "crypto"
+import { SetWarning } from "../@modules/@utilities/SetWarning";
 
 export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
     const tick = performance.now();
@@ -148,6 +149,6 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         metadata: bootstrap.cache.events,
         limited: true
     })
-
-    SetDebug({ title: `ValidateEvents`, message: `Filtered ${filtering.length}/${events.length} events which took ${performance.now() - tick} ms` })
+    
+    SetDebug({ title: `ValidateEvents`, message: `Filtered ${filtering.length}/${events.length} events which took ${Math.round(performance.now() - tick)}ms` })
 }

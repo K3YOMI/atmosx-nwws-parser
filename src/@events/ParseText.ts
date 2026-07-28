@@ -83,6 +83,6 @@ export const ParseText = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 }
             }
         })  
-        SetDebug({ title: `ParseText`, message: `Event process took ${performance.now() - tick} ms` })
+        SetDebug({ title: `ParseText`, message: `Event process took ${Math.round(performance.now() - tick)}ms` })
     }
 }

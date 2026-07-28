@@ -22,15 +22,15 @@ import { TypeHash } from "../@types/Hash"
 import { bootstrap } from "../bootstrap"
 
 export const SetHash = (event: TypeEvent, entry: TypeHash): void => {
-    if (entry) {
-        entry.hashes.push(event.properties.metadata.hash);
-        entry.expires = event.properties.expires;
-    } else { 
+    if (!entry) {
         bootstrap.cache.hashes.push({
             tracking: event.properties.metadata.tracking,
             hashes: [event.properties.metadata.hash],
             expires: event.properties.expires
         });
+        return;
     }
-    
+
+    entry.hashes.push(event.properties.metadata.hash);
+    entry.expires = event.properties.expires;
 }
