@@ -88,9 +88,9 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 
-// node_modules/ltx/lib/escape.js
+// node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/escape.js
 var require_escape = __commonJS({
-  "node_modules/ltx/lib/escape.js"(exports) {
+  "node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/escape.js"(exports) {
     "use strict";
     var escapeXMLTable = {
       "&": "&amp;",
@@ -151,9 +151,9 @@ var require_escape = __commonJS({
   }
 });
 
-// node_modules/ltx/lib/Element.js
+// node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/Element.js
 var require_Element = __commonJS({
-  "node_modules/ltx/lib/Element.js"(exports, module) {
+  "node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/Element.js"(exports, module) {
     "use strict";
     var escape2 = require_escape();
     var Element3 = class _Element {
@@ -451,9 +451,9 @@ var require_Element = __commonJS({
   }
 });
 
-// node_modules/ltx/lib/createElement.js
+// node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/createElement.js
 var require_createElement = __commonJS({
-  "node_modules/ltx/lib/createElement.js"(exports, module) {
+  "node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/createElement.js"(exports, module) {
     "use strict";
     var Element3 = require_Element();
     function append(el, child) {
@@ -485,9 +485,9 @@ var require_createElement = __commonJS({
   }
 });
 
-// node_modules/ltx/lib/parsers/ltx.js
+// node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/parsers/ltx.js
 var require_ltx = __commonJS({
-  "node_modules/ltx/lib/parsers/ltx.js"(exports, module) {
+  "node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/parsers/ltx.js"(exports, module) {
     "use strict";
     var events = __require("events");
     var escape2 = require_escape();
@@ -707,9 +707,9 @@ var require_ltx = __commonJS({
   }
 });
 
-// node_modules/koa-compose/index.js
+// node_modules/.pnpm/koa-compose@4.1.0/node_modules/koa-compose/index.js
 var require_koa_compose = __commonJS({
-  "node_modules/koa-compose/index.js"(exports, module) {
+  "node_modules/.pnpm/koa-compose@4.1.0/node_modules/koa-compose/index.js"(exports, module) {
     "use strict";
     module.exports = compose2;
     function compose2(middleware2) {
@@ -737,9 +737,9 @@ var require_koa_compose = __commonJS({
   }
 });
 
-// node_modules/saslmechanisms/lib/factory.js
+// node_modules/.pnpm/saslmechanisms@0.1.1/node_modules/saslmechanisms/lib/factory.js
 var require_factory = __commonJS({
-  "node_modules/saslmechanisms/lib/factory.js"(exports, module) {
+  "node_modules/.pnpm/saslmechanisms@0.1.1/node_modules/saslmechanisms/lib/factory.js"(exports, module) {
     (function(root, factory) {
       if (typeof exports === "object") {
         factory(exports, module);
@@ -774,9 +774,9 @@ var require_factory = __commonJS({
   }
 });
 
-// node_modules/saslmechanisms/main.js
+// node_modules/.pnpm/saslmechanisms@0.1.1/node_modules/saslmechanisms/main.js
 var require_main = __commonJS({
-  "node_modules/saslmechanisms/main.js"(exports, module) {
+  "node_modules/.pnpm/saslmechanisms@0.1.1/node_modules/saslmechanisms/main.js"(exports, module) {
     (function(root, factory) {
       if (typeof exports === "object") {
         factory(
@@ -798,9 +798,9 @@ var require_main = __commonJS({
   }
 });
 
-// node_modules/sasl-scram-sha-1/lib/bitops.js
+// node_modules/.pnpm/sasl-scram-sha-1@1.4.0/node_modules/sasl-scram-sha-1/lib/bitops.js
 var require_bitops = __commonJS({
-  "node_modules/sasl-scram-sha-1/lib/bitops.js"(exports) {
+  "node_modules/.pnpm/sasl-scram-sha-1@1.4.0/node_modules/sasl-scram-sha-1/lib/bitops.js"(exports) {
     exports.XOR = function(a, b) {
       var res = [];
       if (a.length > b.length) {
@@ -857,9 +857,9 @@ var require_bitops = __commonJS({
   }
 });
 
-// node_modules/sasl-scram-sha-1/lib/utils.js
+// node_modules/.pnpm/sasl-scram-sha-1@1.4.0/node_modules/sasl-scram-sha-1/lib/utils.js
 var require_utils = __commonJS({
-  "node_modules/sasl-scram-sha-1/lib/utils.js"(exports) {
+  "node_modules/.pnpm/sasl-scram-sha-1@1.4.0/node_modules/sasl-scram-sha-1/lib/utils.js"(exports) {
     exports.parse = function(chal) {
       var dtives = {};
       var tokens = chal.split(/,(?=(?:[^"]|"[^"]*")*$)/);
@@ -894,9 +894,9 @@ var require_utils = __commonJS({
   }
 });
 
-// node_modules/sasl-scram-sha-1/index.js
+// node_modules/.pnpm/sasl-scram-sha-1@1.4.0/node_modules/sasl-scram-sha-1/index.js
 var require_sasl_scram_sha_1 = __commonJS({
-  "node_modules/sasl-scram-sha-1/index.js"(exports, module) {
+  "node_modules/.pnpm/sasl-scram-sha-1@1.4.0/node_modules/sasl-scram-sha-1/index.js"(exports, module) {
     var bitops = require_bitops();
     var utils = require_utils();
     var RESP = {};
@@ -997,9 +997,9 @@ var require_sasl_scram_sha_1 = __commonJS({
   }
 });
 
-// node_modules/sasl-plain/lib/mechanism.js
+// node_modules/.pnpm/sasl-plain@0.1.0/node_modules/sasl-plain/lib/mechanism.js
 var require_mechanism = __commonJS({
-  "node_modules/sasl-plain/lib/mechanism.js"(exports, module) {
+  "node_modules/.pnpm/sasl-plain@0.1.0/node_modules/sasl-plain/lib/mechanism.js"(exports, module) {
     (function(root, factory) {
       if (typeof exports === "object") {
         factory(exports, module);
@@ -1028,9 +1028,9 @@ var require_mechanism = __commonJS({
   }
 });
 
-// node_modules/sasl-plain/main.js
+// node_modules/.pnpm/sasl-plain@0.1.0/node_modules/sasl-plain/main.js
 var require_main2 = __commonJS({
-  "node_modules/sasl-plain/main.js"(exports, module) {
+  "node_modules/.pnpm/sasl-plain@0.1.0/node_modules/sasl-plain/main.js"(exports, module) {
     (function(root, factory) {
       if (typeof exports === "object") {
         factory(
@@ -1052,9 +1052,9 @@ var require_main2 = __commonJS({
   }
 });
 
-// node_modules/sasl-anonymous/lib/mechanism.js
+// node_modules/.pnpm/sasl-anonymous@0.1.0/node_modules/sasl-anonymous/lib/mechanism.js
 var require_mechanism2 = __commonJS({
-  "node_modules/sasl-anonymous/lib/mechanism.js"(exports, module) {
+  "node_modules/.pnpm/sasl-anonymous@0.1.0/node_modules/sasl-anonymous/lib/mechanism.js"(exports, module) {
     (function(root, factory) {
       if (typeof exports === "object") {
         factory(exports, module);
@@ -1076,9 +1076,9 @@ var require_mechanism2 = __commonJS({
   }
 });
 
-// node_modules/sasl-anonymous/main.js
+// node_modules/.pnpm/sasl-anonymous@0.1.0/node_modules/sasl-anonymous/main.js
 var require_main3 = __commonJS({
-  "node_modules/sasl-anonymous/main.js"(exports, module) {
+  "node_modules/.pnpm/sasl-anonymous@0.1.0/node_modules/sasl-anonymous/main.js"(exports, module) {
     (function(root, factory) {
       if (typeof exports === "object") {
         factory(
@@ -1420,19 +1420,19 @@ var CreateListener = (event, callback) => {
   SetListener({ event, callback });
 };
 
-// node_modules/@xmpp/xml/index.js
+// node_modules/.pnpm/@xmpp+xml@0.14.0/node_modules/@xmpp/xml/index.js
 var import_Element2 = __toESM(require_Element(), 1);
 var import_createElement = __toESM(require_createElement(), 1);
 var import_escape = __toESM(require_escape(), 1);
 
-// node_modules/@xmpp/xml/lib/Parser.js
+// node_modules/.pnpm/@xmpp+xml@0.14.0/node_modules/@xmpp/xml/lib/Parser.js
 var import_ltx = __toESM(require_ltx(), 1);
 var import_Element = __toESM(require_Element(), 1);
 
-// node_modules/@xmpp/events/index.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/index.js
 import { EventEmitter as EventEmitter2 } from "events";
 
-// node_modules/@xmpp/events/lib/TimeoutError.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/lib/TimeoutError.js
 var TimeoutError = class extends Error {
   constructor(message) {
     super(message);
@@ -1440,7 +1440,7 @@ var TimeoutError = class extends Error {
   }
 };
 
-// node_modules/@xmpp/events/lib/delay.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/lib/delay.js
 function delay(ms) {
   let timeout2;
   const promise2 = new Promise((resolve6) => {
@@ -1450,7 +1450,7 @@ function delay(ms) {
   return promise2;
 }
 
-// node_modules/@xmpp/events/lib/timeout.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/lib/timeout.js
 function timeout(promise2, ms) {
   const promiseDelay = delay(ms);
   function cancelDelay() {
@@ -1465,7 +1465,7 @@ function timeout(promise2, ms) {
   ]);
 }
 
-// node_modules/@xmpp/events/lib/onoff.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/lib/onoff.js
 var map = /* @__PURE__ */ new WeakMap();
 function onoff(target) {
   var _a, _b, _c;
@@ -1482,7 +1482,7 @@ function onoff(target) {
   return m;
 }
 
-// node_modules/@xmpp/events/lib/promise.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/lib/promise.js
 function promise(target, event, rejectEvent = "error", timeout2) {
   return new Promise((resolve6, reject) => {
     let timeoutId;
@@ -1514,7 +1514,7 @@ function promise(target, event, rejectEvent = "error", timeout2) {
   });
 }
 
-// node_modules/@xmpp/events/lib/Deferred.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/lib/Deferred.js
 function Deferred() {
   this.promise = new Promise((resolve6, reject) => {
     this.resolve = resolve6;
@@ -1522,7 +1522,7 @@ function Deferred() {
   });
 }
 
-// node_modules/@xmpp/events/lib/procedure.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/lib/procedure.js
 function procedure(entity, stanza = null, handler) {
   return new Promise((resolve6, reject) => {
     function onError(err) {
@@ -1547,7 +1547,7 @@ function procedure(entity, stanza = null, handler) {
   });
 }
 
-// node_modules/@xmpp/events/lib/listeners.js
+// node_modules/.pnpm/@xmpp+events@0.14.0/node_modules/@xmpp/events/lib/listeners.js
 function listeners(events) {
   return {
     subscribe(target) {
@@ -1565,7 +1565,7 @@ function listeners(events) {
   };
 }
 
-// node_modules/@xmpp/xml/lib/XMLError.js
+// node_modules/.pnpm/@xmpp+xml@0.14.0/node_modules/@xmpp/xml/lib/XMLError.js
 var XMLError = class extends Error {
   constructor(...args) {
     super(...args);
@@ -1573,7 +1573,7 @@ var XMLError = class extends Error {
   }
 };
 
-// node_modules/@xmpp/xml/lib/Parser.js
+// node_modules/.pnpm/@xmpp+xml@0.14.0/node_modules/@xmpp/xml/lib/Parser.js
 var Parser = class extends EventEmitter2 {
   constructor() {
     super();
@@ -1634,7 +1634,7 @@ var Parser = class extends EventEmitter2 {
 Parser.XMLError = XMLError;
 var Parser_default = Parser;
 
-// node_modules/@xmpp/xml/index.js
+// node_modules/.pnpm/@xmpp+xml@0.14.0/node_modules/@xmpp/xml/index.js
 function xml(...args) {
   return (0, import_createElement.default)(...args);
 }
@@ -1650,7 +1650,7 @@ Object.assign(xml, {
   xml
 });
 
-// node_modules/@xmpp/jid/lib/escaping.js
+// node_modules/.pnpm/@xmpp+jid@0.14.0/node_modules/@xmpp/jid/lib/escaping.js
 function detect(local) {
   if (!local) {
     return false;
@@ -1675,7 +1675,7 @@ function unescape2(local) {
   return local.replaceAll(String.raw`\20`, " ").replaceAll(String.raw`\22`, '"').replaceAll(String.raw`\26`, "&").replaceAll(String.raw`\27`, "'").replaceAll(String.raw`\2f`, "/").replaceAll(String.raw`\3a`, ":").replaceAll(String.raw`\3c`, "<").replaceAll(String.raw`\3e`, ">").replaceAll(String.raw`\40`, "@").replaceAll(String.raw`\5c`, "\\");
 }
 
-// node_modules/@xmpp/jid/lib/JID.js
+// node_modules/.pnpm/@xmpp+jid@0.14.0/node_modules/@xmpp/jid/lib/JID.js
 var JID = class _JID {
   constructor(local, domain, resource) {
     if (typeof domain !== "string" || !domain) {
@@ -1767,7 +1767,7 @@ Object.defineProperty(JID.prototype, "resource", {
 });
 var JID_default = JID;
 
-// node_modules/@xmpp/jid/lib/parse.js
+// node_modules/.pnpm/@xmpp+jid@0.14.0/node_modules/@xmpp/jid/lib/parse.js
 function parse(s) {
   let local;
   let resource;
@@ -1784,7 +1784,7 @@ function parse(s) {
   return new JID_default(local, s, resource);
 }
 
-// node_modules/@xmpp/jid/index.js
+// node_modules/.pnpm/@xmpp+jid@0.14.0/node_modules/@xmpp/jid/index.js
 function equal(a, b) {
   return a.equals(b);
 }
@@ -1804,7 +1804,7 @@ j.escapeLocal = escape;
 j.unescapeLocal = unescape2;
 var jid_default = j;
 
-// node_modules/@xmpp/error/index.js
+// node_modules/.pnpm/@xmpp+error@0.14.0/node_modules/@xmpp/error/index.js
 var XMPPError = class extends Error {
   constructor(condition, text, application) {
     super(condition + (text ? ` - ${text}` : ""));
@@ -1836,7 +1836,7 @@ var XMPPError = class extends Error {
 };
 var error_default = XMPPError;
 
-// node_modules/@xmpp/connection/lib/StreamError.js
+// node_modules/.pnpm/@xmpp+connection@0.14.0/node_modules/@xmpp/connection/lib/StreamError.js
 var StreamError = class extends error_default {
   constructor(...args) {
     super(...args);
@@ -1845,7 +1845,7 @@ var StreamError = class extends error_default {
 };
 var StreamError_default = StreamError;
 
-// node_modules/@xmpp/connection/lib/util.js
+// node_modules/.pnpm/@xmpp+connection@0.14.0/node_modules/@xmpp/connection/lib/util.js
 function parseURI(URI) {
   let { port, hostname, protocol } = new URL(URI);
   if (hostname === "[::1]") {
@@ -1861,7 +1861,7 @@ function parseService(service) {
   return service.includes("://") ? parseURI(service) : parseHost(service);
 }
 
-// node_modules/@xmpp/connection/index.js
+// node_modules/.pnpm/@xmpp+connection@0.14.0/node_modules/@xmpp/connection/index.js
 var NS_STREAM = "urn:ietf:params:xml:ns:xmpp-streams";
 var NS_JABBER_STREAM = "http://etherx.jabber.org/streams";
 var _socketListeners, _parserListeners, _Connection_instances, onParserError_fn, onSocketClosed_fn, onStreamClosed_fn, _hooks, _hook_events, assertHookEventName_fn, runHooks_fn;
@@ -2227,7 +2227,7 @@ Connection.prototype.Socket = null;
 Connection.prototype.Parser = null;
 var connection_default = Connection;
 
-// node_modules/@xmpp/client-core/lib/Client.js
+// node_modules/.pnpm/@xmpp+client-core@0.14.0/node_modules/@xmpp/client-core/lib/Client.js
 var Client = class extends connection_default {
   constructor(options) {
     super(options);
@@ -2280,7 +2280,7 @@ var Client = class extends connection_default {
 Client.prototype.NS = "jabber:client";
 var Client_default = Client;
 
-// node_modules/@xmpp/reconnect/index.js
+// node_modules/.pnpm/@xmpp+reconnect@0.14.0/node_modules/@xmpp/reconnect/index.js
 var _onDisconnect;
 var Reconnect = class extends EventEmitter2 {
   constructor(entity) {
@@ -2332,7 +2332,7 @@ function reconnect({ entity }) {
   return r;
 }
 
-// node_modules/@xmpp/websocket/lib/Socket.js
+// node_modules/.pnpm/@xmpp+websocket@0.14.0/node_modules/@xmpp/websocket/lib/Socket.js
 var CODE = "ECONNERROR";
 function isSecure(url) {
   const uri = parseURI(url);
@@ -2405,7 +2405,7 @@ var Socket = class extends EventEmitter2 {
 };
 _listeners = new WeakMap();
 
-// node_modules/@xmpp/websocket/lib/FramedParser.js
+// node_modules/.pnpm/@xmpp+websocket@0.14.0/node_modules/@xmpp/websocket/lib/FramedParser.js
 var FramedParser = class extends Parser_default {
   onStartElement(name, attrs) {
     const element = new import_Element2.default(name, attrs);
@@ -2436,7 +2436,7 @@ var FramedParser = class extends Parser_default {
   }
 };
 
-// node_modules/@xmpp/websocket/lib/Connection.js
+// node_modules/.pnpm/@xmpp+websocket@0.14.0/node_modules/@xmpp/websocket/lib/Connection.js
 var NS_FRAMING = "urn:ietf:params:xml:ns:xmpp-framing";
 var ConnectionWebSocket = class extends connection_default {
   send(element, ...args) {
@@ -2477,12 +2477,12 @@ ConnectionWebSocket.prototype.NS = "jabber:client";
 ConnectionWebSocket.prototype.Parser = FramedParser;
 var Connection_default = ConnectionWebSocket;
 
-// node_modules/@xmpp/websocket/index.js
+// node_modules/.pnpm/@xmpp+websocket@0.14.0/node_modules/@xmpp/websocket/index.js
 function websocket({ entity }) {
   entity.transports.push(Connection_default);
 }
 
-// node_modules/@xmpp/connection-tcp/Socket.js
+// node_modules/.pnpm/@xmpp+connection-tcp@0.14.0/node_modules/@xmpp/connection-tcp/Socket.js
 import { Socket as TCPSocket } from "net";
 var Socket2 = class extends TCPSocket {
   constructor() {
@@ -2491,7 +2491,7 @@ var Socket2 = class extends TCPSocket {
   }
 };
 
-// node_modules/@xmpp/connection-tcp/index.js
+// node_modules/.pnpm/@xmpp+connection-tcp@0.14.0/node_modules/@xmpp/connection-tcp/index.js
 var NS_STREAM2 = "http://etherx.jabber.org/streams";
 var ConnectionTCP = class extends connection_default {
   sendMany(elements) {
@@ -2532,7 +2532,7 @@ ConnectionTCP.prototype.Socket = Socket2;
 ConnectionTCP.prototype.Parser = Parser_default;
 var connection_tcp_default = ConnectionTCP;
 
-// node_modules/@xmpp/tcp/lib/Connection.js
+// node_modules/.pnpm/@xmpp+tcp@0.14.0/node_modules/@xmpp/tcp/lib/Connection.js
 var ConnectionTCP2 = class extends connection_tcp_default {
   socketParameters(service) {
     const params = super.socketParameters(service);
@@ -2544,12 +2544,12 @@ var ConnectionTCP2 = class extends connection_tcp_default {
 ConnectionTCP2.prototype.NS = "jabber:client";
 var Connection_default2 = ConnectionTCP2;
 
-// node_modules/@xmpp/tcp/index.js
+// node_modules/.pnpm/@xmpp+tcp@0.14.0/node_modules/@xmpp/tcp/index.js
 function tcp({ entity }) {
   entity.transports.push(Connection_default2);
 }
 
-// node_modules/@xmpp/tls/lib/Socket.js
+// node_modules/.pnpm/@xmpp+tls@0.14.0/node_modules/@xmpp/tls/lib/Socket.js
 import tls from "tls";
 var _listeners2;
 var Socket3 = class extends EventEmitter2 {
@@ -2602,7 +2602,7 @@ var Socket3 = class extends EventEmitter2 {
 _listeners2 = new WeakMap();
 var Socket_default = Socket3;
 
-// node_modules/@xmpp/tls/lib/Connection.js
+// node_modules/.pnpm/@xmpp+tls@0.14.0/node_modules/@xmpp/tls/lib/Connection.js
 var ConnectionTLS = class extends connection_tcp_default {
   socketParameters(service) {
     const { port, hostname, protocol } = parseURI(service);
@@ -2616,15 +2616,15 @@ ConnectionTLS.prototype.Socket = Socket_default;
 ConnectionTLS.prototype.NS = "jabber:client";
 var Connection_default3 = ConnectionTLS;
 
-// node_modules/@xmpp/tls/index.js
+// node_modules/.pnpm/@xmpp+tls@0.14.0/node_modules/@xmpp/tls/index.js
 function tls2({ entity }) {
   entity.transports.push(Connection_default3);
 }
 
-// node_modules/@xmpp/middleware/index.js
+// node_modules/.pnpm/@xmpp+middleware@0.14.0/node_modules/@xmpp/middleware/index.js
 var import_koa_compose = __toESM(require_koa_compose(), 1);
 
-// node_modules/@xmpp/middleware/lib/Context.js
+// node_modules/.pnpm/@xmpp+middleware@0.14.0/node_modules/@xmpp/middleware/lib/Context.js
 var Context = class {
   constructor(entity, stanza) {
     this.stanza = stanza;
@@ -2648,7 +2648,7 @@ var Context = class {
   }
 };
 
-// node_modules/@xmpp/middleware/lib/IncomingContext.js
+// node_modules/.pnpm/@xmpp+middleware@0.14.0/node_modules/@xmpp/middleware/lib/IncomingContext.js
 var IncomingContext = class extends Context {
   constructor(entity, stanza) {
     var _a;
@@ -2667,7 +2667,7 @@ var IncomingContext = class extends Context {
   }
 };
 
-// node_modules/@xmpp/middleware/lib/OutgoingContext.js
+// node_modules/.pnpm/@xmpp+middleware@0.14.0/node_modules/@xmpp/middleware/lib/OutgoingContext.js
 var OutgoingContext = class extends Context {
   constructor(entity, stanza) {
     var _a;
@@ -2686,7 +2686,7 @@ var OutgoingContext = class extends Context {
   }
 };
 
-// node_modules/@xmpp/middleware/index.js
+// node_modules/.pnpm/@xmpp+middleware@0.14.0/node_modules/@xmpp/middleware/index.js
 function listener(entity, middleware2, Context2) {
   return (stanza) => {
     const ctx = new Context2(entity, stanza);
@@ -2717,7 +2717,7 @@ function middleware({ entity }) {
   };
 }
 
-// node_modules/@xmpp/stream-features/index.js
+// node_modules/.pnpm/@xmpp+stream-features@0.14.0/node_modules/@xmpp/stream-features/index.js
 function streamFeatures({ middleware: middleware2 }) {
   function use(name, xmlns, handler) {
     return middleware2.use((ctx, next) => {
@@ -2734,7 +2734,7 @@ function streamFeatures({ middleware: middleware2 }) {
   };
 }
 
-// node_modules/@xmpp/id/index.js
+// node_modules/.pnpm/@xmpp+id@0.14.0/node_modules/@xmpp/id/index.js
 function id() {
   let i;
   while (!i) {
@@ -2743,7 +2743,7 @@ function id() {
   return i;
 }
 
-// node_modules/@xmpp/middleware/lib/StanzaError.js
+// node_modules/.pnpm/@xmpp+middleware@0.14.0/node_modules/@xmpp/middleware/lib/StanzaError.js
 var StanzaError = class extends error_default {
   constructor(condition, text, application, type) {
     super(condition, text, application);
@@ -2758,7 +2758,7 @@ var StanzaError = class extends error_default {
 };
 var StanzaError_default = StanzaError;
 
-// node_modules/@xmpp/iq/caller.js
+// node_modules/.pnpm/@xmpp+iq@0.14.0/node_modules/@xmpp/iq/caller.js
 function isReply({ name, type }) {
   if (name !== "iq") return false;
   if (type !== "error" && type !== "result") return false;
@@ -2829,7 +2829,7 @@ function iqCaller(...args) {
   return iqCaller2;
 }
 
-// node_modules/@xmpp/iq/callee.js
+// node_modules/.pnpm/@xmpp+iq@0.14.0/node_modules/@xmpp/iq/callee.js
 var NS_STANZA = "urn:ietf:params:xml:ns:xmpp-stanzas";
 function isQuery({ name, type }) {
   if (name !== "iq") return false;
@@ -2919,7 +2919,7 @@ function iqCallee({ middleware: middleware2, entity }) {
   };
 }
 
-// node_modules/@xmpp/resolve/lib/dns.js
+// node_modules/.pnpm/@xmpp+resolve@0.14.0/node_modules/@xmpp/resolve/lib/dns.js
 import dns from "dns";
 var IGNORE_CODES = ["ENOTFOUND", "ENODATA"];
 function lookup(domain, options = {}) {
@@ -3051,7 +3051,7 @@ function resolve(domain, options = {}) {
   });
 }
 
-// node_modules/@xmpp/xml/lib/parse.js
+// node_modules/.pnpm/@xmpp+xml@0.14.0/node_modules/@xmpp/xml/lib/parse.js
 function parse2(data) {
   const p = new Parser_default();
   let result = null;
@@ -3074,7 +3074,7 @@ function parse2(data) {
   }
 }
 
-// node_modules/@xmpp/resolve/lib/alt-connections.js
+// node_modules/.pnpm/@xmpp+resolve@0.14.0/node_modules/@xmpp/resolve/lib/alt-connections.js
 function isSecure2(uri) {
   return uri.startsWith("https") || uri.startsWith("wss");
 }
@@ -3114,7 +3114,7 @@ function compare(a, b) {
   return 0;
 }
 
-// node_modules/@xmpp/resolve/lib/http.js
+// node_modules/.pnpm/@xmpp+resolve@0.14.0/node_modules/@xmpp/resolve/lib/http.js
 function resolve2(domain) {
   return fetch(`https://${domain}/.well-known/host-meta`).then((res) => res.text()).then((res) => {
     return parse2(res).getChildren("Link").filter(
@@ -3134,7 +3134,7 @@ function resolve2(domain) {
   });
 }
 
-// node_modules/@xmpp/resolve/resolve.js
+// node_modules/.pnpm/@xmpp+resolve@0.14.0/node_modules/@xmpp/resolve/resolve.js
 function resolve3(...args) {
   return Promise.all([
     resolve ? resolve(...args) : Promise.resolve([]),
@@ -3142,7 +3142,7 @@ function resolve3(...args) {
   ]).then(([records, endpoints]) => [...records, ...endpoints]);
 }
 
-// node_modules/@xmpp/resolve/index.js
+// node_modules/.pnpm/@xmpp+resolve@0.14.0/node_modules/@xmpp/resolve/index.js
 function fetchURIs(domain) {
   return __async(this, null, function* () {
     const result = yield resolve3(domain, {
@@ -3214,7 +3214,7 @@ function resolve4({ entity }) {
   };
 }
 
-// node_modules/@xmpp/starttls/starttls.js
+// node_modules/.pnpm/@xmpp+starttls@0.14.0/node_modules/@xmpp/starttls/starttls.js
 import tls3 from "tls";
 import net from "net";
 function canUpgrade(socket) {
@@ -3229,7 +3229,7 @@ function upgrade(_0) {
   });
 }
 
-// node_modules/@xmpp/starttls/index.js
+// node_modules/.pnpm/@xmpp+starttls@0.14.0/node_modules/@xmpp/starttls/index.js
 var NS = "urn:ietf:params:xml:ns:xmpp-tls";
 function negotiate(entity) {
   return __async(this, null, function* () {
@@ -3253,7 +3253,7 @@ function starttls({ streamFeatures: streamFeatures2 }) {
   }));
 }
 
-// node_modules/@xmpp/base64/index.js
+// node_modules/.pnpm/@xmpp+base64@0.14.0/node_modules/@xmpp/base64/index.js
 function encode(string) {
   return globalThis.btoa(string);
 }
@@ -3261,7 +3261,7 @@ function decode(string) {
   return globalThis.atob(string);
 }
 
-// node_modules/@xmpp/sasl/lib/SASLError.js
+// node_modules/.pnpm/@xmpp+sasl@0.14.0/node_modules/@xmpp/sasl/lib/SASLError.js
 var SASLError = class extends error_default {
   constructor(...args) {
     super(...args);
@@ -3270,7 +3270,7 @@ var SASLError = class extends error_default {
 };
 var SASLError_default = SASLError;
 
-// node_modules/@xmpp/sasl/index.js
+// node_modules/.pnpm/@xmpp+sasl@0.14.0/node_modules/@xmpp/sasl/index.js
 var NS2 = "urn:ietf:params:xml:ns:xmpp-sasl";
 function getAvailableMechanisms(element, NS8, saslFactory) {
   const offered = new Set(
@@ -3347,7 +3347,7 @@ function sasl({ streamFeatures: streamFeatures2, saslFactory }, onAuthenticate) 
   }));
 }
 
-// node_modules/@xmpp/sasl2/index.js
+// node_modules/.pnpm/@xmpp+sasl2@0.14.0/node_modules/@xmpp/sasl2/index.js
 var NS3 = "urn:xmpp:sasl:2";
 function authenticate2(_0) {
   return __async(this, arguments, function* ({
@@ -3487,7 +3487,7 @@ function getStreamFeatures(_0) {
   });
 }
 
-// node_modules/@xmpp/resource-binding/index.js
+// node_modules/.pnpm/@xmpp+resource-binding@0.14.0/node_modules/@xmpp/resource-binding/index.js
 var NS4 = "urn:ietf:params:xml:ns:xmpp-bind";
 function makeBindElement(resource) {
   return xml("bind", { xmlns: NS4 }, resource && xml("resource", {}, resource));
@@ -3512,7 +3512,7 @@ function resourceBinding({ streamFeatures: streamFeatures2, iqCaller: iqCaller2 
   streamFeatures2.use("bind", NS4, route2({ iqCaller: iqCaller2 }, resource));
 }
 
-// node_modules/@xmpp/time/index.js
+// node_modules/.pnpm/@xmpp+time@0.14.0/node_modules/@xmpp/time/index.js
 function datetime(d = /* @__PURE__ */ new Date()) {
   if (typeof d === "string") {
     d = new Date(d);
@@ -3520,7 +3520,7 @@ function datetime(d = /* @__PURE__ */ new Date()) {
   return new Date(d).toISOString().split(".")[0] + "Z";
 }
 
-// node_modules/@xmpp/stream-management/bind2.js
+// node_modules/.pnpm/@xmpp+stream-management@0.14.0/node_modules/@xmpp/stream-management/bind2.js
 function setupBind2({ bind2: bind22, sm, failed, enabled }) {
   bind22.use(
     NS5,
@@ -3538,7 +3538,7 @@ function setupBind2({ bind2: bind22, sm, failed, enabled }) {
   );
 }
 
-// node_modules/@xmpp/stream-management/sasl2.js
+// node_modules/.pnpm/@xmpp+stream-management@0.14.0/node_modules/@xmpp/stream-management/sasl2.js
 function setupSasl2({ sasl2: sasl22, sm, failed, resumed }) {
   sasl22.use(
     NS5,
@@ -3556,7 +3556,7 @@ function setupSasl2({ sasl2: sasl22, sm, failed, resumed }) {
   );
 }
 
-// node_modules/@xmpp/stream-management/stream-feature.js
+// node_modules/.pnpm/@xmpp+stream-management@0.14.0/node_modules/@xmpp/stream-management/stream-feature.js
 function setupStreamFeature({
   streamFeatures: streamFeatures2,
   sm,
@@ -3613,7 +3613,7 @@ function resume(entity, sm) {
   });
 }
 
-// node_modules/@xmpp/stream-management/index.js
+// node_modules/.pnpm/@xmpp+stream-management@0.14.0/node_modules/@xmpp/stream-management/index.js
 var NS5 = "urn:xmpp:sm:3";
 function makeEnableElement({ sm }) {
   return xml("enable", {
@@ -3795,7 +3795,7 @@ function queueToStanza({ entity, item }) {
   return stanza;
 }
 
-// node_modules/@xmpp/client-core/src/bind2/bind2.js
+// node_modules/.pnpm/@xmpp+client-core@0.14.0/node_modules/@xmpp/client-core/src/bind2/bind2.js
 var NS6 = "urn:xmpp:bind:0";
 function bind2({ sasl2: sasl22, entity }, tag) {
   const features = /* @__PURE__ */ new Map();
@@ -3841,7 +3841,7 @@ function getSessionFeatures({ element, features }) {
   return Promise.all(promises);
 }
 
-// node_modules/@xmpp/client-core/src/fast/fast.js
+// node_modules/.pnpm/@xmpp+client-core@0.14.0/node_modules/@xmpp/client-core/src/fast/fast.js
 var import_saslmechanisms = __toESM(require_main(), 1);
 var NS7 = "urn:xmpp:fast:0";
 function fast({ sasl2: sasl22, entity }) {
@@ -3994,28 +3994,28 @@ function isTokenValid(token, mechanisms) {
   return true;
 }
 
-// node_modules/@xmpp/client/index.js
+// node_modules/.pnpm/@xmpp+client@0.14.0/node_modules/@xmpp/client/index.js
 var import_saslmechanisms2 = __toESM(require_main(), 1);
 
-// node_modules/@xmpp/sasl-scram-sha-1/index.js
+// node_modules/.pnpm/@xmpp+sasl-scram-sha-1@0.14.0/node_modules/@xmpp/sasl-scram-sha-1/index.js
 var import_sasl_scram_sha_1 = __toESM(require_sasl_scram_sha_1(), 1);
 function saslScramSha1(sasl3) {
   sasl3.use(import_sasl_scram_sha_1.default);
 }
 
-// node_modules/@xmpp/sasl-plain/index.js
+// node_modules/.pnpm/@xmpp+sasl-plain@0.14.0/node_modules/@xmpp/sasl-plain/index.js
 var import_sasl_plain = __toESM(require_main2(), 1);
 function saslPlain(sasl3) {
   sasl3.use(import_sasl_plain.default);
 }
 
-// node_modules/@xmpp/sasl-anonymous/index.js
+// node_modules/.pnpm/@xmpp+sasl-anonymous@0.14.0/node_modules/@xmpp/sasl-anonymous/index.js
 var import_sasl_anonymous = __toESM(require_main3(), 1);
 function saslAnonymous(sasl3) {
   sasl3.use(import_sasl_anonymous.default);
 }
 
-// node_modules/@xmpp/sasl-ht-sha-256-none/index.js
+// node_modules/.pnpm/@xmpp+sasl-ht-sha-256-none@0.14.0/node_modules/@xmpp/sasl-ht-sha-256-none/index.js
 function Mechanism() {
 }
 Mechanism.prototype.Mechanism = Mechanism;
@@ -4058,7 +4058,7 @@ function saslHashedToken(sasl3) {
   sasl3.use(Mechanism);
 }
 
-// node_modules/@xmpp/client/lib/createOnAuthenticate.js
+// node_modules/.pnpm/@xmpp+client@0.14.0/node_modules/@xmpp/client/lib/createOnAuthenticate.js
 var ANONYMOUS = "ANONYMOUS";
 var PLAIN = "PLAIN";
 function createOnAuthenticate(credentials, userAgent) {
@@ -4084,13 +4084,13 @@ function getMechanism({ mechanisms, entity, credentials }) {
   return mechanisms.find((mechanism) => mechanism !== PLAIN);
 }
 
-// node_modules/@xmpp/client/lib/getDomain.js
+// node_modules/.pnpm/@xmpp+client@0.14.0/node_modules/@xmpp/client/lib/getDomain.js
 function getDomain(service) {
   const domain = service.split("://")[1] || service;
   return domain.split(":")[0].split("/")[0];
 }
 
-// node_modules/@xmpp/client/index.js
+// node_modules/.pnpm/@xmpp+client@0.14.0/node_modules/@xmpp/client/index.js
 function client(options = {}) {
   let _a = options, { resource, credentials, username, password, userAgent } = _a, params = __objRest(_a, ["resource", "credentials", "username", "password", "userAgent"]);
   const { domain, service } = params;
@@ -6683,7 +6683,7 @@ var Tasks = (events) => __async(null, null, function* () {
           if (textArchiveDir) {
             const file = `${textArchiveDir}/${eventBaseName}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
             yield mkdir(textArchiveDir, { recursive: true });
-            yield appendFile(file, `${"\n".repeat(7)}${metadata.raw}`);
+            yield appendFile(file, `${metadata.raw}${"\n".repeat(5)}`);
             SetDebug({
               title: "Tasks/TEXT",
               message: `${Math.round(performance.now() - t2)}ms`

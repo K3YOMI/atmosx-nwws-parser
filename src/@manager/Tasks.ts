@@ -93,7 +93,7 @@ export const Tasks = async (events: TypeEvent[]): Promise<void> => {
                     if (textArchiveDir) {
                         const file = (`${textArchiveDir}/${eventBaseName}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
                         await mkdir(textArchiveDir, { recursive: true });
-                        await appendFile(file, `${"\n".repeat(7)}${metadata.raw}`);
+                        await appendFile(file, `${metadata.raw}${"\n".repeat(5)}`);
                         SetDebug({
                             title: "Tasks/TEXT",
                             message: `${Math.round(performance.now() - t)}ms`
