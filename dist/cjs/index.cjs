@@ -6930,10 +6930,10 @@ var GetEventNodes = (event) => __async(null, null, function* () {
       nearest: getPoint.point,
       miles,
       kilometers,
-      proximity: getPoint.proximity
+      proximity: false
     };
     metadata.nodes.push(info);
-    if (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMaxDistance) {
+    if (miles != null && bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMaxDistance) {
       metadata.proximity = true;
       info.proximity = true;
     }
@@ -6995,8 +6995,9 @@ var MakeEvent = (event) => __async(null, null, function* () {
   const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
   if (isHashed || event.properties.status_metadata.is_expired) return;
   SetHash(event, isEntry);
-  const isFilteredLocation = yield UpdateNode(event).then(() => event.properties.metadata.filtered_proximity);
-  if (!isFilteredLocation && !EnumGlobalFilter.includes(event.properties.event.toLowerCase()) && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) {
+  yield UpdateNode(event);
+  const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering;
+  if (isNodeFiltering && !event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) {
     return;
   }
   const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });

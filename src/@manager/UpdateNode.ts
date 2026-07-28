@@ -27,12 +27,10 @@ export const UpdateNode = async (selectedEvent?: TypeEvent): Promise<void> => {
     const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
     let total = 0;
 
-    const TTLEvents = selectedEvent
-        ? [selectedEvent]
-        : events.filter((evt) => {
-            const lastUpdate = evt?.properties?.metadata?.updated ?? null;
-            return lastUpdate == null || (Date.now() - lastUpdate) >= ttl;
-        });
+    const TTLEvents = selectedEvent ? [selectedEvent] : events.filter((evt) => {
+        const lastUpdate = evt?.properties?.metadata?.updated ?? null;
+        return lastUpdate == null || (Date.now() - lastUpdate) >= ttl;
+    });
 
     if (TTLEvents.length === 0) return;
 

@@ -40,11 +40,12 @@ export const MakeEvent = async (event: TypeEvent): Promise<void> => {
     if (isHashed || event.properties.status_metadata.is_expired) return
     SetHash(event, isEntry)
     
-    const isFilteredLocation = await UpdateNode(event).then(() => event.properties.metadata.filtered_proximity);
-    if (!isFilteredLocation && !EnumGlobalFilter.includes(event.properties.event.toLowerCase()) && settings.GlobalSettings.EventFiltering.NodeLocationFiltering) { 
-        return 
+    await UpdateNode(event);
+    const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering
+    if (isNodeFiltering && !event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) { 
+        return
     }
-
+    
     const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true })
     if (!isRatelimited.limited) {
         SetEventEmit({

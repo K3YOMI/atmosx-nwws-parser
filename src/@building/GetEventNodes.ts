@@ -57,10 +57,10 @@ export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResp
             nearest: getPoint.point,
             miles,
             kilometers,
-            proximity: getPoint.proximity
+            proximity: false
         }
         metadata.nodes.push(info)
-        if (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMaxDistance) {
+        if (miles != null && (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering) && (miles < bootstrap.settings.GlobalSettings.NodeMaxDistance)) {
             metadata.proximity = true;
             info.proximity = true;
         }
