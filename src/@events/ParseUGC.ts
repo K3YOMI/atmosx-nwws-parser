@@ -88,7 +88,7 @@ export const ParseUGC = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     }
                 }
             })
-            SetDebug({ title: `@events.ugc`, message: `Event process took ${performance.now() - tick} ms` })
+            SetDebug({ title: `ParseUGC`, message: `Event process took ${performance.now() - tick} ms` })
         }
     }
 }

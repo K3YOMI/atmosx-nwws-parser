@@ -136,7 +136,6 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         SetEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, '')}`, metadata: define });
         return !filtered
     })
-
     
     if (filtering.length > 0) {
         for (const event of filtering) {
@@ -144,11 +143,11 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         }
     }
     
-    await UpdateNode()
     SetEventEmit({
         event: `onEventCache`,
         metadata: bootstrap.cache.events,
         limited: true
     })
-    SetDebug({ title: `@building.ValidateEvents`, message: `Filtered ${filtering.length} events which took ${performance.now() - tick} ms` })
+
+    SetDebug({ title: `ValidateEvents`, message: `Filtered ${filtering.length}/${events.length} events which took ${performance.now() - tick} ms` })
 }

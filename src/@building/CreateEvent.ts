@@ -50,7 +50,7 @@ export const CreateEvent = async (stanza: TypeStanzaCompiled, ignorePushing?: bo
             break;
     }
     if (!ignorePushing) {
-        ValidateEvents(bootstrap.cache.processed)
+        await ValidateEvents(bootstrap.cache.processed)
     }
     return 'nothing picked';
 }

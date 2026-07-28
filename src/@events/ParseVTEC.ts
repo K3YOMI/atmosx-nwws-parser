@@ -80,7 +80,7 @@ export const ParseVTEC = async (stanza: TypeStanzaCompiled): Promise<void> => {
                         }
                     }
                 })
-                SetDebug({ title: `@events.vtec`, message: `Event process took ${performance.now() - tick} ms` })
+                SetDebug({ title: `ParseVTEC`, message: `Event process took ${performance.now() - tick} ms` })
             }
         }
     }

@@ -1124,7 +1124,7 @@ module.exports = __toCommonJS(index_exports);
 var import_path = __toESM(require("path"));
 var import_node_events = require("events");
 var bootstrap = {
-  version: `3.0.55`,
+  version: `3.0.6`,
   isReady: true,
   ratelimits: {},
   session_xmpp: null,
@@ -5353,7 +5353,7 @@ var ParseText = (stanza) => __async(null, null, function* () {
         }
       })
     });
-    SetDebug({ title: `@events.text`, message: `Event process took ${performance.now() - tick} ms` });
+    SetDebug({ title: `ParseText`, message: `Event process took ${performance.now() - tick} ms` });
   }
 });
 
@@ -5528,7 +5528,7 @@ var ParseUGC = (stanza) => __async(null, null, function* () {
           }
         })
       });
-      SetDebug({ title: `@events.ugc`, message: `Event process took ${performance.now() - tick} ms` });
+      SetDebug({ title: `ParseUGC`, message: `Event process took ${performance.now() - tick} ms` });
     }
   }
 });
@@ -5769,7 +5769,7 @@ var ParseVTEC = (stanza) => __async(null, null, function* () {
             }
           })
         });
-        SetDebug({ title: `@events.vtec`, message: `Event process took ${performance.now() - tick} ms` });
+        SetDebug({ title: `ParseVTEC`, message: `Event process took ${performance.now() - tick} ms` });
       }
     }
   }
@@ -5862,7 +5862,7 @@ var ParseAPI = (stanza) => __async(null, null, function* () {
         }
       }
     });
-    SetDebug({ title: `@events.api`, message: `Event process took ${performance.now() - tick} ms` });
+    SetDebug({ title: `ParseAPI`, message: `Event process took ${performance.now() - tick} ms` });
   }
 });
 
@@ -6505,7 +6505,7 @@ var GenerateEASMessage = (options) => __async(null, null, function* () {
     (0, import_fs2.unlinkSync)(tmpTTS);
   } catch (e) {
   }
-  SetDebug({ title: `@eas.GenerateEASMessage`, message: `EAS tone generation took ${performance.now() - tick} ms` });
+  SetDebug({ title: `GenerateEASMessage`, message: `EAS tone generation took ${performance.now() - tick} ms` });
   return outTTS;
 });
 
@@ -6809,7 +6809,7 @@ var CreateActions = (event) => __async(null, null, function* () {
       }
     }
   }
-  SetDebug({ title: `@manager.CreateActions`, message: `Listener took ${performance.now() - tick} ms` });
+  SetDebug({ title: `CreateActions`, message: `Listener took ${performance.now() - tick} ms` });
 });
 
 // src/@modules/@utilities/GetShapeNearestPoint.ts
@@ -6906,12 +6906,15 @@ var GetShapeNearestPoint = (coordinates, point) => {
 // src/@building/GetEventNodes.ts
 var GetEventNodes = (event) => __async(null, null, function* () {
   var _a, _b;
+  const nodes = bootstrap.cache.nodes.features;
+  if (!nodes || nodes.length === 0) {
+    return { nodes: [], filtered: false, updated: Date.now() };
+  }
   const metadata = { nodes: [], proximity: false, filtered: false };
   const geometry = yield GetEventGeometry(event);
   if (!geometry || !geometry.coordinates) {
     return { nodes: [], filtered: false, updated: Date.now() };
   }
-  const nodes = bootstrap.cache.nodes.features;
   for (const node of nodes) {
     const [longitude, latitude] = node.geometry.coordinates;
     const getPoint = GetShapeNearestPoint(geometry.coordinates, [longitude, latitude]);
@@ -7312,13 +7315,12 @@ var ValidateEvents = (events) => __async(null, null, function* () {
       yield MakeEvent(event);
     }
   }
-  yield UpdateNode();
   SetEventEmit({
     event: `onEventCache`,
     metadata: bootstrap.cache.events,
     limited: true
   });
-  SetDebug({ title: `@building.ValidateEvents`, message: `Filtered ${filtering.length} events which took ${performance.now() - tick} ms` });
+  SetDebug({ title: `ValidateEvents`, message: `Filtered ${filtering.length}/${events.length} events which took ${performance.now() - tick} ms` });
 });
 
 // src/@building/CreateEvent.ts
@@ -7344,7 +7346,7 @@ var CreateEvent = (stanza, ignorePushing) => __async(null, null, function* () {
       break;
   }
   if (!ignorePushing) {
-    ValidateEvents(bootstrap.cache.processed);
+    yield ValidateEvents(bootstrap.cache.processed);
   }
   return "nothing picked";
 });
@@ -7622,7 +7624,7 @@ var GetCachedEvents = () => __async(null, null, function* () {
       events = events.sort((a, b) => b.issued - a.issued);
       yield Promise.all(events.map((event) => CreateEvent(event, true)));
       SetWarning({ message: `Processed ${events.length} cached stanzas in ${Math.floor(performance.now() - tick)} ms` });
-      ValidateEvents(bootstrap.cache.processed);
+      yield ValidateEvents(bootstrap.cache.processed);
     }
   } catch (error) {
     SetWarning({ message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` });

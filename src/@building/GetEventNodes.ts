@@ -36,12 +36,15 @@ interface GetEventNodesResponse {
 }
 
 export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResponse> => {
-    const metadata = { nodes: [], proximity: false, filtered: false }
+    const nodes = bootstrap.cache.nodes.features;
+    if (!nodes || nodes.length === 0) {
+        return { nodes: [], filtered: false, updated: Date.now() };
+    }
+    const metadata = { nodes: [], proximity: false, filtered: false };
     const geometry = await GetEventGeometry(event);
     if (!geometry || !geometry.coordinates) {
         return { nodes: [], filtered: false, updated: Date.now() }
     }
-    const nodes = bootstrap.cache.nodes.features;
     for (const node of nodes) {
         const [longitude, latitude] = node.geometry.coordinates;
         const getPoint = GetShapeNearestPoint(geometry.coordinates, [longitude, latitude])

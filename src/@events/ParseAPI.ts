@@ -112,6 +112,6 @@ export const ParseAPI = async (stanza: TypeStanzaCompiled): Promise<void> => {
                 }
             }
         })
-        SetDebug({ title: `@events.api`, message: `Event process took ${performance.now() - tick} ms` })
+        SetDebug({ title: `ParseAPI`, message: `Event process took ${performance.now() - tick} ms` })
     }
 }

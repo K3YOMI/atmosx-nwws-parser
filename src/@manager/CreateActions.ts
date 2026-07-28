@@ -204,5 +204,5 @@ export const CreateActions = async (event: TypeEvent): Promise<void> => {
             }
         }
     }
-    SetDebug({ title: `@manager.CreateActions`, message: `Listener took ${performance.now() - tick} ms` })
+    SetDebug({ title: `CreateActions`, message: `Listener took ${performance.now() - tick} ms` })
 }
