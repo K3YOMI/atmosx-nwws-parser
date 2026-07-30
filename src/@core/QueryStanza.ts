@@ -17,8 +17,8 @@
 
 */
 
-import { TypeStanza } from "../@types/Stanza";
-import { bootstrap } from "../bootstrap";
+import { TypeStanza } from "types/Stanza"
+import { bootstrap } from "@bootstrap"
 
 interface QueryStanzaOptions {
     search: string

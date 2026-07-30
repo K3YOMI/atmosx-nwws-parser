@@ -17,8 +17,8 @@
 
 */
 
-import path from 'path'
-import { EventEmitter } from 'node:events';
+import path from "path"
+import { EventEmitter } from "node:events"
 
 export const bootstrap = {
     version: `3.0.621`,

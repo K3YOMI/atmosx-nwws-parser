@@ -18,8 +18,8 @@
     
 */
 
-import { GetPCMToFloat } from "./GetPCMToFloat";
-import { GetFloatPCM16 } from "./GetFloatPCM16";
+import { GetPCMToFloat } from "@eas/GetPCMToFloat"
+import { GetFloatPCM16 } from "@eas/GetFloatPCM16"
 
 export const SetNoise = (int16: Int16Array, noiseLevel: number = 0.02): Int16Array => {
     const x = GetPCMToFloat(int16);

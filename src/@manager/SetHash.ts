@@ -17,9 +17,9 @@
 
 */
 
-import { TypeEvent } from "../@types/Event";
-import { TypeHash } from "../@types/Hash"
-import { bootstrap } from "../bootstrap"
+import { TypeEvent } from "types/Event"
+import { TypeHash } from "types/Hash"
+import { bootstrap } from "@bootstrap"
 
 export const SetHash = (event: TypeEvent, entry: TypeHash): void => {
     if (!entry) {

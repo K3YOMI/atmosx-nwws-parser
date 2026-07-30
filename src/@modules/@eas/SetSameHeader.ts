@@ -18,9 +18,9 @@
     
 */
 
-import { SetAFSK } from "./SetAFSK";
-import { SetAsciiToBits } from "./SetAsciiToBits";
-import { GetMergedPCM16 } from "./GetMergedPCM16";
+import { SetAFSK } from "@eas/SetAFSK"
+import { SetAsciiToBits } from "@eas/SetAsciiToBits"
+import { GetMergedPCM16 } from "@eas/GetMergedPCM16"
 
 export const SetSameHeader = (vtec: string, repeats: number, sampleRate: number = 8000, options: {preMarkSec?: number, gapSec?: number} = {}): Int16Array => {
     const preMarkSec = options.preMarkSec ?? 0.3;

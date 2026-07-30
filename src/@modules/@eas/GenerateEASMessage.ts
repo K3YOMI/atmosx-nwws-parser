@@ -17,24 +17,24 @@
 
 */
 
-import { TypeSettings } from "../../@types/Settings";
-import { bootstrap } from "../../bootstrap";
-import { SetWarning } from "../@utilities/SetWarning";
-import { GetWavPCM16 } from "./GetWavPCM16";
-import { GetSampledPCM16 } from "./GetSampledPCM16";
-import { SetRadioEffect } from "./SetRadioEffect";
-import { SetSameHeader } from "./SetSameHeader";
-import { SetAttentionTone } from "./SetAttentionTone";
-import { GetMergedPCM16 } from "./GetMergedPCM16";
-import { SetNoise } from "./SetNoise";
-import { GetPCM16 } from "./GetPCM16";
-import { GetTTS } from "./GetTTS";
-import { GetCleanDescription } from "./GetCleanDescription";
-import { SetDebug } from "../@utilities/SetDebug";
-import { join } from 'path'
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
-import { execSync } from 'child_process'
-import { platform } from 'os'
+import { TypeSettings } from "types/Settings"
+import { bootstrap } from "@bootstrap"
+import { GetWavPCM16 } from "@eas/GetWavPCM16"
+import { GetSampledPCM16 } from "@eas/GetSampledPCM16"
+import { SetRadioEffect } from "@eas/SetRadioEffect"
+import { SetSameHeader } from "@eas/SetSameHeader"
+import { SetAttentionTone } from "@eas/SetAttentionTone"
+import { GetMergedPCM16 } from "@eas/GetMergedPCM16"
+import { SetNoise } from "@eas/SetNoise"
+import { GetPCM16 } from "@eas/GetPCM16"
+import { GetTTS } from "@eas/GetTTS"
+import { GetCleanDescription } from "@eas/GetCleanDescription"
+import { SetWarning } from "@utilities/SetWarning"
+import { SetDebug } from "@utilities/SetDebug"
+import { join } from "path"
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "fs"
+import { execSync } from "child_process"
+import { platform } from "os"
 
 
 interface GenerateEASMessageOptions { 

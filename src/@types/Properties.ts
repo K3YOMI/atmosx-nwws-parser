@@ -17,7 +17,7 @@
 
 */
 
-import { TypeAttributes } from "./Attributes";
+import { TypeAttributes } from "types/Attributes"
     
 export type TypeEventProperties = {
     locations: string

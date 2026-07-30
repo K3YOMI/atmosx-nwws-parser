@@ -8,7 +8,26 @@
 		"declarationDir": "dist/types",
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"paths": {
+			"@/*": ["./*"],
+			"@parsers/hvtec/*": ["./src/@parsers/@hvtec/*"],
+			"@parsers/pvtec/*": ["./src/@parsers/@pvtec/*"],
+			"@parsers/ugc/*": ["./src/@parsers/@ugc/*"],
+			"@parsers/text/*": ["./src/@parsers/@text/*"],
+			"@database/*": ["./src/@modules/@database/*"],
+			"@eas/*": ["./src/@modules/@eas/*"],
+			"@stanza/*": ["./src/@modules/@stanza/*"],
+			"@utilities/*": ["./src/@modules/@utilities/*"],
+			"@xmpp/*": ["./src/@modules/@xmpp/*"],
+			"@manager/*": ["./src/@manager/*"],
+			"@events/*": ["./src/@events/*"],
+			"@enums/*": ["./src/@enums/*"],
+			"@core/*": ["./src/@core/*"],
+			"@building/*": ["./src/@building/*"],
+			"types/*": ["./src/@types/*"],
+			"@bootstrap": ["./src/bootstrap.ts"],
+		}
 	},
 	"include": ["src"]
 }

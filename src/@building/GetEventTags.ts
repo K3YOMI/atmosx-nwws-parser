@@ -17,7 +17,7 @@
 
 */
 
-import { EnumTags } from "../@enums/Tags";
+import { EnumTags } from "@enums/Tags"
 
 export const GetEventTags = (message: string): string[] => {
     if (!message) return [];

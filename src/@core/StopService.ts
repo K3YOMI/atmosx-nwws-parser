@@ -17,7 +17,7 @@
 
 */
 
-import { bootstrap } from "../bootstrap";
+import { bootstrap } from "@bootstrap"
 
 export const StopService = async (): Promise<void> => {
     if (bootstrap.isReady) {

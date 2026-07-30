@@ -1212,28 +1212,6 @@ var bootstrap = {
   }
 };
 
-// src/@modules/@utilities/SetSettings.ts
-var SetSettings = (newSettings) => {
-  const settings = bootstrap.settings;
-  const merge = (target, source) => {
-    for (const key in source) {
-      if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
-      const srcVal = source[key];
-      const tgtVal = target[key];
-      if (srcVal && typeof srcVal === "object" && !Array.isArray(srcVal)) {
-        if (!tgtVal || typeof tgtVal !== "object" || Array.isArray(tgtVal)) {
-          target[key] = {};
-        }
-        merge(target[key], srcVal);
-      } else {
-        target[key] = srcVal;
-      }
-    }
-  };
-  merge(settings, newSettings);
-  return settings;
-};
-
 // src/@modules/@utilities/GetSettings.ts
 var GetSettings = () => {
   return bootstrap.settings;
@@ -1352,6 +1330,28 @@ var GetCleanedEvent = (event) => {
   return event;
 };
 
+// src/@modules/@utilities/SetSettings.ts
+var SetSettings = (newSettings) => {
+  const settings = bootstrap.settings;
+  const merge = (target, source) => {
+    for (const key in source) {
+      if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
+      const srcVal = source[key];
+      const tgtVal = target[key];
+      if (srcVal && typeof srcVal === "object" && !Array.isArray(srcVal)) {
+        if (!tgtVal || typeof tgtVal !== "object" || Array.isArray(tgtVal)) {
+          target[key] = {};
+        }
+        merge(target[key], srcVal);
+      } else {
+        target[key] = srcVal;
+      }
+    }
+  };
+  merge(settings, newSettings);
+  return settings;
+};
+
 // src/@modules/@utilities/SetTimeoutAction.ts
 var SetTimeoutAction = (options) => {
   var _a, _b, _c;
@@ -1407,6 +1407,3225 @@ var SetEventEmit = (options) => {
   }
 };
 
+// src/@modules/@eas/GetWavPCM16.ts
+var GetWavPCM16 = (buffer) => {
+  if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
+    return null;
+  }
+  let fmt = null;
+  let data = null;
+  let i = 12;
+  while (i + 8 <= buffer.length) {
+    const id2 = buffer.toString("ascii", i, i + 4);
+    const size = buffer.readUInt32LE(i + 4);
+    const start = i + 8;
+    const end = start + size;
+    if (id2 === "fmt ") fmt = buffer.slice(start, end);
+    if (id2 === "data") data = buffer.slice(start, end);
+    i = end + size % 2;
+  }
+  if (!fmt || !data) return null;
+  const audioFormat = fmt.readUInt16LE(0);
+  const channels = fmt.readUInt16LE(2);
+  const sampleRate = fmt.readUInt32LE(4);
+  const bitsPerSample = fmt.readUInt16LE(14);
+  if (audioFormat !== 1 || bitsPerSample !== 16 || channels !== 1) {
+    return null;
+  }
+  const samples = new Int16Array(data.buffer, data.byteOffset, data.length / 2);
+  return { samples: new Int16Array(samples), sampleRate, channels, bitsPerSample };
+};
+
+// src/@modules/@eas/GetSampledPCM16.ts
+var GetSampledPCM16 = (int16, originalRate, targetRate) => {
+  if (originalRate === targetRate) return int16;
+  const ratio = targetRate / originalRate;
+  const outLen = Math.max(1, Math.round(int16.length * ratio));
+  const out = new Int16Array(outLen);
+  for (let i = 0; i < outLen; i++) {
+    const pos = i / ratio;
+    const i0 = Math.floor(pos);
+    const i1 = Math.min(i0 + 1, int16.length - 1);
+    const frac = pos - i0;
+    const v = int16[i0] * (1 - frac) + int16[i1] * frac;
+    out[i] = Math.round(v);
+  }
+  return out;
+};
+
+// src/@modules/@eas/GetPCMToFloat.ts
+var GetPCMToFloat = (int16) => {
+  const out = new Float32Array(int16.length);
+  for (let i = 0; i < int16.length; i++) out[i] = int16[i] / 32768;
+  return out;
+};
+
+// src/@modules/@eas/GetFloatPCM16.ts
+var GetFloatPCM16 = (float32) => {
+  const out = new Int16Array(float32.length);
+  for (let i = 0; i < float32.length; i++) {
+    let v = Math.max(-1, Math.min(1, float32[i]));
+    out[i] = Math.round(v * 32767);
+  }
+  return out;
+};
+
+// src/@modules/@eas/SetRadioEffect.ts
+var SetRadioEffect = (int16, sampleRate) => {
+  const hpCut = 3555;
+  const lpCut = 1600;
+  const x = GetPCMToFloat(int16);
+  const dt = 1 / sampleRate;
+  const rcHP = 1 / (2 * Math.PI * hpCut);
+  const aHP = rcHP / (rcHP + dt);
+  let yHP = 0, xPrev = 0;
+  for (let i = 0; i < x.length; i++) {
+    const xi = x[i];
+    yHP = aHP * (yHP + xi - xPrev);
+    xPrev = xi;
+    x[i] = yHP;
+  }
+  const rcLP = 1 / (2 * Math.PI * lpCut);
+  const aLP = dt / (rcLP + dt);
+  let yLP = 0;
+  for (let i = 0; i < x.length; i++) {
+    yLP = yLP + aLP * (x[i] - yLP);
+    x[i] = yLP;
+  }
+  const compGain = 2;
+  const norm = Math.tanh(compGain);
+  for (let i = 0; i < x.length; i++) x[i] = Math.tanh(x[i] * compGain) / norm;
+  return GetFloatPCM16(x);
+};
+
+// src/@modules/@eas/SetAFSK.ts
+var SetAFSK = (bits, sampleRate) => {
+  const baud = 520.83;
+  const markFreq = 2083.3;
+  const spaceFreq = 1562.5;
+  const amplitude = 0.6;
+  const twoPi = Math.PI * 2;
+  const result = [];
+  let phase = 0;
+  let frac = 0;
+  for (let b = 0; b < bits.length; b++) {
+    const bit = bits[b];
+    const freq = bit ? markFreq : spaceFreq;
+    const samplesPerBit = sampleRate / baud + frac;
+    const n = Math.round(samplesPerBit);
+    frac = samplesPerBit - n;
+    const inc = twoPi * freq / sampleRate;
+    for (let i = 0; i < n; i++) {
+      result.push(Math.round(Math.sin(phase) * amplitude * 32767));
+      phase += inc;
+      if (phase > twoPi) phase -= twoPi;
+    }
+  }
+  const fadeSamples = Math.floor(sampleRate * 2e-3);
+  for (let i = 0; i < fadeSamples; i++) {
+    const gain = i / fadeSamples;
+    result[i] = Math.round(result[i] * gain);
+    result[result.length - 1 - i] = Math.round(result[result.length - 1 - i] * gain);
+  }
+  return Int16Array.from(result);
+};
+
+// src/@modules/@eas/SetAsciiToBits.ts
+var SetAsciiToBits = (str) => {
+  const bits = [];
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i) & 255;
+    bits.push(0);
+    for (let b = 0; b < 8; b++) bits.push(c >> b & 1);
+    bits.push(1, 1);
+  }
+  return bits;
+};
+
+// src/@modules/@eas/GetMergedPCM16.ts
+var GetMergedPCM16 = (arrays) => {
+  let total = 0;
+  for (const a of arrays) total += a.length;
+  const out = new Int16Array(total);
+  let o = 0;
+  for (const a of arrays) {
+    out.set(a, o);
+    o += a.length;
+  }
+  return out;
+};
+
+// src/@modules/@eas/SetSameHeader.ts
+var SetSameHeader = (vtec, repeats, sampleRate = 8e3, options = {}) => {
+  var _a, _b;
+  const preMarkSec = (_a = options.preMarkSec) != null ? _a : 0.3;
+  const gapSec = (_b = options.gapSec) != null ? _b : 0.1;
+  const bursts = [];
+  const gap = new Int16Array(Math.floor(gapSec * sampleRate));
+  for (let i = 0; i < repeats; i++) {
+    const bodyBits = SetAsciiToBits(vtec);
+    const body = SetAFSK(bodyBits, sampleRate);
+    const extendedBodyDuration = Math.round(preMarkSec * sampleRate);
+    const extendedBody = new Int16Array(extendedBodyDuration + gap.length);
+    for (let j2 = 0; j2 < extendedBodyDuration; j2++) {
+      extendedBody[j2] = Math.round(body[j2 % body.length] * 0.2);
+    }
+    extendedBody.set(gap, extendedBodyDuration);
+    bursts.push(extendedBody);
+    if (i !== repeats - 1) bursts.push(gap);
+  }
+  return GetMergedPCM16(bursts);
+};
+
+// src/@modules/@eas/SetAttentionTone.ts
+var SetAttentionTone = (ms, sampleRate) => {
+  const len = Math.floor(ms * sampleRate);
+  const out = new Int16Array(len);
+  const f1 = 853;
+  const f2 = 960;
+  const twoPi = Math.PI * 2;
+  const amp = 0.1;
+  const fadeLen = Math.floor(sampleRate * 0);
+  for (let i = 0; i < len; i++) {
+    const t = i / sampleRate;
+    const s = Math.sin(twoPi * f1 * t) + Math.sin(twoPi * f2 * t);
+    let gain = 1;
+    if (i < fadeLen) gain = i / fadeLen;
+    else if (i > len - fadeLen) gain = (len - i) / fadeLen;
+    const v = Math.max(-1, Math.min(1, s / 2 * amp * gain));
+    out[i] = Math.round(v * 32767);
+  }
+  return out;
+};
+
+// src/@modules/@eas/SetNoise.ts
+var SetNoise = (int16, noiseLevel = 0.02) => {
+  const x = GetPCMToFloat(int16);
+  for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * noiseLevel;
+  let peak = 0;
+  for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
+  if (peak > 1) for (let i = 0; i < x.length; i++) x[i] *= 0.98 / peak;
+  return GetFloatPCM16(x);
+};
+
+// src/@modules/@eas/GetPCM16.ts
+var GetPCM16 = (samples, sampleRate) => {
+  let o = 0;
+  const bytesPerSample = 2;
+  const blockAlign = 1 * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const subchunk2Size = samples.length * bytesPerSample;
+  const chunkSize = 36 + subchunk2Size;
+  const buffer = Buffer.alloc(44 + subchunk2Size);
+  buffer.write("RIFF", o);
+  o += 4;
+  buffer.writeUInt32LE(chunkSize, o);
+  o += 4;
+  buffer.write("WAVE", o);
+  o += 4;
+  buffer.write("fmt ", o);
+  o += 4;
+  buffer.writeUInt32LE(16, o);
+  o += 4;
+  buffer.writeUInt16LE(1, o);
+  o += 2;
+  buffer.writeUInt16LE(1, o);
+  o += 2;
+  buffer.writeUInt32LE(sampleRate, o);
+  o += 4;
+  buffer.writeUInt32LE(byteRate, o);
+  o += 4;
+  buffer.writeUInt16LE(blockAlign, o);
+  o += 2;
+  buffer.writeUInt16LE(16, o);
+  o += 2;
+  buffer.write("data", o);
+  o += 4;
+  buffer.writeUInt32LE(subchunk2Size, o);
+  o += 4;
+  for (let i = 0; i < samples.length; i++, o += 2) {
+    buffer.writeInt16LE(samples[i].value, o);
+  }
+  return buffer;
+};
+
+// src/@modules/@eas/GetTTS.ts
+import { platform } from "os";
+import { writeFileSync } from "fs";
+import { execSync } from "child_process";
+var GetTTS = (text, outputPath) => __async(null, null, function* () {
+  const vPlatform = platform();
+  switch (vPlatform) {
+    case "win32": {
+      try {
+        const txtPath = outputPath + ".txt";
+        writeFileSync(txtPath, text, "utf8");
+        const command = [
+          "Add-Type -AssemblyName System.Speech;",
+          `$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;`,
+          `$text = Get-Content -Raw -LiteralPath '${txtPath}';`,
+          `$speak.SetOutputToWaveFile('${outputPath}');`,
+          `$speak.Speak($text);`,
+          `$speak.Dispose();`
+        ].join(" ");
+        execSync(`powershell -Command "${command}"`, { stdio: "inherit" });
+      } catch (error) {
+        console.error("Error occurred while generating TTS:", error);
+      }
+      break;
+    }
+    case "linux":
+      try {
+        execSync(`espeak -w "${outputPath}" "${text.replace(/"/g, '\\"')}"`);
+      } catch (e) {
+      }
+      break;
+    default:
+      break;
+  }
+});
+
+// src/@modules/@eas/GetCleanDescription.ts
+var GetCleanDescription = (message) => {
+  const patches = [
+    { regex: /\.{3,}/g, replacement: ". " },
+    { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
+    { regex: /\bGMT\b/g, replacement: "Greenwich Mean Time" },
+    { regex: /\bEST\b(?!\w)/g, replacement: "Eastern Standard Time" },
+    { regex: /\bEDT\b(?!\w)/g, replacement: "Eastern Daylight Time" },
+    { regex: /\bCST\b(?!\w)/g, replacement: "Central Standard Time" },
+    { regex: /\bCDT\b(?!\w)/g, replacement: "Central Daylight Time" },
+    { regex: /\bMST\b(?!\w)/g, replacement: "Mountain Standard Time" },
+    { regex: /\bMDT\b(?!\w)/g, replacement: "Mountain Daylight Time" },
+    { regex: /\bPST\b(?!\w)/g, replacement: "Pacific Standard Time" },
+    { regex: /\bPDT\b(?!\w)/g, replacement: "Pacific Daylight Time" },
+    { regex: /\bAKST\b(?!\w)/g, replacement: "Alaska Standard Time" },
+    { regex: /\bAKDT\b(?!\w)/g, replacement: "Alaska Daylight Time" },
+    { regex: /\bHST\b(?!\w)/g, replacement: "Hawaii Standard Time" },
+    { regex: /\bHDT\b(?!\w)/g, replacement: "Hawaii Daylight Time" },
+    { regex: /\bmph\b(?!\w)/g, replacement: "miles per hour" },
+    { regex: /\bkm\/h\b(?!\w)/g, replacement: "kilometers per hour" },
+    { regex: /\bkmh\b(?!\w)/g, replacement: "kilometers per hour" },
+    { regex: /\bkt\b(?!\w)/g, replacement: "knots" },
+    { regex: /\bNE\b(?!\w)/g, replacement: "northeast" },
+    { regex: /\bNW\b(?!\w)/g, replacement: "northwest" },
+    { regex: /\bSE\b(?!\w)/g, replacement: "southeast" },
+    { regex: /\bSW\b(?!\w)/g, replacement: "southwest" },
+    { regex: /\bNM\b(?!\w)/g, replacement: "nautical miles" },
+    { regex: /\bdeg\b(?!\w)/g, replacement: "degrees" },
+    { regex: /\btstm\b(?!\w)/g, replacement: "thunderstorm" },
+    { regex: /\bmm\b(?!\w)/g, replacement: "millimeters" },
+    { regex: /\bcm\b(?!\w)/g, replacement: "centimeters" },
+    { regex: /\bin.\b(?!\w)/g, replacement: "inches" },
+    { regex: /\bft\b(?!\w)/g, replacement: "feet" },
+    { regex: /\bmi\b(?!\w)/g, replacement: "miles" },
+    { regex: /\bhr\b(?!\w)/g, replacement: "hour" },
+    { regex: /\bhourly\b(?!\w)/g, replacement: "per hour" },
+    { regex: /\bkg\b(?!\w)/g, replacement: "kilograms" },
+    { regex: /\bg\/kg\b(?!\w)/g, replacement: "grams per kilogram" },
+    { regex: /\bmb\b(?!\w)/g, replacement: "millibars" },
+    { regex: /\bhPa\b(?!\w)/g, replacement: "hectopascals" },
+    { regex: /\bPa\b(?!\w)/g, replacement: "pascals" },
+    { regex: /\bKPa\b(?!\w)/g, replacement: "kilopascals" },
+    { regex: /\bC\/hr\b(?!\w)/g, replacement: "degrees Celsius per hour" },
+    { regex: /\bF\/hr\b(?!\w)/g, replacement: "degrees Fahrenheit per hour" },
+    { regex: /\bC\/min\b(?!\w)/g, replacement: "degrees Celsius per minute" },
+    { regex: /\bF\/min\b(?!\w)/g, replacement: "degrees Fahrenheit per minute" },
+    { regex: /\bC\b(?!\w)/g, replacement: "degrees Celsius" },
+    { regex: /\bF\b(?!\w)/g, replacement: "degrees Fahrenheit" }
+  ];
+  const hours = {
+    0: "twelve",
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    10: "ten",
+    11: "eleven",
+    12: "twelve"
+  };
+  const minWord = (m) => m === 0 ? "o'clock" : m < 10 ? `oh ${m}` : `${m}`;
+  const fmt = (h, m, ap) => `${hours[h % 12]} ${minWord(m)} ${ap}`;
+  for (const { regex, replacement } of patches) {
+    message = message.replace(regex, replacement);
+  }
+  return message.replace(/'/g, "''").replace(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(\d{2})\s+(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{2})(\d{2})\s+(AM|PM)\b/gi, (_, hh, mm, ap) => fmt(+hh, +mm, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(AM|PM)\b/gi, (_, h, ap) => fmt(+h, 0, ap.toUpperCase())).replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").trim();
+};
+
+// src/@modules/@utilities/SetDebug.ts
+var SetDebug = (options) => {
+  var _a, _b;
+  const settings = bootstrap.settings;
+  bootstrap.listener.emit(`debug`, {
+    message: options.message,
+    function: (_a = options.title) != null ? _a : `debug`
+  });
+  if (settings.EnableDebugging) {
+    console.log(`[${bootstrap.ansi_colors.BLUE}${(_b = options.title) != null ? _b : `debug`}${bootstrap.ansi_colors.RESET}] ${options.message}`);
+  }
+};
+
+// src/@modules/@eas/GenerateEASMessage.ts
+import { join } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync as writeFileSync2, unlinkSync } from "fs";
+import { execSync as execSync2 } from "child_process";
+import { platform as platform2 } from "os";
+var GenerateEASMessage = (options) => __async(null, null, function* () {
+  var _a;
+  const tick = performance.now();
+  const settings = bootstrap.settings;
+  const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
+  const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
+  let message = options.message;
+  let header = options.header;
+  let title = ((_a = options.title) != null ? _a : `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+  if (!message || !header) {
+    SetWarning({
+      title: `EAS`,
+      message: `Message and header are required to generate an EAS tone.`
+    });
+    return null;
+  }
+  let buffTTS;
+  let buffRadio;
+  let buffFull = [];
+  if (!existsSync(directory)) {
+    mkdirSync(directory, { recursive: true });
+  }
+  const tmpTTS = join(directory, `/${title}-tts.wav`);
+  const outTTS = join(directory, `/${title}.wav`);
+  const vPlatform = platform2();
+  if (vPlatform === "darwin") {
+    SetWarning({
+      title: `EAS`,
+      message: `EAS tone generation is not supported on macOS.`
+    });
+    return null;
+  }
+  yield new Promise((resolve6, reject) => {
+    const tMsg = GetCleanDescription(message);
+    GetTTS(tMsg, tmpTTS).then(() => {
+      resolve6();
+    });
+  });
+  if (!existsSync(tmpTTS)) {
+    return null;
+  }
+  buffTTS = readFileSync(tmpTTS);
+  const vWav = GetWavPCM16(buffTTS);
+  const vSamples = GetSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
+  const vRadio = SetRadioEffect(vSamples, 8e3);
+  if (existsSync(prefix)) {
+    let tBuffer = readFileSync(prefix);
+    let tWav = GetWavPCM16(tBuffer);
+    if (tWav == null) {
+      try {
+        const converted = join(directory, `/${title}-tts-fixed.wav`);
+        execSync2(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
+        if (existsSync(converted)) {
+          tBuffer = readFileSync(converted);
+          tWav = GetWavPCM16(tBuffer);
+          try {
+            unlinkSync(converted);
+          } catch (e) {
+          }
+        }
+      } catch (e) {
+      }
+    }
+    if (tWav == null) {
+      SetWarning({ title: `EAS`, message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` });
+      return null;
+    }
+    const tSamples = tWav.sampleRate != 8e3 ? GetSampledPCM16(tWav.samples, tWav.sampleRate, 8e3) : tWav.samples;
+    buffRadio = SetRadioEffect(tSamples, 8e3);
+  }
+  buffFull = buffRadio != null ? [buffRadio, new Int16Array(Math.floor(0.5 * 8e3))] : [];
+  buffFull.push(
+    SetSameHeader(header, 3, 8e3, {
+      preMarkSec: 1.1,
+      gapSec: 0.5
+    }),
+    new Int16Array(Math.floor(0.5 * 8e3)),
+    SetAttentionTone(8, 8e3),
+    new Int16Array(Math.floor(0.5 * 8e3)),
+    vRadio
+  );
+  for (let i = 0; i < 3; i++) {
+    buffFull.push(SetSameHeader(header, 1, 8e3, { preMarkSec: 0.5, gapSec: 0.1 }));
+    buffFull.push(new Int16Array(Math.floor(0.5 * 8e3)));
+  }
+  const aSamples = GetMergedPCM16(buffFull);
+  const aFinal = SetNoise(aSamples, 2e-3);
+  const aBuffer = GetPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
+  writeFileSync2(outTTS, aBuffer);
+  try {
+    unlinkSync(tmpTTS);
+  } catch (e) {
+  }
+  SetDebug({ title: `GenerateEASMessage`, message: `${Math.round(performance.now() - tick)}ms` });
+  return outTTS;
+});
+
+// src/@core/SetNode.ts
+var SetNode = (options) => {
+  const nodes = bootstrap.cache.nodes.features;
+  const exists = nodes.find((node) => node.properties.identifier === options.identifier);
+  if (options.delete) {
+    if (exists) {
+      const index = nodes.indexOf(exists);
+      nodes.splice(index, 1);
+      return SetEventEmit({
+        event: `onNodeDelete`,
+        metadata: {
+          type: `node-delete`,
+          node: exists
+        }
+      });
+    }
+    return SetWarning({ message: `Node with identifier '${options.identifier}' not found.` });
+  }
+  if (exists) {
+    const index = nodes.indexOf(exists);
+    nodes[index] = __spreadProps(__spreadValues({}, exists), {
+      geometry: {
+        type: "Point",
+        coordinates: [options.coordinates.longitude, options.coordinates.latitude]
+      }
+    });
+    return SetEventEmit({
+      event: `onNodeUpdate`,
+      metadata: {
+        type: `node-update`,
+        node: nodes[index]
+      }
+    });
+  }
+  nodes.push({
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [options.coordinates.longitude, options.coordinates.latitude]
+    },
+    properties: {
+      identifier: options.identifier
+    }
+  });
+  return SetEventEmit({
+    event: `onNodeAdd`,
+    metadata: {
+      type: `node-add`,
+      node: nodes[nodes.length - 1]
+    }
+  });
+};
+
+// src/@core/GetEvents.ts
+var GetEvents = () => {
+  return bootstrap.cache.events;
+};
+
+// src/@core/GetNodes.ts
+var GetNodes = () => {
+  return bootstrap.cache.nodes;
+};
+
+// src/@enums/Expressions.ts
+var EnumExpressions = {
+  location: new RegExp(/^([A-Za-z.\-' ]+),\s*([A-Z]{2})$/),
+  pvtec: new RegExp(`[OTEX].(NEW|CON|EXT|EXA|EXB|UPG|CAN|EXP|COR|ROU).[A-Z]{4}.[A-Z]{2}.[WAYSFON].[0-9]{4}.[0-9]{6}T[0-9]{4}Z-[0-9]{6}T[0-9]{4}Z`, "g"),
+  hvtec: new RegExp(`[a-zA-Z0-9]{4}.[A-Z0-9].[A-Z]{2}.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[A-Z]{2}`, "imu"),
+  wmo: new RegExp(`[A-Z0-9]{6}\\s[A-Z]{4}\\s\\d{6}`, "imu"),
+  ugc1: new RegExp(`(\\w{2}[CZ](\\d{3}((-|>)\\s?(\\n\\n)?))+)`, "imu"),
+  ugc2: new RegExp(`(\\d{6}(-|>)\\s?(\\n\\n)?)`, "imu"),
+  ugc3: new RegExp(`(\\d{6})(?=-|$)`, "imu"),
+  dateline: new RegExp(`\\d{3,4}\\s*(AM|PM)?\\s*[A-Z]{2,4}\\s+[A-Z]{3,}\\s+[A-Z]{3,}\\s+\\d{1,2}\\s+\\d{4}`, "gim")
+};
+
+// src/@enums/AWIPS.ts
+var EnumAWIPS = {
+  ABV: `Rawinsonde Data Above 100 Millibars`,
+  ADA: `Alarm Alert Administrative Message`,
+  ADM: `Alert Administrative Message`,
+  ADR: `NWS Administrative Message`,
+  ADV: `Space Environment Advisory`,
+  AFD: `Area Forecast Discussion`,
+  AFM: `Area Forecast Matrices`,
+  AFP: `Area Forecast Product`,
+  AFW: `Fire Weather Matrix`,
+  AGF: `Agricultural Forecast`,
+  AGO: `Agricultural Observations`,
+  ALT: `Space Environment Alert`,
+  AQA: `Air Quality Alert`,
+  AQI: `Air Quality Index Statement`,
+  ASA: `Air Stagnation Advisory`,
+  AVA: `Avalanche Watch`,
+  AVG: `Avalanche Weather Guidance`,
+  AVW: `Avalanche Warning`,
+  AWO: `Area Weather Outlook`,
+  AWS: `Area Weather Summary`,
+  AWU: `Area Weather Update`,
+  AWW: `Airport Weather Warning`,
+  BLU: `Blue Alert`,
+  BOY: `Buoy Report`,
+  BRG: `Coast Guard Observations`,
+  BRT: `Hourly Roundup for Weather Radio`,
+  CAE: `Child Abduction Emergency`,
+  CCF: `Coded City Forecast`,
+  CDW: `Civil Danger Warning`,
+  CEM: `Civil Emergency Message`,
+  CF6: `Monthly Daily Climate Data`,
+  CFP: `Convective Forecast Product`,
+  CFW: `Coastal Flood Warnings, Watches, and Statements`,
+  CGR: `Coast Guard Surface Report`,
+  CHG: `Computer Hurricane Guidance`,
+  CLA: `Climatological Report Annual`,
+  CLI: `Climatological Report Daily`,
+  CLM: `Climatological Report Monthly`,
+  CLQ: `Climatological Report Quarterly`,
+  CLS: `Climatological Report Seasonal`,
+  CLT: `Climate Report`,
+  CMM: `Coded Climatological Monthly Means`,
+  COD: `Coded Analysis and Forecasts`,
+  CPF: `Great Lakes Port Forecast`,
+  CUR: `Space Environment Products Routine`,
+  CWA: `Center Weather Advisory`,
+  CWF: `Coastal Waters Forecast`,
+  CWS: `Center Weather Statement`,
+  DAY: `Space Environment Product Daily`,
+  DDO: `Daily Dispersion Outlook`,
+  DGT: `Drought Information Statement`,
+  DMO: `Practice Demo Warning`,
+  DSA: `Unnumbered Depression Advisory`,
+  DSM: `ASOS Daily Summary`,
+  DSW: `Dust Storm Warning`,
+  EFP: `Extended Forecast (3 to 5 Day)`,
+  EOL: `Six to Ten Day Weather Outlook (Local)`,
+  EQI: `Tsunami Bulletin`,
+  EQR: `Earthquake Report`,
+  EQW: `Earthquake Warning`,
+  ESF: `Flood Potential Outlook`,
+  ESG: `Extended Streamflow Guidance`,
+  ESP: `Extended Streamflow Prediction`,
+  ESS: `Water Supply Outlook`,
+  EVI: `Evacuation Immediate`,
+  EWW: `Extreme Wind Warning`,
+  FA0: `Aviation Area Forecast (Pacific)`,
+  FA1: `Aviation Area Forecast (Northeast)`,
+  FA2: `Aviation Area Forecast (Southeast)`,
+  FA3: `Aviation Area Forecast (North Central)`,
+  FA4: `Aviation Area Forecast (South Central)`,
+  FA5: `Aviation Area Forecast (Rocky Mountains)`,
+  FA6: `Aviation Area Forecast (West Coast)`,
+  FA7: `Aviation Area Forecast (Juneau, AK)`,
+  FA8: `Aviation Area Forecast (Anchorage, AK)`,
+  FA9: `Aviation Area Forecast (Fairbanks, AK)`,
+  FD0: `Winds Aloft Forecast (24-Hour High Altitude)`,
+  FD1: `Winds Aloft Forecast (6-Hour)`,
+  FD2: `Winds Aloft Forecast (12-Hour)`,
+  FD3: `Winds Aloft Forecast (24-Hour)`,
+  FD4: `Winds Aloft Forecast`,
+  FD5: `Winds Aloft Forecast`,
+  FD6: `Winds Aloft Forecast`,
+  FD7: `Winds Aloft Forecast`,
+  FD8: `Winds Aloft Forecast (6-Hour High Altitude)`,
+  FD9: `Winds Aloft Forecast (12-Hour High Altitude)`,
+  FDI: `Fire Danger Indices`,
+  FFA: `Flash Flood Watch`,
+  FFG: `Flash Flood Guidance`,
+  FFH: `Headwater Guidance`,
+  FFS: `Flash Flood Statement`,
+  FFW: `Flash Flood Warning`,
+  FLN: `National Flood Summary`,
+  FLS: `Flood Statement`,
+  FLW: `Flood Warning`,
+  FOF: `Upper Wind Fallout Forecast`,
+  FRW: `Fire Warning`,
+  FSH: `Marine Fisheries Service Message`,
+  FTM: `Radar Outage Notification`,
+  FTP: `Temp POP Guidance`,
+  FWA: `Fire Weather Administrative Message`,
+  FWD: `Fire Weather Outlook Discussion`,
+  FWF: `Fire Weather Forecast`,
+  FWL: `Land Management Forecast`,
+  FWM: `Miscellaneous Fire Weather Product`,
+  FWN: `Fire Weather Notification`,
+  FWO: `Fire Weather Observation`,
+  FWS: `Fire Weather Spot Forecast`,
+  FZL: `Freezing Level Data`,
+  GLF: `Great Lakes Forecast`,
+  GLS: `Great Lakes Storm Summary`,
+  GRE: `Green`,
+  HD1: `RFC QPF Data Product`,
+  HD2: `RFC QPF Data Product`,
+  HD3: `RFC QPF Data Product`,
+  HD4: `RFC QPF Data Product`,
+  HD7: `RFC QPF Data Product`,
+  HD8: `RFC QPF Data Product`,
+  HD9: `RFC QPF Data Product`,
+  HLS: `Hurricane Local Statement`,
+  HMD: `Hydrometeorological Discussion`,
+  HML: `AHPS XML Product`,
+  HMW: `Hazardous Materials Warning`,
+  HP1: `RFC QPF Verification Product`,
+  HP2: `RFC QPF Verification Product`,
+  HP3: `RFC QPF Verification Product`,
+  HP4: `RFC QPF Verification Product`,
+  HP5: `RFC QPF Verification Product`,
+  HP6: `RFC QPF Verification Product`,
+  HP7: `RFC QPF Verification Product`,
+  HP8: `RFC QPF Verification Product`,
+  HRR: `Weather Roundup`,
+  HSF: `High Seas Forecast`,
+  HWO: `Hazardous Weather Outlook`,
+  HWR: `Hourly Weather Roundup`,
+  HYD: `Daily Hydrometeorological Products`,
+  HYM: `Monthly Hydrometeorological Product`,
+  ICE: `Ice Forecast`,
+  IDM: `Ice Drift Vectors`,
+  INI: `Administrative Message`,
+  IOB: `Ice Observation`,
+  KPA: `Keep Alive Message`,
+  LAE: `Local Area Emergency`,
+  LCD: `Preliminary Local Climatological Data`,
+  LCO: `Local Cooperative Observation`,
+  LEW: `Law Enforcement Warning`,
+  LFP: `Local Forecast`,
+  LKE: `Lake Stages`,
+  LLS: `Low Level Sounding`,
+  LOW: `Low Temperatures`,
+  LSR: `Local Storm Report`,
+  LTG: `Lightning Data`,
+  MAN: `Rawinsonde Mandatory Levels`,
+  MAP: `Mean Areal Precipitation`,
+  MAW: `Amended Marine Forecast`,
+  MFM: `Marine Forecast Matrix`,
+  MIM: `Marine Interpretation Message`,
+  MIS: `Miscellaneous Local Product`,
+  MOB: `Marine Observations`,
+  MON: `Space Environment Product Monthly`,
+  MRP: `Marine Product Techniques Development`,
+  MSM: `ASOS Monthly Summary Message`,
+  MTR: `METAR Observation`,
+  MTT: `METAR Test Message`,
+  MVF: `Marine Verification Coded Message`,
+  MWS: `Marine Weather Statement`,
+  MWW: `Marine Weather Message`,
+  NOU: `Weather Reconnaissance Flights`,
+  NOW: `Short-Term Forecast`,
+  NOX: `Data Management Message`,
+  NPW: `Non-Precipitation Warning`,
+  NSH: `Nearshore Marine Forecast`,
+  NUW: `Nuclear Power Plant Warning`,
+  NWR: `NOAA Weather Radio Forecast`,
+  OAV: `Other Aviation Products`,
+  OBS: `Observations`,
+  OFA: `Offshore Aviation Forecast`,
+  OFF: `Offshore Forecast`,
+  OMR: `Other Marine Products`,
+  OPU: `Other Public Products`,
+  OSO: `Other Surface Observations`,
+  OSW: `Ocean Surface Winds`,
+  OUA: `Other Upper Air Data`,
+  OZF: `Zone Forecast`,
+  PFM: `Point Forecast Matrices`,
+  PFW: `Fire Weather Point Forecast Matrices`,
+  PLS: `Plain Language Ship Report`,
+  PMD: `Prognostic Meteorological Discussion`,
+  PNS: `Public Information Statement`,
+  POE: `Probability of Exceedance`,
+  PRB: `Heat Index Forecast Tables`,
+  PRC: `Pilot Report Collective`,
+  PRE: `Preliminary Forecasts`,
+  PSH: `Post-Storm Hurricane Report`,
+  PTS: `Probabilistic Outlook Points`,
+  AAG: `Aviation Area Forecast`,
+  PWO: `Public Severe Weather Outlook`,
+  PWS: `Tropical Cyclone Probabilities`,
+  QPF: `Quantitative Precipitation Forecast`,
+  QPS: `Quantitative Precipitation Statement`,
+  RDF: `Revised Digital Forecast`,
+  REC: `Recreational Report`,
+  RER: `Record Report`,
+  RET: `EAS Activation Request`,
+  RFD: `Rangeland Fire Danger Forecast`,
+  RFI: `RFI Observation`,
+  RFR: `Route Forecast`,
+  RFW: `Red Flag Warning`,
+  RHW: `Radiological Hazard Warning`,
+  RMT: `Required Monthly Test`,
+  RNS: `Rain Information Statement`,
+  RR1: `Hydro-Met Data Report Part 1`,
+  RR2: `Hydro-Met Data Report Part 2`,
+  RR3: `Hydro-Met Data Report Part 3`,
+  RR4: `Hydro-Met Data Report Part 4`,
+  RR5: `Hydro-Met Data Report Part 5`,
+  RR6: `Hydro-Met Data Report Part 6`,
+  RR7: `Hydro-Met Data Report Part 7`,
+  RR8: `Hydro-Met Data Report Part 8`,
+  RR9: `Hydro-Met Data Report Part 9`,
+  RRA: `Automated Hydrologic Observation Report`,
+  RRM: `Miscellaneous Hydrologic Data`,
+  RRS: `HADS Data`,
+  RRY: `ASOS Hourly Test Message`,
+  RSD: `Daily SNOTEL Data`,
+  RSM: `Monthly SNOTEL Data`,
+  RTP: `Regional Temperature and Precipitation Table`,
+  RVA: `River Summary`,
+  RVD: `Daily River Forecast`,
+  RVF: `River Forecast`,
+  RVI: `River Ice Statement`,
+  RVM: `Miscellaneous River Product`,
+  RVR: `River Recreation Statement`,
+  RVS: `River Statement`,
+  RWR: `Regional Weather Roundup`,
+  RWS: `Regional Weather Summary`,
+  RWT: `Required Weekly Test`,
+  SAB: `Special Avalanche Bulletin`,
+  SAF: `Agricultural Weather Forecast`,
+  SAG: `Snow Avalanche Guidance`,
+  SAT: `APT Prediction`,
+  SAW: `Preliminary Notice of Watch`,
+  SCC: `Storm Summary`,
+  SCD: `Supplementary Climatological Data`,
+  SCN: `Soil Climate Analysis Network`,
+  SCP: `Satellite Cloud Product`,
+  SCS: `Selected Cities Summary`,
+  SDO: `Supplementary Data Observation`,
+  SDS: `Special Dispersion Statement`,
+  SEL: `Severe Local Storm Watch`,
+  SEV: `SPC Watch Point Information`,
+  SFP: `State Forecast`,
+  SFT: `Tabular State Forecast`,
+  SGL: `Rawinsonde Significant Levels`,
+  SHP: `Surface Ship Report`,
+  SIG: `International SIGMET`,
+  SIM: `Satellite Interpretation Message`,
+  SLS: `Severe Local Storm Outline`,
+  SMF: `Smoke Management Weather Forecast`,
+  SMW: `Special Marine Warning`,
+  SOO: `Science Operations Officer Product`,
+  SPE: `Satellite Precipitation Estimates`,
+  SPF: `Storm Strike Probability Bulletin`,
+  SPS: `Special Weather Statement`,
+  SPW: `Shelter in Place Warning`,
+  SQW: `Snow Squall Warning`,
+  SRD: `Surf Discussion`,
+  SRF: `Surf Forecast`,
+  SRG: `Soaring Guidance`,
+  SSM: `Synoptic Surface Observation`,
+  STA: `Weather Statistical Summary`,
+  STD: `Satellite Tropical Disturbance Summary`,
+  STO: `Road Condition Report`,
+  STP: `State Temperature and Precipitation Table`,
+  STQ: `Spot Forecast Request`,
+  SUM: `Space Weather Message`,
+  SVR: `Severe Thunderstorm Warning`,
+  SVS: `Severe Weather Statement`,
+  SWOMCD: `Mesoscale Discussion`,
+  SWODY1: `Storm Prediction Center Day 1 Outlook`,
+  SWODY2: `Storm Prediction Center Day 2 Outlook`,
+  SWODY3: `Storm Prediction Center Day 3 Outlook`,
+  SWOD48: `Storm Prediction Center Day 4 to 8 Outlook`,
+  SWS: `State Weather Summary`,
+  SYN: `Regional Weather Synopsis`,
+  TAF: `Terminal Aerodrome Forecast`,
+  TAP: `Terminal Alerting Products`,
+  TAV: `Travelers Forecast Table`,
+  TCA: `Tropical Cyclone Advisory`,
+  TCD: `Tropical Cyclone Discussion`,
+  TCE: `Tropical Cyclone Position Estimate`,
+  TCM: `Tropical Cyclone Marine Aviation Advisory`,
+  TCP: `Public Tropical Cyclone Advisory`,
+  TCS: `Satellite Tropical Cyclone Summary`,
+  TCU: `Tropical Cyclone Update`,
+  TCV: `Tropical Cyclone Break Points`,
+  TIB: `Tsunami Bulletin`,
+  TID: `Tide Report`,
+  TMA: `Tsunami Tide Seismic Acknowledgement`,
+  TOE: `Telephone Outage Emergency`,
+  TOR: `Tornado Warning`,
+  TPT: `Temperature Precipitation Table`,
+  TSU: `Tsunami Information Statement`,
+  TUV: `Ultraviolet Index`,
+  TVL: `Travelers Forecast`,
+  TWB: `Transcribed Weather Broadcast`,
+  TWD: `Tropical Weather Discussion`,
+  TWO: `Tropical Weather Outlook`,
+  TWS: `Tropical Weather Summary`,
+  URN: `Aircraft Reconnaissance`,
+  UVI: `Ultraviolet Index`,
+  VAA: `Volcanic Activity Advisory`,
+  VER: `Forecast Verification Statistics`,
+  VFT: `TAF Verification Product`,
+  VOW: `Volcano Warning`,
+  WA0: `AIRMET Pacific`,
+  WA1: `AIRMET Northeast`,
+  WA2: `AIRMET Southeast`,
+  WA3: `AIRMET North Central`,
+  WA4: `AIRMET South Central`,
+  WA5: `AIRMET Rocky Mountains`,
+  WA6: `AIRMET West Coast`,
+  WA7: `AIRMET Juneau, AK`,
+  WA8: `AIRMET Anchorage, AK`,
+  WA9: `AIRMET Fairbanks, AK`,
+  WAR: `Space Environment Warning`,
+  WAT: `Space Environment Watch`,
+  WCN: `Weather Watch Clearance Notification`,
+  WCR: `Weekly Weather and Crop Report`,
+  WDA: `Weekly Data for Agriculture`,
+  WDU: `Warning Decision Update`,
+  WEK: `Space Environment Product Weekly`,
+  WOU: `Watch Outline Update`,
+  WS1: `SIGMET Northeast`,
+  WS2: `SIGMET Southeast`,
+  WS3: `SIGMET North Central`,
+  WS4: `SIGMET South Central`,
+  WS5: `SIGMET Rocky Mountains`,
+  WS6: `SIGMET West Coast`,
+  WST: `Tropical Cyclone SIGMET`,
+  WSV: `Volcanic Activity SIGMET`,
+  WSW: `Winter Weather Warning`,
+  WWA: `Watch Status Report`,
+  WWP: `Watch Probabilities`,
+  ZFP: `Zone Forecast Product`
+};
+
+// src/@modules/@stanza/GetAwipsType.ts
+var GetAwipsType = (options) => {
+  const attributes = options.attributes;
+  if (!attributes.awipsid) {
+    return {
+      type: null,
+      prefix: null,
+      discovered: false
+    };
+  }
+  for (const [prefix, type] of Object.entries(EnumAWIPS)) {
+    if (attributes.awipsid.startsWith(prefix)) {
+      return { type, prefix, discovered: true };
+    }
+  }
+  return { type: options.attributes.awipsid, prefix: options.attributes.awipsid, discovered: false };
+};
+
+// src/@enums/Matches.ts
+var EnumMatches = {
+  SPS: [
+    { match: /STRONG THUNDERSTORM/i, label: "Convective Special Weather Statement", statement: false },
+    { match: /SPECIAL WEATHER STATEMENT/i, label: "Special Weather Statement", statement: false }
+  ],
+  TSU: [
+    { match: /TSUNAMI WARNING/i, label: "Tsunami Warning", statement: false },
+    { match: /TSUNAMI WATCH/i, label: "Tsunami Watch", statement: false },
+    { match: /TSUNAMI ADVISORY/i, label: "Tsunami Advisory", statement: false },
+    { match: /TSUNAMI INFORMATION STATEMENT/i, label: "Tsunami Information Statement", statement: false },
+    { match: /TSUNAMI WARNING CANCELLATION/i, label: "Tsunami Cancellation", statement: false }
+  ],
+  TCP: [
+    { match: /HURRICANE WARNING/i, label: "Hurricane Warning", statement: false },
+    { match: /HURRICANE WATCH/i, label: "Hurricane Watch", statement: false },
+    { match: /TROPICAL STORM WARNING/i, label: "Tropical Storm Warning", statement: false },
+    { match: /TROPICAL STORM WATCH/i, label: "Tropical Storm Watch", statement: false },
+    { match: /STORM SURGE WARNING/i, label: "Storm Surge Warning", statement: false },
+    { match: /STORM SURGE WATCH/i, label: "Storm Surge Watch", statement: false }
+  ],
+  MWW: [
+    { match: /SMALL CRAFT ADVISORY/i, label: "Small Craft Advisory", statement: false },
+    { match: /GALE WARNING/i, label: "Gale Warning", statement: false },
+    { match: /STORM WARNING/i, label: "Storm Warning", statement: false },
+    { match: /HURRICANE FORCE WIND WARNING/i, label: "Hurricane Force Wind Warning", statement: false },
+    { match: /HAZARDOUS SEAS WARNING/i, label: "Hazardous Seas Warning", statement: false },
+    { match: /DENSE FOG ADVISORY/i, label: "Dense Fog Advisory", statement: false },
+    { match: /THUNDERSTORMS/i, label: "Convective Marine Weather Statement", statement: false },
+    { match: /MARINE WEATHER STATEMENT/i, label: "Marine Weather Statement", statement: false }
+  ],
+  PNS: [
+    { match: /NOAA WEATHER WIRE SERVICE/i, label: "NOAA Weather Wire Service Report", statement: true },
+    { match: /Public Information Statement/i, label: "Public Information Statement", statement: true }
+  ]
+};
+
+// src/@parsers/@text/GetDescriptionFromProduct.ts
+var GetDescriptionFromProduct = (options) => {
+  let message = options.message;
+  const predefinedEndMarkers = ["&&", "LAT..."];
+  const getEndIndex = (text, fromIndex = 0) => {
+    const indices = predefinedEndMarkers.map((marker) => text.indexOf(marker, fromIndex)).filter((idx) => idx !== -1);
+    return indices.length ? Math.min(...indices) : -1;
+  };
+  const dates = Array.from(message.matchAll(EnumExpressions.dateline));
+  if (dates.length) {
+    const lastMatch = dates[dates.length - 1][0];
+    const sIndx = message.lastIndexOf(lastMatch);
+    if (sIndx !== -1) {
+      const endIndx = getEndIndex(message, sIndx);
+      message = message.substring(sIndx + lastMatch.length, endIndx !== -1 ? endIndx : void 0).trimStart();
+      if (message.startsWith("/")) message = message.slice(1).trimStart();
+      if (options.handle && message.includes(options.handle)) {
+        const handleIdx = message.indexOf(options.handle);
+        message = message.substring(handleIdx + options.handle.length).trimStart();
+        if (message.startsWith("/")) message = message.slice(1).trimStart();
+      }
+    }
+  } else if (options.handle) {
+    const handleIndx = message.indexOf(options.handle);
+    if (handleIndx !== -1) {
+      let afterHandle = message.substring(handleIndx + options.handle.length).trimStart();
+      if (afterHandle.startsWith("/")) afterHandle = afterHandle.slice(1).trimStart();
+      const latEnd = getEndIndex(afterHandle);
+      message = latEnd !== -1 ? afterHandle.substring(0, latEnd).trim() : afterHandle.trim();
+    }
+  }
+  return message.trim();
+};
+
+// src/@parsers/@text/GetPolygonFromProduct.ts
+var getPolygonFromProduct = (message) => {
+  const coordinates = [];
+  const match = message.match(
+    /LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i
+  );
+  if (!match) return coordinates;
+  const text = match[1];
+  const values = text.match(/\d{4,8}/g);
+  if (!values) return coordinates;
+  if (values.every((v) => v.length === 8)) {
+    for (const value of values) {
+      const lat = parseInt(value.slice(0, 4), 10) / 100;
+      const lon = -parseInt(value.slice(4, 8), 10) / 100;
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        coordinates.push([lon, lat]);
+      }
+    }
+  } else {
+    for (let i = 0; i + 1 < values.length; i += 2) {
+      const lat = parseInt(values[i], 10) / 100;
+      const lon = -parseInt(values[i + 1], 10) / 100;
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        coordinates.push([lon, lat]);
+      }
+    }
+  }
+  if (coordinates.length > 2) {
+    coordinates.push([...coordinates[0]]);
+  }
+  return coordinates;
+};
+
+// src/@parsers/@text/GetTextFromProduct.ts
+var GetTextFromProduct = (options) => {
+  var _a;
+  const lines = options.message.split(`
+`);
+  for (const line of lines) {
+    const matchedFind = options.find.find((find) => line.includes(find));
+    if (matchedFind) {
+      let result = line.slice(line.indexOf(matchedFind) + matchedFind.length).trim();
+      if (options.removal) {
+        for (const str of options.removal) {
+          result = result.toLowerCase().split(str.toLowerCase()).join("");
+        }
+        result = result.replace(matchedFind, "").replace("<", "").trim();
+      }
+      return result.toUpperCase() + ((_a = options == null ? void 0 : options.append) != null ? _a : ``);
+    }
+  }
+  return null;
+};
+
+// src/@enums/ICAO.ts
+var EnumICAO = {
+  "KLUB": "Lubbock, TX",
+  "KLCH": "Lake Charles, LA",
+  "TSTL": "St. Louis, MO",
+  "PABC": "Bethel, AK",
+  "TCMH": "Columbus, OH",
+  "KEPZ": "El Paso, TX",
+  "KCYS": "Cheyenne, WY",
+  "KJKL": "Jackson, KY",
+  "KWNS": "Storm Prediction Center",
+  "KPAH": "Paducah, KY",
+  "KEMX": "Tucson, AZ",
+  "KMHX": "Morehead City, NC",
+  "PAPD": "Fairbanks, AK",
+  "KDLH": "Duluth, MN",
+  "TADW": "Andrews Air Force Base, MD",
+  "KOKX": "Brookhaven, NY",
+  "KLZK": "Little Rock, AR",
+  "KHGX": "Houston, TX",
+  "TMSY": "New Orleans, LA",
+  "KDGX": "Jackson/Brandon, MS",
+  "KCTP": "Caribou, ME",
+  "KAMA": "Amarillo, TX",
+  "PGUA": "Andersen AFB, GU",
+  "KAPX": "Gaylord, MI",
+  "PAHG": "Kenai, AK",
+  "KLWX": "Sterling, VA",
+  "HWPA2": "Homer, AK",
+  "KGRK": "Fort Hood, TX",
+  "KAKQ": "Wakefield, VA",
+  "ROCO2": "Norman, OK",
+  "KCLX": "Charleston, SC",
+  "TPHX": "Phoenix, AZ",
+  "KNKX": "San Diego, CA",
+  "TDEN": "Denver, CO",
+  "TLAS": "Las Vegas, NV",
+  "KBUF": "Buffalo, NY",
+  "KTLX": "Norman, OK",
+  "KILX": "Lincoln, IL",
+  "KHDC": "Hammond, LA",
+  "KVWX": "Evansville, IN",
+  "TCLT": "Charlotte, NC",
+  "TEWR": "Newark, NJ",
+  "KFSD": "Sioux Falls, SD",
+  "KEAX": "Pleasant Hill, MO",
+  "KICX": "Cedar City, UT",
+  "KHTX": "Huntsville, AL",
+  "PACG": "Sitka, AK",
+  "KSOX": "Santa Ana Mountains, CA",
+  "TPBI": "West Palm Beach, FL",
+  "TSLC": "Salt Lake City, UT",
+  "KGLD": "Goodland, KS",
+  "TRDU": "Raleigh-Durham, NC",
+  "KATX": "Seattle, WA",
+  "TICH": "Wichita, KS",
+  "TSDF": "Louisville, KY",
+  "TBOS": "Boston, MA",
+  "TDCA": "Washington, DC",
+  "KUEX": "Grand Island, NE",
+  "TLKA2": "Talkeetna, AK",
+  "KBGM": "Binghamton, NY",
+  "TLVE": "Cleveland, OH",
+  "KCAE": "Columbia, SC",
+  "KDVN": "Quad Cities, IA",
+  "KABR": "Aberdeen, SD",
+  "KBYX": "Key West, FL",
+  "KMPX": "Minneapolis, MN",
+  "KCRP": "Corpus Christi, TX",
+  "KCBW": "Caribou, ME",
+  "KMRX": "Knoxville, TN",
+  "KSHV": "Shreveport, LA",
+  "KIWA": "Phoenix, AZ",
+  "KRGX": "Reno, NV",
+  "PHKM": "Kamuela, HI",
+  "KABX": "Albuquerque, NM",
+  "KBMX": "Birmingham, AL",
+  "TMDW": "Chicago Midway, IL",
+  "KVAX": "Moody AFB, GA",
+  "KHDX": "Holloman AFB, NM",
+  "KBRO": "Brownsville, TX",
+  "KTWX": "Topeka, KS",
+  "KRTX": "Portland, OR",
+  "KCXX": "Burlington, VT",
+  "KFCX": "Roanoke, VA",
+  "KFFC": "Atlanta, GA",
+  "KBOX": "Boston, MA",
+  "KTLH": "Tallahassee, FL",
+  "KPUX": "Pueblo, CO",
+  "KFDR": "Altus AFB, OK",
+  "KGJX": "Grand Junction, CO",
+  "KDTX": "Detroit, MI",
+  "PHWA": "Waimea, HI",
+  "KMQT": "Marquette, MI",
+  "KSJT": "San Angelo, TX",
+  "KUDX": "Rapid City, SD",
+  "TIAH": "Houston, TX",
+  "KSRX": "Fort Smith, AR",
+  "TJFK": "New York City, NY",
+  "KDDC": "Dodge City, KS",
+  "PAKC": "King Salmon, AK",
+  "PAIH": "Middleton Island, AK",
+  "RODN": "Kadena AB, JA",
+  "TBWI": "Baltimore/Washington, MD",
+  "KIWX": "Northern Indiana, IN",
+  "KFDX": "Cannon AFB, NM",
+  "TMIA": "Miami, FL",
+  "KICT": "Wichita, KS",
+  "TMKE": "Milwaukee, WI",
+  "TFLL": "Fort Lauderdale, FL",
+  "KARX": "La Crosse, WI",
+  "KLRX": "Elko, NV",
+  "KDAX": "Sacramento, CA",
+  "KGRB": "Green Bay, WI",
+  "KLGX": "Langley Hill, WA",
+  "KFTG": "Denver, CO",
+  "KMKX": "Milwaukee, WI",
+  "TTUL": "Tulsa, OK",
+  "TDFW": "Dallas/Fort Worth, TX",
+  "TTPA": "Tampa Bay, FL",
+  "TDAL": "Dallas Love Field, TX",
+  "KDFX": "Laughlin AFB, TX",
+  "KSFX": "Pocatello, ID",
+  "KMTX": "Salt Lake City, UT",
+  "PAEC": "Nome, AK",
+  "RKSG": "Camp Humphreys, KR",
+  "KOAX": "Omaha, NE",
+  "PHMO": "Molokai, HI",
+  "TDTW": "Detroit, MI",
+  "THOU": "Houston, TX",
+  "AWPA2": "Anchorage, AK",
+  "KTYX": "Fort Drum, NY",
+  "KCCX": "State College, PA",
+  "TMSP": "Minneapolis, MN",
+  "KMVX": "Grand Forks, ND",
+  "KBIS": "Bismarck, ND",
+  "KBBX": "Beale AFB, CA",
+  "KVBX": "Vandenberg AFB, CA",
+  "KPOE": "Fort Polk, LA",
+  "KMOB": "Mobile, AL",
+  "KJGX": "Robins AFB, GA",
+  "KMUX": "San Francisco, CA",
+  "TMCI": "Kansas City, MO",
+  "KLSX": "St. Louis, MO",
+  "KMAX": "Medford, OR",
+  "KRAX": "Raleigh/Durham, NC",
+  "KINX": "Tulsa, OK",
+  "RKJK": "Kunsan AB, KR",
+  "KSGF": "Springfield, MO",
+  "TDAY": "Dayton, OH",
+  "KDOX": "Dover AFB, DE",
+  "KGGW": "Glasgow, MT",
+  "KAMX": "Miami, FL",
+  "KENX": "Albany, NY",
+  "KTFX": "Great Falls, MT",
+  "KPBZ": "Pittsburgh, PA",
+  "KMAF": "Midland/Odessa, TX",
+  "KPDT": "Pendleton, OR",
+  "KLNX": "North Platte, NE",
+  "KEOX": "Fort Rucker, AL",
+  "KGSP": "Greer, SC",
+  "KHPX": "Fort Campbell, KY",
+  "KGRR": "Grand Rapids, MI",
+  "KLOT": "Chicago, IL",
+  "TPIT": "Pittsburgh, PA",
+  "KEYX": "Edwards AFB, CA",
+  "TIAD": "Dulles, VA",
+  "KFWS": "Dallas/Fort Worth, TX",
+  "KMLB": "Melbourne, FL",
+  "KMBX": "Minot AFB, ND",
+  "KDMX": "Des Moines, IA",
+  "KEVX": "Eglin AFB, FL",
+  "TBNA": "Nashville, TN",
+  "KDYX": "Dyess AFB, TX",
+  "TOKC": "Oklahoma City, OK",
+  "PHKI": "South Kauai, HI",
+  "TMCO": "Orlando, FL",
+  "KDIX": "Philadelphia, PA",
+  "TORD": "Chicago, IL",
+  "KYUX": "Yuma, AZ",
+  "KVNX": "Vance AFB, OK",
+  "TJUA": "San Juan, PR",
+  "TATL": "Atlanta, GA",
+  "KVTX": "Los Angeles, CA",
+  "KIND": "Indianapolis, IN",
+  "KCBX": "Boise, ID",
+  "KGYX": "Portland, ME",
+  "KMXX": "Maxwell AFB, AL",
+  "TSJU": "San Juan, PR",
+  "KHNX": "San Joaquin Valley, CA",
+  "KLVX": "Louisville, KY",
+  "KMSX": "Missoula, MT",
+  "KJAX": "Jacksonville, FL",
+  "KNQA": "Memphis, TN",
+  "KRIW": "Riverton/Lander, WY",
+  "TCVG": "Covington, KY",
+  "KBLX": "Billings, MT",
+  "TPHL": "Philadelphia, PA",
+  "KRLX": "Charleston, WV",
+  "TMEM": "Memphis, TN",
+  "KCLE": "Cleveland, OH",
+  "KBHX": "Eureka, CA",
+  "KLBB": "Lubbock, TX",
+  "KOTX": "Spokane, WA",
+  "KEWX": "Austin/San Antonio, TX",
+  "KGWX": "Columbus AFB, MS",
+  "KESX": "Las Vegas, NV",
+  "KTBW": "Tampa, FL",
+  "KOHX": "Nashville, TN",
+  "KLTX": "Wilmington, NC",
+  "KFSX": "Flagstaff, AZ",
+  "TIDS": "Indianapolis, IN",
+  "KILN": "Cincinnati, OH",
+  "PAFG": "Fairbanks, AK",
+  "KPQR": "Portland, OR",
+  "KILM": "Wilmington, NC",
+  "KEKA": "Eureka, CA",
+  "KCHS": "Charleston, SC",
+  "KPHI": "Philadelphia/Mt. Holly, NJ",
+  "KUNR": "Rapid City, SD",
+  "KMFL": "Miami, FL",
+  "TJSJ": "San Juan, PR",
+  "KFGF": "Grand Forks, ND",
+  "KSEW": "Seattle, WA",
+  "PAFC": "Anchorage, AK",
+  "KLMK": "Louisville, KY",
+  "PHFO": "Honolulu, HI",
+  "KLIX": "New Orleans/Baton Rouge, LA",
+  "KBOI": "Boise, ID",
+  "KPIH": "Pocatello, ID",
+  "KMTR": "San Francisco/Monterey, CA",
+  "KGJT": "Grand Junction, CO",
+  "PAAQ": "Anchorage, AK",
+  "KABQ": "Albuquerque, NM",
+  "KTAE": "Tallahassee, FL",
+  "KCAR": "Caribou, ME",
+  "KMFR": "Medford, OR",
+  "PGUM": "Guam, GU",
+  "PACR": "Cordova, AK",
+  "PAJK": "Juneau, AK"
+};
+
+// src/@building/GetEventOffice.ts
+var GetEventOffice = (options) => {
+  var _a, _b, _c, _d, _e, _f, _g;
+  const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`.`)[0] : (_e = (_c = options.attributes) == null ? void 0 : _c.cccc) != null ? _e : options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null;
+  const name = (_g = (_f = EnumICAO) == null ? void 0 : _f[office]) != null ? _g : null;
+  return { office, name };
+};
+
+// src/@enums/Tags.ts
+var EnumTags = {
+  SEVERE_WEATHER: [
+    { match: /A Large And Extremely Dangerous Tornado/i, tag: "Large and Dangerous Tornado" },
+    { match: /This Is A Particularly Dangerous Situation/i, tag: "Particularly Dangerous Situation" },
+    { match: /Weather Spotters Confirmed Tornado/i, tag: "Weather Spotters Confirmed Tornado" },
+    { match: /Law Enforcement Confirmed Tornado/i, tag: "Law Enforcement Confirmed Tornado" },
+    { match: /Radar Confirmed/i, tag: "Radar Confirmed" },
+    { match: /Radar Indicated Rotation/i, tag: "Radar Indicated Rotation" },
+    { match: /Radar Indicated(?! Rotation)/i, tag: "Radar Indicated" },
+    { match: /A Tornado Is On The Ground/i, tag: "Tornado On The Ground" },
+    { match: /Tornado Was Reported Briefly On The Ground/i, tag: "Tornado Briefly On Ground" },
+    { match: /Weather Spotters Reported Funnel Cloud/i, tag: "Confirmed Funnel Cloud" },
+    { match: /Spotters Indicate That A Funnel Cloud Continues With This Storm/i, tag: "Funnel Cloud Continues" },
+    { match: /A Severe Thunderstorm Capable Of Producing A Tornado/i, tag: "Tornado Possible" },
+    { match: /A Tornado May Develop At Any Time/i, tag: "Tornado May Develop" },
+    { match: /A Tornado Watch Remains In Effect/i, tag: "Active Tornado Watch" },
+    { match: /Complete Destruction Is Possible/i, tag: "Extremely Damaging Tornado" },
+    { match: /Potentially Deadly Tornado/i, tag: "Deadly Tornado" },
+    { match: /Life-Threatening Situation/i, tag: "Life Threatening Situation" },
+    { match: /Capable Of Producing A Landspout/i, tag: "Landspout Possible" },
+    { match: /Public Confirmed Tornado/i, tag: "Public Confirmed Tornado" },
+    { match: /Expect Wind Damage/i, tag: "Wind Damage" },
+    { match: /Destructive Winds/i, tag: "Destructive Winds" },
+    { match: /Wind Damage With This Storm Will Occur/i, tag: "Immediate Wind Damage Threat" },
+    { match: /Widespread Wind Damage/i, tag: "Widespread Wind Damage" },
+    { match: /Significant Wind Damage/i, tag: "Significant Wind Damage" },
+    { match: /Tornado Like Wind Speeds/i, tag: "Tornado-Like Wind Speeds" },
+    { match: /Winds Will Strengthen/i, tag: "Strengthening Winds" },
+    { match: /Gusty Winds/i, tag: "Gusty Winds" },
+    { match: /Could Knock Down Tree Limbs/i, tag: "Tree Damage Possible" },
+    { match: /Blow Around Unsecured Objects/i, tag: "Loose Object Damage Possible" },
+    { match: /Unsecured lightweight objects blown about/i, tag: "Loose Objects May Blow Around" },
+    { match: /Many large tree limbs broken off/i, tag: "Tree Limb Damage Possible" },
+    { match: /Some fences and roadway signs blown over/i, tag: "Fence and Sign Damage Possible" },
+    { match: /Hazardous driving conditions on bridges/i, tag: "Hazardous Bridge Travel" },
+    { match: /Scattered power and communications outages/i, tag: "Power Outages Possible" },
+    { match: /Hail Damage To Vehicles Is Expected/i, tag: "Vehicle Damaging Hail" },
+    { match: /Extremely Large Hail/i, tag: "Extremely Large Hail" },
+    { match: new RegExp("(?<!Extremely )Large Hail", "i"), tag: "Large Hail" },
+    { match: /Tennis Ball Size Hail/i, tag: "Tennis Ball Size Hail" },
+    { match: /Baseball Size Hail/i, tag: "Baseball Size Hail" },
+    { match: /Golf Ball Size Hail/i, tag: "Golf Ball Size Hail" },
+    { match: /Quarter Size Hail/i, tag: "Quarter Size Hail" },
+    { match: /Ping Pong Ball Size Hail/i, tag: "Ping Pong Ball Size Hail" },
+    { match: /Nickel Size Hail/i, tag: "Nickel Size Hail" },
+    { match: /Hail Driven By Severe Winds/i, tag: "Wind Driven Hail" },
+    { match: /Prepare Immediately For Large Hail/i, tag: "Large Hail" },
+    { match: /Half Inch Hail/i, tag: "Half Inch Hail" },
+    { match: /Frequent Lightning/i, tag: "Frequent Lightning" },
+    { match: /Deadly Cloud To Ground Lightning/i, tag: "Deadly Cloud To Ground Lightning" },
+    { match: /Continuous Cloud To Ground Lightning/i, tag: "Continuous Cloud To Ground Lightning" },
+    { match: /Frequent Cloud To Ground Lightning/i, tag: "Frequent Cloud To Ground Lightning" },
+    { match: /Lightning Can Strike \d+ Miles Away/i, tag: "Lightning Safety Threat" },
+    { match: /Showers and thunderstorms with gusty winds may still occur/i, tag: "Gusty Thunderstorms Possible" }
+  ],
+  FLOOD: [
+    { match: /Flash Flooding Caused By Thunderstorms/i, tag: "Thunderstorm Flash Flooding" },
+    { match: /Flash Flooding Caused By Heavy Rain/i, tag: "Heavy Rain Flash Flooding" },
+    { match: /Torrential Rainfall/i, tag: "Torrential Rainfall" },
+    { match: /May Lead To Flash Flooding/i, tag: "Flash Flooding Possible" },
+    { match: /Minor Flooding Is Occurring/i, tag: "Minor Flooding Occurring" },
+    { match: /Localized Flooding/i, tag: "Localized Flooding Possible" },
+    { match: /Do Not Drive Your Vehicle Through Flooded Roadways/i, tag: "Flooded Roadways" },
+    { match: /No storm surge inundation forecast/i, tag: "No Storm Surge Inundation" },
+    { match: /Localized storm surge possible/i, tag: "Localized Storm Surge Possible" },
+    { match: /Peak Storm Surge Inundation/i, tag: "Storm Surge Inundation Risk" },
+    { match: /Potential for storm surge flooding/i, tag: "Storm Surge Flooding Possible" },
+    { match: /Small streams, creeks, and ditches may become swollen/i, tag: "Small Stream Flooding Risk" },
+    { match: /Rivers and tributaries may quickly rise/i, tag: "Rapid River Rise Possible" },
+    { match: /Flood waters can enter a few structures/i, tag: "Flood Damage Possible" },
+    { match: /Rapid ponding of water occurs/i, tag: "Water Ponding Possible" },
+    { match: /Brief road and bridge closures/i, tag: "Road Closures Possible" }
+  ],
+  WINTER_WEATHER: [
+    { match: /Frostbite And Hypothermia Are Likely/i, tag: "Frostbite and Hypothermia Likely" },
+    { match: /Very Cold Temperatures Can Lead To Hypothermia/i, tag: "Hypothermia Risk" },
+    { match: /Hypothermia If Precautions Are Not Taken/i, tag: "Hypothermia Risk" },
+    { match: /Frostbite And Hypothermia Will Occur If Unprotected Skin/i, tag: "Frostbite Risk" },
+    { match: /Temperatures Could Cause Ruptured Water Pipes/i, tag: "Ruptured Water Pipes Possible" },
+    { match: /Blowing Snow Which Could Reduce Visibility/i, tag: "Reduced Visibility From Blowing Snow" },
+    { match: /Lake Effect Snow Expected/i, tag: "Lake Effect Snow" },
+    { match: /Slick And Icy Spots On Roads/i, tag: "Icy Roads" },
+    { match: /Hazardous Roadways And Black Ice/i, tag: "Black Ice" },
+    { match: /Icy Patches May Be More Common On Bridges/i, tag: "Bridge Icing" }
+  ],
+  COASTAL_MARINE: [
+    { match: /Rip Currents Can Sweep Even The Best Swimmer/i, tag: "Dangerous Rip Currents" },
+    { match: /Small Craft Could Be Damaged/i, tag: "Small Craft Damage Possible" },
+    { match: /No Tsunami Threat/i, tag: "No Tsunami Threat" },
+    { match: /Tsunami Threat Exists/i, tag: "Tsunami Threat Exists" },
+    { match: /TROPICAL STORM WARNING IN EFFECT/i, tag: "Tropical Storm Warning" },
+    { match: /TROPICAL STORM WARNING REMAINS IN EFFECT/i, tag: "Tropical Storm Warning Continues" },
+    { match: /Tropical storm[- ]force winds/i, tag: "Tropical Storm Force Winds" },
+    { match: /hazardous wind/i, tag: "Hazardous Winds" },
+    { match: /hazardous seas/i, tag: "Hazardous Seas" },
+    { match: /could capsize or damage vessels/i, tag: "Vessel Damage Risk" },
+    { match: /reduce visibility/i, tag: "Reduced Visibility" },
+    { match: /Mariners should alter plans/i, tag: "Marine Travel Disruption" },
+    { match: /Remain in port/i, tag: "Remain In Port" },
+    { match: /seek safe harbor/i, tag: "Seek Safe Harbor" },
+    { match: /secure the vessel for severe conditions/i, tag: "Secure Vessel" }
+  ],
+  SAFETY_INFO: [
+    { match: /Seek Shelter Now/i, tag: "Seek Shelter Now" },
+    { match: /Seek Shelter Immediately/i, tag: "Seek Shelter Immediately" },
+    { match: /Move To An Interior Room/i, tag: "Move To Interior Room" },
+    { match: /Move To Safe Shelter Now/i, tag: "Move To Safe Shelter" },
+    { match: /Potentially Deadly Storm/i, tag: "Potentially Deadly Storm" },
+    { match: /Serious Injury And Significant Property Damage/i, tag: "Serious Damage Possible" },
+    { match: /People And Animals Outdoors Will Be Injured/i, tag: "Outdoor Injury Risk" },
+    { match: /IMMINENT DANGEROUS WEATHER CONDITIONS/i, tag: "Imminent Dangerous Weather" },
+    { match: /Follow the instructions of local officials/i, tag: "Follow Local Officials" },
+    { match: /Monitor forecasts/i, tag: "Monitor Forecast Updates" },
+    { match: /Complete preparations.*before conditions become unsafe/i, tag: "Complete Preparations Early" },
+    { match: /Leave immediately if evacuation orders are given/i, tag: "Evacuate If Ordered" },
+    { match: /Heed any flood watches and warnings/i, tag: "Monitor Flood Alerts" },
+    { match: /Listen for changes in the forecast/i, tag: "Stay Weather Aware" },
+    { match: /Travel Could Be Very Difficult/i, tag: "Difficult Travel Conditions" },
+    { match: /Expect Disruptions/i, tag: "Travel Disruptions Expected" },
+    { match: /Trained Weather Spotters/i, tag: "Confirmed By Storm Spotters" },
+    { match: /Doppler Radar/i, tag: "Confirmed By Radar" },
+    { match: /Source\.\.\.Storm Spotters/i, tag: "Confirmed By Storm Spotters" },
+    { match: /Source\.\.\.Doppler Radar/i, tag: "Confirmed By Radar" },
+    { match: /Source\.\.\.Automated Gauges/i, tag: "Confirmed By Automated Gauges" },
+    { match: /Source\.\.\.Radar Confirmed/i, tag: "Confirmed By Radar" },
+    { match: /Source\.\.\.Radar Indicated/i, tag: "Indicated By Radar" },
+    { match: /Source\.\.\.Public/i, tag: "Confirmed By Public" },
+    { match: /Source\.\.\.Amateur Radio/i, tag: "Confirmed By Amateur Radio" },
+    { match: /Source\.\.\.Emergency Management/i, tag: "Confirmed By Emergency Management" },
+    { match: /Source\.\.\.Law Enforcement Reported/i, tag: "Confirmed By Law Enforcement" },
+    { match: /Source\.\.\.Broadcast Media/i, tag: "Confirmed By Broadcast Media" },
+    { match: /Source\.\.\.Media/i, tag: "Confirmed By Media" },
+    { match: /Source\.\.\.Media Reported/i, tag: "Confirmed By Media" },
+    { match: /Doppler Radar And Automated Gauges/i, tag: "Confirmed By Radar and Gauges" },
+    { match: /Potential Impacts:\s*Limited/i, tag: "Limited Impacts Expected" },
+    { match: /Potential Impacts:\s*Little to None/i, tag: "Minimal Impacts Expected" },
+    { match: /Slow Down And Allow Extra Time/i, tag: "Allow Extra Travel Time" },
+    { match: /Should Exercise Caution/i, tag: "Exercise Caution" },
+    { match: /Heat Illnesses/i, tag: "Heat Illness Risk" },
+    { match: /\bIntensifying\b/i, tag: "Intensifying Conditions" }
+  ]
+};
+
+// src/@building/GetEventTags.ts
+var GetEventTags = (message) => {
+  if (!message) return [];
+  return [...new Set(
+    Object.values(EnumTags).flat().filter(({ match }) => match.test(message)).map(({ tag }) => tag)
+  )];
+};
+
+// src/@building/GetEventProperties.ts
+var GetEventProperties = (options) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X;
+  const organization = (_b = (_a = options.message.match(EnumExpressions.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
+  const polygons = getPolygonFromProduct(options.message);
+  const properties = {
+    locations: (_e = (_d = (_c = options == null ? void 0 : options.ugc) == null ? void 0 : _c.locations) == null ? void 0 : _d.join(`; `)) != null ? _e : null,
+    locations_array: (_g = (_f = options == null ? void 0 : options.ugc) == null ? void 0 : _f.locations) != null ? _g : [],
+    description: GetDescriptionFromProduct({ message: options.message, handle: (_i = (_h = options == null ? void 0 : options.pVtec) == null ? void 0 : _h.vtec) != null ? _i : null }),
+    attributes: options.attributes,
+    geocode: {
+      office: GetEventOffice({ attributes: options.attributes, organization, pVtec: options.pVtec }),
+      organization,
+      ugc: (_k = (_j = options == null ? void 0 : options.ugc) == null ? void 0 : _j.zones) != null ? _k : [],
+      polygon: polygons.length > 0 ? Buffer.from(JSON.stringify([polygons])).toString("base64") : null,
+      polygon_generated: polygons.length > 0 ? true : false
+    },
+    parameters: {
+      tags: GetEventTags(options.message),
+      instructions: (_l = GetTextFromProduct({ message: options.message, find: [`For your protection`, `do not`, `use extreme caution`], append: `...`, removal: [`.`] })) != null ? _l : null,
+      source: (_m = GetTextFromProduct({ message: options.message, find: [`SOURCE...`], removal: [`.`] })) != null ? _m : null,
+      hazards: (_n = GetTextFromProduct({ message: options.message, find: [`HAZARD...`], removal: [`.`] })) != null ? _n : null,
+      impacts: (_o = GetTextFromProduct({ message: options.message, find: [`IMPACT...`], removal: [`.`] })) != null ? _o : null,
+      estimated_hail_size: (_p = GetTextFromProduct({ message: options.message, find: [`MAX HAIL SIZE...`, `HAIL...`], removal: ["in"] })) != null ? _p : null,
+      estimated_wind_gusts: (_q = GetTextFromProduct({ message: options.message, find: [`MAX WIND GUST...`, `WIND...`] })) != null ? _q : null,
+      damage_threat: (_r = GetTextFromProduct({ message: options.message, find: [`DAMAGE THREAT...`], removal: [] })) != null ? _r : null,
+      tornado_threat: (_s = GetTextFromProduct({ message: options.message, find: [`TORNADO...`, `WATERSPOUT...`] })) != null ? _s : null,
+      flood_threat: (_t = GetTextFromProduct({ message: options.message, find: [`FLASH FLOOD...`] })) != null ? _t : null,
+      wind_threat: (_u = GetTextFromProduct({ message: options.message, find: [`WIND THREAT...`] })) != null ? _u : null,
+      hail_threat: (_v = GetTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: [] })) != null ? _v : null
+    },
+    discussion_parameters: {
+      discussion_number: (_y = (_x = (_w = GetTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _w.toString()) == null ? void 0 : _x.padStart(4, "0")) != null ? _y : null,
+      discussion_concerning: (_z = GetTextFromProduct({ message: options.message, find: [`Concerning...`] })) != null ? _z : null,
+      discussion_max_tornado: (_A = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _A : null,
+      discussion_max_hail: (_B = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _B : null,
+      discussion_max_wind: (_C = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _C : null,
+      discussion_watch_issuance: (_D = GetTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _D : null
+    },
+    watch_parameters: {
+      watch_number: ((_E = options == null ? void 0 : options.pVtec) == null ? void 0 : _E.is_watch) ? (_O = (_N = (_I = (_H = (_G = (_F = GetTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _F.replace(/(WT|WS|)/g, "")) == null ? void 0 : _G.trim()) == null ? void 0 : _H.toString()) == null ? void 0 : _I.padStart(4, "0")) != null ? _N : (_M = (_L = (_K = (_J = options == null ? void 0 : options.pVtec) == null ? void 0 : _J.tracking) == null ? void 0 : _K.slice(-4)) == null ? void 0 : _L.toString()) == null ? void 0 : _M.padStart(4, "0")) != null ? _O : null : null,
+      watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : (options == null ? void 0 : options.message.includes(`SEVERE`)) ? `Severe` : null,
+      additional_tornadoes_probability: (_P = GetTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _P : null,
+      strong_tornadoes_probability: (_Q = GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Q : null,
+      severe_wind_probability: (_R = GetTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _R : null,
+      severe_hail_probability: (_S = GetTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _S : null,
+      hail_2in_probability: (_T = GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _T : null,
+      combined_hail_wind_probability: (_U = GetTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _U : null,
+      max_hail_in: (_V = GetTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _V : null,
+      max_wind_surface: (_W = GetTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _W : null,
+      max_tops_x100feet: (_X = GetTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _X : null,
+      pds_watch: GetTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES` ? true : null
+    }
+  };
+  if (isNaN(Number(properties.watch_parameters.watch_number))) {
+    properties.watch_parameters.watch_number = null;
+  }
+  return properties;
+};
+
+// src/@building/GetEventHeader.ts
+var GetEventHeader = (options) => {
+  var _a, _b, _c;
+  const properties = options.properties;
+  const vtec = (_a = options.vtec) != null ? _a : null;
+  const ugc = properties.geocode.ugc != null ? properties.geocode.ugc.join(`-`) : `0`;
+  return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc}-${(_b = vtec == null ? void 0 : vtec.status) != null ? _b : `Issued`}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[-:]/g, "").split(".")[0]}-${(_c = properties.geocode.office.office) != null ? _c : `KWNS`}`;
+};
+
+// src/@building/GetEventTracking.ts
+var GetEventTracking = (options) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+  const properties = options.properties;
+  const attributes = options.attributes;
+  const stanza = options.stanza;
+  const vtec = options.vtec;
+  if (options.type === `RAW`) {
+    const getWatchNumber = (_a = properties.watch_parameters.watch_number) != null ? _a : null;
+    if (getWatchNumber) {
+      return `${properties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`;
+    }
+    return `${properties.geocode.office.office}.${attributes.ttaaii}.${(_b = attributes.id.slice(-4).replace(`.`, ``)) != null ? _b : "0"}`;
+  }
+  if (options.type === `VTEC`) {
+    return vtec.tracking;
+  }
+  if (options.type === `API`) {
+    if (options.vtec) {
+      const vtecValue = Array.isArray(options.vtec) ? options.vtec[0].vtec : (_c = options.vtec) == null ? void 0 : _c.vtec;
+      const splitPVTEC = vtecValue.split(".");
+      return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
+    }
+    const wmoMatch = (_e = (_d = options.organization) == null ? void 0 : _d.wmoidentifier) == null ? void 0 : _e.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
+    const station = (_f = wmoMatch == null ? void 0 : wmoMatch[2]) != null ? _f : "---";
+    if (options.organization.featureId) {
+      const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
+      return `${station}.${(_h = (_g = idMatch == null ? void 0 : idMatch[0]) == null ? void 0 : _g.replace(/\./g, "")) != null ? _h : "---"}`;
+    }
+    const id2 = (_i = wmoMatch == null ? void 0 : wmoMatch[1]) != null ? _i : "---";
+    return `${station}.${(_j = id2 == null ? void 0 : id2.replace(/\./g, "")) != null ? _j : "---"}`;
+  }
+};
+
+// src/@events/ParseText.ts
+var ParseText = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e;
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const props = GetEventProperties({ message, attributes });
+    const header = GetEventHeader({ properties: props, getType: stanza.getType });
+    const issued = new Date(attributes.issue);
+    const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
+    const matches = (_d = EnumMatches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
+    let event = matches == null ? void 0 : matches.label;
+    let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
+    if (!event) {
+      event = stanza.getType.type;
+      if (!stanza.getType.discovered) {
+        event += ` (AWIPSID)`;
+      }
+      isStatement = true;
+    }
+    bootstrap.cache.processed.push({
+      type: `Feature`,
+      geometry: {
+        type: `Point`,
+        coordinates: []
+      },
+      properties: __spreadProps(__spreadValues({
+        event,
+        parent: event,
+        status: isStatement ? `Statement` : `Issued`,
+        issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+        expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+      }, props), {
+        metadata: {
+          ms: performance.now() - tick,
+          source: `events.text`,
+          tracking: GetEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+          header,
+          vtec: null,
+          hvtec: null,
+          raw: message,
+          history: [
+            {
+              description: props.description,
+              issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+              status: `Issued`
+            }
+          ]
+        }
+      })
+    });
+    SetDebug({ title: `ParseText`, message: `${Math.round(performance.now() - tick)}ms` });
+  }
+});
+
+// src/@parsers/@ugc/GetUGCHeader.ts
+var getUGCHeader = (message) => {
+  const start = message.search(EnumExpressions.ugc1);
+  const sub = message.substring(start);
+  const end = sub.search(EnumExpressions.ugc2);
+  const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
+  return fin != null ? fin : null;
+};
+
+// src/@parsers/@ugc/GetZones.ts
+var getZones = (header) => {
+  const splits = header.split("-");
+  const zones = [];
+  let state = splits[0].substring(0, 2);
+  const format = splits[0].substring(2, 3);
+  for (const part of splits) {
+    if (/^[A-Z]/.test(part)) {
+      state = part.substring(0, 2);
+      if (part.includes(">")) {
+        const [start, end] = part.split(">");
+        const startNum = parseInt(start.substring(3), 10);
+        const endNum = parseInt(end, 10);
+        for (let j2 = startNum; j2 <= endNum; j2++) {
+          zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
+        }
+      } else {
+        zones.push(part);
+      }
+      continue;
+    }
+    if (part.includes(">")) {
+      const [start, end] = part.split(">");
+      const startNum = parseInt(start, 10);
+      const endNum = parseInt(end, 10);
+      for (let j2 = startNum; j2 <= endNum; j2++) {
+        zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
+      }
+    } else {
+      zones.push(`${state}${format}${part}`);
+    }
+  }
+  return zones.filter((item) => item !== "");
+};
+
+// src/@parsers/@ugc/GetExpiry.ts
+var GetExpiry = (message) => {
+  const match = message.match(/\b(\d{6})-/);
+  if (!match) {
+    return null;
+  }
+  const date = match == null ? void 0 : match[1];
+  const day = parseInt(date == null ? void 0 : date.slice(0, 2), 10);
+  const hour = parseInt(date == null ? void 0 : date.slice(2, 4), 10);
+  const minute = parseInt(date == null ? void 0 : date.slice(4, 6), 10);
+  const now = /* @__PURE__ */ new Date();
+  const expires = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
+  return expires.toISOString();
+};
+
+// src/@parsers/@ugc/GetCache.ts
+var getCache = (key) => {
+  return bootstrap.cache.ugc.get(key);
+};
+
+// src/@parsers/@ugc/SetCache.ts
+var setCache = (key, value) => {
+  if (bootstrap.cache.ugc.size >= 5e3) {
+    const firstKey = bootstrap.cache.ugc.keys().next().value;
+    bootstrap.cache.ugc.delete(firstKey);
+  }
+  bootstrap.cache.ugc.set(key, value);
+};
+
+// src/@parsers/@ugc/GetLocations.ts
+var getLocations = (zones) => __async(null, null, function* () {
+  const uniqueZones = Array.from(new Set(zones));
+  const results = [];
+  const missing = [];
+  for (let i = 0; i < uniqueZones.length; i++) {
+    const zone = uniqueZones[i];
+    const cached = getCache(zone);
+    if (cached) {
+      for (let j2 = 0; j2 < cached.length; j2++) {
+        results.push(cached[j2]);
+      }
+    } else {
+      missing.push(zone);
+    }
+  }
+  if (missing.length > 0) {
+    const rows = yield bootstrap.database.prepare(
+      `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => "?").join(",")})`
+    ).all(...missing);
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      setCache(r.id, [r.location]);
+      results.push(r.location);
+    }
+  }
+  return results;
+});
+
+// src/@parsers/@ugc/UGCExtract.ts
+var ugcExtract = (message) => __async(null, null, function* () {
+  const head = getUGCHeader(message);
+  const ugcs = getZones(head);
+  const expires = GetExpiry(message);
+  const areas = yield getLocations(ugcs);
+  if (!head || (ugcs == null ? void 0 : ugcs.length) == 0) return;
+  return {
+    zones: ugcs,
+    locations: areas,
+    expires
+  };
+});
+
+// src/@events/ParseUGC.ts
+var ParseUGC = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e;
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const ugc = yield ugcExtract(message);
+    if (ugc != null) {
+      const props = GetEventProperties({ message, attributes, ugc });
+      const issued = new Date(attributes.issue);
+      const expires = new Date(ugc.expires);
+      const header = GetEventHeader({ properties: props, getType: stanza.getType });
+      const matches = (_d = EnumMatches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
+      let event = matches == null ? void 0 : matches.label;
+      let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
+      if (!event) {
+        event = stanza.getType.type;
+        if (!stanza.getType.discovered) {
+          event += ` (AWIPSID)`;
+        }
+        isStatement = true;
+      }
+      bootstrap.cache.processed.push({
+        type: `Feature`,
+        geometry: {
+          type: `Point`,
+          coordinates: []
+        },
+        properties: __spreadProps(__spreadValues({
+          event,
+          parent: event,
+          status: isStatement ? `Statement` : `Issued`,
+          issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+          expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
+        }, props), {
+          metadata: {
+            ms: performance.now() - tick,
+            source: `events.ugc`,
+            tracking: GetEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+            header,
+            vtec: null,
+            hvtec: null,
+            raw: message,
+            history: [
+              {
+                description: props.description,
+                issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+                status: `Issued`
+              }
+            ]
+          }
+        })
+      });
+      SetDebug({ title: `ParseUGC`, message: `${Math.round(performance.now() - tick)}ms` });
+    }
+  }
+});
+
+// src/@enums/Products.ts
+var EnumProducts = {
+  "O": "Operational Product",
+  "T": "Test Product",
+  "E": "Experimental Product",
+  "X": "Experimental Product (Non-Operational)"
+};
+
+// src/@enums/Events.ts
+var EnumEvents = {
+  "AF": "Ashfall",
+  "AS": "Air Stagnation",
+  "BH": "Beach Hazard",
+  "BW": "Brisk Wind",
+  "BZ": "Blizzard",
+  "CF": "Coastal Flood",
+  "DF": "Debris Flow",
+  "DS": "Dust Storm",
+  "EC": "Extreme Cold",
+  "EH": "Excessive Heat",
+  "XH": "Extreme Heat",
+  "EW": "Extreme Wind",
+  "FA": "Areal Flood",
+  "FF": "Flash Flood",
+  "FG": "Dense Fog",
+  "FL": "Flood",
+  "FR": "Frost",
+  "FW": "Fire Weather",
+  "FZ": "Freeze",
+  "GL": "Gale",
+  "HF": "Hurricane Force Wind",
+  "HT": "Heat",
+  "HU": "Hurricane",
+  "HW": "High Wind",
+  "HY": "Hydrologic",
+  "HZ": "Hard Freeze",
+  "IS": "Ice Storm",
+  "LE": "Lake Effect Snow",
+  "LO": "Low Water",
+  "LS": "Lakeshore Flood",
+  "LW": "Lake Wind",
+  "MA": "Special Marine",
+  "EQ": "Earthquake",
+  "MF": "Dense Fog",
+  "MH": "Ashfall",
+  "MS": "Dense Smoke",
+  "RB": "Small Craft for Rough Bar",
+  "RP": "Rip Current Risk",
+  "SC": "Small Craft",
+  "SE": "Hazardous Seas",
+  "SI": "Small Craft for Winds",
+  "SM": "Dense Smoke",
+  "SQ": "Snow Squall",
+  "SR": "Storm",
+  "SS": "Storm Surge",
+  "SU": "High Surf",
+  "SV": "Severe Thunderstorm",
+  "SW": "Small Craft for Hazardous Seas",
+  "TO": "Tornado",
+  "TR": "Tropical Storm",
+  "TS": "Tsunami",
+  "TY": "Typhoon",
+  "SP": "Special Weather",
+  "UP": "Heavy Freezing Spray",
+  "WC": "Wind Chill",
+  "WI": "Wind",
+  "WS": "Winter Storm",
+  "WW": "Winter Weather",
+  "ZF": "Freezing Fog",
+  "ZR": "Freezing Rain",
+  "ZY": "Freezing Spray"
+};
+
+// src/@enums/Actions.ts
+var EnumActions = {
+  "W": "Warning",
+  "F": "Forecast",
+  "A": "Watch",
+  "O": "Outlook",
+  "Y": "Advisory",
+  "N": "Synopsis",
+  "S": "Statement"
+};
+
+// src/@enums/Status.ts
+var EnumStatus = {
+  "NEW": "Issued",
+  "CON": "Updated",
+  "EXT": "Extended",
+  "EXA": "Extended",
+  "EXB": "Extended",
+  "UPG": "Upgraded",
+  "COR": "Correction",
+  "ROU": "Routine",
+  "CAN": "Cancelled",
+  "EXP": "Expired"
+};
+
+// src/@parsers/@pvtec/GetExpiry.ts
+var GetExpiry2 = (dates) => {
+  if ((dates == null ? void 0 : dates[1]) == `000000T0000Z`) return "Invalid Date Format";
+  const expires = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
+  const local = new Date(new Date(expires).getTime() - 4 * 60 * 6e4);
+  const pad = (n) => n.toString().padStart(2, "0");
+  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}:00.000-04:00`;
+};
+
+// src/@parsers/@pvtec/VTECExtract.ts
+var VTECExtract = (message) => {
+  var _a, _b, _c, _d;
+  if (!message) return null;
+  const getVTECs = (_a = message.match(EnumExpressions.pvtec)) != null ? _a : [];
+  const vtecs = [];
+  for (const vtec of getVTECs) {
+    const sub = vtec.split(`.`);
+    if ((sub == null ? void 0 : sub.length) < 7) continue;
+    const dates = (_b = sub[6]) == null ? void 0 : _b.split(`-`);
+    vtecs.push({
+      vtec,
+      product: EnumProducts[sub[0]],
+      tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
+      event: `${EnumEvents[sub[3]]} ${EnumActions[sub[4]]}`,
+      status: EnumStatus[sub[1]],
+      organization: (_d = (_c = message.match(EnumExpressions.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
+      expires: GetExpiry2(dates),
+      is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
+      prediction_center: sub[2] == `KWNS` ? true : false
+    });
+  }
+  return vtecs.length > 0 ? vtecs : null;
+};
+
+// src/@enums/Causes.ts
+var EnumCauses = {
+  "SM": "Snow Melt",
+  "RS": "Rain/Snow Melt",
+  "ER": "Excessive Rain",
+  "DM": "Dam/Levee Failure",
+  "IJ": "Ice Jam",
+  "GO": "Glacier Lake Outburst",
+  "IC": "Ice",
+  "FS": "Flash Flood / Storm Surge",
+  "FT": "Tidal Effects",
+  "ET": "Elevated Upstream Flow",
+  "MC": "Other Multiple Causes",
+  "WT": "Wind and/or Tidal Effects",
+  "DR": "Reservoir Release",
+  "UU": "Unknown",
+  "OT": "Other Effects"
+};
+
+// src/@enums/Records.ts
+var EnumRecords = {
+  "NO": "No Record Expected",
+  "NR": "Near Record or possible record",
+  "UU": "Unknown history of records",
+  "OO": "Other"
+};
+
+// src/@enums/Severity.ts
+var EnumSeverity = {
+  N: "Not Expected",
+  0: "Areal Flood or FF Product",
+  1: "Minor",
+  2: "Moderate",
+  3: "Major",
+  U: "Unknown"
+};
+
+// src/@parsers/@hvtec/HVExtract.ts
+var HVExtract = (message) => {
+  var _a;
+  const getHVTECs = (_a = message.match(EnumExpressions.hvtec)) != null ? _a : [];
+  const vtecs = [];
+  for (const vtec of getHVTECs) {
+    const sub = vtec.split(`.`);
+    if (sub.length < 7) continue;
+    vtecs.push({
+      hvtec: vtec,
+      severity: EnumSeverity[sub[1]],
+      cause: EnumCauses[sub[2]],
+      record: EnumRecords[sub[6]]
+    });
+  }
+  return vtecs.length > 0 ? vtecs : null;
+};
+
+// src/@events/ParseVTEC.ts
+var ParseVTEC = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e;
+  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
+  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
+  for (const message of getMessages) {
+    const tick = performance.now();
+    const attributes = stanza == null ? void 0 : stanza.attributes;
+    const pVtec = VTECExtract(message);
+    const hVtec = HVExtract(message);
+    const ugc = yield ugcExtract(message);
+    if (pVtec != null && ugc != null) {
+      for (const pv of pVtec) {
+        const vtec = pv;
+        const props = GetEventProperties({ message, attributes, ugc, pVtec: vtec });
+        const header = GetEventHeader({ properties: props, getType: stanza.getType, vtec });
+        const issued = (_d = new Date(attributes.issue)) != null ? _d : /* @__PURE__ */ new Date();
+        const expires = new Date(vtec.expires);
+        bootstrap.cache.processed.push({
+          type: `Feature`,
+          geometry: {
+            type: `Point`,
+            coordinates: []
+          },
+          properties: __spreadProps(__spreadValues({
+            event: pv.event,
+            parent: pv.event,
+            status: pv.status,
+            issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+            expires: !isNaN(expires.getTime()) ? expires.toISOString() : (_e = ugc.expires) != null ? _e : new Date(issued.getTime() + 60 * 60 * 1e3).toISOString()
+          }, props), {
+            metadata: {
+              ms: performance.now() - tick,
+              source: `events.vtec`,
+              tracking: GetEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec }),
+              header,
+              vtec: pv,
+              hvtec: hVtec,
+              raw: message,
+              history: [
+                {
+                  description: props.description,
+                  issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+                  status: pv.status
+                }
+              ]
+            }
+          })
+        });
+        SetDebug({ title: `ParseVTEC`, message: `${Math.round(performance.now() - tick)}ms` });
+      }
+    }
+  }
+});
+
+// src/@events/ParseAPI.ts
+var ParseAPI = (stanza) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb, _hb, _ib, _jb, _kb, _lb, _mb, _nb, _ob, _pb, _qb, _rb, _sb, _tb, _ub;
+  const messages = Object.values(JSON.parse(stanza.message).features);
+  for (const feature of messages) {
+    const tick = performance.now();
+    const pVtec = (_d = VTECExtract((_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0])) != null ? _d : null;
+    bootstrap.cache.processed.push({
+      type: `Feature`,
+      geometry: {
+        type: `Point`,
+        coordinates: []
+      },
+      properties: {
+        event: (_f = (_e = feature == null ? void 0 : feature.properties) == null ? void 0 : _e.event) != null ? _f : null,
+        parent: (_h = (_g = feature == null ? void 0 : feature.properties) == null ? void 0 : _g.event) != null ? _h : null,
+        status: (_j = (_i = feature == null ? void 0 : feature.properties) == null ? void 0 : _i.messageType) != null ? _j : null,
+        issued: ((_k = feature == null ? void 0 : feature.properties) == null ? void 0 : _k.sent) ? new Date((_l = feature == null ? void 0 : feature.properties) == null ? void 0 : _l.sent).toISOString() : null,
+        expires: ((_m = feature == null ? void 0 : feature.properties) == null ? void 0 : _m.expires) ? new Date((_n = feature == null ? void 0 : feature.properties) == null ? void 0 : _n.expires).toISOString() : null,
+        locations: (_p = (_o = feature == null ? void 0 : feature.properties) == null ? void 0 : _o.areaDesc) != null ? _p : null,
+        locations_array: ((_q = feature == null ? void 0 : feature.properties) == null ? void 0 : _q.areaDesc) ? (_r = feature == null ? void 0 : feature.properties) == null ? void 0 : _r.areaDesc.split(";") : [],
+        description: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.description) != null ? _t : null,
+        attributes: (_v = (_u = feature == null ? void 0 : feature.properties) == null ? void 0 : _u.attributes) != null ? _v : {},
+        geocode: {
+          office: {
+            office: pVtec ? (_w = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _w.tracking.split(`.`)[0] : null,
+            name: (_y = EnumICAO[pVtec ? (_x = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _x.tracking.split(`.`)[0] : null]) != null ? _y : null
+          },
+          organization: (_B = (_A = (_z = feature == null ? void 0 : feature.properties) == null ? void 0 : _z.parameters) == null ? void 0 : _A.WMOidentifier) == null ? void 0 : _B[0],
+          ugc: (_E = (_D = (_C = feature == null ? void 0 : feature.properties) == null ? void 0 : _C.geocode) == null ? void 0 : _D.UGC) != null ? _E : [],
+          polygon: ((_F = feature == null ? void 0 : feature.geometry) == null ? void 0 : _F.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_G = feature == null ? void 0 : feature.geometry) == null ? void 0 : _G.coordinates[0]])).toString("base64") : null,
+          polygon_generated: ((_H = feature == null ? void 0 : feature.geometry) == null ? void 0 : _H.coordinates.length) > 0 ? true : false
+        },
+        parameters: {
+          tags: GetEventTags((_I = feature == null ? void 0 : feature.properties) == null ? void 0 : _I.description),
+          instructions: (_K = (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.instruction) != null ? _K : null,
+          source: (_M = GetTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _M : null,
+          hazards: (_O = GetTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _O : null,
+          impacts: (_Q = GetTextFromProduct({ message: (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _Q : null,
+          estimated_hail_size: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxHailSize) == null ? void 0 : _T[0]) != null ? _U : null,
+          estimated_wind_gusts: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.maxWindGust) == null ? void 0 : _X[0]) != null ? _Y : null,
+          damage_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.thunderstormDamageThreat) == null ? void 0 : _$[0]) != null ? _aa : null,
+          tornado_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.tornadoDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
+          flood_threat: (_ia = (_ha = (_ga = (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.parameters) == null ? void 0 : _ga.floodDetection) == null ? void 0 : _ha[0]) != null ? _ia : null,
+          wind_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.windThreat) == null ? void 0 : _la[0]) != null ? _ma : null,
+          hail_threat: (_qa = (_pa = (_oa = (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.parameters) == null ? void 0 : _oa.hailThreat) == null ? void 0 : _pa[0]) != null ? _qa : null
+        },
+        discussion_parameters: {
+          discussion_number: (_ua = (_ta = (_sa = GetTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _sa.toString()) == null ? void 0 : _ta.padStart(4, "0")) != null ? _ua : null,
+          discussion_concerning: (_wa = GetTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`Concerning...`] })) != null ? _wa : null,
+          discussion_max_tornado: (_ya = GetTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _ya : null,
+          discussion_max_hail: (_Aa = GetTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _Aa : null,
+          discussion_max_wind: (_Ca = GetTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _Ca : null,
+          discussion_watch_issuance: (_Ea = GetTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _Ea : null
+        },
+        watch_parameters: {
+          watch_number: ((_Fa = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _Fa.is_watch) && ((_Qa = (_Pa = (_Ka = (_Ja = (_Ia = (_Ha = GetTextFromProduct({ message: (_Ga = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ga.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Ha.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ia.trim()) == null ? void 0 : _Ja.toString()) == null ? void 0 : _Ka.padStart(4, "0")) != null ? _Pa : (_Oa = (_Na = (_Ma = (_La = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _La.tracking) == null ? void 0 : _Ma.slice(-4)) == null ? void 0 : _Na.toString()) == null ? void 0 : _Oa.padStart(4, "0")) != null ? _Qa : null),
+          watch_type: ((_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Sa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Sa.description.includes(`SEVERE`)) ? `Severe` : null,
+          additional_tornadoes_probability: (_Ua = GetTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
+          strong_tornadoes_probability: (_Wa = GetTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
+          severe_wind_probability: (_Ya = GetTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ya : null,
+          severe_hail_probability: (__a = GetTextFromProduct({ message: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? __a : null,
+          hail_2in_probability: (_ab = GetTextFromProduct({ message: (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _ab : null,
+          combined_hail_wind_probability: (_cb = GetTextFromProduct({ message: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _cb : null,
+          max_hail_in: (_eb = GetTextFromProduct({ message: (_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _eb : null,
+          max_wind_surface: (_gb = GetTextFromProduct({ message: (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _gb : null,
+          max_tops_x100feet: (_ib = GetTextFromProduct({ message: (_hb = feature == null ? void 0 : feature.properties) == null ? void 0 : _hb.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _ib : null,
+          pds_watch: GetTextFromProduct({ message: (_jb = feature == null ? void 0 : feature.properties) == null ? void 0 : _jb.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
+        },
+        metadata: {
+          ms: performance.now() - tick,
+          source: `events.api`,
+          tracking: GetEventTracking({ type: `API`, organization: { wmoidentifier: (_mb = (_lb = (_kb = feature == null ? void 0 : feature.properties) == null ? void 0 : _kb.parameters) == null ? void 0 : _lb.WMOidentifier) == null ? void 0 : _mb[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec == null ? void 0 : pVtec[0] }),
+          header: `ZCZC-ATMOSX-${(_ob = (_nb = feature == null ? void 0 : feature.properties) == null ? void 0 : _nb.parameters) == null ? void 0 : _ob.WMOidentifier}`,
+          vtec: pVtec == null ? void 0 : pVtec[0],
+          hvtec: null,
+          raw: (_pb = feature == null ? void 0 : feature.properties) == null ? void 0 : _pb.description,
+          history: [
+            {
+              description: (_qb = feature == null ? void 0 : feature.properties) == null ? void 0 : _qb.description,
+              issued: ((_rb = feature == null ? void 0 : feature.properties) == null ? void 0 : _rb.sent) ? new Date((_sb = feature == null ? void 0 : feature.properties) == null ? void 0 : _sb.sent).toISOString() : null,
+              status: (_ub = (_tb = feature == null ? void 0 : feature.properties) == null ? void 0 : _tb.messageType) != null ? _ub : null
+            }
+          ]
+        }
+      }
+    });
+    SetDebug({ title: `ParseAPI`, message: `${Math.round(performance.now() - tick)}ms` });
+  }
+});
+
+// src/@enums/Enhanced.ts
+var EnumEnhanced = {
+  "Tornado Warning": {
+    "Tornado Emergency": { description: "tornado emergency" },
+    "PDS Tornado Warning": { description: "particularly dangerous situation", damage: `CONSIDERABLE` },
+    "Radar Confirmed Tornado Warning": { description: "source...radar confirmed tornado.", tornado: `OBSERVED` },
+    "Confirmed Tornado Warning": { tornado: `OBSERVED` },
+    "Radar Indicated Tornado Warning": {}
+  },
+  "Fire Weather Warning": {
+    "PDS Fire Weather Warning": { description: "particularly dangerous situation" }
+  },
+  "Blizzard Warning": {
+    "PDS Blizzard Warning": { description: "particularly dangerous situation" }
+  },
+  "Ice Storm Warning": {
+    "PDS Ice Storm Warning": { description: "particularly dangerous situation" }
+  },
+  "Special Marine Warning": {
+    "Special Marine Warning (TPROB)": { tornado: `POSSIBLE` }
+  },
+  "Tornado Watch": {
+    "PDS Tornado Watch": { pdswatch: true }
+  },
+  "Severe Thunderstorm Watch": {
+    "PDS Severe Thunderstorm Watch": { pdswatch: true }
+  },
+  "Flash Flood Warning": {
+    "Flash Flood Emergency": { description: "flash flood emergency" },
+    "Considerable Flash Flood Warning": { damage: `CONSIDERABLE` }
+  },
+  "Severe Thunderstorm Warning": {
+    "EDS Severe Thunderstorm Warning (TPROB)": { description: "extremely dangerous situation", tornado: "POSSIBLE" },
+    "EDS Severe Thunderstorm Warning": { description: "extremely dangerous situation" },
+    "Destructive Severe Thunderstorm Warning (TPROB)": { damage: `DESTRUCTIVE`, tornado: `POSSIBLE` },
+    "Destructive Severe Thunderstorm Warning": { damage: `DESTRUCTIVE` },
+    "Considerable Severe Thunderstorm Warning (TPROB)": { damage: `CONSIDERABLE`, tornado: `POSSIBLE` },
+    "Considerable Severe Thunderstorm Warning": { damage: `CONSIDERABLE` },
+    "Severe Thunderstorm Warning (TPROB)": { tornado: `POSSIBLE` }
+  },
+  "Special Weather Statement": {
+    "Convective Special Weather Statement": { description: "strong thunderstorm" }
+  }
+};
+
+// src/@building/GetEventEnhancedName.ts
+var GetEventEnhancedName = (event) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+  let name = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.event;
+  const damage = (_c = (_b = event == null ? void 0 : event.properties) == null ? void 0 : _b.parameters) == null ? void 0 : _c.damage_threat;
+  const tornado = (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.parameters) == null ? void 0 : _e.tornado_threat;
+  const pdswatch = (_g = (_f = event == null ? void 0 : event.properties) == null ? void 0 : _f.watch_parameters) == null ? void 0 : _g.pds_watch;
+  const description = (_i = (_h = event == null ? void 0 : event.properties) == null ? void 0 : _h.description) == null ? void 0 : _i.toLowerCase();
+  for (const [eventKey, eventConfig] of Object.entries(EnumEnhanced)) {
+    if (eventKey !== name) continue;
+    for (const [paramKey, paramValue] of Object.entries(eventConfig)) {
+      let matches = true;
+      if (paramValue == null ? void 0 : paramValue.description) {
+        if (!description.includes(paramValue.description.toLowerCase())) matches = false;
+      }
+      if (paramValue == null ? void 0 : paramValue.damage) {
+        if (paramValue.damage !== damage) matches = false;
+      }
+      if (paramValue == null ? void 0 : paramValue.tornado) {
+        if (paramValue.tornado !== tornado) matches = false;
+      }
+      if (paramValue == null ? void 0 : paramValue.pdswatch) {
+        if (paramValue.pdswatch !== pdswatch) matches = false;
+      }
+      if (matches) {
+        name = paramKey;
+        break;
+      }
+    }
+  }
+  return name;
+};
+
+// src/@enums/Correlations.ts
+var EnumCorrelations = [
+  { type: "Statement", name: "Statement", isCancel: false, isUpdate: false, isIssued: true, isStatement: true },
+  { type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
+  { type: "Alert", name: "Issued", isCancel: false, isUpdate: false, isIssued: true, isStatement: false },
+  { type: "Updated", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Expired", name: "Expired", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
+  { type: "Issued", name: "Issued", isCancel: false, isUpdate: false, isIssued: true, isStatement: false },
+  { type: "Extended", name: "Extended", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Correction", name: "Correction", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Upgraded", name: "Upgraded", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
+  { type: "Cancelled", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
+  { type: "Routine", name: "Routine", isCancel: false, isUpdate: true, isIssued: false, isStatement: false }
+];
+
+// src/@enums/Cancellation.ts
+var EnumCancellation = [
+  "has been cancelled",
+  "subsided sufficiently for the advisory to be cancelled",
+  "has been cancelled",
+  "no tsunami threat from a nearby earthquake",
+  "will be allowed to expire",
+  "has diminished",
+  "and no longer",
+  "has been replaced",
+  "The threat has ended",
+  "has weakened below severe"
+];
+
+// src/@enums/Testing.ts
+var EnumTesting = [
+  `This is a test message`,
+  `Monitoring message only.`,
+  `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
+  "TEST MESSAGE"
+];
+
+// src/@enums/Hail.ts
+var EnumHail = {
+  "0.25": "Pea",
+  ".25": "Pea",
+  "0.50": "Penny",
+  ".50": "Penny",
+  ".75": "Penny",
+  "Up to .75": "Penny",
+  "0.75": "Penny",
+  ".88": "Nickel",
+  "0.88": "Nickel",
+  "1.00": "Quarter",
+  "1.25": "Half Dollar",
+  "1.50": "Ping Pong Ball",
+  "1.75": "Golf Ball",
+  "2.00": "Hen Egg",
+  "2.50": "Tennis Ball",
+  "2.75": "Baseball",
+  "4.00": "CD/DVD"
+};
+
+// src/@building/GetEventSignature.ts
+var GetEventSignature = (event) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h;
+  const properties = event == null ? void 0 : event.properties;
+  const vtec = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.vtec;
+  const status = EnumCorrelations.find((c) => c.type === (properties == null ? void 0 : properties.status));
+  const csig = EnumCancellation.find((sig) => properties.description.toLowerCase().includes(sig.toLowerCase()));
+  properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_issued: true, is_test: false });
+  if ((_c = properties == null ? void 0 : properties.parameters) == null ? void 0 : _c.estimated_hail_size) {
+    properties.parameters.estimated_hail_size += ` (${(_e = EnumHail[(_d = properties == null ? void 0 : properties.parameters) == null ? void 0 : _d.estimated_hail_size]) != null ? _e : "--"})`;
+  }
+  if (status) {
+    properties.status = (_f = status.name) != null ? _f : properties.status;
+    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel, is_statement: !!status.isStatement });
+  }
+  if (csig) {
+    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_expired: true });
+  }
+  const getProduct = (_h = (_g = vtec == null ? void 0 : vtec.vtec) == null ? void 0 : _g.split(`.`)[0]) == null ? void 0 : _h.replace(`/`, ``);
+  const isTestProduct = EnumProducts[getProduct] == `Test Product`;
+  if (isTestProduct || EnumTesting.some((sig) => {
+    var _a2, _b2, _c2, _d2;
+    return (_d2 = (_a2 = properties.description) == null ? void 0 : _a2.toLowerCase().includes(sig.toLowerCase())) != null ? _d2 : (_c2 = (_b2 = properties == null ? void 0 : properties.parameters) == null ? void 0 : _b2.instructions) == null ? void 0 : _c2.toLowerCase().includes(sig.toLowerCase());
+  })) {
+    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_test: true });
+  }
+  if (new Date(properties.expires).getTime() < Date.now()) {
+    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_expired: true });
+  }
+  properties.status_metadata = __spreadValues({}, properties.status_metadata);
+  return event;
+};
+
+// src/@enums/GlobalFilter.ts
+var EnumGlobalFilter = [
+  "storm prediction center day 1 outlook",
+  "storm prediction center day 2 outlook",
+  "storm prediction center day 3 outlook"
+];
+
+// src/@manager/SetHash.ts
+var SetHash = (event, entry) => {
+  if (!entry) {
+    bootstrap.cache.hashes.push({
+      tracking: event.properties.metadata.tracking,
+      hashes: [event.properties.metadata.hash],
+      expires: event.properties.expires
+    });
+    return;
+  }
+  entry.hashes.push(event.properties.metadata.hash);
+  entry.expires = event.properties.expires;
+};
+
+// src/@parsers/@text/GetEmbededText.ts
+var GetEmebedText = (event) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na;
+  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
+  const isStatement = event.properties.status_metadata.is_statement;
+  const isExpired = event.properties.status_metadata.is_expired;
+  return [
+    line(`**Locations:**`, (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.locations) == null ? void 0 : _b.slice(0, 100)),
+    line(`**Issued:**`, `<t:${Math.floor(new Date(event.properties.issued).getTime() / 1e3)}:R>`, !isExpired),
+    line(`**Expires:**`, `<t:${Math.floor(new Date(event.properties.expires).getTime() / 1e3)}:R>`, !isStatement),
+    line(`**Damage Threat:**`, (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.parameters) == null ? void 0 : _d.damage_threat, !isExpired),
+    line(`**Flood Threat:**`, (_f = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters) == null ? void 0 : _f.flood_threat, !isExpired),
+    line(`**Tornado Threat:**`, (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.parameters) == null ? void 0 : _h.tornado_threat, !isExpired),
+    line(`**Estimated Wind Gusts:**`, `${(_j = (_i = event == null ? void 0 : event.properties) == null ? void 0 : _i.parameters) == null ? void 0 : _j.estimated_wind_gusts} ${((_l = (_k = event == null ? void 0 : event.properties) == null ? void 0 : _k.parameters) == null ? void 0 : _l.wind_threat) ? ` (${(_n = (_m = event == null ? void 0 : event.properties) == null ? void 0 : _m.parameters) == null ? void 0 : _n.wind_threat})` : ""}`, !isExpired && ((_p = (_o = event == null ? void 0 : event.properties) == null ? void 0 : _o.parameters) == null ? void 0 : _p.estimated_wind_gusts) != null),
+    line(`**Estimated Hail Size:**`, `${(_r = (_q = event == null ? void 0 : event.properties) == null ? void 0 : _q.parameters) == null ? void 0 : _r.estimated_hail_size} ${((_t = (_s = event == null ? void 0 : event.properties) == null ? void 0 : _s.parameters) == null ? void 0 : _t.hail_threat) ? ` (${(_v = (_u = event == null ? void 0 : event.properties) == null ? void 0 : _u.parameters) == null ? void 0 : _v.hail_threat})` : ""}`, !isExpired && ((_x = (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.parameters) == null ? void 0 : _x.estimated_hail_size) != null),
+    line(`**Discussion:**`, (_z = (_y = event == null ? void 0 : event.properties) == null ? void 0 : _y.discussion_parameters) == null ? void 0 : _z.discussion_number, !isExpired),
+    line(`**Concern:**`, (_B = (_A = event == null ? void 0 : event.properties) == null ? void 0 : _A.discussion_parameters) == null ? void 0 : _B.discussion_concerning, !isExpired),
+    line(`**SPC Max Tornado Threat:**`, (_D = (_C = event == null ? void 0 : event.properties) == null ? void 0 : _C.discussion_parameters) == null ? void 0 : _D.discussion_max_tornado, !isExpired),
+    line(`**SPC Max Hail Threat:**`, (_F = (_E = event == null ? void 0 : event.properties) == null ? void 0 : _E.discussion_parameters) == null ? void 0 : _F.discussion_max_hail, !isExpired),
+    line(`**SPC Max Wind Threat:**`, (_H = (_G = event == null ? void 0 : event.properties) == null ? void 0 : _G.discussion_parameters) == null ? void 0 : _H.discussion_max_wind, !isExpired),
+    line(`**SPC Watch Issuance Probability:**`, ((_J = (_I = event == null ? void 0 : event.properties) == null ? void 0 : _I.discussion_parameters) == null ? void 0 : _J.discussion_watch_issuance) ? `${(_L = (_K = event == null ? void 0 : event.properties) == null ? void 0 : _K.discussion_parameters) == null ? void 0 : _L.discussion_watch_issuance}%` : null, !isExpired),
+    line(`**Watch Number:**`, (_N = (_M = event == null ? void 0 : event.properties) == null ? void 0 : _M.watch_parameters) == null ? void 0 : _N.watch_number, !isExpired),
+    line(`**Strong Tornadoes Probability:**`, ((_P = (_O = event == null ? void 0 : event.properties) == null ? void 0 : _O.watch_parameters) == null ? void 0 : _P.strong_tornadoes_probability) ? `${(_R = (_Q = event == null ? void 0 : event.properties) == null ? void 0 : _Q.watch_parameters) == null ? void 0 : _R.strong_tornadoes_probability}%` : null, !isExpired),
+    line(`**Additional Tornadoes Probability:**`, ((_T = (_S = event == null ? void 0 : event.properties) == null ? void 0 : _S.watch_parameters) == null ? void 0 : _T.additional_tornadoes_probability) ? `${(_V = (_U = event == null ? void 0 : event.properties) == null ? void 0 : _U.watch_parameters) == null ? void 0 : _V.additional_tornadoes_probability}%` : null, !isExpired),
+    line(`**Combined Hail/Wind Probability:**`, ((_X = (_W = event == null ? void 0 : event.properties) == null ? void 0 : _W.watch_parameters) == null ? void 0 : _X.combined_hail_wind_probability) ? `${(_Z = (_Y = event == null ? void 0 : event.properties) == null ? void 0 : _Y.watch_parameters) == null ? void 0 : _Z.combined_hail_wind_probability}%` : null, !isExpired),
+    line(`**Severe Hail Probability:**`, ((_$ = (__ = event == null ? void 0 : event.properties) == null ? void 0 : __.watch_parameters) == null ? void 0 : _$.severe_hail_probability) ? `${(_ba = (_aa = event == null ? void 0 : event.properties) == null ? void 0 : _aa.watch_parameters) == null ? void 0 : _ba.severe_hail_probability}%` : null, !isExpired),
+    line(`**Hail >2in Probability:**`, ((_da = (_ca = event == null ? void 0 : event.properties) == null ? void 0 : _ca.watch_parameters) == null ? void 0 : _da.hail_2in_probability) ? `${(_fa = (_ea = event == null ? void 0 : event.properties) == null ? void 0 : _ea.watch_parameters) == null ? void 0 : _fa.hail_2in_probability}%` : null, !isExpired),
+    line(`**Max Hail Inches:**`, (_ha = (_ga = event == null ? void 0 : event.properties) == null ? void 0 : _ga.watch_parameters) == null ? void 0 : _ha.max_hail_in, !isExpired),
+    line(`**Severe Wind Probability:**`, ((_ja = (_ia = event == null ? void 0 : event.properties) == null ? void 0 : _ia.watch_parameters) == null ? void 0 : _ja.severe_wind_probability) ? `${(_la = (_ka = event == null ? void 0 : event.properties) == null ? void 0 : _ka.watch_parameters) == null ? void 0 : _la.severe_wind_probability}%` : null, !isExpired),
+    line(`**Max Surface Wind:**`, (_na = (_ma = event == null ? void 0 : event.properties) == null ? void 0 : _ma.watch_parameters) == null ? void 0 : _na.max_wind_surface, !isExpired),
+    line(`**Max Tops (x100 feet):**`, (_pa = (_oa = event == null ? void 0 : event.properties) == null ? void 0 : _oa.watch_parameters) == null ? void 0 : _pa.max_tops_x100feet, !isExpired),
+    line(`**Tags:**`, ((_sa = (_ra = (_qa = event == null ? void 0 : event.properties) == null ? void 0 : _qa.parameters) == null ? void 0 : _ra.tags) == null ? void 0 : _sa.length) > 0 ? (_ua = (_ta = event == null ? void 0 : event.properties) == null ? void 0 : _ta.parameters) == null ? void 0 : _ua.tags.join(", ") : null, !isExpired),
+    line(`**Sender:**`, ((_xa = (_wa = (_va = event == null ? void 0 : event.properties) == null ? void 0 : _va.geocode) == null ? void 0 : _wa.office) == null ? void 0 : _xa.name) ? `${(_Aa = (_za = (_ya = event == null ? void 0 : event.properties) == null ? void 0 : _ya.geocode) == null ? void 0 : _za.office) == null ? void 0 : _Aa.name} (${(_Da = (_Ca = (_Ba = event == null ? void 0 : event.properties) == null ? void 0 : _Ba.geocode) == null ? void 0 : _Ca.office) == null ? void 0 : _Da.office})` : (_Ga = (_Fa = (_Ea = event == null ? void 0 : event.properties) == null ? void 0 : _Ea.geocode) == null ? void 0 : _Fa.office) == null ? void 0 : _Ga.office),
+    line(`**Tracking:**`, (_Ia = (_Ha = event == null ? void 0 : event.properties) == null ? void 0 : _Ha.metadata) == null ? void 0 : _Ia.tracking),
+    line(`**Logs:**`, ((_La = (_Ka = (_Ja = event == null ? void 0 : event.properties) == null ? void 0 : _Ja.metadata) == null ? void 0 : _Ka.history) == null ? void 0 : _La.length) > 0 ? (_Na = (_Ma = event == null ? void 0 : event.properties) == null ? void 0 : _Ma.metadata) == null ? void 0 : _Na.history.length : null)
+  ].filter(Boolean).join("\n");
+};
+
+// src/@parsers/@text/GetStringText.ts
+var GetStringText = (event) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea;
+  const settings = bootstrap.settings;
+  const timezone = (_a = settings.NotifyServer.Timezone) != null ? _a : `UTC`;
+  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
+  const isStatement = event.properties.status_metadata.is_statement;
+  const isExpired = event.properties.status_metadata.is_expired;
+  return [
+    line(`Locations:`, (_c = (_b = event == null ? void 0 : event.properties) == null ? void 0 : _b.locations) == null ? void 0 : _c.slice(0, 100)),
+    line(`Issued:`, `${new Date(event.properties.issued).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isExpired),
+    line(`Expires:`, `${new Date(event.properties.expires).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isStatement),
+    line(`Damage Threat:`, (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.parameters) == null ? void 0 : _e.damage_threat, !isExpired),
+    line(`Flood Threat:`, (_g = (_f = event == null ? void 0 : event.properties) == null ? void 0 : _f.parameters) == null ? void 0 : _g.flood_threat, !isExpired),
+    line(`Tornado Threat:`, (_i = (_h = event == null ? void 0 : event.properties) == null ? void 0 : _h.parameters) == null ? void 0 : _i.tornado_threat, !isExpired),
+    line(`Estimated Wind Gusts:`, `${(_k = (_j = event == null ? void 0 : event.properties) == null ? void 0 : _j.parameters) == null ? void 0 : _k.estimated_wind_gusts} ${((_m = (_l = event == null ? void 0 : event.properties) == null ? void 0 : _l.parameters) == null ? void 0 : _m.wind_threat) ? ` (${(_o = (_n = event == null ? void 0 : event.properties) == null ? void 0 : _n.parameters) == null ? void 0 : _o.wind_threat})` : ""}`, !isExpired && ((_q = (_p = event == null ? void 0 : event.properties) == null ? void 0 : _p.parameters) == null ? void 0 : _q.estimated_wind_gusts) != null),
+    line(`Estimated Hail Size:`, `${(_s = (_r = event == null ? void 0 : event.properties) == null ? void 0 : _r.parameters) == null ? void 0 : _s.estimated_hail_size} ${((_u = (_t = event == null ? void 0 : event.properties) == null ? void 0 : _t.parameters) == null ? void 0 : _u.hail_threat) ? ` (${(_w = (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.parameters) == null ? void 0 : _w.hail_threat})` : ""}`, !isExpired && ((_y = (_x = event == null ? void 0 : event.properties) == null ? void 0 : _x.parameters) == null ? void 0 : _y.estimated_hail_size) != null),
+    line(`Discussion:`, (_A = (_z = event == null ? void 0 : event.properties) == null ? void 0 : _z.discussion_parameters) == null ? void 0 : _A.discussion_number, !isExpired),
+    line(`Concern:`, (_C = (_B = event == null ? void 0 : event.properties) == null ? void 0 : _B.discussion_parameters) == null ? void 0 : _C.discussion_concerning, !isExpired),
+    line(`SPC Max Tornado Threat:`, (_E = (_D = event == null ? void 0 : event.properties) == null ? void 0 : _D.discussion_parameters) == null ? void 0 : _E.discussion_max_tornado, !isExpired),
+    line(`SPC Max Hail Threat:`, (_G = (_F = event == null ? void 0 : event.properties) == null ? void 0 : _F.discussion_parameters) == null ? void 0 : _G.discussion_max_hail, !isExpired),
+    line(`SPC Max Wind Threat:`, (_I = (_H = event == null ? void 0 : event.properties) == null ? void 0 : _H.discussion_parameters) == null ? void 0 : _I.discussion_max_wind, !isExpired),
+    line(`SPC Watch Issuance Probability:`, ((_K = (_J = event == null ? void 0 : event.properties) == null ? void 0 : _J.discussion_parameters) == null ? void 0 : _K.discussion_watch_issuance) ? `${(_M = (_L = event == null ? void 0 : event.properties) == null ? void 0 : _L.discussion_parameters) == null ? void 0 : _M.discussion_watch_issuance}%` : null, !isExpired),
+    line(`Watch Number:`, (_O = (_N = event == null ? void 0 : event.properties) == null ? void 0 : _N.watch_parameters) == null ? void 0 : _O.watch_number, !isExpired),
+    line(`Strong Tornadoes Probability:`, ((_Q = (_P = event == null ? void 0 : event.properties) == null ? void 0 : _P.watch_parameters) == null ? void 0 : _Q.strong_tornadoes_probability) ? `${(_S = (_R = event == null ? void 0 : event.properties) == null ? void 0 : _R.watch_parameters) == null ? void 0 : _S.strong_tornadoes_probability}%` : null, !isExpired),
+    line(`Additional Tornadoes Probability:`, ((_U = (_T = event == null ? void 0 : event.properties) == null ? void 0 : _T.watch_parameters) == null ? void 0 : _U.additional_tornadoes_probability) ? `${(_W = (_V = event == null ? void 0 : event.properties) == null ? void 0 : _V.watch_parameters) == null ? void 0 : _W.additional_tornadoes_probability}%` : null, !isExpired),
+    line(`Combined Hail/Wind Probability:`, ((_Y = (_X = event == null ? void 0 : event.properties) == null ? void 0 : _X.watch_parameters) == null ? void 0 : _Y.combined_hail_wind_probability) ? `${(__ = (_Z = event == null ? void 0 : event.properties) == null ? void 0 : _Z.watch_parameters) == null ? void 0 : __.combined_hail_wind_probability}%` : null, !isExpired),
+    line(`Severe Hail Probability:`, ((_aa = (_$ = event == null ? void 0 : event.properties) == null ? void 0 : _$.watch_parameters) == null ? void 0 : _aa.severe_hail_probability) ? `${(_ca = (_ba = event == null ? void 0 : event.properties) == null ? void 0 : _ba.watch_parameters) == null ? void 0 : _ca.severe_hail_probability}%` : null, !isExpired),
+    line(`Hail >2in Probability:`, ((_ea = (_da = event == null ? void 0 : event.properties) == null ? void 0 : _da.watch_parameters) == null ? void 0 : _ea.hail_2in_probability) ? `${(_ga = (_fa = event == null ? void 0 : event.properties) == null ? void 0 : _fa.watch_parameters) == null ? void 0 : _ga.hail_2in_probability}%` : null, !isExpired),
+    line(`Max Hail Inches:`, (_ia = (_ha = event == null ? void 0 : event.properties) == null ? void 0 : _ha.watch_parameters) == null ? void 0 : _ia.max_hail_in, !isExpired),
+    line(`Severe Wind Probability:`, ((_ka = (_ja = event == null ? void 0 : event.properties) == null ? void 0 : _ja.watch_parameters) == null ? void 0 : _ka.severe_wind_probability) ? `${(_ma = (_la = event == null ? void 0 : event.properties) == null ? void 0 : _la.watch_parameters) == null ? void 0 : _ma.severe_wind_probability}%` : null, !isExpired),
+    line(`Max Surface Wind:`, (_oa = (_na = event == null ? void 0 : event.properties) == null ? void 0 : _na.watch_parameters) == null ? void 0 : _oa.max_wind_surface, !isExpired),
+    line(`Max Tops (x100 feet):`, (_qa = (_pa = event == null ? void 0 : event.properties) == null ? void 0 : _pa.watch_parameters) == null ? void 0 : _qa.max_tops_x100feet, !isExpired),
+    line(`Sender:`, ((_ta = (_sa = (_ra = event == null ? void 0 : event.properties) == null ? void 0 : _ra.geocode) == null ? void 0 : _sa.office) == null ? void 0 : _ta.name) ? `${(_wa = (_va = (_ua = event == null ? void 0 : event.properties) == null ? void 0 : _ua.geocode) == null ? void 0 : _va.office) == null ? void 0 : _wa.name} (${(_za = (_ya = (_xa = event == null ? void 0 : event.properties) == null ? void 0 : _xa.geocode) == null ? void 0 : _ya.office) == null ? void 0 : _za.office})` : (_Ca = (_Ba = (_Aa = event == null ? void 0 : event.properties) == null ? void 0 : _Aa.geocode) == null ? void 0 : _Ba.office) == null ? void 0 : _Ca.office),
+    line(`Tracking:`, (_Ea = (_Da = event == null ? void 0 : event.properties) == null ? void 0 : _Da.metadata) == null ? void 0 : _Ea.tracking)
+  ].filter(Boolean).join("\n");
+};
+
+// src/@modules/@utilities/CreateHttp.ts
+var CreateHttp = (options) => __async(null, null, function* () {
+  var _a, _b, _c, _d;
+  const requestOptions = {
+    method: (_a = options.method) != null ? _a : "GET",
+    headers: (_b = options.headers) != null ? _b : {
+      "User-Agent": "AtmosphericX",
+      "Accept": "application/geo+json, text/plain, */*; q=0.9",
+      "Accept-Language": "en-US,en;q=0.9"
+    },
+    signal: AbortSignal.timeout((_c = options.timeout) != null ? _c : 1e4),
+    redirect: "follow"
+  };
+  const returnHttp = function(error, status, message) {
+    return { error, options: requestOptions, status, message };
+  };
+  if (options == null ? void 0 : options.auth) {
+    const authString = `${options.auth.username}:${options.auth.password}`;
+    const encodedAuth = Buffer.from(authString).toString("base64");
+    requestOptions.headers = __spreadProps(__spreadValues({}, requestOptions.headers), {
+      "Authorization": `Basic ${encodedAuth}`
+    });
+  }
+  if (options == null ? void 0 : options.formData) {
+    requestOptions.body = options.formData;
+  } else if ((options == null ? void 0 : options.body) != void 0) {
+    requestOptions.body = options.body instanceof FormData ? options.body : typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+  }
+  try {
+    const response2 = yield fetch(
+      (_d = options == null ? void 0 : options.url) != null ? _d : `https://api.weather.gov/alerts/active`,
+      requestOptions
+    );
+    const body = yield response2.text();
+    if (!response2.ok) {
+      return returnHttp(true, response2.status, `HTTP Status Code ${response2.status} (${response2.statusText})`);
+    }
+    return returnHttp(false, response2.status, body);
+  } catch (error) {
+    return returnHttp(true, 500, `Internal Server Error: ${error}`);
+  }
+});
+
+// src/@modules/@utilities/GetMatched.ts
+var GetMatched = (strings, string) => {
+  const isMatched = strings.some((pattern) => {
+    if (!pattern) return false;
+    const lowerP = pattern.toLowerCase();
+    const lowerS = string.toLowerCase();
+    if (lowerP === "*" || lowerP === lowerS) return true;
+    if (lowerP.includes("*")) {
+      const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
+      return new RegExp(regex).test(lowerS);
+    }
+    return false;
+  });
+  return isMatched;
+};
+
+// src/@manager/Tasks.ts
+import { mkdir, writeFile, readFile, appendFile } from "fs/promises";
+var Tasks = (events) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t;
+  const tick = performance.now();
+  const settings = bootstrap.settings;
+  const notifyServer = settings.NotifyServer;
+  const actions = settings.ActionSettings;
+  for (const event of events) {
+    const properties = event.properties;
+    const hasActions = Array.isArray(actions) && actions.length > 0;
+    if (!hasActions) {
+      SetDebug({ title: `Tasks`, message: `${Math.round(performance.now() - tick)}ms` });
+      return;
+    }
+    const metadata = {
+      text: null,
+      eas: null,
+      json: null,
+      name: properties.event,
+      status: properties.status,
+      description: properties.description,
+      tracking: properties.metadata.tracking,
+      header: properties.metadata.header,
+      raw: properties.metadata.raw,
+      expired: properties.status_metadata.is_expired,
+      attachments: properties.metadata.attachments
+    };
+    const archiveSettings = (_a = settings.GlobalSettings) == null ? void 0 : _a.ArchiveSettings;
+    const textArchiveDir = archiveSettings == null ? void 0 : archiveSettings.TextDirectory;
+    const jsonArchiveDir = archiveSettings == null ? void 0 : archiveSettings.JSONDirectory;
+    const eventBaseName = `${metadata.name}_${metadata.tracking}`;
+    const easTitle = `${metadata.name}_${metadata.status}_${metadata.tracking}`;
+    const cleanedEventText = JSON.stringify(GetCleanedEvent(event), null, 2);
+    const stringText = GetStringText(event);
+    const embedText = GetEmebedText(event);
+    for (const action of actions) {
+      const events2 = action == null ? void 0 : action.Events;
+      const webhook = action == null ? void 0 : action.Webhook;
+      const notify = action == null ? void 0 : action.NotificationServer;
+      const uploads = action == null ? void 0 : action.Uploads;
+      const isMatched = GetMatched(events2 != null ? events2 : [], metadata.name);
+      if ((events2 == null ? void 0 : events2.length) == 0 || isMatched) {
+        const t = performance.now();
+        if ((uploads == null ? void 0 : uploads.EAS) && !metadata.eas) {
+          metadata.eas = yield GenerateEASMessage({
+            title: easTitle,
+            message: metadata.description,
+            header: metadata.header
+          });
+          SetDebug({
+            title: "Tasks/EAS",
+            message: `${Math.round(performance.now() - t)}ms`
+          });
+        }
+        if ((uploads == null ? void 0 : uploads.TEXT) && metadata.text === null) {
+          const t2 = performance.now();
+          if (textArchiveDir) {
+            const file = `${textArchiveDir}/${eventBaseName}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+            yield mkdir(textArchiveDir, { recursive: true });
+            yield appendFile(file, `${metadata.raw}${"\n".repeat(5)}`);
+            SetDebug({
+              title: "Tasks/TEXT",
+              message: `${Math.round(performance.now() - t2)}ms`
+            });
+          }
+          metadata.text = metadata.raw;
+        }
+        if ((uploads == null ? void 0 : uploads.JSON) && metadata.json === null) {
+          const t2 = performance.now();
+          if (jsonArchiveDir) {
+            const file = `${jsonArchiveDir}/${eventBaseName}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+            yield mkdir(jsonArchiveDir, { recursive: true });
+            yield writeFile(file, cleanedEventText);
+            SetDebug({
+              title: "Tasks/JSON",
+              message: `${Math.round(performance.now() - t2)}ms`
+            });
+          }
+          metadata.json = cleanedEventText;
+        }
+        if ((notifyServer == null ? void 0 : notifyServer.Enabled) && (notify == null ? void 0 : notify.Enabled) && (notify == null ? void 0 : notify.Topic)) {
+          let buttons = [];
+          const t2 = performance.now();
+          const auth = ((_b = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _b.Username) && ((_c = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _c.Password) ? { username: (_d = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _d.Username, password: (_e = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _e.Password } : void 0;
+          const image = (_f = metadata.attachments) == null ? void 0 : _f.find((a) => a.name === "Image: Graphic");
+          if ((_g = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _g.EAS) {
+            if (metadata.eas) {
+              buttons.push({
+                "action": "view",
+                "label": "Listen",
+                "url": `${(_h = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _h.EAS}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
+              });
+            }
+          }
+          if (metadata.json) {
+            buttons.push({
+              "action": "view",
+              "label": "View JSON",
+              "url": `${(_i = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _i.JSON}/${metadata.name}_${metadata.tracking}.json`
+            });
+          }
+          if (metadata.text) {
+            buttons.push({
+              "action": "view",
+              "label": "View Text",
+              "url": `${(_j = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _j.TEXT}/${metadata.name}_${metadata.tracking}.txt`
+            });
+          }
+          if (image) {
+            buttons.push({
+              "action": "view",
+              "label": "View Image",
+              "url": image.link
+            });
+          }
+          yield CreateHttp(__spreadProps(__spreadValues({
+            url: `${(_k = notifyServer == null ? void 0 : notifyServer.Server) == null ? void 0 : _k.replace(/\/$/, "")}/${notify.Topic}`,
+            timeout: 15e3,
+            method: "PUT"
+          }, auth && { auth }), {
+            headers: __spreadValues({
+              "Title": `${metadata.name} (${metadata.status})`,
+              "Tags": (_m = (_l = properties.parameters.tags) == null ? void 0 : _l.join(",")) != null ? _m : "N/A",
+              "Priority": (_n = notify == null ? void 0 : notify.Priority) != null ? _n : "5"
+            }, buttons.length > 0 && { "Actions": JSON.stringify(buttons) }),
+            body: stringText
+          }));
+          SetDebug({
+            title: "Tasks/NTFY",
+            message: `${Math.round(performance.now() - t2)}ms`
+          });
+        }
+        if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
+          const t2 = performance.now();
+          const isRatelimited = SetTimeoutAction({ identifier: webhook.Destination, interval: ((_o = webhook.Ratelimit) != null ? _o : 2) * 2, max: (_p = webhook.Ratelimit) != null ? _p : 2, addTime: true });
+          const form = new FormData();
+          const embed = {
+            title: `${metadata.name} (${metadata.status})`,
+            description: embedText,
+            fields: [],
+            color: 16711680,
+            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+            footer: { text: (_q = webhook.Title) != null ? _q : `AtmosphericX` }
+          };
+          if (isRatelimited.limited) {
+            return;
+          }
+          if (metadata.description && !metadata.expired) {
+            const description = metadata.description.length > 900 ? metadata.description.substring(0, 900) + "\n\n[Message truncated due to length]" : metadata.description;
+            embed.fields.push({
+              name: "Description",
+              value: description ? "```\n" + description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
+            });
+          }
+          if (((_r = metadata.attachments) == null ? void 0 : _r.length) > 0) {
+            const attachments = metadata.attachments.slice(0, 5);
+            embed.fields.push({
+              name: "Attachments",
+              value: attachments.map((attachment) => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + "..." : attachment.name}](${attachment.link})`).join("\n")
+            });
+          }
+          if (uploads == null ? void 0 : uploads.TEXT) {
+            form.append("fUpload", new Blob([Buffer.from(metadata.text)], { type: "application/text" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`);
+          }
+          if (uploads == null ? void 0 : uploads.JSON) {
+            form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
+          }
+          if (uploads == null ? void 0 : uploads.EAS) {
+            if (metadata.eas) {
+              const file = yield readFile(metadata.eas);
+              form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`);
+            }
+          }
+          form.append("payload_json", JSON.stringify({
+            username: (_s = webhook.Title) != null ? _s : "AtmosphericX",
+            content: (_t = webhook.Message) != null ? _t : "",
+            embeds: [embed]
+          }));
+          yield CreateHttp({
+            url: webhook.Destination,
+            timeout: 15e3,
+            method: `POST`,
+            body: form
+          });
+          SetDebug({
+            title: "Tasks/Webhook",
+            message: `${Math.round(performance.now() - t2)}ms`
+          });
+        }
+      }
+    }
+  }
+  SetDebug({ title: `Tasks`, message: `${Math.round(performance.now() - tick)}ms` });
+});
+
+// src/@modules/@utilities/GetShapeNearestPoint.ts
+var GetShapeNearestPoint = (coordinates, point) => {
+  if (!coordinates || !point) {
+    return { proximity: false, point: [0, 0], distance: null };
+  }
+  const normalize = (coords) => {
+    if (!Array.isArray(coords)) return [];
+    if (typeof coords[0] === "number" && typeof coords[1] === "number") return [];
+    if (Array.isArray(coords[0]) && typeof coords[0][0] === "number") {
+      return [[coords]];
+    }
+    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && typeof coords[0][0][0] === "number") {
+      return [coords];
+    }
+    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && Array.isArray(coords[0][0][0]) && typeof coords[0][0][0][0] === "number") {
+      return coords;
+    }
+    return [];
+  };
+  const polys = normalize(coordinates);
+  if (polys.length === 0) return { proximity: false, point: [0, 0], distance: null };
+  const lon = point[0];
+  const lat = point[1];
+  const pointInRing = (pt, ring) => {
+    let x = pt[0], y = pt[1];
+    let inside = false;
+    for (let i = 0, j2 = ring.length - 1; i < ring.length; j2 = i++) {
+      const xi = ring[i][0], yi = ring[i][1];
+      const xj = ring[j2][0], yj = ring[j2][1];
+      const intersect = yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi + 0) + xi;
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
+  const toRadians = (deg) => deg * Math.PI / 180;
+  const haversineMiles = (a, b) => {
+    const R = 3958.8;
+    const dLat = toRadians(b[1] - a[1]);
+    const dLon = toRadians(b[0] - a[0]);
+    const lat1 = toRadians(a[1]);
+    const lat2 = toRadians(b[1]);
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLon = Math.sin(dLon / 2);
+    const c = 2 * Math.asin(Math.sqrt(sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon));
+    return R * c;
+  };
+  let minDistance = Infinity;
+  let closestPoint = null;
+  for (const poly of polys) {
+    const outer = poly[0];
+    const holes = poly.slice(1);
+    if (pointInRing(point, outer)) {
+      let inHole = false;
+      for (const hole of holes) {
+        if (pointInRing(point, hole)) {
+          inHole = true;
+          break;
+        }
+      }
+      if (!inHole) {
+        return { proximity: true, point, distance: 0 };
+      }
+    }
+    for (const ring of poly) {
+      for (let i = 0; i < ring.length - 1; i++) {
+        const start = [ring[i][0], ring[i][1]];
+        const end = [ring[i + 1][0], ring[i + 1][1]];
+        const A = lon - start[0];
+        const B = lat - start[1];
+        const C = end[0] - start[0];
+        const D = end[1] - start[1];
+        const lenSq = C * C + D * D;
+        const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, (A * C + B * D) / lenSq));
+        const candidate = [start[0] + t * C, start[1] + t * D];
+        const dist = haversineMiles([lon, lat], candidate);
+        if (!isNaN(dist) && dist < minDistance) {
+          minDistance = Number(dist.toFixed(3));
+          closestPoint = candidate;
+        }
+      }
+    }
+  }
+  if (!isFinite(minDistance) || closestPoint == null) {
+    return { proximity: false, point: [0, 0], distance: null };
+  }
+  const distanceMiles = minDistance;
+  const distanceKm = Number((distanceMiles * 1.609344).toFixed(3));
+  const distanceMeters = Math.round(distanceKm * 1e3);
+  return { proximity: distanceMiles === 0, point: closestPoint, distance: distanceMiles, distanceKm, distanceMeters };
+};
+
+// src/@building/GetEventNodes.ts
+var GetEventNodes = (event) => __async(null, null, function* () {
+  var _a, _b;
+  const nodes = bootstrap.cache.nodes.features;
+  if (!nodes || nodes.length === 0) {
+    return { nodes: [], filtered: true, updated: Date.now() };
+  }
+  const metadata = { nodes: [], proximity: false, filtered: false };
+  const geometry = yield GetEventGeometry(event);
+  if (!geometry || !geometry.coordinates) {
+    return { nodes: [], filtered: false, updated: Date.now() };
+  }
+  for (const node of nodes) {
+    const [longitude, latitude] = node.geometry.coordinates;
+    const getPoint = GetShapeNearestPoint(geometry.coordinates, [longitude, latitude]);
+    const miles = (_a = getPoint.distance) != null ? _a : null;
+    const kilometers = Number((miles * 1.609344).toFixed(3));
+    const info = {
+      id: (_b = node.properties) == null ? void 0 : _b.identifier,
+      coordinates: [longitude, latitude],
+      nearest: getPoint.point,
+      miles,
+      kilometers,
+      proximity: false
+    };
+    metadata.nodes.push(info);
+    if (miles != null && bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMaxDistance) {
+      metadata.proximity = true;
+      info.proximity = true;
+    }
+  }
+  return {
+    nodes: metadata.nodes,
+    filtered: metadata.proximity,
+    updated: Date.now()
+  };
+});
+
+// src/@manager/UpdateNode.ts
+var UpdateNode = (selectedEvent) => __async(null, null, function* () {
+  const events = bootstrap.cache.events.features;
+  const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
+  let total = 0;
+  const TTLEvents = selectedEvent ? [selectedEvent] : events.filter((evt) => {
+    var _a, _b, _c;
+    const lastUpdate = (_c = (_b = (_a = evt == null ? void 0 : evt.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.updated) != null ? _c : null;
+    return lastUpdate == null || Date.now() - lastUpdate >= ttl;
+  });
+  if (TTLEvents.length === 0) return;
+  function update(evt) {
+    return __async(this, null, function* () {
+      const node = yield GetEventNodes(evt);
+      if (node.nodes.length > 0) {
+        total++;
+      }
+      evt.properties.metadata.nodes = node.nodes;
+      evt.properties.metadata.filtered_proximity = node.filtered;
+      evt.properties.metadata.updated = node.updated;
+    });
+  }
+  const concurrency = 4;
+  for (let index = 0; index < TTLEvents.length; index += concurrency) {
+    const batch = TTLEvents.slice(index, index + concurrency);
+    yield Promise.all(batch.map((evt) => update(evt)));
+  }
+  if (total > 0) {
+    SetEventEmit({
+      event: `onNodeUpdate`,
+      metadata: {
+        type: `global-update`,
+        updated: total
+      }
+    });
+  }
+});
+
+// src/@manager/MakeEvents.ts
+var MakeEvents = (events) => __async(null, null, function* () {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+  let tasked = [];
+  const settings = bootstrap.settings;
+  if (events.length === 0) return;
+  for (const event of events) {
+    const features = bootstrap.cache.events.features;
+    const getHash = event.properties.metadata.hash;
+    const getTracking = event.properties.metadata.tracking;
+    const isEntry = (_a = bootstrap.cache.hashes) == null ? void 0 : _a.find((hash) => hash.tracking === getTracking);
+    const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
+    const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering;
+    const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
+    if (isHashed || event.properties.status_metadata.is_expired) return;
+    SetHash(event, isEntry);
+    if (isNodeFiltering) {
+      yield UpdateNode(event);
+      if (!event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) {
+        return;
+      }
+    }
+    const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
+    if (!isRatelimited.limited) {
+      SetEventEmit({
+        event: `onEventStatus`,
+        metadata: {
+          type: getFeature ? `Updated` : `New`,
+          event
+        },
+        message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+      });
+    }
+    if (settings.GlobalSettings.EventManagement) {
+      if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
+        if (getFeature) {
+          const getIndex = features.indexOf(getFeature);
+          const cHistory = (_f = (_e = (_d = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _d.metadata) == null ? void 0 : _e.history) != null ? _f : [];
+          const cLocations = (_i = (_h = (_g = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _g.locations) == null ? void 0 : _h.split(";").map((l) => l.trim())) != null ? _i : [];
+          const cUgc = (_l = (_k = (_j = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _j.geocode) == null ? void 0 : _k.ugc) != null ? _l : [];
+          const iHistory = (_o = (_n = (_m = event.properties) == null ? void 0 : _m.metadata) == null ? void 0 : _n.history) != null ? _o : [];
+          const iLocations = (_r = (_q = (_p = event.properties) == null ? void 0 : _p.locations) == null ? void 0 : _q.split(";").map((l) => l.trim())) != null ? _r : [];
+          const iUgc = (_u = (_t = (_s = event.properties) == null ? void 0 : _s.geocode) == null ? void 0 : _t.ugc) != null ? _u : [];
+          const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i).filter((v, i, a) => a.findIndex((h) => h.description === v.description && h.issued === v.issued) === i);
+          const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join("; ");
+          const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
+          bootstrap.cache.events.features[getIndex] = __spreadProps(__spreadValues({}, event), {
+            properties: __spreadProps(__spreadValues({}, event.properties), {
+              metadata: __spreadProps(__spreadValues({}, (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.metadata), {
+                history: mHistory
+              }),
+              locations: mLocations,
+              geocode: __spreadProps(__spreadValues({}, (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.geocode), {
+                ugc: mUgc
+              })
+            })
+          });
+          tasked.push(bootstrap.cache.events.features[getIndex]);
+        } else {
+          features.push(event);
+          tasked.push(event);
+        }
+      }
+    }
+  }
+  yield Tasks(tasked);
+  SetEventEmit({ event: `onEventCache`, metadata: bootstrap.cache.events, limited: true });
+});
+
+// src/@enums/Strings.ts
+var EnumStrings = {
+  cancellation: `{EVENT} has been allowed to expire. This event is no longer in effect.`
+};
+
+// src/@manager/RemoveEvent.ts
+var RemoveEvent = (event, isTimeBasedExpiration) => __async(null, null, function* () {
+  const gTracking = event.properties.metadata.tracking;
+  const isTrackingEventLogged = bootstrap.cache.events.features.find((f) => {
+    var _a, _b;
+    return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === gTracking;
+  });
+  const isStatement = event.properties.status_metadata.is_statement;
+  if (isTrackingEventLogged) {
+    event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
+    event.properties.status = `Expired`;
+    event.properties.status_metadata.is_expired = true;
+    const description = isTimeBasedExpiration ? EnumStrings.cancellation.replace(`{SENDER}`, event.properties.geocode.office.name).replace(`{EVENT}`, event.properties.event) : event.properties.description;
+    event.properties.description = description;
+    event.properties.metadata.raw = isTimeBasedExpiration ? description : event.properties.metadata.raw;
+    event.properties.metadata.history.push({
+      description: isTimeBasedExpiration ? description : event.properties.description,
+      issued: event.properties.expires,
+      status: event.properties.status
+    });
+    bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(isTrackingEventLogged), 1);
+    bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== gTracking);
+    if (!isStatement) {
+      SetEventEmit({
+        event: `onEventStatus`,
+        metadata: { type: `Removed`, event },
+        message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
+      });
+      yield Tasks([event]);
+    }
+    SetTimeoutAction({ identifier: gTracking, expire: true });
+  }
+  SetEventEmit({
+    event: `onEventCache`,
+    metadata: bootstrap.cache.events,
+    limited: true
+  });
+});
+
+// src/@enums/States.ts
+var EnumStates = {
+  "AL": "Alabama",
+  "AK": "Alaska",
+  "AZ": "Arizona",
+  "AR": "Arkansas",
+  "CA": "California",
+  "CO": "Colorado",
+  "CT": "Connecticut",
+  "DE": "Delaware",
+  "FL": "Florida",
+  "GA": "Georgia",
+  "HI": "Hawaii",
+  "ID": "Idaho",
+  "IL": "Illinois",
+  "IN": "Indiana",
+  "IA": "Iowa",
+  "KS": "Kansas",
+  "KY": "Kentucky",
+  "LA": "Louisiana",
+  "ME": "Maine",
+  "MD": "Maryland",
+  "MA": "Massachusetts",
+  "MI": "Michigan",
+  "MN": "Minnesota",
+  "MS": "Mississippi",
+  "MO": "Missouri",
+  "MT": "Montana",
+  "NE": "Nebraska",
+  "NV": "Nevada",
+  "NH": "New Hampshire",
+  "NJ": "New Jersey",
+  "NM": "New Mexico",
+  "NY": "New York",
+  "NC": "North Carolina",
+  "ND": "North Dakota",
+  "OH": "Ohio",
+  "OK": "Oklahoma",
+  "OR": "Oregon",
+  "PA": "Pennsylvania",
+  "RI": "Rhode Island",
+  "SC": "South Carolina",
+  "SD": "South Dakota",
+  "TN": "Tennessee",
+  "TX": "Texas",
+  "UT": "Utah",
+  "VT": "Vermont",
+  "VA": "Virginia",
+  "WA": "Washington",
+  "WV": "West Virginia",
+  "WI": "Wisconsin",
+  "WY": "Wyoming",
+  "DC": "District of Columbia"
+};
+
+// src/@modules/@utilities/GetLatestIssuance.ts
+var GetLatestIssuance = () => {
+  const now = /* @__PURE__ */ new Date();
+  const current = now.getUTCHours() * 100 + now.getUTCMinutes();
+  const issuances = [100, 600, 1300, 1630, 2e3];
+  let latest = issuances[0];
+  for (const issuance of issuances) {
+    if (current >= issuance) {
+      latest = issuance;
+    }
+  }
+  return latest.toString().padStart(4, "0");
+};
+
+// src/@building/GetEventAttachments.ts
+var GetEventAttachments = (event) => {
+  var _a, _b, _c, _d, _e, _f, _g;
+  let attachments = [];
+  const settings = bootstrap.settings;
+  const issuanceTime = GetLatestIssuance();
+  const spcNumber = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.discussion_parameters) == null ? void 0 : _b.discussion_number;
+  const watchNumber = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.watch_parameters) == null ? void 0 : _d.watch_number;
+  const locations = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.locations_array;
+  const events = [
+    { target: "Storm Prediction Center Day 1 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${issuanceTime}.png` },
+    { target: "Storm Prediction Center Day 2 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
+    { target: "Storm Prediction Center Day 3 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
+    { target: "Mesoscale Discussion", attachment: `https://www.spc.noaa.gov/products/md/mcd${spcNumber}.png` },
+    { target: "Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
+    { target: "PDS Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
+    { target: "Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
+    { target: "PDS Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` }
+  ];
+  if (events.find((e) => e.target === event.properties.event)) {
+    attachments.push({ name: `Image: Graphic`, link: events.find((e) => e.target.toLowerCase() === event.properties.event.toLowerCase()).attachment });
+  }
+  if (settings.BroadcastifySettings.BroadcastifyAttachments) {
+    for (const location of locations) {
+      if (EnumExpressions.location.test(location)) {
+        const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`];
+        const county = (_f = location == null ? void 0 : location.split(",")[0]) == null ? void 0 : _f.trim().replace(new RegExp(`^(${lines.join("|")}) `), "");
+        const state = EnumStates[(_g = location == null ? void 0 : location.split(",")[1]) == null ? void 0 : _g.trim()];
+        const feeds = bootstrap.database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
+          const typeOrder = ["Other", "Public Safety"];
+          const indexA = typeOrder.indexOf(a.type);
+          const indexB = typeOrder.indexOf(b.type);
+          return indexA - indexB;
+        });
+        const tags = bootstrap.settings.BroadcastifySettings.BroadcastifyTags;
+        const filtered = feeds.filter((feed) => tags.includes(feed.type));
+        if (filtered.length > 0) {
+          filtered.map((filtered2) => {
+            if (!attachments.some((a) => a.link === filtered2.link)) {
+              attachments.push({ name: `${filtered2.type}: ${filtered2.feed}`, link: filtered2.link });
+            }
+          });
+        }
+      }
+    }
+  }
+  return attachments;
+};
+
+// src/@manager/ValidateEvents.ts
+import { createHash } from "crypto";
+var ValidateEvents = (events) => __async(null, null, function* () {
+  const tick = performance.now();
+  if (events.length === 0) return;
+  const configurations = bootstrap.settings;
+  const sets = {};
+  const bools = {};
+  const megered = __spreadValues(__spreadValues({}, configurations.GlobalSettings), configurations.GlobalSettings.EventFiltering);
+  for (const key in megered) {
+    const setting = megered[key];
+    if (Array.isArray(setting)) {
+      sets[key] = new Set(setting.map((item) => item.toLowerCase()));
+    }
+    if (typeof setting === "boolean") {
+      bools[key] = setting;
+    }
+  }
+  const isFiltered = (define2) => {
+    var _a, _b, _c, _d;
+    const properties = define2.properties;
+    const zones = properties.geocode.ugc;
+    const icao = properties.geocode.office.office;
+    if (properties.status_metadata.is_test) {
+      SetEventEmit({ event: `onTestProduct`, metadata: define2 });
+      if (bools == null ? void 0 : bools.IgnoreTestProducts) return true;
+    }
+    if (properties.status_metadata.is_expired) {
+      SetEventEmit({ event: `onExpiredProduct`, metadata: define2 });
+      RemoveEvent(define2, false);
+      return true;
+    }
+    if (((_b = (_a = properties.metadata) == null ? void 0 : _a.vtec) == null ? void 0 : _b.is_watch) && properties.metadata.source != `events.api`) {
+      const isSPC = (_d = (_c = properties.metadata) == null ? void 0 : _c.vtec) == null ? void 0 : _d.prediction_center;
+      SetEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define2 });
+      if ((bools == null ? void 0 : bools.SPCWatchesOnly) && !isSPC) {
+        return true;
+      }
+      if (!(bools == null ? void 0 : bools.SPCWatchesOnly) && isSPC) {
+        return true;
+      }
+    }
+    for (const key in sets) {
+      const setting = sets[key];
+      const values = [...setting];
+      if (key === "ListeningEvents" && setting.size > 0 && !GetMatched(values, define2.properties.event)) {
+        SetEventEmit({
+          event: `onFilteredEvent`,
+          metadata: define2
+        });
+        return true;
+      }
+      if (key === "IgnoredEvents" && setting.size > 0 && GetMatched(values, define2.properties.event)) {
+        SetEventEmit({
+          event: `onIgnoredEvent`,
+          metadata: define2
+        });
+        return true;
+      }
+      if (key === "ListeningICAO" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
+        SetEventEmit({
+          event: `onFilteredICAO`,
+          metadata: define2
+        });
+        return true;
+      }
+      if (key === "IgnoredICAO" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
+        SetEventEmit({
+          event: `onIgnoredICAO`,
+          metadata: define2
+        });
+        return true;
+      }
+      if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc) => setting.has(ugc.toLowerCase()))) {
+        SetEventEmit({
+          event: `onFilteredUGC`,
+          metadata: define2
+        });
+        return true;
+      }
+      if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc) => setting.has(ugc.substring(0, 2).toLowerCase()))) {
+        SetEventEmit({
+          event: `onFilteredState`,
+          metadata: define2
+        });
+        return true;
+      }
+    }
+    return false;
+  };
+  const filtering = events.filter((event) => {
+    bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
+    const define2 = GetEventSignature(event);
+    const pre = __spreadProps(__spreadValues({}, define2), { properties: __spreadProps(__spreadValues({}, define2.properties), { metadata: __spreadValues({}, define2.properties.metadata) }) });
+    const properties = define2.properties;
+    delete pre.properties.metadata.ms;
+    delete pre.properties.metadata.header;
+    const enhanced = properties.event = GetEventEnhancedName(event);
+    const filtered = isFiltered(define2);
+    if (!filtered) {
+      event.geometry = !(bools == null ? void 0 : bools.DisableGeometryParsing) ? GetEventGeometry(event) : null;
+      properties.metadata.attachments = GetEventAttachments(event);
+    }
+    properties.metadata.hash = createHash("sha256").update(JSON.stringify(pre)).digest("hex");
+    SetEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, "")}`, metadata: define2 });
+    return !filtered;
+  });
+  SetDebug({ title: `ValidateEvents (PRE) (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
+  yield MakeEvents(filtering);
+  SetDebug({ title: `MakeEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
+});
+
+// src/@building/CreateEvent.ts
+var CreateEvent = (stanza, ignorePushing) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
+  const isVtecEvent = stanza.isVTEC && stanza.isUGC;
+  const isUgcEvent = !stanza.isVTEC && stanza.isUGC;
+  const isTextEvent = !stanza.isVTEC && !stanza.isUGC;
+  const isNWWS = stanza.isNWWS;
+  switch (true) {
+    case !isNWWS:
+      yield ParseAPI(stanza);
+      break;
+    case (isNWWS && !StanzaSettings.DisableVTEC && isVtecEvent):
+      yield ParseVTEC(stanza);
+      break;
+    case (isNWWS && !StanzaSettings.DisableUGC && isUgcEvent):
+      yield ParseUGC(stanza);
+      break;
+    case (isNWWS && !StanzaSettings.DisableText && isTextEvent):
+      yield ParseText(stanza);
+      break;
+  }
+  if (!ignorePushing) {
+    yield ValidateEvents(bootstrap.cache.processed);
+  }
+  return "nothing picked";
+});
+
+// src/@core/ManualEvent.ts
+var ManualEvent = (options) => __async(null, null, function* () {
+  var _a;
+  const isCapEvent = options.message.includes(`<?xml`);
+  const isCapAreaDescription = options.message.includes(`<areaDesc>`);
+  const isVTEC = options.message.match(EnumExpressions.pvtec) != null;
+  const isUGC = options.message.match(EnumExpressions.ugc1) != null;
+  const attributes = {
+    "xmlns": "@atmosx/event-product-parser",
+    "id": "manual_processor.0000",
+    "issue": (/* @__PURE__ */ new Date()).toISOString(),
+    "ttaaii": "XXXXX",
+    "cccc": "XXX",
+    "awipsid": (_a = options.awipsid) != null ? _a : "XXXXXX"
+  };
+  const getType = GetAwipsType({ attributes });
+  const result = {
+    message: options.message,
+    attributes,
+    isCapEvent,
+    isVTEC,
+    isUGC,
+    isCapAreaDescription,
+    isIgnored: false,
+    isNWWS: true,
+    getType
+  };
+  yield CreateEvent(result);
+});
+
+// src/@core/GetRandomEvent.ts
+var GetRandomEvent = () => {
+  return bootstrap.cache.events.features[Math.floor(Math.random() * bootstrap.cache.events.features.length)];
+};
+
+// src/@core/QueryStanza.ts
+var QueryStanza = (options) => __async(null, null, function* () {
+  var _a;
+  const get = yield bootstrap.database.prepare(
+    `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`
+  ).all(`%${options.search}%`, (_a = options.max) != null ? _a : 100);
+  const events = get.map((row) => JSON.parse(row.stanza));
+  return events;
+});
+
+// src/@core/ClearEvents.ts
+var ClearEvents = () => {
+  bootstrap.cache.events.features = [];
+  bootstrap.cache.hashes = [];
+  SetEventEmit({
+    event: `onEventCache`,
+    metadata: bootstrap.cache.events,
+    message: `Manually cleared event cache.`
+  });
+};
+
 // src/@modules/@utilities/SetListener.ts
 var SetListener = (options) => {
   bootstrap.listener.on(options.event, options.callback);
@@ -1419,6 +4638,116 @@ var SetListener = (options) => {
 var CreateListener = (event, callback) => {
   SetListener({ event, callback });
 };
+
+// src/@modules/@xmpp/ReconnectXMPP.ts
+var ReconnectXMPP = (interval) => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const lastStanza = Date.now() - bootstrap.cache.lastStanza;
+  if (interval < 15) {
+    SetWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` });
+    interval = 15;
+    bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
+  }
+  const reconnectThreshold = interval * 1e3;
+  if (!bootstrap.cache.isConnected && !bootstrap.cache.sigHault || !bootstrap.session_xmpp) {
+    return;
+  }
+  if (lastStanza > reconnectThreshold) {
+    if (!bootstrap.cache.isReconnecting) {
+      bootstrap.cache.isReconnecting = true;
+      bootstrap.cache.isConnected = false;
+      bootstrap.cache.tReconnects += 1;
+      try {
+        SetEventEmit({
+          event: `onServiceStatus`,
+          metadata: {
+            message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
+            data: {
+              last_stanza: lastStanza,
+              nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
+            },
+            type: `reconnect`,
+            error: true
+          },
+          message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`
+        });
+        yield bootstrap.session_xmpp.stop().catch(() => {
+        });
+        yield bootstrap.session_xmpp.start().catch(() => {
+        });
+      } catch (error) {
+        SetWarning({ message: `XMPP Reconnect Failed - ${error.message}` });
+      } finally {
+        bootstrap.cache.isReconnecting = false;
+      }
+    }
+  }
+});
+
+// src/@modules/@utilities/SetCronSchedule.ts
+import { readdirSync, unlinkSync as unlinkSync2, statSync, existsSync as existsSync2 } from "fs";
+import { join as join2 } from "path";
+var SetCronSchedule = () => __async(null, null, function* () {
+  const settings = bootstrap.settings;
+  const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
+  const TTLCUT = Date.now() - TTL * 1e3;
+  const walk = (dir) => {
+    if (existsSync2(dir)) {
+      const entries = readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = join2(dir, entry.name);
+        if (entry.isDirectory()) {
+          walk(fullPath);
+          continue;
+        }
+        const stats = statSync(fullPath);
+        if (stats.mtime.getTime() < TTLCUT) {
+          try {
+            unlinkSync2(fullPath);
+          } catch (err) {
+            console.error(`Failed to delete ${fullPath}:`, err);
+          }
+        }
+      }
+    }
+  };
+  walk(settings.GlobalSettings.ArchiveSettings.TextDirectory);
+  walk(settings.GlobalSettings.ArchiveSettings.EasDirectory);
+  walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory);
+  if (settings.EnableWireService) {
+    if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
+      void ReconnectXMPP(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
+    }
+  } else {
+    const response2 = yield CreateHttp({
+      url: settings.NationalWeatherServiceSettings.EventsEndpoint,
+      headers: {
+        "User-Agent": "@atmosx/event-product-parser"
+      }
+    });
+    if (response2.error) {
+      return SetEventEmit({
+        event: `onServiceStatus`,
+        metadata: {
+          type: "fetch-api",
+          message: `Failed to fetch latest events from National Weather Service API - ${response2.message}`,
+          data: {},
+          error: true
+        }
+      });
+    }
+    SetEventEmit({
+      event: `onServiceStatus`,
+      metadata: {
+        message: `Fetched latest events from National Weather Service API`,
+        data: {},
+        type: "fetch-api",
+        error: false
+      }
+    });
+    yield CreateEvent({ message: response2.message, isNWWS: false });
+  }
+});
 
 // node_modules/.pnpm/@xmpp+xml@0.14.0/node_modules/@xmpp/xml/index.js
 var import_Element2 = __toESM(require_Element(), 1);
@@ -4225,385 +7554,6 @@ var ErrorXMPP = () => {
   }));
 };
 
-// src/@enums/Expressions.ts
-var EnumExpressions = {
-  location: new RegExp(/^([A-Za-z.\-' ]+),\s*([A-Z]{2})$/),
-  pvtec: new RegExp(`[OTEX].(NEW|CON|EXT|EXA|EXB|UPG|CAN|EXP|COR|ROU).[A-Z]{4}.[A-Z]{2}.[WAYSFON].[0-9]{4}.[0-9]{6}T[0-9]{4}Z-[0-9]{6}T[0-9]{4}Z`, "g"),
-  hvtec: new RegExp(`[a-zA-Z0-9]{4}.[A-Z0-9].[A-Z]{2}.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[0-9]{6}T[0-9]{4}Z.[A-Z]{2}`, "imu"),
-  wmo: new RegExp(`[A-Z0-9]{6}\\s[A-Z]{4}\\s\\d{6}`, "imu"),
-  ugc1: new RegExp(`(\\w{2}[CZ](\\d{3}((-|>)\\s?(\\n\\n)?))+)`, "imu"),
-  ugc2: new RegExp(`(\\d{6}(-|>)\\s?(\\n\\n)?)`, "imu"),
-  ugc3: new RegExp(`(\\d{6})(?=-|$)`, "imu"),
-  dateline: new RegExp(`\\d{3,4}\\s*(AM|PM)?\\s*[A-Z]{2,4}\\s+[A-Z]{3,}\\s+[A-Z]{3,}\\s+\\d{1,2}\\s+\\d{4}`, "gim")
-};
-
-// src/@enums/AWIPS.ts
-var EnumAWIPS = {
-  ABV: `Rawinsonde Data Above 100 Millibars`,
-  ADA: `Alarm Alert Administrative Message`,
-  ADM: `Alert Administrative Message`,
-  ADR: `NWS Administrative Message`,
-  ADV: `Space Environment Advisory`,
-  AFD: `Area Forecast Discussion`,
-  AFM: `Area Forecast Matrices`,
-  AFP: `Area Forecast Product`,
-  AFW: `Fire Weather Matrix`,
-  AGF: `Agricultural Forecast`,
-  AGO: `Agricultural Observations`,
-  ALT: `Space Environment Alert`,
-  AQA: `Air Quality Alert`,
-  AQI: `Air Quality Index Statement`,
-  ASA: `Air Stagnation Advisory`,
-  AVA: `Avalanche Watch`,
-  AVG: `Avalanche Weather Guidance`,
-  AVW: `Avalanche Warning`,
-  AWO: `Area Weather Outlook`,
-  AWS: `Area Weather Summary`,
-  AWU: `Area Weather Update`,
-  AWW: `Airport Weather Warning`,
-  BLU: `Blue Alert`,
-  BOY: `Buoy Report`,
-  BRG: `Coast Guard Observations`,
-  BRT: `Hourly Roundup for Weather Radio`,
-  CAE: `Child Abduction Emergency`,
-  CCF: `Coded City Forecast`,
-  CDW: `Civil Danger Warning`,
-  CEM: `Civil Emergency Message`,
-  CF6: `Monthly Daily Climate Data`,
-  CFP: `Convective Forecast Product`,
-  CFW: `Coastal Flood Warnings, Watches, and Statements`,
-  CGR: `Coast Guard Surface Report`,
-  CHG: `Computer Hurricane Guidance`,
-  CLA: `Climatological Report Annual`,
-  CLI: `Climatological Report Daily`,
-  CLM: `Climatological Report Monthly`,
-  CLQ: `Climatological Report Quarterly`,
-  CLS: `Climatological Report Seasonal`,
-  CLT: `Climate Report`,
-  CMM: `Coded Climatological Monthly Means`,
-  COD: `Coded Analysis and Forecasts`,
-  CPF: `Great Lakes Port Forecast`,
-  CUR: `Space Environment Products Routine`,
-  CWA: `Center Weather Advisory`,
-  CWF: `Coastal Waters Forecast`,
-  CWS: `Center Weather Statement`,
-  DAY: `Space Environment Product Daily`,
-  DDO: `Daily Dispersion Outlook`,
-  DGT: `Drought Information Statement`,
-  DMO: `Practice Demo Warning`,
-  DSA: `Unnumbered Depression Advisory`,
-  DSM: `ASOS Daily Summary`,
-  DSW: `Dust Storm Warning`,
-  EFP: `Extended Forecast (3 to 5 Day)`,
-  EOL: `Six to Ten Day Weather Outlook (Local)`,
-  EQI: `Tsunami Bulletin`,
-  EQR: `Earthquake Report`,
-  EQW: `Earthquake Warning`,
-  ESF: `Flood Potential Outlook`,
-  ESG: `Extended Streamflow Guidance`,
-  ESP: `Extended Streamflow Prediction`,
-  ESS: `Water Supply Outlook`,
-  EVI: `Evacuation Immediate`,
-  EWW: `Extreme Wind Warning`,
-  FA0: `Aviation Area Forecast (Pacific)`,
-  FA1: `Aviation Area Forecast (Northeast)`,
-  FA2: `Aviation Area Forecast (Southeast)`,
-  FA3: `Aviation Area Forecast (North Central)`,
-  FA4: `Aviation Area Forecast (South Central)`,
-  FA5: `Aviation Area Forecast (Rocky Mountains)`,
-  FA6: `Aviation Area Forecast (West Coast)`,
-  FA7: `Aviation Area Forecast (Juneau, AK)`,
-  FA8: `Aviation Area Forecast (Anchorage, AK)`,
-  FA9: `Aviation Area Forecast (Fairbanks, AK)`,
-  FD0: `Winds Aloft Forecast (24-Hour High Altitude)`,
-  FD1: `Winds Aloft Forecast (6-Hour)`,
-  FD2: `Winds Aloft Forecast (12-Hour)`,
-  FD3: `Winds Aloft Forecast (24-Hour)`,
-  FD4: `Winds Aloft Forecast`,
-  FD5: `Winds Aloft Forecast`,
-  FD6: `Winds Aloft Forecast`,
-  FD7: `Winds Aloft Forecast`,
-  FD8: `Winds Aloft Forecast (6-Hour High Altitude)`,
-  FD9: `Winds Aloft Forecast (12-Hour High Altitude)`,
-  FDI: `Fire Danger Indices`,
-  FFA: `Flash Flood Watch`,
-  FFG: `Flash Flood Guidance`,
-  FFH: `Headwater Guidance`,
-  FFS: `Flash Flood Statement`,
-  FFW: `Flash Flood Warning`,
-  FLN: `National Flood Summary`,
-  FLS: `Flood Statement`,
-  FLW: `Flood Warning`,
-  FOF: `Upper Wind Fallout Forecast`,
-  FRW: `Fire Warning`,
-  FSH: `Marine Fisheries Service Message`,
-  FTM: `Radar Outage Notification`,
-  FTP: `Temp POP Guidance`,
-  FWA: `Fire Weather Administrative Message`,
-  FWD: `Fire Weather Outlook Discussion`,
-  FWF: `Fire Weather Forecast`,
-  FWL: `Land Management Forecast`,
-  FWM: `Miscellaneous Fire Weather Product`,
-  FWN: `Fire Weather Notification`,
-  FWO: `Fire Weather Observation`,
-  FWS: `Fire Weather Spot Forecast`,
-  FZL: `Freezing Level Data`,
-  GLF: `Great Lakes Forecast`,
-  GLS: `Great Lakes Storm Summary`,
-  GRE: `Green`,
-  HD1: `RFC QPF Data Product`,
-  HD2: `RFC QPF Data Product`,
-  HD3: `RFC QPF Data Product`,
-  HD4: `RFC QPF Data Product`,
-  HD7: `RFC QPF Data Product`,
-  HD8: `RFC QPF Data Product`,
-  HD9: `RFC QPF Data Product`,
-  HLS: `Hurricane Local Statement`,
-  HMD: `Hydrometeorological Discussion`,
-  HML: `AHPS XML Product`,
-  HMW: `Hazardous Materials Warning`,
-  HP1: `RFC QPF Verification Product`,
-  HP2: `RFC QPF Verification Product`,
-  HP3: `RFC QPF Verification Product`,
-  HP4: `RFC QPF Verification Product`,
-  HP5: `RFC QPF Verification Product`,
-  HP6: `RFC QPF Verification Product`,
-  HP7: `RFC QPF Verification Product`,
-  HP8: `RFC QPF Verification Product`,
-  HRR: `Weather Roundup`,
-  HSF: `High Seas Forecast`,
-  HWO: `Hazardous Weather Outlook`,
-  HWR: `Hourly Weather Roundup`,
-  HYD: `Daily Hydrometeorological Products`,
-  HYM: `Monthly Hydrometeorological Product`,
-  ICE: `Ice Forecast`,
-  IDM: `Ice Drift Vectors`,
-  INI: `Administrative Message`,
-  IOB: `Ice Observation`,
-  KPA: `Keep Alive Message`,
-  LAE: `Local Area Emergency`,
-  LCD: `Preliminary Local Climatological Data`,
-  LCO: `Local Cooperative Observation`,
-  LEW: `Law Enforcement Warning`,
-  LFP: `Local Forecast`,
-  LKE: `Lake Stages`,
-  LLS: `Low Level Sounding`,
-  LOW: `Low Temperatures`,
-  LSR: `Local Storm Report`,
-  LTG: `Lightning Data`,
-  MAN: `Rawinsonde Mandatory Levels`,
-  MAP: `Mean Areal Precipitation`,
-  MAW: `Amended Marine Forecast`,
-  MFM: `Marine Forecast Matrix`,
-  MIM: `Marine Interpretation Message`,
-  MIS: `Miscellaneous Local Product`,
-  MOB: `Marine Observations`,
-  MON: `Space Environment Product Monthly`,
-  MRP: `Marine Product Techniques Development`,
-  MSM: `ASOS Monthly Summary Message`,
-  MTR: `METAR Observation`,
-  MTT: `METAR Test Message`,
-  MVF: `Marine Verification Coded Message`,
-  MWS: `Marine Weather Statement`,
-  MWW: `Marine Weather Message`,
-  NOU: `Weather Reconnaissance Flights`,
-  NOW: `Short-Term Forecast`,
-  NOX: `Data Management Message`,
-  NPW: `Non-Precipitation Warning`,
-  NSH: `Nearshore Marine Forecast`,
-  NUW: `Nuclear Power Plant Warning`,
-  NWR: `NOAA Weather Radio Forecast`,
-  OAV: `Other Aviation Products`,
-  OBS: `Observations`,
-  OFA: `Offshore Aviation Forecast`,
-  OFF: `Offshore Forecast`,
-  OMR: `Other Marine Products`,
-  OPU: `Other Public Products`,
-  OSO: `Other Surface Observations`,
-  OSW: `Ocean Surface Winds`,
-  OUA: `Other Upper Air Data`,
-  OZF: `Zone Forecast`,
-  PFM: `Point Forecast Matrices`,
-  PFW: `Fire Weather Point Forecast Matrices`,
-  PLS: `Plain Language Ship Report`,
-  PMD: `Prognostic Meteorological Discussion`,
-  PNS: `Public Information Statement`,
-  POE: `Probability of Exceedance`,
-  PRB: `Heat Index Forecast Tables`,
-  PRC: `Pilot Report Collective`,
-  PRE: `Preliminary Forecasts`,
-  PSH: `Post-Storm Hurricane Report`,
-  PTS: `Probabilistic Outlook Points`,
-  AAG: `Aviation Area Forecast`,
-  PWO: `Public Severe Weather Outlook`,
-  PWS: `Tropical Cyclone Probabilities`,
-  QPF: `Quantitative Precipitation Forecast`,
-  QPS: `Quantitative Precipitation Statement`,
-  RDF: `Revised Digital Forecast`,
-  REC: `Recreational Report`,
-  RER: `Record Report`,
-  RET: `EAS Activation Request`,
-  RFD: `Rangeland Fire Danger Forecast`,
-  RFI: `RFI Observation`,
-  RFR: `Route Forecast`,
-  RFW: `Red Flag Warning`,
-  RHW: `Radiological Hazard Warning`,
-  RMT: `Required Monthly Test`,
-  RNS: `Rain Information Statement`,
-  RR1: `Hydro-Met Data Report Part 1`,
-  RR2: `Hydro-Met Data Report Part 2`,
-  RR3: `Hydro-Met Data Report Part 3`,
-  RR4: `Hydro-Met Data Report Part 4`,
-  RR5: `Hydro-Met Data Report Part 5`,
-  RR6: `Hydro-Met Data Report Part 6`,
-  RR7: `Hydro-Met Data Report Part 7`,
-  RR8: `Hydro-Met Data Report Part 8`,
-  RR9: `Hydro-Met Data Report Part 9`,
-  RRA: `Automated Hydrologic Observation Report`,
-  RRM: `Miscellaneous Hydrologic Data`,
-  RRS: `HADS Data`,
-  RRY: `ASOS Hourly Test Message`,
-  RSD: `Daily SNOTEL Data`,
-  RSM: `Monthly SNOTEL Data`,
-  RTP: `Regional Temperature and Precipitation Table`,
-  RVA: `River Summary`,
-  RVD: `Daily River Forecast`,
-  RVF: `River Forecast`,
-  RVI: `River Ice Statement`,
-  RVM: `Miscellaneous River Product`,
-  RVR: `River Recreation Statement`,
-  RVS: `River Statement`,
-  RWR: `Regional Weather Roundup`,
-  RWS: `Regional Weather Summary`,
-  RWT: `Required Weekly Test`,
-  SAB: `Special Avalanche Bulletin`,
-  SAF: `Agricultural Weather Forecast`,
-  SAG: `Snow Avalanche Guidance`,
-  SAT: `APT Prediction`,
-  SAW: `Preliminary Notice of Watch`,
-  SCC: `Storm Summary`,
-  SCD: `Supplementary Climatological Data`,
-  SCN: `Soil Climate Analysis Network`,
-  SCP: `Satellite Cloud Product`,
-  SCS: `Selected Cities Summary`,
-  SDO: `Supplementary Data Observation`,
-  SDS: `Special Dispersion Statement`,
-  SEL: `Severe Local Storm Watch`,
-  SEV: `SPC Watch Point Information`,
-  SFP: `State Forecast`,
-  SFT: `Tabular State Forecast`,
-  SGL: `Rawinsonde Significant Levels`,
-  SHP: `Surface Ship Report`,
-  SIG: `International SIGMET`,
-  SIM: `Satellite Interpretation Message`,
-  SLS: `Severe Local Storm Outline`,
-  SMF: `Smoke Management Weather Forecast`,
-  SMW: `Special Marine Warning`,
-  SOO: `Science Operations Officer Product`,
-  SPE: `Satellite Precipitation Estimates`,
-  SPF: `Storm Strike Probability Bulletin`,
-  SPS: `Special Weather Statement`,
-  SPW: `Shelter in Place Warning`,
-  SQW: `Snow Squall Warning`,
-  SRD: `Surf Discussion`,
-  SRF: `Surf Forecast`,
-  SRG: `Soaring Guidance`,
-  SSM: `Synoptic Surface Observation`,
-  STA: `Weather Statistical Summary`,
-  STD: `Satellite Tropical Disturbance Summary`,
-  STO: `Road Condition Report`,
-  STP: `State Temperature and Precipitation Table`,
-  STQ: `Spot Forecast Request`,
-  SUM: `Space Weather Message`,
-  SVR: `Severe Thunderstorm Warning`,
-  SVS: `Severe Weather Statement`,
-  SWOMCD: `Mesoscale Discussion`,
-  SWODY1: `Storm Prediction Center Day 1 Outlook`,
-  SWODY2: `Storm Prediction Center Day 2 Outlook`,
-  SWODY3: `Storm Prediction Center Day 3 Outlook`,
-  SWOD48: `Storm Prediction Center Day 4 to 8 Outlook`,
-  SWS: `State Weather Summary`,
-  SYN: `Regional Weather Synopsis`,
-  TAF: `Terminal Aerodrome Forecast`,
-  TAP: `Terminal Alerting Products`,
-  TAV: `Travelers Forecast Table`,
-  TCA: `Tropical Cyclone Advisory`,
-  TCD: `Tropical Cyclone Discussion`,
-  TCE: `Tropical Cyclone Position Estimate`,
-  TCM: `Tropical Cyclone Marine Aviation Advisory`,
-  TCP: `Public Tropical Cyclone Advisory`,
-  TCS: `Satellite Tropical Cyclone Summary`,
-  TCU: `Tropical Cyclone Update`,
-  TCV: `Tropical Cyclone Break Points`,
-  TIB: `Tsunami Bulletin`,
-  TID: `Tide Report`,
-  TMA: `Tsunami Tide Seismic Acknowledgement`,
-  TOE: `Telephone Outage Emergency`,
-  TOR: `Tornado Warning`,
-  TPT: `Temperature Precipitation Table`,
-  TSU: `Tsunami Information Statement`,
-  TUV: `Ultraviolet Index`,
-  TVL: `Travelers Forecast`,
-  TWB: `Transcribed Weather Broadcast`,
-  TWD: `Tropical Weather Discussion`,
-  TWO: `Tropical Weather Outlook`,
-  TWS: `Tropical Weather Summary`,
-  URN: `Aircraft Reconnaissance`,
-  UVI: `Ultraviolet Index`,
-  VAA: `Volcanic Activity Advisory`,
-  VER: `Forecast Verification Statistics`,
-  VFT: `TAF Verification Product`,
-  VOW: `Volcano Warning`,
-  WA0: `AIRMET Pacific`,
-  WA1: `AIRMET Northeast`,
-  WA2: `AIRMET Southeast`,
-  WA3: `AIRMET North Central`,
-  WA4: `AIRMET South Central`,
-  WA5: `AIRMET Rocky Mountains`,
-  WA6: `AIRMET West Coast`,
-  WA7: `AIRMET Juneau, AK`,
-  WA8: `AIRMET Anchorage, AK`,
-  WA9: `AIRMET Fairbanks, AK`,
-  WAR: `Space Environment Warning`,
-  WAT: `Space Environment Watch`,
-  WCN: `Weather Watch Clearance Notification`,
-  WCR: `Weekly Weather and Crop Report`,
-  WDA: `Weekly Data for Agriculture`,
-  WDU: `Warning Decision Update`,
-  WEK: `Space Environment Product Weekly`,
-  WOU: `Watch Outline Update`,
-  WS1: `SIGMET Northeast`,
-  WS2: `SIGMET Southeast`,
-  WS3: `SIGMET North Central`,
-  WS4: `SIGMET South Central`,
-  WS5: `SIGMET Rocky Mountains`,
-  WS6: `SIGMET West Coast`,
-  WST: `Tropical Cyclone SIGMET`,
-  WSV: `Volcanic Activity SIGMET`,
-  WSW: `Winter Weather Warning`,
-  WWA: `Watch Status Report`,
-  WWP: `Watch Probabilities`,
-  ZFP: `Zone Forecast Product`
-};
-
-// src/@modules/@stanza/GetAwipsType.ts
-var GetAwipsType = (options) => {
-  const attributes = options.attributes;
-  if (!attributes.awipsid) {
-    return {
-      type: null,
-      prefix: null,
-      discovered: false
-    };
-  }
-  for (const [prefix, type] of Object.entries(EnumAWIPS)) {
-    if (attributes.awipsid.startsWith(prefix)) {
-      return { type, prefix, discovered: true };
-    }
-  }
-  return { type: options.attributes.awipsid, prefix: options.attributes.awipsid, discovered: false };
-};
-
 // src/@modules/@stanza/ValidateStanza.ts
 var ValidateStanza = (options) => {
   if (options.stanza.is(`message`)) {
@@ -4635,2727 +7585,6 @@ var ValidateStanza = (options) => {
   }
   return { isIgnored: true };
 };
-
-// src/@enums/Matches.ts
-var EnumMatches = {
-  SPS: [
-    { match: /STRONG THUNDERSTORM/i, label: "Convective Special Weather Statement", statement: false },
-    { match: /SPECIAL WEATHER STATEMENT/i, label: "Special Weather Statement", statement: false }
-  ],
-  TSU: [
-    { match: /TSUNAMI WARNING/i, label: "Tsunami Warning", statement: false },
-    { match: /TSUNAMI WATCH/i, label: "Tsunami Watch", statement: false },
-    { match: /TSUNAMI ADVISORY/i, label: "Tsunami Advisory", statement: false },
-    { match: /TSUNAMI INFORMATION STATEMENT/i, label: "Tsunami Information Statement", statement: false },
-    { match: /TSUNAMI WARNING CANCELLATION/i, label: "Tsunami Cancellation", statement: false }
-  ],
-  TCP: [
-    { match: /HURRICANE WARNING/i, label: "Hurricane Warning", statement: false },
-    { match: /HURRICANE WATCH/i, label: "Hurricane Watch", statement: false },
-    { match: /TROPICAL STORM WARNING/i, label: "Tropical Storm Warning", statement: false },
-    { match: /TROPICAL STORM WATCH/i, label: "Tropical Storm Watch", statement: false },
-    { match: /STORM SURGE WARNING/i, label: "Storm Surge Warning", statement: false },
-    { match: /STORM SURGE WATCH/i, label: "Storm Surge Watch", statement: false }
-  ],
-  MWW: [
-    { match: /SMALL CRAFT ADVISORY/i, label: "Small Craft Advisory", statement: false },
-    { match: /GALE WARNING/i, label: "Gale Warning", statement: false },
-    { match: /STORM WARNING/i, label: "Storm Warning", statement: false },
-    { match: /HURRICANE FORCE WIND WARNING/i, label: "Hurricane Force Wind Warning", statement: false },
-    { match: /HAZARDOUS SEAS WARNING/i, label: "Hazardous Seas Warning", statement: false },
-    { match: /DENSE FOG ADVISORY/i, label: "Dense Fog Advisory", statement: false },
-    { match: /THUNDERSTORMS/i, label: "Convective Marine Weather Statement", statement: false },
-    { match: /MARINE WEATHER STATEMENT/i, label: "Marine Weather Statement", statement: false }
-  ],
-  PNS: [
-    { match: /NOAA WEATHER WIRE SERVICE/i, label: "NOAA Weather Wire Service Report", statement: true },
-    { match: /Public Information Statement/i, label: "Public Information Statement", statement: true }
-  ]
-};
-
-// src/@parsers/@text/GetDescriptionFromProduct.ts
-var GetDescriptionFromProduct = (options) => {
-  let message = options.message;
-  const predefinedEndMarkers = ["&&", "LAT..."];
-  const getEndIndex = (text, fromIndex = 0) => {
-    const indices = predefinedEndMarkers.map((marker) => text.indexOf(marker, fromIndex)).filter((idx) => idx !== -1);
-    return indices.length ? Math.min(...indices) : -1;
-  };
-  const dates = Array.from(message.matchAll(EnumExpressions.dateline));
-  if (dates.length) {
-    const lastMatch = dates[dates.length - 1][0];
-    const sIndx = message.lastIndexOf(lastMatch);
-    if (sIndx !== -1) {
-      const endIndx = getEndIndex(message, sIndx);
-      message = message.substring(sIndx + lastMatch.length, endIndx !== -1 ? endIndx : void 0).trimStart();
-      if (message.startsWith("/")) message = message.slice(1).trimStart();
-      if (options.handle && message.includes(options.handle)) {
-        const handleIdx = message.indexOf(options.handle);
-        message = message.substring(handleIdx + options.handle.length).trimStart();
-        if (message.startsWith("/")) message = message.slice(1).trimStart();
-      }
-    }
-  } else if (options.handle) {
-    const handleIndx = message.indexOf(options.handle);
-    if (handleIndx !== -1) {
-      let afterHandle = message.substring(handleIndx + options.handle.length).trimStart();
-      if (afterHandle.startsWith("/")) afterHandle = afterHandle.slice(1).trimStart();
-      const latEnd = getEndIndex(afterHandle);
-      message = latEnd !== -1 ? afterHandle.substring(0, latEnd).trim() : afterHandle.trim();
-    }
-  }
-  return message.trim();
-};
-
-// src/@parsers/@text/GetPolygonFromProduct.ts
-var getPolygonFromProduct = (message) => {
-  const coordinates = [];
-  const match = message.match(
-    /LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i
-  );
-  if (!match) return coordinates;
-  const text = match[1];
-  const values = text.match(/\d{4,8}/g);
-  if (!values) return coordinates;
-  if (values.every((v) => v.length === 8)) {
-    for (const value of values) {
-      const lat = parseInt(value.slice(0, 4), 10) / 100;
-      const lon = -parseInt(value.slice(4, 8), 10) / 100;
-      if (Number.isFinite(lat) && Number.isFinite(lon)) {
-        coordinates.push([lon, lat]);
-      }
-    }
-  } else {
-    for (let i = 0; i + 1 < values.length; i += 2) {
-      const lat = parseInt(values[i], 10) / 100;
-      const lon = -parseInt(values[i + 1], 10) / 100;
-      if (Number.isFinite(lat) && Number.isFinite(lon)) {
-        coordinates.push([lon, lat]);
-      }
-    }
-  }
-  if (coordinates.length > 2) {
-    coordinates.push([...coordinates[0]]);
-  }
-  return coordinates;
-};
-
-// src/@parsers/@text/GetTextFromProduct.ts
-var GetTextFromProduct = (options) => {
-  var _a;
-  const lines = options.message.split(`
-`);
-  for (const line of lines) {
-    const matchedFind = options.find.find((find) => line.includes(find));
-    if (matchedFind) {
-      let result = line.slice(line.indexOf(matchedFind) + matchedFind.length).trim();
-      if (options.removal) {
-        for (const str of options.removal) {
-          result = result.toLowerCase().split(str.toLowerCase()).join("");
-        }
-        result = result.replace(matchedFind, "").replace("<", "").trim();
-      }
-      return result.toUpperCase() + ((_a = options == null ? void 0 : options.append) != null ? _a : ``);
-    }
-  }
-  return null;
-};
-
-// src/@enums/ICAO.ts
-var EnumICAO = {
-  "KLUB": "Lubbock, TX",
-  "KLCH": "Lake Charles, LA",
-  "TSTL": "St. Louis, MO",
-  "PABC": "Bethel, AK",
-  "TCMH": "Columbus, OH",
-  "KEPZ": "El Paso, TX",
-  "KCYS": "Cheyenne, WY",
-  "KJKL": "Jackson, KY",
-  "KWNS": "Storm Prediction Center",
-  "KPAH": "Paducah, KY",
-  "KEMX": "Tucson, AZ",
-  "KMHX": "Morehead City, NC",
-  "PAPD": "Fairbanks, AK",
-  "KDLH": "Duluth, MN",
-  "TADW": "Andrews Air Force Base, MD",
-  "KOKX": "Brookhaven, NY",
-  "KLZK": "Little Rock, AR",
-  "KHGX": "Houston, TX",
-  "TMSY": "New Orleans, LA",
-  "KDGX": "Jackson/Brandon, MS",
-  "KCTP": "Caribou, ME",
-  "KAMA": "Amarillo, TX",
-  "PGUA": "Andersen AFB, GU",
-  "KAPX": "Gaylord, MI",
-  "PAHG": "Kenai, AK",
-  "KLWX": "Sterling, VA",
-  "HWPA2": "Homer, AK",
-  "KGRK": "Fort Hood, TX",
-  "KAKQ": "Wakefield, VA",
-  "ROCO2": "Norman, OK",
-  "KCLX": "Charleston, SC",
-  "TPHX": "Phoenix, AZ",
-  "KNKX": "San Diego, CA",
-  "TDEN": "Denver, CO",
-  "TLAS": "Las Vegas, NV",
-  "KBUF": "Buffalo, NY",
-  "KTLX": "Norman, OK",
-  "KILX": "Lincoln, IL",
-  "KHDC": "Hammond, LA",
-  "KVWX": "Evansville, IN",
-  "TCLT": "Charlotte, NC",
-  "TEWR": "Newark, NJ",
-  "KFSD": "Sioux Falls, SD",
-  "KEAX": "Pleasant Hill, MO",
-  "KICX": "Cedar City, UT",
-  "KHTX": "Huntsville, AL",
-  "PACG": "Sitka, AK",
-  "KSOX": "Santa Ana Mountains, CA",
-  "TPBI": "West Palm Beach, FL",
-  "TSLC": "Salt Lake City, UT",
-  "KGLD": "Goodland, KS",
-  "TRDU": "Raleigh-Durham, NC",
-  "KATX": "Seattle, WA",
-  "TICH": "Wichita, KS",
-  "TSDF": "Louisville, KY",
-  "TBOS": "Boston, MA",
-  "TDCA": "Washington, DC",
-  "KUEX": "Grand Island, NE",
-  "TLKA2": "Talkeetna, AK",
-  "KBGM": "Binghamton, NY",
-  "TLVE": "Cleveland, OH",
-  "KCAE": "Columbia, SC",
-  "KDVN": "Quad Cities, IA",
-  "KABR": "Aberdeen, SD",
-  "KBYX": "Key West, FL",
-  "KMPX": "Minneapolis, MN",
-  "KCRP": "Corpus Christi, TX",
-  "KCBW": "Caribou, ME",
-  "KMRX": "Knoxville, TN",
-  "KSHV": "Shreveport, LA",
-  "KIWA": "Phoenix, AZ",
-  "KRGX": "Reno, NV",
-  "PHKM": "Kamuela, HI",
-  "KABX": "Albuquerque, NM",
-  "KBMX": "Birmingham, AL",
-  "TMDW": "Chicago Midway, IL",
-  "KVAX": "Moody AFB, GA",
-  "KHDX": "Holloman AFB, NM",
-  "KBRO": "Brownsville, TX",
-  "KTWX": "Topeka, KS",
-  "KRTX": "Portland, OR",
-  "KCXX": "Burlington, VT",
-  "KFCX": "Roanoke, VA",
-  "KFFC": "Atlanta, GA",
-  "KBOX": "Boston, MA",
-  "KTLH": "Tallahassee, FL",
-  "KPUX": "Pueblo, CO",
-  "KFDR": "Altus AFB, OK",
-  "KGJX": "Grand Junction, CO",
-  "KDTX": "Detroit, MI",
-  "PHWA": "Waimea, HI",
-  "KMQT": "Marquette, MI",
-  "KSJT": "San Angelo, TX",
-  "KUDX": "Rapid City, SD",
-  "TIAH": "Houston, TX",
-  "KSRX": "Fort Smith, AR",
-  "TJFK": "New York City, NY",
-  "KDDC": "Dodge City, KS",
-  "PAKC": "King Salmon, AK",
-  "PAIH": "Middleton Island, AK",
-  "RODN": "Kadena AB, JA",
-  "TBWI": "Baltimore/Washington, MD",
-  "KIWX": "Northern Indiana, IN",
-  "KFDX": "Cannon AFB, NM",
-  "TMIA": "Miami, FL",
-  "KICT": "Wichita, KS",
-  "TMKE": "Milwaukee, WI",
-  "TFLL": "Fort Lauderdale, FL",
-  "KARX": "La Crosse, WI",
-  "KLRX": "Elko, NV",
-  "KDAX": "Sacramento, CA",
-  "KGRB": "Green Bay, WI",
-  "KLGX": "Langley Hill, WA",
-  "KFTG": "Denver, CO",
-  "KMKX": "Milwaukee, WI",
-  "TTUL": "Tulsa, OK",
-  "TDFW": "Dallas/Fort Worth, TX",
-  "TTPA": "Tampa Bay, FL",
-  "TDAL": "Dallas Love Field, TX",
-  "KDFX": "Laughlin AFB, TX",
-  "KSFX": "Pocatello, ID",
-  "KMTX": "Salt Lake City, UT",
-  "PAEC": "Nome, AK",
-  "RKSG": "Camp Humphreys, KR",
-  "KOAX": "Omaha, NE",
-  "PHMO": "Molokai, HI",
-  "TDTW": "Detroit, MI",
-  "THOU": "Houston, TX",
-  "AWPA2": "Anchorage, AK",
-  "KTYX": "Fort Drum, NY",
-  "KCCX": "State College, PA",
-  "TMSP": "Minneapolis, MN",
-  "KMVX": "Grand Forks, ND",
-  "KBIS": "Bismarck, ND",
-  "KBBX": "Beale AFB, CA",
-  "KVBX": "Vandenberg AFB, CA",
-  "KPOE": "Fort Polk, LA",
-  "KMOB": "Mobile, AL",
-  "KJGX": "Robins AFB, GA",
-  "KMUX": "San Francisco, CA",
-  "TMCI": "Kansas City, MO",
-  "KLSX": "St. Louis, MO",
-  "KMAX": "Medford, OR",
-  "KRAX": "Raleigh/Durham, NC",
-  "KINX": "Tulsa, OK",
-  "RKJK": "Kunsan AB, KR",
-  "KSGF": "Springfield, MO",
-  "TDAY": "Dayton, OH",
-  "KDOX": "Dover AFB, DE",
-  "KGGW": "Glasgow, MT",
-  "KAMX": "Miami, FL",
-  "KENX": "Albany, NY",
-  "KTFX": "Great Falls, MT",
-  "KPBZ": "Pittsburgh, PA",
-  "KMAF": "Midland/Odessa, TX",
-  "KPDT": "Pendleton, OR",
-  "KLNX": "North Platte, NE",
-  "KEOX": "Fort Rucker, AL",
-  "KGSP": "Greer, SC",
-  "KHPX": "Fort Campbell, KY",
-  "KGRR": "Grand Rapids, MI",
-  "KLOT": "Chicago, IL",
-  "TPIT": "Pittsburgh, PA",
-  "KEYX": "Edwards AFB, CA",
-  "TIAD": "Dulles, VA",
-  "KFWS": "Dallas/Fort Worth, TX",
-  "KMLB": "Melbourne, FL",
-  "KMBX": "Minot AFB, ND",
-  "KDMX": "Des Moines, IA",
-  "KEVX": "Eglin AFB, FL",
-  "TBNA": "Nashville, TN",
-  "KDYX": "Dyess AFB, TX",
-  "TOKC": "Oklahoma City, OK",
-  "PHKI": "South Kauai, HI",
-  "TMCO": "Orlando, FL",
-  "KDIX": "Philadelphia, PA",
-  "TORD": "Chicago, IL",
-  "KYUX": "Yuma, AZ",
-  "KVNX": "Vance AFB, OK",
-  "TJUA": "San Juan, PR",
-  "TATL": "Atlanta, GA",
-  "KVTX": "Los Angeles, CA",
-  "KIND": "Indianapolis, IN",
-  "KCBX": "Boise, ID",
-  "KGYX": "Portland, ME",
-  "KMXX": "Maxwell AFB, AL",
-  "TSJU": "San Juan, PR",
-  "KHNX": "San Joaquin Valley, CA",
-  "KLVX": "Louisville, KY",
-  "KMSX": "Missoula, MT",
-  "KJAX": "Jacksonville, FL",
-  "KNQA": "Memphis, TN",
-  "KRIW": "Riverton/Lander, WY",
-  "TCVG": "Covington, KY",
-  "KBLX": "Billings, MT",
-  "TPHL": "Philadelphia, PA",
-  "KRLX": "Charleston, WV",
-  "TMEM": "Memphis, TN",
-  "KCLE": "Cleveland, OH",
-  "KBHX": "Eureka, CA",
-  "KLBB": "Lubbock, TX",
-  "KOTX": "Spokane, WA",
-  "KEWX": "Austin/San Antonio, TX",
-  "KGWX": "Columbus AFB, MS",
-  "KESX": "Las Vegas, NV",
-  "KTBW": "Tampa, FL",
-  "KOHX": "Nashville, TN",
-  "KLTX": "Wilmington, NC",
-  "KFSX": "Flagstaff, AZ",
-  "TIDS": "Indianapolis, IN",
-  "KILN": "Cincinnati, OH",
-  "PAFG": "Fairbanks, AK",
-  "KPQR": "Portland, OR",
-  "KILM": "Wilmington, NC",
-  "KEKA": "Eureka, CA",
-  "KCHS": "Charleston, SC",
-  "KPHI": "Philadelphia/Mt. Holly, NJ",
-  "KUNR": "Rapid City, SD",
-  "KMFL": "Miami, FL",
-  "TJSJ": "San Juan, PR",
-  "KFGF": "Grand Forks, ND",
-  "KSEW": "Seattle, WA",
-  "PAFC": "Anchorage, AK",
-  "KLMK": "Louisville, KY",
-  "PHFO": "Honolulu, HI",
-  "KLIX": "New Orleans/Baton Rouge, LA",
-  "KBOI": "Boise, ID",
-  "KPIH": "Pocatello, ID",
-  "KMTR": "San Francisco/Monterey, CA",
-  "KGJT": "Grand Junction, CO",
-  "PAAQ": "Anchorage, AK",
-  "KABQ": "Albuquerque, NM",
-  "KTAE": "Tallahassee, FL",
-  "KCAR": "Caribou, ME",
-  "KMFR": "Medford, OR",
-  "PGUM": "Guam, GU",
-  "PACR": "Cordova, AK",
-  "PAJK": "Juneau, AK"
-};
-
-// src/@building/GetEventOffice.ts
-var GetEventOffice = (options) => {
-  var _a, _b, _c, _d, _e, _f, _g;
-  const office = options.pVtec != null ? (_b = (_a = options.pVtec) == null ? void 0 : _a.tracking) == null ? void 0 : _b.split(`.`)[0] : (_e = (_c = options.attributes) == null ? void 0 : _c.cccc) != null ? _e : options.organization != null ? Array.isArray(options.organization) ? (_d = options.organization) == null ? void 0 : _d[0] : options.organization : null;
-  const name = (_g = (_f = EnumICAO) == null ? void 0 : _f[office]) != null ? _g : null;
-  return { office, name };
-};
-
-// src/@enums/Tags.ts
-var EnumTags = {
-  SEVERE_WEATHER: [
-    { match: /A Large And Extremely Dangerous Tornado/i, tag: "Large and Dangerous Tornado" },
-    { match: /This Is A Particularly Dangerous Situation/i, tag: "Particularly Dangerous Situation" },
-    { match: /Weather Spotters Confirmed Tornado/i, tag: "Weather Spotters Confirmed Tornado" },
-    { match: /Law Enforcement Confirmed Tornado/i, tag: "Law Enforcement Confirmed Tornado" },
-    { match: /Radar Confirmed/i, tag: "Radar Confirmed" },
-    { match: /Radar Indicated Rotation/i, tag: "Radar Indicated Rotation" },
-    { match: /Radar Indicated(?! Rotation)/i, tag: "Radar Indicated" },
-    { match: /A Tornado Is On The Ground/i, tag: "Tornado On The Ground" },
-    { match: /Tornado Was Reported Briefly On The Ground/i, tag: "Tornado Briefly On Ground" },
-    { match: /Weather Spotters Reported Funnel Cloud/i, tag: "Confirmed Funnel Cloud" },
-    { match: /Spotters Indicate That A Funnel Cloud Continues With This Storm/i, tag: "Funnel Cloud Continues" },
-    { match: /A Severe Thunderstorm Capable Of Producing A Tornado/i, tag: "Tornado Possible" },
-    { match: /A Tornado May Develop At Any Time/i, tag: "Tornado May Develop" },
-    { match: /A Tornado Watch Remains In Effect/i, tag: "Active Tornado Watch" },
-    { match: /Complete Destruction Is Possible/i, tag: "Extremely Damaging Tornado" },
-    { match: /Potentially Deadly Tornado/i, tag: "Deadly Tornado" },
-    { match: /Life-Threatening Situation/i, tag: "Life Threatening Situation" },
-    { match: /Capable Of Producing A Landspout/i, tag: "Landspout Possible" },
-    { match: /Public Confirmed Tornado/i, tag: "Public Confirmed Tornado" },
-    { match: /Expect Wind Damage/i, tag: "Wind Damage" },
-    { match: /Destructive Winds/i, tag: "Destructive Winds" },
-    { match: /Wind Damage With This Storm Will Occur/i, tag: "Immediate Wind Damage Threat" },
-    { match: /Widespread Wind Damage/i, tag: "Widespread Wind Damage" },
-    { match: /Significant Wind Damage/i, tag: "Significant Wind Damage" },
-    { match: /Tornado Like Wind Speeds/i, tag: "Tornado-Like Wind Speeds" },
-    { match: /Winds Will Strengthen/i, tag: "Strengthening Winds" },
-    { match: /Gusty Winds/i, tag: "Gusty Winds" },
-    { match: /Could Knock Down Tree Limbs/i, tag: "Tree Damage Possible" },
-    { match: /Blow Around Unsecured Objects/i, tag: "Loose Object Damage Possible" },
-    { match: /Unsecured lightweight objects blown about/i, tag: "Loose Objects May Blow Around" },
-    { match: /Many large tree limbs broken off/i, tag: "Tree Limb Damage Possible" },
-    { match: /Some fences and roadway signs blown over/i, tag: "Fence and Sign Damage Possible" },
-    { match: /Hazardous driving conditions on bridges/i, tag: "Hazardous Bridge Travel" },
-    { match: /Scattered power and communications outages/i, tag: "Power Outages Possible" },
-    { match: /Hail Damage To Vehicles Is Expected/i, tag: "Vehicle Damaging Hail" },
-    { match: /Extremely Large Hail/i, tag: "Extremely Large Hail" },
-    { match: new RegExp("(?<!Extremely )Large Hail", "i"), tag: "Large Hail" },
-    { match: /Tennis Ball Size Hail/i, tag: "Tennis Ball Size Hail" },
-    { match: /Baseball Size Hail/i, tag: "Baseball Size Hail" },
-    { match: /Golf Ball Size Hail/i, tag: "Golf Ball Size Hail" },
-    { match: /Quarter Size Hail/i, tag: "Quarter Size Hail" },
-    { match: /Ping Pong Ball Size Hail/i, tag: "Ping Pong Ball Size Hail" },
-    { match: /Nickel Size Hail/i, tag: "Nickel Size Hail" },
-    { match: /Hail Driven By Severe Winds/i, tag: "Wind Driven Hail" },
-    { match: /Prepare Immediately For Large Hail/i, tag: "Large Hail" },
-    { match: /Half Inch Hail/i, tag: "Half Inch Hail" },
-    { match: /Frequent Lightning/i, tag: "Frequent Lightning" },
-    { match: /Deadly Cloud To Ground Lightning/i, tag: "Deadly Cloud To Ground Lightning" },
-    { match: /Continuous Cloud To Ground Lightning/i, tag: "Continuous Cloud To Ground Lightning" },
-    { match: /Frequent Cloud To Ground Lightning/i, tag: "Frequent Cloud To Ground Lightning" },
-    { match: /Lightning Can Strike \d+ Miles Away/i, tag: "Lightning Safety Threat" },
-    { match: /Showers and thunderstorms with gusty winds may still occur/i, tag: "Gusty Thunderstorms Possible" }
-  ],
-  FLOOD: [
-    { match: /Flash Flooding Caused By Thunderstorms/i, tag: "Thunderstorm Flash Flooding" },
-    { match: /Flash Flooding Caused By Heavy Rain/i, tag: "Heavy Rain Flash Flooding" },
-    { match: /Torrential Rainfall/i, tag: "Torrential Rainfall" },
-    { match: /May Lead To Flash Flooding/i, tag: "Flash Flooding Possible" },
-    { match: /Minor Flooding Is Occurring/i, tag: "Minor Flooding Occurring" },
-    { match: /Localized Flooding/i, tag: "Localized Flooding Possible" },
-    { match: /Do Not Drive Your Vehicle Through Flooded Roadways/i, tag: "Flooded Roadways" },
-    { match: /No storm surge inundation forecast/i, tag: "No Storm Surge Inundation" },
-    { match: /Localized storm surge possible/i, tag: "Localized Storm Surge Possible" },
-    { match: /Peak Storm Surge Inundation/i, tag: "Storm Surge Inundation Risk" },
-    { match: /Potential for storm surge flooding/i, tag: "Storm Surge Flooding Possible" },
-    { match: /Small streams, creeks, and ditches may become swollen/i, tag: "Small Stream Flooding Risk" },
-    { match: /Rivers and tributaries may quickly rise/i, tag: "Rapid River Rise Possible" },
-    { match: /Flood waters can enter a few structures/i, tag: "Flood Damage Possible" },
-    { match: /Rapid ponding of water occurs/i, tag: "Water Ponding Possible" },
-    { match: /Brief road and bridge closures/i, tag: "Road Closures Possible" }
-  ],
-  WINTER_WEATHER: [
-    { match: /Frostbite And Hypothermia Are Likely/i, tag: "Frostbite and Hypothermia Likely" },
-    { match: /Very Cold Temperatures Can Lead To Hypothermia/i, tag: "Hypothermia Risk" },
-    { match: /Hypothermia If Precautions Are Not Taken/i, tag: "Hypothermia Risk" },
-    { match: /Frostbite And Hypothermia Will Occur If Unprotected Skin/i, tag: "Frostbite Risk" },
-    { match: /Temperatures Could Cause Ruptured Water Pipes/i, tag: "Ruptured Water Pipes Possible" },
-    { match: /Blowing Snow Which Could Reduce Visibility/i, tag: "Reduced Visibility From Blowing Snow" },
-    { match: /Lake Effect Snow Expected/i, tag: "Lake Effect Snow" },
-    { match: /Slick And Icy Spots On Roads/i, tag: "Icy Roads" },
-    { match: /Hazardous Roadways And Black Ice/i, tag: "Black Ice" },
-    { match: /Icy Patches May Be More Common On Bridges/i, tag: "Bridge Icing" }
-  ],
-  COASTAL_MARINE: [
-    { match: /Rip Currents Can Sweep Even The Best Swimmer/i, tag: "Dangerous Rip Currents" },
-    { match: /Small Craft Could Be Damaged/i, tag: "Small Craft Damage Possible" },
-    { match: /No Tsunami Threat/i, tag: "No Tsunami Threat" },
-    { match: /Tsunami Threat Exists/i, tag: "Tsunami Threat Exists" },
-    { match: /TROPICAL STORM WARNING IN EFFECT/i, tag: "Tropical Storm Warning" },
-    { match: /TROPICAL STORM WARNING REMAINS IN EFFECT/i, tag: "Tropical Storm Warning Continues" },
-    { match: /Tropical storm[- ]force winds/i, tag: "Tropical Storm Force Winds" },
-    { match: /hazardous wind/i, tag: "Hazardous Winds" },
-    { match: /hazardous seas/i, tag: "Hazardous Seas" },
-    { match: /could capsize or damage vessels/i, tag: "Vessel Damage Risk" },
-    { match: /reduce visibility/i, tag: "Reduced Visibility" },
-    { match: /Mariners should alter plans/i, tag: "Marine Travel Disruption" },
-    { match: /Remain in port/i, tag: "Remain In Port" },
-    { match: /seek safe harbor/i, tag: "Seek Safe Harbor" },
-    { match: /secure the vessel for severe conditions/i, tag: "Secure Vessel" }
-  ],
-  SAFETY_INFO: [
-    { match: /Seek Shelter Now/i, tag: "Seek Shelter Now" },
-    { match: /Seek Shelter Immediately/i, tag: "Seek Shelter Immediately" },
-    { match: /Move To An Interior Room/i, tag: "Move To Interior Room" },
-    { match: /Move To Safe Shelter Now/i, tag: "Move To Safe Shelter" },
-    { match: /Potentially Deadly Storm/i, tag: "Potentially Deadly Storm" },
-    { match: /Serious Injury And Significant Property Damage/i, tag: "Serious Damage Possible" },
-    { match: /People And Animals Outdoors Will Be Injured/i, tag: "Outdoor Injury Risk" },
-    { match: /IMMINENT DANGEROUS WEATHER CONDITIONS/i, tag: "Imminent Dangerous Weather" },
-    { match: /Follow the instructions of local officials/i, tag: "Follow Local Officials" },
-    { match: /Monitor forecasts/i, tag: "Monitor Forecast Updates" },
-    { match: /Complete preparations.*before conditions become unsafe/i, tag: "Complete Preparations Early" },
-    { match: /Leave immediately if evacuation orders are given/i, tag: "Evacuate If Ordered" },
-    { match: /Heed any flood watches and warnings/i, tag: "Monitor Flood Alerts" },
-    { match: /Listen for changes in the forecast/i, tag: "Stay Weather Aware" },
-    { match: /Travel Could Be Very Difficult/i, tag: "Difficult Travel Conditions" },
-    { match: /Expect Disruptions/i, tag: "Travel Disruptions Expected" },
-    { match: /Trained Weather Spotters/i, tag: "Confirmed By Storm Spotters" },
-    { match: /Doppler Radar/i, tag: "Confirmed By Radar" },
-    { match: /Source\.\.\.Storm Spotters/i, tag: "Confirmed By Storm Spotters" },
-    { match: /Source\.\.\.Doppler Radar/i, tag: "Confirmed By Radar" },
-    { match: /Source\.\.\.Automated Gauges/i, tag: "Confirmed By Automated Gauges" },
-    { match: /Source\.\.\.Radar Confirmed/i, tag: "Confirmed By Radar" },
-    { match: /Source\.\.\.Radar Indicated/i, tag: "Indicated By Radar" },
-    { match: /Source\.\.\.Public/i, tag: "Confirmed By Public" },
-    { match: /Source\.\.\.Amateur Radio/i, tag: "Confirmed By Amateur Radio" },
-    { match: /Source\.\.\.Emergency Management/i, tag: "Confirmed By Emergency Management" },
-    { match: /Source\.\.\.Law Enforcement Reported/i, tag: "Confirmed By Law Enforcement" },
-    { match: /Source\.\.\.Broadcast Media/i, tag: "Confirmed By Broadcast Media" },
-    { match: /Source\.\.\.Media/i, tag: "Confirmed By Media" },
-    { match: /Source\.\.\.Media Reported/i, tag: "Confirmed By Media" },
-    { match: /Doppler Radar And Automated Gauges/i, tag: "Confirmed By Radar and Gauges" },
-    { match: /Potential Impacts:\s*Limited/i, tag: "Limited Impacts Expected" },
-    { match: /Potential Impacts:\s*Little to None/i, tag: "Minimal Impacts Expected" },
-    { match: /Slow Down And Allow Extra Time/i, tag: "Allow Extra Travel Time" },
-    { match: /Should Exercise Caution/i, tag: "Exercise Caution" },
-    { match: /Heat Illnesses/i, tag: "Heat Illness Risk" },
-    { match: /\bIntensifying\b/i, tag: "Intensifying Conditions" }
-  ]
-};
-
-// src/@building/GetEventTags.ts
-var GetEventTags = (message) => {
-  if (!message) return [];
-  return [...new Set(
-    Object.values(EnumTags).flat().filter(({ match }) => match.test(message)).map(({ tag }) => tag)
-  )];
-};
-
-// src/@building/GetEventProperties.ts
-var GetEventProperties = (options) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X;
-  const organization = (_b = (_a = options.message.match(EnumExpressions.wmo)) == null ? void 0 : _a[0]) != null ? _b : null;
-  const polygons = getPolygonFromProduct(options.message);
-  const properties = {
-    locations: (_e = (_d = (_c = options == null ? void 0 : options.ugc) == null ? void 0 : _c.locations) == null ? void 0 : _d.join(`; `)) != null ? _e : null,
-    locations_array: (_g = (_f = options == null ? void 0 : options.ugc) == null ? void 0 : _f.locations) != null ? _g : [],
-    description: GetDescriptionFromProduct({ message: options.message, handle: (_i = (_h = options == null ? void 0 : options.pVtec) == null ? void 0 : _h.vtec) != null ? _i : null }),
-    attributes: options.attributes,
-    geocode: {
-      office: GetEventOffice({ attributes: options.attributes, organization, pVtec: options.pVtec }),
-      organization,
-      ugc: (_k = (_j = options == null ? void 0 : options.ugc) == null ? void 0 : _j.zones) != null ? _k : [],
-      polygon: polygons.length > 0 ? Buffer.from(JSON.stringify([polygons])).toString("base64") : null,
-      polygon_generated: polygons.length > 0 ? true : false
-    },
-    parameters: {
-      tags: GetEventTags(options.message),
-      instructions: (_l = GetTextFromProduct({ message: options.message, find: [`For your protection`, `do not`, `use extreme caution`], append: `...`, removal: [`.`] })) != null ? _l : null,
-      source: (_m = GetTextFromProduct({ message: options.message, find: [`SOURCE...`], removal: [`.`] })) != null ? _m : null,
-      hazards: (_n = GetTextFromProduct({ message: options.message, find: [`HAZARD...`], removal: [`.`] })) != null ? _n : null,
-      impacts: (_o = GetTextFromProduct({ message: options.message, find: [`IMPACT...`], removal: [`.`] })) != null ? _o : null,
-      estimated_hail_size: (_p = GetTextFromProduct({ message: options.message, find: [`MAX HAIL SIZE...`, `HAIL...`], removal: ["in"] })) != null ? _p : null,
-      estimated_wind_gusts: (_q = GetTextFromProduct({ message: options.message, find: [`MAX WIND GUST...`, `WIND...`] })) != null ? _q : null,
-      damage_threat: (_r = GetTextFromProduct({ message: options.message, find: [`DAMAGE THREAT...`], removal: [] })) != null ? _r : null,
-      tornado_threat: (_s = GetTextFromProduct({ message: options.message, find: [`TORNADO...`, `WATERSPOUT...`] })) != null ? _s : null,
-      flood_threat: (_t = GetTextFromProduct({ message: options.message, find: [`FLASH FLOOD...`] })) != null ? _t : null,
-      wind_threat: (_u = GetTextFromProduct({ message: options.message, find: [`WIND THREAT...`] })) != null ? _u : null,
-      hail_threat: (_v = GetTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: [] })) != null ? _v : null
-    },
-    discussion_parameters: {
-      discussion_number: (_y = (_x = (_w = GetTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _w.toString()) == null ? void 0 : _x.padStart(4, "0")) != null ? _y : null,
-      discussion_concerning: (_z = GetTextFromProduct({ message: options.message, find: [`Concerning...`] })) != null ? _z : null,
-      discussion_max_tornado: (_A = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _A : null,
-      discussion_max_hail: (_B = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _B : null,
-      discussion_max_wind: (_C = GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _C : null,
-      discussion_watch_issuance: (_D = GetTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _D : null
-    },
-    watch_parameters: {
-      watch_number: ((_E = options == null ? void 0 : options.pVtec) == null ? void 0 : _E.is_watch) ? (_O = (_N = (_I = (_H = (_G = (_F = GetTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _F.replace(/(WT|WS|)/g, "")) == null ? void 0 : _G.trim()) == null ? void 0 : _H.toString()) == null ? void 0 : _I.padStart(4, "0")) != null ? _N : (_M = (_L = (_K = (_J = options == null ? void 0 : options.pVtec) == null ? void 0 : _J.tracking) == null ? void 0 : _K.slice(-4)) == null ? void 0 : _L.toString()) == null ? void 0 : _M.padStart(4, "0")) != null ? _O : null : null,
-      watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : (options == null ? void 0 : options.message.includes(`SEVERE`)) ? `Severe` : null,
-      additional_tornadoes_probability: (_P = GetTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _P : null,
-      strong_tornadoes_probability: (_Q = GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Q : null,
-      severe_wind_probability: (_R = GetTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _R : null,
-      severe_hail_probability: (_S = GetTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _S : null,
-      hail_2in_probability: (_T = GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _T : null,
-      combined_hail_wind_probability: (_U = GetTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _U : null,
-      max_hail_in: (_V = GetTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _V : null,
-      max_wind_surface: (_W = GetTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _W : null,
-      max_tops_x100feet: (_X = GetTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _X : null,
-      pds_watch: GetTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES` ? true : null
-    }
-  };
-  if (isNaN(Number(properties.watch_parameters.watch_number))) {
-    properties.watch_parameters.watch_number = null;
-  }
-  return properties;
-};
-
-// src/@building/GetEventHeader.ts
-var GetEventHeader = (options) => {
-  var _a, _b, _c;
-  const properties = options.properties;
-  const vtec = (_a = options.vtec) != null ? _a : null;
-  const ugc = properties.geocode.ugc != null ? properties.geocode.ugc.join(`-`) : `0`;
-  return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc}-${(_b = vtec == null ? void 0 : vtec.status) != null ? _b : `Issued`}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[-:]/g, "").split(".")[0]}-${(_c = properties.geocode.office.office) != null ? _c : `KWNS`}`;
-};
-
-// src/@building/GetEventTracking.ts
-var GetEventTracking = (options) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
-  const properties = options.properties;
-  const attributes = options.attributes;
-  const stanza = options.stanza;
-  const vtec = options.vtec;
-  if (options.type === `RAW`) {
-    const getWatchNumber = (_a = properties.watch_parameters.watch_number) != null ? _a : null;
-    if (getWatchNumber) {
-      return `${properties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`;
-    }
-    return `${properties.geocode.office.office}.${attributes.ttaaii}.${(_b = attributes.id.slice(-4).replace(`.`, ``)) != null ? _b : "0"}`;
-  }
-  if (options.type === `VTEC`) {
-    return vtec.tracking;
-  }
-  if (options.type === `API`) {
-    if (options.vtec) {
-      const vtecValue = Array.isArray(options.vtec) ? options.vtec[0].vtec : (_c = options.vtec) == null ? void 0 : _c.vtec;
-      const splitPVTEC = vtecValue.split(".");
-      return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
-    }
-    const wmoMatch = (_e = (_d = options.organization) == null ? void 0 : _d.wmoidentifier) == null ? void 0 : _e.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
-    const station = (_f = wmoMatch == null ? void 0 : wmoMatch[2]) != null ? _f : "---";
-    if (options.organization.featureId) {
-      const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
-      return `${station}.${(_h = (_g = idMatch == null ? void 0 : idMatch[0]) == null ? void 0 : _g.replace(/\./g, "")) != null ? _h : "---"}`;
-    }
-    const id2 = (_i = wmoMatch == null ? void 0 : wmoMatch[1]) != null ? _i : "---";
-    return `${station}.${(_j = id2 == null ? void 0 : id2.replace(/\./g, "")) != null ? _j : "---"}`;
-  }
-};
-
-// src/@modules/@utilities/SetDebug.ts
-var SetDebug = (options) => {
-  var _a, _b;
-  const settings = bootstrap.settings;
-  bootstrap.listener.emit(`debug`, {
-    message: options.message,
-    function: (_a = options.title) != null ? _a : `debug`
-  });
-  if (settings.EnableDebugging) {
-    console.log(`[${bootstrap.ansi_colors.BLUE}${(_b = options.title) != null ? _b : `debug`}${bootstrap.ansi_colors.RESET}] ${options.message}`);
-  }
-};
-
-// src/@events/ParseText.ts
-var ParseText = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e;
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const props = GetEventProperties({ message, attributes });
-    const header = GetEventHeader({ properties: props, getType: stanza.getType });
-    const issued = new Date(attributes.issue);
-    const expires = new Date(issued.getTime() + 12 * 60 * 60 * 1e3);
-    const matches = (_d = EnumMatches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
-    let event = matches == null ? void 0 : matches.label;
-    let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
-    if (!event) {
-      event = stanza.getType.type;
-      if (!stanza.getType.discovered) {
-        event += ` (AWIPSID)`;
-      }
-      isStatement = true;
-    }
-    bootstrap.cache.processed.push({
-      type: `Feature`,
-      geometry: {
-        type: `Point`,
-        coordinates: []
-      },
-      properties: __spreadProps(__spreadValues({
-        event,
-        parent: event,
-        status: isStatement ? `Statement` : `Issued`,
-        issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-        expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
-      }, props), {
-        metadata: {
-          ms: performance.now() - tick,
-          source: `events.text`,
-          tracking: GetEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
-          header,
-          vtec: null,
-          hvtec: null,
-          raw: message,
-          history: [
-            {
-              description: props.description,
-              issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-              status: `Issued`
-            }
-          ]
-        }
-      })
-    });
-    SetDebug({ title: `ParseText`, message: `${Math.round(performance.now() - tick)}ms` });
-  }
-});
-
-// src/@parsers/@ugc/GetUGCHeader.ts
-var getUGCHeader = (message) => {
-  const start = message.search(EnumExpressions.ugc1);
-  const sub = message.substring(start);
-  const end = sub.search(EnumExpressions.ugc2);
-  const fin = sub.substring(0, end).replace(/\s+/g, "").slice(0, -1);
-  return fin != null ? fin : null;
-};
-
-// src/@parsers/@ugc/GetZones.ts
-var getZones = (header) => {
-  const splits = header.split("-");
-  const zones = [];
-  let state = splits[0].substring(0, 2);
-  const format = splits[0].substring(2, 3);
-  for (const part of splits) {
-    if (/^[A-Z]/.test(part)) {
-      state = part.substring(0, 2);
-      if (part.includes(">")) {
-        const [start, end] = part.split(">");
-        const startNum = parseInt(start.substring(3), 10);
-        const endNum = parseInt(end, 10);
-        for (let j2 = startNum; j2 <= endNum; j2++) {
-          zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
-        }
-      } else {
-        zones.push(part);
-      }
-      continue;
-    }
-    if (part.includes(">")) {
-      const [start, end] = part.split(">");
-      const startNum = parseInt(start, 10);
-      const endNum = parseInt(end, 10);
-      for (let j2 = startNum; j2 <= endNum; j2++) {
-        zones.push(`${state}${format}${j2.toString().padStart(3, "0")}`);
-      }
-    } else {
-      zones.push(`${state}${format}${part}`);
-    }
-  }
-  return zones.filter((item) => item !== "");
-};
-
-// src/@parsers/@ugc/GetExpiry.ts
-var GetExpiry = (message) => {
-  const match = message.match(/\b(\d{6})-/);
-  if (!match) {
-    return null;
-  }
-  const date = match == null ? void 0 : match[1];
-  const day = parseInt(date == null ? void 0 : date.slice(0, 2), 10);
-  const hour = parseInt(date == null ? void 0 : date.slice(2, 4), 10);
-  const minute = parseInt(date == null ? void 0 : date.slice(4, 6), 10);
-  const now = /* @__PURE__ */ new Date();
-  const expires = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
-  return expires.toISOString();
-};
-
-// src/@parsers/@ugc/GetCache.ts
-var getCache = (key) => {
-  return bootstrap.cache.ugc.get(key);
-};
-
-// src/@parsers/@ugc/SetCache.ts
-var setCache = (key, value) => {
-  if (bootstrap.cache.ugc.size >= 5e3) {
-    const firstKey = bootstrap.cache.ugc.keys().next().value;
-    bootstrap.cache.ugc.delete(firstKey);
-  }
-  bootstrap.cache.ugc.set(key, value);
-};
-
-// src/@parsers/@ugc/GetLocations.ts
-var getLocations = (zones) => __async(null, null, function* () {
-  const uniqueZones = Array.from(new Set(zones));
-  const results = [];
-  const missing = [];
-  for (let i = 0; i < uniqueZones.length; i++) {
-    const zone = uniqueZones[i];
-    const cached = getCache(zone);
-    if (cached) {
-      for (let j2 = 0; j2 < cached.length; j2++) {
-        results.push(cached[j2]);
-      }
-    } else {
-      missing.push(zone);
-    }
-  }
-  if (missing.length > 0) {
-    const rows = yield bootstrap.database.prepare(
-      `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => "?").join(",")})`
-    ).all(...missing);
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      setCache(r.id, [r.location]);
-      results.push(r.location);
-    }
-  }
-  return results;
-});
-
-// src/@parsers/@ugc/UGCExtract.ts
-var ugcExtract = (message) => __async(null, null, function* () {
-  const head = getUGCHeader(message);
-  const ugcs = getZones(head);
-  const expires = GetExpiry(message);
-  const areas = yield getLocations(ugcs);
-  if (!head || (ugcs == null ? void 0 : ugcs.length) == 0) return;
-  return {
-    zones: ugcs,
-    locations: areas,
-    expires
-  };
-});
-
-// src/@events/ParseUGC.ts
-var ParseUGC = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e;
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const ugc = yield ugcExtract(message);
-    if (ugc != null) {
-      const props = GetEventProperties({ message, attributes, ugc });
-      const issued = new Date(attributes.issue);
-      const expires = new Date(ugc.expires);
-      const header = GetEventHeader({ properties: props, getType: stanza.getType });
-      const matches = (_d = EnumMatches[stanza.getType.prefix]) == null ? void 0 : _d.find((match) => match.match.test(message.toUpperCase()));
-      let event = matches == null ? void 0 : matches.label;
-      let isStatement = (_e = matches == null ? void 0 : matches.statement) != null ? _e : false;
-      if (!event) {
-        event = stanza.getType.type;
-        if (!stanza.getType.discovered) {
-          event += ` (AWIPSID)`;
-        }
-        isStatement = true;
-      }
-      bootstrap.cache.processed.push({
-        type: `Feature`,
-        geometry: {
-          type: `Point`,
-          coordinates: []
-        },
-        properties: __spreadProps(__spreadValues({
-          event,
-          parent: event,
-          status: isStatement ? `Statement` : `Issued`,
-          issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-          expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString()
-        }, props), {
-          metadata: {
-            ms: performance.now() - tick,
-            source: `events.ugc`,
-            tracking: GetEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
-            header,
-            vtec: null,
-            hvtec: null,
-            raw: message,
-            history: [
-              {
-                description: props.description,
-                issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-                status: `Issued`
-              }
-            ]
-          }
-        })
-      });
-      SetDebug({ title: `ParseUGC`, message: `${Math.round(performance.now() - tick)}ms` });
-    }
-  }
-});
-
-// src/@enums/Products.ts
-var EnumProducts = {
-  "O": "Operational Product",
-  "T": "Test Product",
-  "E": "Experimental Product",
-  "X": "Experimental Product (Non-Operational)"
-};
-
-// src/@enums/Events.ts
-var EnumEvents = {
-  "AF": "Ashfall",
-  "AS": "Air Stagnation",
-  "BH": "Beach Hazard",
-  "BW": "Brisk Wind",
-  "BZ": "Blizzard",
-  "CF": "Coastal Flood",
-  "DF": "Debris Flow",
-  "DS": "Dust Storm",
-  "EC": "Extreme Cold",
-  "EH": "Excessive Heat",
-  "XH": "Extreme Heat",
-  "EW": "Extreme Wind",
-  "FA": "Areal Flood",
-  "FF": "Flash Flood",
-  "FG": "Dense Fog",
-  "FL": "Flood",
-  "FR": "Frost",
-  "FW": "Fire Weather",
-  "FZ": "Freeze",
-  "GL": "Gale",
-  "HF": "Hurricane Force Wind",
-  "HT": "Heat",
-  "HU": "Hurricane",
-  "HW": "High Wind",
-  "HY": "Hydrologic",
-  "HZ": "Hard Freeze",
-  "IS": "Ice Storm",
-  "LE": "Lake Effect Snow",
-  "LO": "Low Water",
-  "LS": "Lakeshore Flood",
-  "LW": "Lake Wind",
-  "MA": "Special Marine",
-  "EQ": "Earthquake",
-  "MF": "Dense Fog",
-  "MH": "Ashfall",
-  "MS": "Dense Smoke",
-  "RB": "Small Craft for Rough Bar",
-  "RP": "Rip Current Risk",
-  "SC": "Small Craft",
-  "SE": "Hazardous Seas",
-  "SI": "Small Craft for Winds",
-  "SM": "Dense Smoke",
-  "SQ": "Snow Squall",
-  "SR": "Storm",
-  "SS": "Storm Surge",
-  "SU": "High Surf",
-  "SV": "Severe Thunderstorm",
-  "SW": "Small Craft for Hazardous Seas",
-  "TO": "Tornado",
-  "TR": "Tropical Storm",
-  "TS": "Tsunami",
-  "TY": "Typhoon",
-  "SP": "Special Weather",
-  "UP": "Heavy Freezing Spray",
-  "WC": "Wind Chill",
-  "WI": "Wind",
-  "WS": "Winter Storm",
-  "WW": "Winter Weather",
-  "ZF": "Freezing Fog",
-  "ZR": "Freezing Rain",
-  "ZY": "Freezing Spray"
-};
-
-// src/@enums/Actions.ts
-var EnumActions = {
-  "W": "Warning",
-  "F": "Forecast",
-  "A": "Watch",
-  "O": "Outlook",
-  "Y": "Advisory",
-  "N": "Synopsis",
-  "S": "Statement"
-};
-
-// src/@enums/Status.ts
-var EnumStatus = {
-  "NEW": "Issued",
-  "CON": "Updated",
-  "EXT": "Extended",
-  "EXA": "Extended",
-  "EXB": "Extended",
-  "UPG": "Upgraded",
-  "COR": "Correction",
-  "ROU": "Routine",
-  "CAN": "Cancelled",
-  "EXP": "Expired"
-};
-
-// src/@parsers/@pvtec/GetExpiry.ts
-var GetExpiry2 = (dates) => {
-  if ((dates == null ? void 0 : dates[1]) == `000000T0000Z`) return "Invalid Date Format";
-  const expires = `${(/* @__PURE__ */ new Date()).getFullYear().toString().substring(0, 2)}${dates[1].substring(0, 2)}-${dates[1].substring(2, 4)}-${dates[1].substring(4, 6)}T${dates[1].substring(7, 9)}:${dates[1].substring(9, 11)}:00`;
-  const local = new Date(new Date(expires).getTime() - 4 * 60 * 6e4);
-  const pad = (n) => n.toString().padStart(2, "0");
-  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}:00.000-04:00`;
-};
-
-// src/@parsers/@pvtec/VTECExtract.ts
-var VTECExtract = (message) => {
-  var _a, _b, _c, _d;
-  if (!message) return null;
-  const getVTECs = (_a = message.match(EnumExpressions.pvtec)) != null ? _a : [];
-  const vtecs = [];
-  for (const vtec of getVTECs) {
-    const sub = vtec.split(`.`);
-    if ((sub == null ? void 0 : sub.length) < 7) continue;
-    const dates = (_b = sub[6]) == null ? void 0 : _b.split(`-`);
-    vtecs.push({
-      vtec,
-      product: EnumProducts[sub[0]],
-      tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
-      event: `${EnumEvents[sub[3]]} ${EnumActions[sub[4]]}`,
-      status: EnumStatus[sub[1]],
-      organization: (_d = (_c = message.match(EnumExpressions.wmo)) == null ? void 0 : _c[0]) != null ? _d : null,
-      expires: GetExpiry2(dates),
-      is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
-      prediction_center: sub[2] == `KWNS` ? true : false
-    });
-  }
-  return vtecs.length > 0 ? vtecs : null;
-};
-
-// src/@enums/Causes.ts
-var EnumCauses = {
-  "SM": "Snow Melt",
-  "RS": "Rain/Snow Melt",
-  "ER": "Excessive Rain",
-  "DM": "Dam/Levee Failure",
-  "IJ": "Ice Jam",
-  "GO": "Glacier Lake Outburst",
-  "IC": "Ice",
-  "FS": "Flash Flood / Storm Surge",
-  "FT": "Tidal Effects",
-  "ET": "Elevated Upstream Flow",
-  "MC": "Other Multiple Causes",
-  "WT": "Wind and/or Tidal Effects",
-  "DR": "Reservoir Release",
-  "UU": "Unknown",
-  "OT": "Other Effects"
-};
-
-// src/@enums/Records.ts
-var EnumRecords = {
-  "NO": "No Record Expected",
-  "NR": "Near Record or possible record",
-  "UU": "Unknown history of records",
-  "OO": "Other"
-};
-
-// src/@enums/Severity.ts
-var EnumSeverity = {
-  N: "Not Expected",
-  0: "Areal Flood or FF Product",
-  1: "Minor",
-  2: "Moderate",
-  3: "Major",
-  U: "Unknown"
-};
-
-// src/@parsers/@hvtec/HVExtract.ts
-var HVExtract = (message) => {
-  var _a;
-  const getHVTECs = (_a = message.match(EnumExpressions.hvtec)) != null ? _a : [];
-  const vtecs = [];
-  for (const vtec of getHVTECs) {
-    const sub = vtec.split(`.`);
-    if (sub.length < 7) continue;
-    vtecs.push({
-      hvtec: vtec,
-      severity: EnumSeverity[sub[1]],
-      cause: EnumCauses[sub[2]],
-      record: EnumRecords[sub[6]]
-    });
-  }
-  return vtecs.length > 0 ? vtecs : null;
-};
-
-// src/@events/ParseVTEC.ts
-var ParseVTEC = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e;
-  const getMessages = (_c = (_b = (_a = stanza == null ? void 0 : stanza.message) == null ? void 0 : _a.split(/(?=\$\$)/g)) == null ? void 0 : _b.map((message) => message.trim())) == null ? void 0 : _c.filter((message) => message && message !== "$$");
-  if (!getMessages || (getMessages == null ? void 0 : getMessages.length) == 0) return;
-  for (const message of getMessages) {
-    const tick = performance.now();
-    const attributes = stanza == null ? void 0 : stanza.attributes;
-    const pVtec = VTECExtract(message);
-    const hVtec = HVExtract(message);
-    const ugc = yield ugcExtract(message);
-    if (pVtec != null && ugc != null) {
-      for (const pv of pVtec) {
-        const vtec = pv;
-        const props = GetEventProperties({ message, attributes, ugc, pVtec: vtec });
-        const header = GetEventHeader({ properties: props, getType: stanza.getType, vtec });
-        const issued = (_d = new Date(attributes.issue)) != null ? _d : /* @__PURE__ */ new Date();
-        const expires = new Date(vtec.expires);
-        bootstrap.cache.processed.push({
-          type: `Feature`,
-          geometry: {
-            type: `Point`,
-            coordinates: []
-          },
-          properties: __spreadProps(__spreadValues({
-            event: pv.event,
-            parent: pv.event,
-            status: pv.status,
-            issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-            expires: !isNaN(expires.getTime()) ? expires.toISOString() : (_e = ugc.expires) != null ? _e : new Date(issued.getTime() + 60 * 60 * 1e3).toISOString()
-          }, props), {
-            metadata: {
-              ms: performance.now() - tick,
-              source: `events.vtec`,
-              tracking: GetEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec }),
-              header,
-              vtec: pv,
-              hvtec: hVtec,
-              raw: message,
-              history: [
-                {
-                  description: props.description,
-                  issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
-                  status: pv.status
-                }
-              ]
-            }
-          })
-        });
-        SetDebug({ title: `ParseVTEC`, message: `${Math.round(performance.now() - tick)}ms` });
-      }
-    }
-  }
-});
-
-// src/@events/ParseAPI.ts
-var ParseAPI = (stanza) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na, _Oa, _Pa, _Qa, _Ra, _Sa, _Ta, _Ua, _Va, _Wa, _Xa, _Ya, _Za, __a, _$a, _ab, _bb, _cb, _db, _eb, _fb, _gb, _hb, _ib, _jb, _kb, _lb, _mb, _nb, _ob, _pb, _qb, _rb, _sb, _tb, _ub;
-  const messages = Object.values(JSON.parse(stanza.message).features);
-  for (const feature of messages) {
-    const tick = performance.now();
-    const pVtec = (_d = VTECExtract((_c = (_b = (_a = feature == null ? void 0 : feature.properties) == null ? void 0 : _a.parameters) == null ? void 0 : _b.VTEC) == null ? void 0 : _c[0])) != null ? _d : null;
-    bootstrap.cache.processed.push({
-      type: `Feature`,
-      geometry: {
-        type: `Point`,
-        coordinates: []
-      },
-      properties: {
-        event: (_f = (_e = feature == null ? void 0 : feature.properties) == null ? void 0 : _e.event) != null ? _f : null,
-        parent: (_h = (_g = feature == null ? void 0 : feature.properties) == null ? void 0 : _g.event) != null ? _h : null,
-        status: (_j = (_i = feature == null ? void 0 : feature.properties) == null ? void 0 : _i.messageType) != null ? _j : null,
-        issued: ((_k = feature == null ? void 0 : feature.properties) == null ? void 0 : _k.sent) ? new Date((_l = feature == null ? void 0 : feature.properties) == null ? void 0 : _l.sent).toISOString() : null,
-        expires: ((_m = feature == null ? void 0 : feature.properties) == null ? void 0 : _m.expires) ? new Date((_n = feature == null ? void 0 : feature.properties) == null ? void 0 : _n.expires).toISOString() : null,
-        locations: (_p = (_o = feature == null ? void 0 : feature.properties) == null ? void 0 : _o.areaDesc) != null ? _p : null,
-        locations_array: ((_q = feature == null ? void 0 : feature.properties) == null ? void 0 : _q.areaDesc) ? (_r = feature == null ? void 0 : feature.properties) == null ? void 0 : _r.areaDesc.split(";") : [],
-        description: (_t = (_s = feature == null ? void 0 : feature.properties) == null ? void 0 : _s.description) != null ? _t : null,
-        attributes: (_v = (_u = feature == null ? void 0 : feature.properties) == null ? void 0 : _u.attributes) != null ? _v : {},
-        geocode: {
-          office: {
-            office: pVtec ? (_w = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _w.tracking.split(`.`)[0] : null,
-            name: (_y = EnumICAO[pVtec ? (_x = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _x.tracking.split(`.`)[0] : null]) != null ? _y : null
-          },
-          organization: (_B = (_A = (_z = feature == null ? void 0 : feature.properties) == null ? void 0 : _z.parameters) == null ? void 0 : _A.WMOidentifier) == null ? void 0 : _B[0],
-          ugc: (_E = (_D = (_C = feature == null ? void 0 : feature.properties) == null ? void 0 : _C.geocode) == null ? void 0 : _D.UGC) != null ? _E : [],
-          polygon: ((_F = feature == null ? void 0 : feature.geometry) == null ? void 0 : _F.coordinates.length) > 0 ? Buffer.from(JSON.stringify([(_G = feature == null ? void 0 : feature.geometry) == null ? void 0 : _G.coordinates[0]])).toString("base64") : null,
-          polygon_generated: ((_H = feature == null ? void 0 : feature.geometry) == null ? void 0 : _H.coordinates.length) > 0 ? true : false
-        },
-        parameters: {
-          tags: GetEventTags((_I = feature == null ? void 0 : feature.properties) == null ? void 0 : _I.description),
-          instructions: (_K = (_J = feature == null ? void 0 : feature.properties) == null ? void 0 : _J.instruction) != null ? _K : null,
-          source: (_M = GetTextFromProduct({ message: (_L = feature == null ? void 0 : feature.properties) == null ? void 0 : _L.description, find: [`SOURCE...`], removal: [`.`] })) != null ? _M : null,
-          hazards: (_O = GetTextFromProduct({ message: (_N = feature == null ? void 0 : feature.properties) == null ? void 0 : _N.description, find: [`HAZARD...`], removal: [`.`] })) != null ? _O : null,
-          impacts: (_Q = GetTextFromProduct({ message: (_P = feature == null ? void 0 : feature.properties) == null ? void 0 : _P.description, find: [`IMPACT...`], removal: [`.`] })) != null ? _Q : null,
-          estimated_hail_size: (_U = (_T = (_S = (_R = feature == null ? void 0 : feature.properties) == null ? void 0 : _R.parameters) == null ? void 0 : _S.maxHailSize) == null ? void 0 : _T[0]) != null ? _U : null,
-          estimated_wind_gusts: (_Y = (_X = (_W = (_V = feature == null ? void 0 : feature.properties) == null ? void 0 : _V.parameters) == null ? void 0 : _W.maxWindGust) == null ? void 0 : _X[0]) != null ? _Y : null,
-          damage_threat: (_aa = (_$ = (__ = (_Z = feature == null ? void 0 : feature.properties) == null ? void 0 : _Z.parameters) == null ? void 0 : __.thunderstormDamageThreat) == null ? void 0 : _$[0]) != null ? _aa : null,
-          tornado_threat: (_ea = (_da = (_ca = (_ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _ba.parameters) == null ? void 0 : _ca.tornadoDetection) == null ? void 0 : _da[0]) != null ? _ea : null,
-          flood_threat: (_ia = (_ha = (_ga = (_fa = feature == null ? void 0 : feature.properties) == null ? void 0 : _fa.parameters) == null ? void 0 : _ga.floodDetection) == null ? void 0 : _ha[0]) != null ? _ia : null,
-          wind_threat: (_ma = (_la = (_ka = (_ja = feature == null ? void 0 : feature.properties) == null ? void 0 : _ja.parameters) == null ? void 0 : _ka.windThreat) == null ? void 0 : _la[0]) != null ? _ma : null,
-          hail_threat: (_qa = (_pa = (_oa = (_na = feature == null ? void 0 : feature.properties) == null ? void 0 : _na.parameters) == null ? void 0 : _oa.hailThreat) == null ? void 0 : _pa[0]) != null ? _qa : null
-        },
-        discussion_parameters: {
-          discussion_number: (_ua = (_ta = (_sa = GetTextFromProduct({ message: (_ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _ra.description, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })) == null ? void 0 : _sa.toString()) == null ? void 0 : _ta.padStart(4, "0")) != null ? _ua : null,
-          discussion_concerning: (_wa = GetTextFromProduct({ message: (_va = feature == null ? void 0 : feature.properties) == null ? void 0 : _va.description, find: [`Concerning...`] })) != null ? _wa : null,
-          discussion_max_tornado: (_ya = GetTextFromProduct({ message: (_xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _xa.description, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] })) != null ? _ya : null,
-          discussion_max_hail: (_Aa = GetTextFromProduct({ message: (_za = feature == null ? void 0 : feature.properties) == null ? void 0 : _za.description, find: [`MOST PROBABLE PEAK HAIL SIZE...`] })) != null ? _Aa : null,
-          discussion_max_wind: (_Ca = GetTextFromProduct({ message: (_Ba = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ba.description, find: [`MOST PROBABLE PEAK WIND GUST...`] })) != null ? _Ca : null,
-          discussion_watch_issuance: (_Ea = GetTextFromProduct({ message: (_Da = feature == null ? void 0 : feature.properties) == null ? void 0 : _Da.description, find: [`Probability of Watch Issuance...`], removal: [`percent`] })) != null ? _Ea : null
-        },
-        watch_parameters: {
-          watch_number: ((_Fa = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _Fa.is_watch) && ((_Qa = (_Pa = (_Ka = (_Ja = (_Ia = (_Ha = GetTextFromProduct({ message: (_Ga = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ga.description, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })) == null ? void 0 : _Ha.replace(/(WT|WS|)/g, "")) == null ? void 0 : _Ia.trim()) == null ? void 0 : _Ja.toString()) == null ? void 0 : _Ka.padStart(4, "0")) != null ? _Pa : (_Oa = (_Na = (_Ma = (_La = pVtec == null ? void 0 : pVtec[0]) == null ? void 0 : _La.tracking) == null ? void 0 : _Ma.slice(-4)) == null ? void 0 : _Na.toString()) == null ? void 0 : _Oa.padStart(4, "0")) != null ? _Qa : null),
-          watch_type: ((_Ra = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ra.description.includes(`TORNADO WATCH`)) ? `Tornado` : ((_Sa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Sa.description.includes(`SEVERE`)) ? `Severe` : null,
-          additional_tornadoes_probability: (_Ua = GetTextFromProduct({ message: (_Ta = feature == null ? void 0 : feature.properties) == null ? void 0 : _Ta.description, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Ua : null,
-          strong_tornadoes_probability: (_Wa = GetTextFromProduct({ message: (_Va = feature == null ? void 0 : feature.properties) == null ? void 0 : _Va.description, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] })) != null ? _Wa : null,
-          severe_wind_probability: (_Ya = GetTextFromProduct({ message: (_Xa = feature == null ? void 0 : feature.properties) == null ? void 0 : _Xa.description, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _Ya : null,
-          severe_hail_probability: (__a = GetTextFromProduct({ message: (_Za = feature == null ? void 0 : feature.properties) == null ? void 0 : _Za.description, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] })) != null ? __a : null,
-          hail_2in_probability: (_ab = GetTextFromProduct({ message: (_$a = feature == null ? void 0 : feature.properties) == null ? void 0 : _$a.description, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] })) != null ? _ab : null,
-          combined_hail_wind_probability: (_cb = GetTextFromProduct({ message: (_bb = feature == null ? void 0 : feature.properties) == null ? void 0 : _bb.description, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] })) != null ? _cb : null,
-          max_hail_in: (_eb = GetTextFromProduct({ message: (_db = feature == null ? void 0 : feature.properties) == null ? void 0 : _db.description, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] })) != null ? _eb : null,
-          max_wind_surface: (_gb = GetTextFromProduct({ message: (_fb = feature == null ? void 0 : feature.properties) == null ? void 0 : _fb.description, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] })) != null ? _gb : null,
-          max_tops_x100feet: (_ib = GetTextFromProduct({ message: (_hb = feature == null ? void 0 : feature.properties) == null ? void 0 : _hb.description, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] })) != null ? _ib : null,
-          pds_watch: GetTextFromProduct({ message: (_jb = feature == null ? void 0 : feature.properties) == null ? void 0 : _jb.description, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES`
-        },
-        metadata: {
-          ms: performance.now() - tick,
-          source: `events.api`,
-          tracking: GetEventTracking({ type: `API`, organization: { wmoidentifier: (_mb = (_lb = (_kb = feature == null ? void 0 : feature.properties) == null ? void 0 : _kb.parameters) == null ? void 0 : _lb.WMOidentifier) == null ? void 0 : _mb[0], featureId: feature == null ? void 0 : feature.id }, vtec: pVtec == null ? void 0 : pVtec[0] }),
-          header: `ZCZC-ATMOSX-${(_ob = (_nb = feature == null ? void 0 : feature.properties) == null ? void 0 : _nb.parameters) == null ? void 0 : _ob.WMOidentifier}`,
-          vtec: pVtec == null ? void 0 : pVtec[0],
-          hvtec: null,
-          raw: (_pb = feature == null ? void 0 : feature.properties) == null ? void 0 : _pb.description,
-          history: [
-            {
-              description: (_qb = feature == null ? void 0 : feature.properties) == null ? void 0 : _qb.description,
-              issued: ((_rb = feature == null ? void 0 : feature.properties) == null ? void 0 : _rb.sent) ? new Date((_sb = feature == null ? void 0 : feature.properties) == null ? void 0 : _sb.sent).toISOString() : null,
-              status: (_ub = (_tb = feature == null ? void 0 : feature.properties) == null ? void 0 : _tb.messageType) != null ? _ub : null
-            }
-          ]
-        }
-      }
-    });
-    SetDebug({ title: `ParseAPI`, message: `${Math.round(performance.now() - tick)}ms` });
-  }
-});
-
-// src/@enums/Enhanced.ts
-var EnumEnhanced = {
-  "Tornado Warning": {
-    "Tornado Emergency": { description: "tornado emergency" },
-    "PDS Tornado Warning": { description: "particularly dangerous situation", damage: `CONSIDERABLE` },
-    "Radar Confirmed Tornado Warning": { description: "source...radar confirmed tornado.", tornado: `OBSERVED` },
-    "Confirmed Tornado Warning": { tornado: `OBSERVED` },
-    "Radar Indicated Tornado Warning": {}
-  },
-  "Fire Weather Warning": {
-    "PDS Fire Weather Warning": { description: "particularly dangerous situation" }
-  },
-  "Blizzard Warning": {
-    "PDS Blizzard Warning": { description: "particularly dangerous situation" }
-  },
-  "Ice Storm Warning": {
-    "PDS Ice Storm Warning": { description: "particularly dangerous situation" }
-  },
-  "Special Marine Warning": {
-    "Special Marine Warning (TPROB)": { tornado: `POSSIBLE` }
-  },
-  "Tornado Watch": {
-    "PDS Tornado Watch": { pdswatch: true }
-  },
-  "Severe Thunderstorm Watch": {
-    "PDS Severe Thunderstorm Watch": { pdswatch: true }
-  },
-  "Flash Flood Warning": {
-    "Flash Flood Emergency": { description: "flash flood emergency" },
-    "Considerable Flash Flood Warning": { damage: `CONSIDERABLE` }
-  },
-  "Severe Thunderstorm Warning": {
-    "EDS Severe Thunderstorm Warning (TPROB)": { description: "extremely dangerous situation", tornado: "POSSIBLE" },
-    "EDS Severe Thunderstorm Warning": { description: "extremely dangerous situation" },
-    "Destructive Severe Thunderstorm Warning (TPROB)": { damage: `DESTRUCTIVE`, tornado: `POSSIBLE` },
-    "Destructive Severe Thunderstorm Warning": { damage: `DESTRUCTIVE` },
-    "Considerable Severe Thunderstorm Warning (TPROB)": { damage: `CONSIDERABLE`, tornado: `POSSIBLE` },
-    "Considerable Severe Thunderstorm Warning": { damage: `CONSIDERABLE` },
-    "Severe Thunderstorm Warning (TPROB)": { tornado: `POSSIBLE` }
-  },
-  "Special Weather Statement": {
-    "Convective Special Weather Statement": { description: "strong thunderstorm" }
-  }
-};
-
-// src/@building/GetEventEnhancedName.ts
-var GetEventEnhancedName = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i;
-  let name = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.event;
-  const damage = (_c = (_b = event == null ? void 0 : event.properties) == null ? void 0 : _b.parameters) == null ? void 0 : _c.damage_threat;
-  const tornado = (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.parameters) == null ? void 0 : _e.tornado_threat;
-  const pdswatch = (_g = (_f = event == null ? void 0 : event.properties) == null ? void 0 : _f.watch_parameters) == null ? void 0 : _g.pds_watch;
-  const description = (_i = (_h = event == null ? void 0 : event.properties) == null ? void 0 : _h.description) == null ? void 0 : _i.toLowerCase();
-  for (const [eventKey, eventConfig] of Object.entries(EnumEnhanced)) {
-    if (eventKey !== name) continue;
-    for (const [paramKey, paramValue] of Object.entries(eventConfig)) {
-      let matches = true;
-      if (paramValue == null ? void 0 : paramValue.description) {
-        if (!description.includes(paramValue.description.toLowerCase())) matches = false;
-      }
-      if (paramValue == null ? void 0 : paramValue.damage) {
-        if (paramValue.damage !== damage) matches = false;
-      }
-      if (paramValue == null ? void 0 : paramValue.tornado) {
-        if (paramValue.tornado !== tornado) matches = false;
-      }
-      if (paramValue == null ? void 0 : paramValue.pdswatch) {
-        if (paramValue.pdswatch !== pdswatch) matches = false;
-      }
-      if (matches) {
-        name = paramKey;
-        break;
-      }
-    }
-  }
-  return name;
-};
-
-// src/@enums/Correlations.ts
-var EnumCorrelations = [
-  { type: "Statement", name: "Statement", isCancel: false, isUpdate: false, isIssued: true, isStatement: true },
-  { type: "Update", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
-  { type: "Cancel", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
-  { type: "Alert", name: "Issued", isCancel: false, isUpdate: false, isIssued: true, isStatement: false },
-  { type: "Updated", name: "Updated", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
-  { type: "Expired", name: "Expired", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
-  { type: "Issued", name: "Issued", isCancel: false, isUpdate: false, isIssued: true, isStatement: false },
-  { type: "Extended", name: "Extended", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
-  { type: "Correction", name: "Correction", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
-  { type: "Upgraded", name: "Upgraded", isCancel: false, isUpdate: true, isIssued: false, isStatement: false },
-  { type: "Cancelled", name: "Cancelled", isCancel: true, isUpdate: false, isIssued: false, isStatement: false },
-  { type: "Routine", name: "Routine", isCancel: false, isUpdate: true, isIssued: false, isStatement: false }
-];
-
-// src/@enums/Cancellation.ts
-var EnumCancellation = [
-  "has been cancelled",
-  "subsided sufficiently for the advisory to be cancelled",
-  "has been cancelled",
-  "no tsunami threat from a nearby earthquake",
-  "will be allowed to expire",
-  "has diminished",
-  "and no longer",
-  "has been replaced",
-  "The threat has ended",
-  "has weakened below severe"
-];
-
-// src/@enums/Testing.ts
-var EnumTesting = [
-  `This is a test message`,
-  `Monitoring message only.`,
-  `THIS_MESSAGE_IS_FOR_TEST_PURPOSES_ONLY`,
-  "TEST MESSAGE"
-];
-
-// src/@enums/Hail.ts
-var EnumHail = {
-  "0.25": "Pea",
-  ".25": "Pea",
-  "0.50": "Penny",
-  ".50": "Penny",
-  ".75": "Penny",
-  "Up to .75": "Penny",
-  "0.75": "Penny",
-  ".88": "Nickel",
-  "0.88": "Nickel",
-  "1.00": "Quarter",
-  "1.25": "Half Dollar",
-  "1.50": "Ping Pong Ball",
-  "1.75": "Golf Ball",
-  "2.00": "Hen Egg",
-  "2.50": "Tennis Ball",
-  "2.75": "Baseball",
-  "4.00": "CD/DVD"
-};
-
-// src/@building/GetEventSignature.ts
-var GetEventSignature = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h;
-  const properties = event == null ? void 0 : event.properties;
-  const vtec = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.vtec;
-  const status = EnumCorrelations.find((c) => c.type === (properties == null ? void 0 : properties.status));
-  const csig = EnumCancellation.find((sig) => properties.description.toLowerCase().includes(sig.toLowerCase()));
-  properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_issued: true, is_test: false });
-  if ((_c = properties == null ? void 0 : properties.parameters) == null ? void 0 : _c.estimated_hail_size) {
-    properties.parameters.estimated_hail_size += ` (${(_e = EnumHail[(_d = properties == null ? void 0 : properties.parameters) == null ? void 0 : _d.estimated_hail_size]) != null ? _e : "--"})`;
-  }
-  if (status) {
-    properties.status = (_f = status.name) != null ? _f : properties.status;
-    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_updated: !!status.isUpdate, is_issued: !!status.isIssued, is_expired: !!status.isCancel, is_statement: !!status.isStatement });
-  }
-  if (csig) {
-    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_expired: true });
-  }
-  const getProduct = (_h = (_g = vtec == null ? void 0 : vtec.vtec) == null ? void 0 : _g.split(`.`)[0]) == null ? void 0 : _h.replace(`/`, ``);
-  const isTestProduct = EnumProducts[getProduct] == `Test Product`;
-  if (isTestProduct || EnumTesting.some((sig) => {
-    var _a2, _b2, _c2, _d2;
-    return (_d2 = (_a2 = properties.description) == null ? void 0 : _a2.toLowerCase().includes(sig.toLowerCase())) != null ? _d2 : (_c2 = (_b2 = properties == null ? void 0 : properties.parameters) == null ? void 0 : _b2.instructions) == null ? void 0 : _c2.toLowerCase().includes(sig.toLowerCase());
-  })) {
-    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_test: true });
-  }
-  if (new Date(properties.expires).getTime() < Date.now()) {
-    properties.status_metadata = __spreadProps(__spreadValues({}, properties.status_metadata), { is_expired: true });
-  }
-  properties.status_metadata = __spreadValues({}, properties.status_metadata);
-  return event;
-};
-
-// src/@enums/GlobalFilter.ts
-var EnumGlobalFilter = [
-  "storm prediction center day 1 outlook",
-  "storm prediction center day 2 outlook",
-  "storm prediction center day 3 outlook"
-];
-
-// src/@manager/SetHash.ts
-var SetHash = (event, entry) => {
-  if (!entry) {
-    bootstrap.cache.hashes.push({
-      tracking: event.properties.metadata.tracking,
-      hashes: [event.properties.metadata.hash],
-      expires: event.properties.expires
-    });
-    return;
-  }
-  entry.hashes.push(event.properties.metadata.hash);
-  entry.expires = event.properties.expires;
-};
-
-// src/@modules/@eas/GetWavPCM16.ts
-var GetWavPCM16 = (buffer) => {
-  if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
-    return null;
-  }
-  let fmt = null;
-  let data = null;
-  let i = 12;
-  while (i + 8 <= buffer.length) {
-    const id2 = buffer.toString("ascii", i, i + 4);
-    const size = buffer.readUInt32LE(i + 4);
-    const start = i + 8;
-    const end = start + size;
-    if (id2 === "fmt ") fmt = buffer.slice(start, end);
-    if (id2 === "data") data = buffer.slice(start, end);
-    i = end + size % 2;
-  }
-  if (!fmt || !data) return null;
-  const audioFormat = fmt.readUInt16LE(0);
-  const channels = fmt.readUInt16LE(2);
-  const sampleRate = fmt.readUInt32LE(4);
-  const bitsPerSample = fmt.readUInt16LE(14);
-  if (audioFormat !== 1 || bitsPerSample !== 16 || channels !== 1) {
-    return null;
-  }
-  const samples = new Int16Array(data.buffer, data.byteOffset, data.length / 2);
-  return { samples: new Int16Array(samples), sampleRate, channels, bitsPerSample };
-};
-
-// src/@modules/@eas/GetSampledPCM16.ts
-var GetSampledPCM16 = (int16, originalRate, targetRate) => {
-  if (originalRate === targetRate) return int16;
-  const ratio = targetRate / originalRate;
-  const outLen = Math.max(1, Math.round(int16.length * ratio));
-  const out = new Int16Array(outLen);
-  for (let i = 0; i < outLen; i++) {
-    const pos = i / ratio;
-    const i0 = Math.floor(pos);
-    const i1 = Math.min(i0 + 1, int16.length - 1);
-    const frac = pos - i0;
-    const v = int16[i0] * (1 - frac) + int16[i1] * frac;
-    out[i] = Math.round(v);
-  }
-  return out;
-};
-
-// src/@modules/@eas/GetPCMToFloat.ts
-var GetPCMToFloat = (int16) => {
-  const out = new Float32Array(int16.length);
-  for (let i = 0; i < int16.length; i++) out[i] = int16[i] / 32768;
-  return out;
-};
-
-// src/@modules/@eas/GetFloatPCM16.ts
-var GetFloatPCM16 = (float32) => {
-  const out = new Int16Array(float32.length);
-  for (let i = 0; i < float32.length; i++) {
-    let v = Math.max(-1, Math.min(1, float32[i]));
-    out[i] = Math.round(v * 32767);
-  }
-  return out;
-};
-
-// src/@modules/@eas/SetRadioEffect.ts
-var SetRadioEffect = (int16, sampleRate) => {
-  const hpCut = 3555;
-  const lpCut = 1600;
-  const x = GetPCMToFloat(int16);
-  const dt = 1 / sampleRate;
-  const rcHP = 1 / (2 * Math.PI * hpCut);
-  const aHP = rcHP / (rcHP + dt);
-  let yHP = 0, xPrev = 0;
-  for (let i = 0; i < x.length; i++) {
-    const xi = x[i];
-    yHP = aHP * (yHP + xi - xPrev);
-    xPrev = xi;
-    x[i] = yHP;
-  }
-  const rcLP = 1 / (2 * Math.PI * lpCut);
-  const aLP = dt / (rcLP + dt);
-  let yLP = 0;
-  for (let i = 0; i < x.length; i++) {
-    yLP = yLP + aLP * (x[i] - yLP);
-    x[i] = yLP;
-  }
-  const compGain = 2;
-  const norm = Math.tanh(compGain);
-  for (let i = 0; i < x.length; i++) x[i] = Math.tanh(x[i] * compGain) / norm;
-  return GetFloatPCM16(x);
-};
-
-// src/@modules/@eas/SetAFSK.ts
-var SetAFSK = (bits, sampleRate) => {
-  const baud = 520.83;
-  const markFreq = 2083.3;
-  const spaceFreq = 1562.5;
-  const amplitude = 0.6;
-  const twoPi = Math.PI * 2;
-  const result = [];
-  let phase = 0;
-  let frac = 0;
-  for (let b = 0; b < bits.length; b++) {
-    const bit = bits[b];
-    const freq = bit ? markFreq : spaceFreq;
-    const samplesPerBit = sampleRate / baud + frac;
-    const n = Math.round(samplesPerBit);
-    frac = samplesPerBit - n;
-    const inc = twoPi * freq / sampleRate;
-    for (let i = 0; i < n; i++) {
-      result.push(Math.round(Math.sin(phase) * amplitude * 32767));
-      phase += inc;
-      if (phase > twoPi) phase -= twoPi;
-    }
-  }
-  const fadeSamples = Math.floor(sampleRate * 2e-3);
-  for (let i = 0; i < fadeSamples; i++) {
-    const gain = i / fadeSamples;
-    result[i] = Math.round(result[i] * gain);
-    result[result.length - 1 - i] = Math.round(result[result.length - 1 - i] * gain);
-  }
-  return Int16Array.from(result);
-};
-
-// src/@modules/@eas/SetAsciiToBits.ts
-var SetAsciiToBits = (str) => {
-  const bits = [];
-  for (let i = 0; i < str.length; i++) {
-    const c = str.charCodeAt(i) & 255;
-    bits.push(0);
-    for (let b = 0; b < 8; b++) bits.push(c >> b & 1);
-    bits.push(1, 1);
-  }
-  return bits;
-};
-
-// src/@modules/@eas/GetMergedPCM16.ts
-var GetMergedPCM16 = (arrays) => {
-  let total = 0;
-  for (const a of arrays) total += a.length;
-  const out = new Int16Array(total);
-  let o = 0;
-  for (const a of arrays) {
-    out.set(a, o);
-    o += a.length;
-  }
-  return out;
-};
-
-// src/@modules/@eas/SetSameHeader.ts
-var SetSameHeader = (vtec, repeats, sampleRate = 8e3, options = {}) => {
-  var _a, _b;
-  const preMarkSec = (_a = options.preMarkSec) != null ? _a : 0.3;
-  const gapSec = (_b = options.gapSec) != null ? _b : 0.1;
-  const bursts = [];
-  const gap = new Int16Array(Math.floor(gapSec * sampleRate));
-  for (let i = 0; i < repeats; i++) {
-    const bodyBits = SetAsciiToBits(vtec);
-    const body = SetAFSK(bodyBits, sampleRate);
-    const extendedBodyDuration = Math.round(preMarkSec * sampleRate);
-    const extendedBody = new Int16Array(extendedBodyDuration + gap.length);
-    for (let j2 = 0; j2 < extendedBodyDuration; j2++) {
-      extendedBody[j2] = Math.round(body[j2 % body.length] * 0.2);
-    }
-    extendedBody.set(gap, extendedBodyDuration);
-    bursts.push(extendedBody);
-    if (i !== repeats - 1) bursts.push(gap);
-  }
-  return GetMergedPCM16(bursts);
-};
-
-// src/@modules/@eas/SetAttentionTone.ts
-var SetAttentionTone = (ms, sampleRate) => {
-  const len = Math.floor(ms * sampleRate);
-  const out = new Int16Array(len);
-  const f1 = 853;
-  const f2 = 960;
-  const twoPi = Math.PI * 2;
-  const amp = 0.1;
-  const fadeLen = Math.floor(sampleRate * 0);
-  for (let i = 0; i < len; i++) {
-    const t = i / sampleRate;
-    const s = Math.sin(twoPi * f1 * t) + Math.sin(twoPi * f2 * t);
-    let gain = 1;
-    if (i < fadeLen) gain = i / fadeLen;
-    else if (i > len - fadeLen) gain = (len - i) / fadeLen;
-    const v = Math.max(-1, Math.min(1, s / 2 * amp * gain));
-    out[i] = Math.round(v * 32767);
-  }
-  return out;
-};
-
-// src/@modules/@eas/SetNoise.ts
-var SetNoise = (int16, noiseLevel = 0.02) => {
-  const x = GetPCMToFloat(int16);
-  for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * noiseLevel;
-  let peak = 0;
-  for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
-  if (peak > 1) for (let i = 0; i < x.length; i++) x[i] *= 0.98 / peak;
-  return GetFloatPCM16(x);
-};
-
-// src/@modules/@eas/GetPCM16.ts
-var GetPCM16 = (samples, sampleRate) => {
-  let o = 0;
-  const bytesPerSample = 2;
-  const blockAlign = 1 * bytesPerSample;
-  const byteRate = sampleRate * blockAlign;
-  const subchunk2Size = samples.length * bytesPerSample;
-  const chunkSize = 36 + subchunk2Size;
-  const buffer = Buffer.alloc(44 + subchunk2Size);
-  buffer.write("RIFF", o);
-  o += 4;
-  buffer.writeUInt32LE(chunkSize, o);
-  o += 4;
-  buffer.write("WAVE", o);
-  o += 4;
-  buffer.write("fmt ", o);
-  o += 4;
-  buffer.writeUInt32LE(16, o);
-  o += 4;
-  buffer.writeUInt16LE(1, o);
-  o += 2;
-  buffer.writeUInt16LE(1, o);
-  o += 2;
-  buffer.writeUInt32LE(sampleRate, o);
-  o += 4;
-  buffer.writeUInt32LE(byteRate, o);
-  o += 4;
-  buffer.writeUInt16LE(blockAlign, o);
-  o += 2;
-  buffer.writeUInt16LE(16, o);
-  o += 2;
-  buffer.write("data", o);
-  o += 4;
-  buffer.writeUInt32LE(subchunk2Size, o);
-  o += 4;
-  for (let i = 0; i < samples.length; i++, o += 2) {
-    buffer.writeInt16LE(samples[i].value, o);
-  }
-  return buffer;
-};
-
-// src/@modules/@eas/GetTTS.ts
-import { platform } from "os";
-import { writeFileSync } from "fs";
-import { execSync } from "child_process";
-var GetTTS = (text, outputPath) => __async(null, null, function* () {
-  const vPlatform = platform();
-  switch (vPlatform) {
-    case "win32": {
-      try {
-        const txtPath = outputPath + ".txt";
-        writeFileSync(txtPath, text, "utf8");
-        const command = [
-          "Add-Type -AssemblyName System.Speech;",
-          `$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;`,
-          `$text = Get-Content -Raw -LiteralPath '${txtPath}';`,
-          `$speak.SetOutputToWaveFile('${outputPath}');`,
-          `$speak.Speak($text);`,
-          `$speak.Dispose();`
-        ].join(" ");
-        execSync(`powershell -Command "${command}"`, { stdio: "inherit" });
-      } catch (error) {
-        console.error("Error occurred while generating TTS:", error);
-      }
-      break;
-    }
-    case "linux":
-      try {
-        execSync(`espeak -w "${outputPath}" "${text.replace(/"/g, '\\"')}"`);
-      } catch (e) {
-      }
-      break;
-    default:
-      break;
-  }
-});
-
-// src/@modules/@eas/GetCleanDescription.ts
-var GetCleanDescription = (message) => {
-  const patches = [
-    { regex: /\.{3,}/g, replacement: ". " },
-    { regex: /\bUTC\b/g, replacement: "Coordinated Universal Time" },
-    { regex: /\bGMT\b/g, replacement: "Greenwich Mean Time" },
-    { regex: /\bEST\b(?!\w)/g, replacement: "Eastern Standard Time" },
-    { regex: /\bEDT\b(?!\w)/g, replacement: "Eastern Daylight Time" },
-    { regex: /\bCST\b(?!\w)/g, replacement: "Central Standard Time" },
-    { regex: /\bCDT\b(?!\w)/g, replacement: "Central Daylight Time" },
-    { regex: /\bMST\b(?!\w)/g, replacement: "Mountain Standard Time" },
-    { regex: /\bMDT\b(?!\w)/g, replacement: "Mountain Daylight Time" },
-    { regex: /\bPST\b(?!\w)/g, replacement: "Pacific Standard Time" },
-    { regex: /\bPDT\b(?!\w)/g, replacement: "Pacific Daylight Time" },
-    { regex: /\bAKST\b(?!\w)/g, replacement: "Alaska Standard Time" },
-    { regex: /\bAKDT\b(?!\w)/g, replacement: "Alaska Daylight Time" },
-    { regex: /\bHST\b(?!\w)/g, replacement: "Hawaii Standard Time" },
-    { regex: /\bHDT\b(?!\w)/g, replacement: "Hawaii Daylight Time" },
-    { regex: /\bmph\b(?!\w)/g, replacement: "miles per hour" },
-    { regex: /\bkm\/h\b(?!\w)/g, replacement: "kilometers per hour" },
-    { regex: /\bkmh\b(?!\w)/g, replacement: "kilometers per hour" },
-    { regex: /\bkt\b(?!\w)/g, replacement: "knots" },
-    { regex: /\bNE\b(?!\w)/g, replacement: "northeast" },
-    { regex: /\bNW\b(?!\w)/g, replacement: "northwest" },
-    { regex: /\bSE\b(?!\w)/g, replacement: "southeast" },
-    { regex: /\bSW\b(?!\w)/g, replacement: "southwest" },
-    { regex: /\bNM\b(?!\w)/g, replacement: "nautical miles" },
-    { regex: /\bdeg\b(?!\w)/g, replacement: "degrees" },
-    { regex: /\btstm\b(?!\w)/g, replacement: "thunderstorm" },
-    { regex: /\bmm\b(?!\w)/g, replacement: "millimeters" },
-    { regex: /\bcm\b(?!\w)/g, replacement: "centimeters" },
-    { regex: /\bin.\b(?!\w)/g, replacement: "inches" },
-    { regex: /\bft\b(?!\w)/g, replacement: "feet" },
-    { regex: /\bmi\b(?!\w)/g, replacement: "miles" },
-    { regex: /\bhr\b(?!\w)/g, replacement: "hour" },
-    { regex: /\bhourly\b(?!\w)/g, replacement: "per hour" },
-    { regex: /\bkg\b(?!\w)/g, replacement: "kilograms" },
-    { regex: /\bg\/kg\b(?!\w)/g, replacement: "grams per kilogram" },
-    { regex: /\bmb\b(?!\w)/g, replacement: "millibars" },
-    { regex: /\bhPa\b(?!\w)/g, replacement: "hectopascals" },
-    { regex: /\bPa\b(?!\w)/g, replacement: "pascals" },
-    { regex: /\bKPa\b(?!\w)/g, replacement: "kilopascals" },
-    { regex: /\bC\/hr\b(?!\w)/g, replacement: "degrees Celsius per hour" },
-    { regex: /\bF\/hr\b(?!\w)/g, replacement: "degrees Fahrenheit per hour" },
-    { regex: /\bC\/min\b(?!\w)/g, replacement: "degrees Celsius per minute" },
-    { regex: /\bF\/min\b(?!\w)/g, replacement: "degrees Fahrenheit per minute" },
-    { regex: /\bC\b(?!\w)/g, replacement: "degrees Celsius" },
-    { regex: /\bF\b(?!\w)/g, replacement: "degrees Fahrenheit" }
-  ];
-  const hours = {
-    0: "twelve",
-    1: "one",
-    2: "two",
-    3: "three",
-    4: "four",
-    5: "five",
-    6: "six",
-    7: "seven",
-    8: "eight",
-    9: "nine",
-    10: "ten",
-    11: "eleven",
-    12: "twelve"
-  };
-  const minWord = (m) => m === 0 ? "o'clock" : m < 10 ? `oh ${m}` : `${m}`;
-  const fmt = (h, m, ap) => `${hours[h % 12]} ${minWord(m)} ${ap}`;
-  for (const { regex, replacement } of patches) {
-    message = message.replace(regex, replacement);
-  }
-  return message.replace(/'/g, "''").replace(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(\d{2})\s+(AM|PM)\b/gi, (_, h, m, ap) => fmt(+h, +m, ap.toUpperCase())).replace(/\b(\d{2})(\d{2})\s+(AM|PM)\b/gi, (_, hh, mm, ap) => fmt(+hh, +mm, ap.toUpperCase())).replace(/\b(\d{1,2})\s+(AM|PM)\b/gi, (_, h, ap) => fmt(+h, 0, ap.toUpperCase())).replace(/\*+/g, " ").replace(/-/g, " ").replace(/\n/g, " ").trim();
-};
-
-// src/@modules/@eas/GenerateEASMessage.ts
-import { join } from "path";
-import { existsSync, mkdirSync, readFileSync, writeFileSync as writeFileSync2, unlinkSync } from "fs";
-import { execSync as execSync2 } from "child_process";
-import { platform as platform2 } from "os";
-var GenerateEASMessage = (options) => __async(null, null, function* () {
-  var _a;
-  const tick = performance.now();
-  const settings = bootstrap.settings;
-  const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
-  const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
-  let message = options.message;
-  let header = options.header;
-  let title = ((_a = options.title) != null ? _a : `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, "")}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
-  if (!message || !header) {
-    SetWarning({
-      title: `EAS`,
-      message: `Message and header are required to generate an EAS tone.`
-    });
-    return null;
-  }
-  let buffTTS;
-  let buffRadio;
-  let buffFull = [];
-  if (!existsSync(directory)) {
-    mkdirSync(directory, { recursive: true });
-  }
-  const tmpTTS = join(directory, `/${title}-tts.wav`);
-  const outTTS = join(directory, `/${title}.wav`);
-  const vPlatform = platform2();
-  if (vPlatform === "darwin") {
-    SetWarning({
-      title: `EAS`,
-      message: `EAS tone generation is not supported on macOS.`
-    });
-    return null;
-  }
-  yield new Promise((resolve6, reject) => {
-    const tMsg = GetCleanDescription(message);
-    GetTTS(tMsg, tmpTTS).then(() => {
-      resolve6();
-    });
-  });
-  if (!existsSync(tmpTTS)) {
-    return null;
-  }
-  buffTTS = readFileSync(tmpTTS);
-  const vWav = GetWavPCM16(buffTTS);
-  const vSamples = GetSampledPCM16(vWav.samples, vWav.sampleRate, 8e3);
-  const vRadio = SetRadioEffect(vSamples, 8e3);
-  if (existsSync(prefix)) {
-    let tBuffer = readFileSync(prefix);
-    let tWav = GetWavPCM16(tBuffer);
-    if (tWav == null) {
-      try {
-        const converted = join(directory, `/${title}-tts-fixed.wav`);
-        execSync2(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
-        if (existsSync(converted)) {
-          tBuffer = readFileSync(converted);
-          tWav = GetWavPCM16(tBuffer);
-          try {
-            unlinkSync(converted);
-          } catch (e) {
-          }
-        }
-      } catch (e) {
-      }
-    }
-    if (tWav == null) {
-      SetWarning({ title: `EAS`, message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` });
-      return null;
-    }
-    const tSamples = tWav.sampleRate != 8e3 ? GetSampledPCM16(tWav.samples, tWav.sampleRate, 8e3) : tWav.samples;
-    buffRadio = SetRadioEffect(tSamples, 8e3);
-  }
-  buffFull = buffRadio != null ? [buffRadio, new Int16Array(Math.floor(0.5 * 8e3))] : [];
-  buffFull.push(
-    SetSameHeader(header, 3, 8e3, {
-      preMarkSec: 1.1,
-      gapSec: 0.5
-    }),
-    new Int16Array(Math.floor(0.5 * 8e3)),
-    SetAttentionTone(8, 8e3),
-    new Int16Array(Math.floor(0.5 * 8e3)),
-    vRadio
-  );
-  for (let i = 0; i < 3; i++) {
-    buffFull.push(SetSameHeader(header, 1, 8e3, { preMarkSec: 0.5, gapSec: 0.1 }));
-    buffFull.push(new Int16Array(Math.floor(0.5 * 8e3)));
-  }
-  const aSamples = GetMergedPCM16(buffFull);
-  const aFinal = SetNoise(aSamples, 2e-3);
-  const aBuffer = GetPCM16(Array.from(aFinal).map((v) => ({ value: v })), 8e3);
-  writeFileSync2(outTTS, aBuffer);
-  try {
-    unlinkSync(tmpTTS);
-  } catch (e) {
-  }
-  SetDebug({ title: `GenerateEASMessage`, message: `${Math.round(performance.now() - tick)}ms` });
-  return outTTS;
-});
-
-// src/@parsers/@text/GetEmbededText.ts
-var GetEmebedText = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea, _Fa, _Ga, _Ha, _Ia, _Ja, _Ka, _La, _Ma, _Na;
-  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
-  const isStatement = event.properties.status_metadata.is_statement;
-  const isExpired = event.properties.status_metadata.is_expired;
-  return [
-    line(`**Locations:**`, (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.locations) == null ? void 0 : _b.slice(0, 100)),
-    line(`**Issued:**`, `<t:${Math.floor(new Date(event.properties.issued).getTime() / 1e3)}:R>`, !isExpired),
-    line(`**Expires:**`, `<t:${Math.floor(new Date(event.properties.expires).getTime() / 1e3)}:R>`, !isStatement),
-    line(`**Damage Threat:**`, (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.parameters) == null ? void 0 : _d.damage_threat, !isExpired),
-    line(`**Flood Threat:**`, (_f = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.parameters) == null ? void 0 : _f.flood_threat, !isExpired),
-    line(`**Tornado Threat:**`, (_h = (_g = event == null ? void 0 : event.properties) == null ? void 0 : _g.parameters) == null ? void 0 : _h.tornado_threat, !isExpired),
-    line(`**Estimated Wind Gusts:**`, `${(_j = (_i = event == null ? void 0 : event.properties) == null ? void 0 : _i.parameters) == null ? void 0 : _j.estimated_wind_gusts} ${((_l = (_k = event == null ? void 0 : event.properties) == null ? void 0 : _k.parameters) == null ? void 0 : _l.wind_threat) ? ` (${(_n = (_m = event == null ? void 0 : event.properties) == null ? void 0 : _m.parameters) == null ? void 0 : _n.wind_threat})` : ""}`, !isExpired && ((_p = (_o = event == null ? void 0 : event.properties) == null ? void 0 : _o.parameters) == null ? void 0 : _p.estimated_wind_gusts) != null),
-    line(`**Estimated Hail Size:**`, `${(_r = (_q = event == null ? void 0 : event.properties) == null ? void 0 : _q.parameters) == null ? void 0 : _r.estimated_hail_size} ${((_t = (_s = event == null ? void 0 : event.properties) == null ? void 0 : _s.parameters) == null ? void 0 : _t.hail_threat) ? ` (${(_v = (_u = event == null ? void 0 : event.properties) == null ? void 0 : _u.parameters) == null ? void 0 : _v.hail_threat})` : ""}`, !isExpired && ((_x = (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.parameters) == null ? void 0 : _x.estimated_hail_size) != null),
-    line(`**Discussion:**`, (_z = (_y = event == null ? void 0 : event.properties) == null ? void 0 : _y.discussion_parameters) == null ? void 0 : _z.discussion_number, !isExpired),
-    line(`**Concern:**`, (_B = (_A = event == null ? void 0 : event.properties) == null ? void 0 : _A.discussion_parameters) == null ? void 0 : _B.discussion_concerning, !isExpired),
-    line(`**SPC Max Tornado Threat:**`, (_D = (_C = event == null ? void 0 : event.properties) == null ? void 0 : _C.discussion_parameters) == null ? void 0 : _D.discussion_max_tornado, !isExpired),
-    line(`**SPC Max Hail Threat:**`, (_F = (_E = event == null ? void 0 : event.properties) == null ? void 0 : _E.discussion_parameters) == null ? void 0 : _F.discussion_max_hail, !isExpired),
-    line(`**SPC Max Wind Threat:**`, (_H = (_G = event == null ? void 0 : event.properties) == null ? void 0 : _G.discussion_parameters) == null ? void 0 : _H.discussion_max_wind, !isExpired),
-    line(`**SPC Watch Issuance Probability:**`, ((_J = (_I = event == null ? void 0 : event.properties) == null ? void 0 : _I.discussion_parameters) == null ? void 0 : _J.discussion_watch_issuance) ? `${(_L = (_K = event == null ? void 0 : event.properties) == null ? void 0 : _K.discussion_parameters) == null ? void 0 : _L.discussion_watch_issuance}%` : null, !isExpired),
-    line(`**Watch Number:**`, (_N = (_M = event == null ? void 0 : event.properties) == null ? void 0 : _M.watch_parameters) == null ? void 0 : _N.watch_number, !isExpired),
-    line(`**Strong Tornadoes Probability:**`, ((_P = (_O = event == null ? void 0 : event.properties) == null ? void 0 : _O.watch_parameters) == null ? void 0 : _P.strong_tornadoes_probability) ? `${(_R = (_Q = event == null ? void 0 : event.properties) == null ? void 0 : _Q.watch_parameters) == null ? void 0 : _R.strong_tornadoes_probability}%` : null, !isExpired),
-    line(`**Additional Tornadoes Probability:**`, ((_T = (_S = event == null ? void 0 : event.properties) == null ? void 0 : _S.watch_parameters) == null ? void 0 : _T.additional_tornadoes_probability) ? `${(_V = (_U = event == null ? void 0 : event.properties) == null ? void 0 : _U.watch_parameters) == null ? void 0 : _V.additional_tornadoes_probability}%` : null, !isExpired),
-    line(`**Combined Hail/Wind Probability:**`, ((_X = (_W = event == null ? void 0 : event.properties) == null ? void 0 : _W.watch_parameters) == null ? void 0 : _X.combined_hail_wind_probability) ? `${(_Z = (_Y = event == null ? void 0 : event.properties) == null ? void 0 : _Y.watch_parameters) == null ? void 0 : _Z.combined_hail_wind_probability}%` : null, !isExpired),
-    line(`**Severe Hail Probability:**`, ((_$ = (__ = event == null ? void 0 : event.properties) == null ? void 0 : __.watch_parameters) == null ? void 0 : _$.severe_hail_probability) ? `${(_ba = (_aa = event == null ? void 0 : event.properties) == null ? void 0 : _aa.watch_parameters) == null ? void 0 : _ba.severe_hail_probability}%` : null, !isExpired),
-    line(`**Hail >2in Probability:**`, ((_da = (_ca = event == null ? void 0 : event.properties) == null ? void 0 : _ca.watch_parameters) == null ? void 0 : _da.hail_2in_probability) ? `${(_fa = (_ea = event == null ? void 0 : event.properties) == null ? void 0 : _ea.watch_parameters) == null ? void 0 : _fa.hail_2in_probability}%` : null, !isExpired),
-    line(`**Max Hail Inches:**`, (_ha = (_ga = event == null ? void 0 : event.properties) == null ? void 0 : _ga.watch_parameters) == null ? void 0 : _ha.max_hail_in, !isExpired),
-    line(`**Severe Wind Probability:**`, ((_ja = (_ia = event == null ? void 0 : event.properties) == null ? void 0 : _ia.watch_parameters) == null ? void 0 : _ja.severe_wind_probability) ? `${(_la = (_ka = event == null ? void 0 : event.properties) == null ? void 0 : _ka.watch_parameters) == null ? void 0 : _la.severe_wind_probability}%` : null, !isExpired),
-    line(`**Max Surface Wind:**`, (_na = (_ma = event == null ? void 0 : event.properties) == null ? void 0 : _ma.watch_parameters) == null ? void 0 : _na.max_wind_surface, !isExpired),
-    line(`**Max Tops (x100 feet):**`, (_pa = (_oa = event == null ? void 0 : event.properties) == null ? void 0 : _oa.watch_parameters) == null ? void 0 : _pa.max_tops_x100feet, !isExpired),
-    line(`**Tags:**`, ((_sa = (_ra = (_qa = event == null ? void 0 : event.properties) == null ? void 0 : _qa.parameters) == null ? void 0 : _ra.tags) == null ? void 0 : _sa.length) > 0 ? (_ua = (_ta = event == null ? void 0 : event.properties) == null ? void 0 : _ta.parameters) == null ? void 0 : _ua.tags.join(", ") : null, !isExpired),
-    line(`**Sender:**`, ((_xa = (_wa = (_va = event == null ? void 0 : event.properties) == null ? void 0 : _va.geocode) == null ? void 0 : _wa.office) == null ? void 0 : _xa.name) ? `${(_Aa = (_za = (_ya = event == null ? void 0 : event.properties) == null ? void 0 : _ya.geocode) == null ? void 0 : _za.office) == null ? void 0 : _Aa.name} (${(_Da = (_Ca = (_Ba = event == null ? void 0 : event.properties) == null ? void 0 : _Ba.geocode) == null ? void 0 : _Ca.office) == null ? void 0 : _Da.office})` : (_Ga = (_Fa = (_Ea = event == null ? void 0 : event.properties) == null ? void 0 : _Ea.geocode) == null ? void 0 : _Fa.office) == null ? void 0 : _Ga.office),
-    line(`**Tracking:**`, (_Ia = (_Ha = event == null ? void 0 : event.properties) == null ? void 0 : _Ha.metadata) == null ? void 0 : _Ia.tracking),
-    line(`**Logs:**`, ((_La = (_Ka = (_Ja = event == null ? void 0 : event.properties) == null ? void 0 : _Ja.metadata) == null ? void 0 : _Ka.history) == null ? void 0 : _La.length) > 0 ? (_Na = (_Ma = event == null ? void 0 : event.properties) == null ? void 0 : _Ma.metadata) == null ? void 0 : _Na.history.length : null)
-  ].filter(Boolean).join("\n");
-};
-
-// src/@parsers/@text/GetStringText.ts
-var GetStringText = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P, _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z, __, _$, _aa, _ba, _ca, _da, _ea, _fa, _ga, _ha, _ia, _ja, _ka, _la, _ma, _na, _oa, _pa, _qa, _ra, _sa, _ta, _ua, _va, _wa, _xa, _ya, _za, _Aa, _Ba, _Ca, _Da, _Ea;
-  const settings = bootstrap.settings;
-  const timezone = (_a = settings.NotifyServer.Timezone) != null ? _a : `UTC`;
-  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
-  const isStatement = event.properties.status_metadata.is_statement;
-  const isExpired = event.properties.status_metadata.is_expired;
-  return [
-    line(`Locations:`, (_c = (_b = event == null ? void 0 : event.properties) == null ? void 0 : _b.locations) == null ? void 0 : _c.slice(0, 100)),
-    line(`Issued:`, `${new Date(event.properties.issued).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isExpired),
-    line(`Expires:`, `${new Date(event.properties.expires).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isStatement),
-    line(`Damage Threat:`, (_e = (_d = event == null ? void 0 : event.properties) == null ? void 0 : _d.parameters) == null ? void 0 : _e.damage_threat, !isExpired),
-    line(`Flood Threat:`, (_g = (_f = event == null ? void 0 : event.properties) == null ? void 0 : _f.parameters) == null ? void 0 : _g.flood_threat, !isExpired),
-    line(`Tornado Threat:`, (_i = (_h = event == null ? void 0 : event.properties) == null ? void 0 : _h.parameters) == null ? void 0 : _i.tornado_threat, !isExpired),
-    line(`Estimated Wind Gusts:`, `${(_k = (_j = event == null ? void 0 : event.properties) == null ? void 0 : _j.parameters) == null ? void 0 : _k.estimated_wind_gusts} ${((_m = (_l = event == null ? void 0 : event.properties) == null ? void 0 : _l.parameters) == null ? void 0 : _m.wind_threat) ? ` (${(_o = (_n = event == null ? void 0 : event.properties) == null ? void 0 : _n.parameters) == null ? void 0 : _o.wind_threat})` : ""}`, !isExpired && ((_q = (_p = event == null ? void 0 : event.properties) == null ? void 0 : _p.parameters) == null ? void 0 : _q.estimated_wind_gusts) != null),
-    line(`Estimated Hail Size:`, `${(_s = (_r = event == null ? void 0 : event.properties) == null ? void 0 : _r.parameters) == null ? void 0 : _s.estimated_hail_size} ${((_u = (_t = event == null ? void 0 : event.properties) == null ? void 0 : _t.parameters) == null ? void 0 : _u.hail_threat) ? ` (${(_w = (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.parameters) == null ? void 0 : _w.hail_threat})` : ""}`, !isExpired && ((_y = (_x = event == null ? void 0 : event.properties) == null ? void 0 : _x.parameters) == null ? void 0 : _y.estimated_hail_size) != null),
-    line(`Discussion:`, (_A = (_z = event == null ? void 0 : event.properties) == null ? void 0 : _z.discussion_parameters) == null ? void 0 : _A.discussion_number, !isExpired),
-    line(`Concern:`, (_C = (_B = event == null ? void 0 : event.properties) == null ? void 0 : _B.discussion_parameters) == null ? void 0 : _C.discussion_concerning, !isExpired),
-    line(`SPC Max Tornado Threat:`, (_E = (_D = event == null ? void 0 : event.properties) == null ? void 0 : _D.discussion_parameters) == null ? void 0 : _E.discussion_max_tornado, !isExpired),
-    line(`SPC Max Hail Threat:`, (_G = (_F = event == null ? void 0 : event.properties) == null ? void 0 : _F.discussion_parameters) == null ? void 0 : _G.discussion_max_hail, !isExpired),
-    line(`SPC Max Wind Threat:`, (_I = (_H = event == null ? void 0 : event.properties) == null ? void 0 : _H.discussion_parameters) == null ? void 0 : _I.discussion_max_wind, !isExpired),
-    line(`SPC Watch Issuance Probability:`, ((_K = (_J = event == null ? void 0 : event.properties) == null ? void 0 : _J.discussion_parameters) == null ? void 0 : _K.discussion_watch_issuance) ? `${(_M = (_L = event == null ? void 0 : event.properties) == null ? void 0 : _L.discussion_parameters) == null ? void 0 : _M.discussion_watch_issuance}%` : null, !isExpired),
-    line(`Watch Number:`, (_O = (_N = event == null ? void 0 : event.properties) == null ? void 0 : _N.watch_parameters) == null ? void 0 : _O.watch_number, !isExpired),
-    line(`Strong Tornadoes Probability:`, ((_Q = (_P = event == null ? void 0 : event.properties) == null ? void 0 : _P.watch_parameters) == null ? void 0 : _Q.strong_tornadoes_probability) ? `${(_S = (_R = event == null ? void 0 : event.properties) == null ? void 0 : _R.watch_parameters) == null ? void 0 : _S.strong_tornadoes_probability}%` : null, !isExpired),
-    line(`Additional Tornadoes Probability:`, ((_U = (_T = event == null ? void 0 : event.properties) == null ? void 0 : _T.watch_parameters) == null ? void 0 : _U.additional_tornadoes_probability) ? `${(_W = (_V = event == null ? void 0 : event.properties) == null ? void 0 : _V.watch_parameters) == null ? void 0 : _W.additional_tornadoes_probability}%` : null, !isExpired),
-    line(`Combined Hail/Wind Probability:`, ((_Y = (_X = event == null ? void 0 : event.properties) == null ? void 0 : _X.watch_parameters) == null ? void 0 : _Y.combined_hail_wind_probability) ? `${(__ = (_Z = event == null ? void 0 : event.properties) == null ? void 0 : _Z.watch_parameters) == null ? void 0 : __.combined_hail_wind_probability}%` : null, !isExpired),
-    line(`Severe Hail Probability:`, ((_aa = (_$ = event == null ? void 0 : event.properties) == null ? void 0 : _$.watch_parameters) == null ? void 0 : _aa.severe_hail_probability) ? `${(_ca = (_ba = event == null ? void 0 : event.properties) == null ? void 0 : _ba.watch_parameters) == null ? void 0 : _ca.severe_hail_probability}%` : null, !isExpired),
-    line(`Hail >2in Probability:`, ((_ea = (_da = event == null ? void 0 : event.properties) == null ? void 0 : _da.watch_parameters) == null ? void 0 : _ea.hail_2in_probability) ? `${(_ga = (_fa = event == null ? void 0 : event.properties) == null ? void 0 : _fa.watch_parameters) == null ? void 0 : _ga.hail_2in_probability}%` : null, !isExpired),
-    line(`Max Hail Inches:`, (_ia = (_ha = event == null ? void 0 : event.properties) == null ? void 0 : _ha.watch_parameters) == null ? void 0 : _ia.max_hail_in, !isExpired),
-    line(`Severe Wind Probability:`, ((_ka = (_ja = event == null ? void 0 : event.properties) == null ? void 0 : _ja.watch_parameters) == null ? void 0 : _ka.severe_wind_probability) ? `${(_ma = (_la = event == null ? void 0 : event.properties) == null ? void 0 : _la.watch_parameters) == null ? void 0 : _ma.severe_wind_probability}%` : null, !isExpired),
-    line(`Max Surface Wind:`, (_oa = (_na = event == null ? void 0 : event.properties) == null ? void 0 : _na.watch_parameters) == null ? void 0 : _oa.max_wind_surface, !isExpired),
-    line(`Max Tops (x100 feet):`, (_qa = (_pa = event == null ? void 0 : event.properties) == null ? void 0 : _pa.watch_parameters) == null ? void 0 : _qa.max_tops_x100feet, !isExpired),
-    line(`Sender:`, ((_ta = (_sa = (_ra = event == null ? void 0 : event.properties) == null ? void 0 : _ra.geocode) == null ? void 0 : _sa.office) == null ? void 0 : _ta.name) ? `${(_wa = (_va = (_ua = event == null ? void 0 : event.properties) == null ? void 0 : _ua.geocode) == null ? void 0 : _va.office) == null ? void 0 : _wa.name} (${(_za = (_ya = (_xa = event == null ? void 0 : event.properties) == null ? void 0 : _xa.geocode) == null ? void 0 : _ya.office) == null ? void 0 : _za.office})` : (_Ca = (_Ba = (_Aa = event == null ? void 0 : event.properties) == null ? void 0 : _Aa.geocode) == null ? void 0 : _Ba.office) == null ? void 0 : _Ca.office),
-    line(`Tracking:`, (_Ea = (_Da = event == null ? void 0 : event.properties) == null ? void 0 : _Da.metadata) == null ? void 0 : _Ea.tracking)
-  ].filter(Boolean).join("\n");
-};
-
-// src/@modules/@utilities/CreateHttp.ts
-var CreateHttp = (options) => __async(null, null, function* () {
-  var _a, _b, _c, _d;
-  const requestOptions = {
-    method: (_a = options.method) != null ? _a : "GET",
-    headers: (_b = options.headers) != null ? _b : {
-      "User-Agent": "AtmosphericX",
-      "Accept": "application/geo+json, text/plain, */*; q=0.9",
-      "Accept-Language": "en-US,en;q=0.9"
-    },
-    signal: AbortSignal.timeout((_c = options.timeout) != null ? _c : 1e4),
-    redirect: "follow"
-  };
-  const returnHttp = function(error, status, message) {
-    return { error, options: requestOptions, status, message };
-  };
-  if (options == null ? void 0 : options.auth) {
-    const authString = `${options.auth.username}:${options.auth.password}`;
-    const encodedAuth = Buffer.from(authString).toString("base64");
-    requestOptions.headers = __spreadProps(__spreadValues({}, requestOptions.headers), {
-      "Authorization": `Basic ${encodedAuth}`
-    });
-  }
-  if (options == null ? void 0 : options.formData) {
-    requestOptions.body = options.formData;
-  } else if ((options == null ? void 0 : options.body) != void 0) {
-    requestOptions.body = options.body instanceof FormData ? options.body : typeof options.body === "string" ? options.body : JSON.stringify(options.body);
-  }
-  try {
-    const response2 = yield fetch(
-      (_d = options == null ? void 0 : options.url) != null ? _d : `https://api.weather.gov/alerts/active`,
-      requestOptions
-    );
-    const body = yield response2.text();
-    if (!response2.ok) {
-      return returnHttp(true, response2.status, `HTTP Status Code ${response2.status} (${response2.statusText})`);
-    }
-    return returnHttp(false, response2.status, body);
-  } catch (error) {
-    return returnHttp(true, 500, `Internal Server Error: ${error}`);
-  }
-});
-
-// src/@modules/@utilities/GetMatched.ts
-var GetMatched = (strings, string) => {
-  const isMatched = strings.some((pattern) => {
-    if (!pattern) return false;
-    const lowerP = pattern.toLowerCase();
-    const lowerS = string.toLowerCase();
-    if (lowerP === "*" || lowerP === lowerS) return true;
-    if (lowerP.includes("*")) {
-      const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
-      return new RegExp(regex).test(lowerS);
-    }
-    return false;
-  });
-  return isMatched;
-};
-
-// src/@manager/Tasks.ts
-import { mkdir, writeFile, readFile, appendFile } from "fs/promises";
-var Tasks = (events) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t;
-  const tick = performance.now();
-  const settings = bootstrap.settings;
-  const notifyServer = settings.NotifyServer;
-  const actions = settings.ActionSettings;
-  for (const event of events) {
-    const properties = event.properties;
-    const hasActions = Array.isArray(actions) && actions.length > 0;
-    if (!hasActions) {
-      SetDebug({ title: `Tasks`, message: `${Math.round(performance.now() - tick)}ms` });
-      return;
-    }
-    const metadata = {
-      text: null,
-      eas: null,
-      json: null,
-      name: properties.event,
-      status: properties.status,
-      description: properties.description,
-      tracking: properties.metadata.tracking,
-      header: properties.metadata.header,
-      raw: properties.metadata.raw,
-      expired: properties.status_metadata.is_expired,
-      attachments: properties.metadata.attachments
-    };
-    const archiveSettings = (_a = settings.GlobalSettings) == null ? void 0 : _a.ArchiveSettings;
-    const textArchiveDir = archiveSettings == null ? void 0 : archiveSettings.TextDirectory;
-    const jsonArchiveDir = archiveSettings == null ? void 0 : archiveSettings.JSONDirectory;
-    const eventBaseName = `${metadata.name}_${metadata.tracking}`;
-    const easTitle = `${metadata.name}_${metadata.status}_${metadata.tracking}`;
-    const cleanedEventText = JSON.stringify(GetCleanedEvent(event), null, 2);
-    const stringText = GetStringText(event);
-    const embedText = GetEmebedText(event);
-    for (const action of actions) {
-      const events2 = action == null ? void 0 : action.Events;
-      const webhook = action == null ? void 0 : action.Webhook;
-      const notify = action == null ? void 0 : action.NotificationServer;
-      const uploads = action == null ? void 0 : action.Uploads;
-      const isMatched = GetMatched(events2 != null ? events2 : [], metadata.name);
-      if ((events2 == null ? void 0 : events2.length) == 0 || isMatched) {
-        const t = performance.now();
-        if ((uploads == null ? void 0 : uploads.EAS) && !metadata.eas) {
-          metadata.eas = yield GenerateEASMessage({
-            title: easTitle,
-            message: metadata.description,
-            header: metadata.header
-          });
-          SetDebug({
-            title: "Tasks/EAS",
-            message: `${Math.round(performance.now() - t)}ms`
-          });
-        }
-        if ((uploads == null ? void 0 : uploads.TEXT) && metadata.text === null) {
-          const t2 = performance.now();
-          if (textArchiveDir) {
-            const file = `${textArchiveDir}/${eventBaseName}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
-            yield mkdir(textArchiveDir, { recursive: true });
-            yield appendFile(file, `${metadata.raw}${"\n".repeat(5)}`);
-            SetDebug({
-              title: "Tasks/TEXT",
-              message: `${Math.round(performance.now() - t2)}ms`
-            });
-          }
-          metadata.text = metadata.raw;
-        }
-        if ((uploads == null ? void 0 : uploads.JSON) && metadata.json === null) {
-          const t2 = performance.now();
-          if (jsonArchiveDir) {
-            const file = `${jsonArchiveDir}/${eventBaseName}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
-            yield mkdir(jsonArchiveDir, { recursive: true });
-            yield writeFile(file, cleanedEventText);
-            SetDebug({
-              title: "Tasks/JSON",
-              message: `${Math.round(performance.now() - t2)}ms`
-            });
-          }
-          metadata.json = cleanedEventText;
-        }
-        if ((notifyServer == null ? void 0 : notifyServer.Enabled) && (notify == null ? void 0 : notify.Enabled) && (notify == null ? void 0 : notify.Topic)) {
-          let buttons = [];
-          const t2 = performance.now();
-          const auth = ((_b = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _b.Username) && ((_c = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _c.Password) ? { username: (_d = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _d.Username, password: (_e = notifyServer == null ? void 0 : notifyServer.Credentials) == null ? void 0 : _e.Password } : void 0;
-          const image = (_f = metadata.attachments) == null ? void 0 : _f.find((a) => a.name === "Image: Graphic");
-          if ((_g = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _g.EAS) {
-            if (metadata.eas) {
-              buttons.push({
-                "action": "view",
-                "label": "Listen",
-                "url": `${(_h = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _h.EAS}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
-              });
-            }
-          }
-          if (metadata.json) {
-            buttons.push({
-              "action": "view",
-              "label": "View JSON",
-              "url": `${(_i = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _i.JSON}/${metadata.name}_${metadata.tracking}.json`
-            });
-          }
-          if (metadata.text) {
-            buttons.push({
-              "action": "view",
-              "label": "View Text",
-              "url": `${(_j = notifyServer == null ? void 0 : notifyServer.MediaStorage) == null ? void 0 : _j.TEXT}/${metadata.name}_${metadata.tracking}.txt`
-            });
-          }
-          if (image) {
-            buttons.push({
-              "action": "view",
-              "label": "View Image",
-              "url": image.link
-            });
-          }
-          yield CreateHttp(__spreadProps(__spreadValues({
-            url: `${(_k = notifyServer == null ? void 0 : notifyServer.Server) == null ? void 0 : _k.replace(/\/$/, "")}/${notify.Topic}`,
-            timeout: 15e3,
-            method: "PUT"
-          }, auth && { auth }), {
-            headers: __spreadValues({
-              "Title": `${metadata.name} (${metadata.status})`,
-              "Tags": (_m = (_l = properties.parameters.tags) == null ? void 0 : _l.join(",")) != null ? _m : "N/A",
-              "Priority": (_n = notify == null ? void 0 : notify.Priority) != null ? _n : "5"
-            }, buttons.length > 0 && { "Actions": JSON.stringify(buttons) }),
-            body: stringText
-          }));
-          SetDebug({
-            title: "Tasks/NTFY",
-            message: `${Math.round(performance.now() - t2)}ms`
-          });
-        }
-        if ((webhook == null ? void 0 : webhook.Enabled) && (webhook == null ? void 0 : webhook.Destination)) {
-          const t2 = performance.now();
-          const isRatelimited = SetTimeoutAction({ identifier: webhook.Destination, interval: ((_o = webhook.Ratelimit) != null ? _o : 2) * 2, max: (_p = webhook.Ratelimit) != null ? _p : 2, addTime: true });
-          const form = new FormData();
-          const embed = {
-            title: `${metadata.name} (${metadata.status})`,
-            description: embedText,
-            fields: [],
-            color: 16711680,
-            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-            footer: { text: (_q = webhook.Title) != null ? _q : `AtmosphericX` }
-          };
-          if (isRatelimited.limited) {
-            return;
-          }
-          if (metadata.description && !metadata.expired) {
-            const description = metadata.description.length > 900 ? metadata.description.substring(0, 900) + "\n\n[Message truncated due to length]" : metadata.description;
-            embed.fields.push({
-              name: "Description",
-              value: description ? "```\n" + description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
-            });
-          }
-          if (((_r = metadata.attachments) == null ? void 0 : _r.length) > 0) {
-            const attachments = metadata.attachments.slice(0, 5);
-            embed.fields.push({
-              name: "Attachments",
-              value: attachments.map((attachment) => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + "..." : attachment.name}](${attachment.link})`).join("\n")
-            });
-          }
-          if (uploads == null ? void 0 : uploads.TEXT) {
-            form.append("fUpload", new Blob([Buffer.from(metadata.text)], { type: "application/text" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`);
-          }
-          if (uploads == null ? void 0 : uploads.JSON) {
-            form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
-          }
-          if (uploads == null ? void 0 : uploads.EAS) {
-            if (metadata.eas) {
-              const file = yield readFile(metadata.eas);
-              form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`);
-            }
-          }
-          form.append("payload_json", JSON.stringify({
-            username: (_s = webhook.Title) != null ? _s : "AtmosphericX",
-            content: (_t = webhook.Message) != null ? _t : "",
-            embeds: [embed]
-          }));
-          yield CreateHttp({
-            url: webhook.Destination,
-            timeout: 15e3,
-            method: `POST`,
-            body: form
-          });
-          SetDebug({
-            title: "Tasks/Webhook",
-            message: `${Math.round(performance.now() - t2)}ms`
-          });
-        }
-      }
-    }
-  }
-  SetDebug({ title: `Tasks`, message: `${Math.round(performance.now() - tick)}ms` });
-});
-
-// src/@modules/@utilities/GetShapeNearestPoint.ts
-var GetShapeNearestPoint = (coordinates, point) => {
-  if (!coordinates || !point) {
-    return { proximity: false, point: [0, 0], distance: null };
-  }
-  const normalize = (coords) => {
-    if (!Array.isArray(coords)) return [];
-    if (typeof coords[0] === "number" && typeof coords[1] === "number") return [];
-    if (Array.isArray(coords[0]) && typeof coords[0][0] === "number") {
-      return [[coords]];
-    }
-    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && typeof coords[0][0][0] === "number") {
-      return [coords];
-    }
-    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && Array.isArray(coords[0][0][0]) && typeof coords[0][0][0][0] === "number") {
-      return coords;
-    }
-    return [];
-  };
-  const polys = normalize(coordinates);
-  if (polys.length === 0) return { proximity: false, point: [0, 0], distance: null };
-  const lon = point[0];
-  const lat = point[1];
-  const pointInRing = (pt, ring) => {
-    let x = pt[0], y = pt[1];
-    let inside = false;
-    for (let i = 0, j2 = ring.length - 1; i < ring.length; j2 = i++) {
-      const xi = ring[i][0], yi = ring[i][1];
-      const xj = ring[j2][0], yj = ring[j2][1];
-      const intersect = yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi + 0) + xi;
-      if (intersect) inside = !inside;
-    }
-    return inside;
-  };
-  const toRadians = (deg) => deg * Math.PI / 180;
-  const haversineMiles = (a, b) => {
-    const R = 3958.8;
-    const dLat = toRadians(b[1] - a[1]);
-    const dLon = toRadians(b[0] - a[0]);
-    const lat1 = toRadians(a[1]);
-    const lat2 = toRadians(b[1]);
-    const sinDLat = Math.sin(dLat / 2);
-    const sinDLon = Math.sin(dLon / 2);
-    const c = 2 * Math.asin(Math.sqrt(sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon));
-    return R * c;
-  };
-  let minDistance = Infinity;
-  let closestPoint = null;
-  for (const poly of polys) {
-    const outer = poly[0];
-    const holes = poly.slice(1);
-    if (pointInRing(point, outer)) {
-      let inHole = false;
-      for (const hole of holes) {
-        if (pointInRing(point, hole)) {
-          inHole = true;
-          break;
-        }
-      }
-      if (!inHole) {
-        return { proximity: true, point, distance: 0 };
-      }
-    }
-    for (const ring of poly) {
-      for (let i = 0; i < ring.length - 1; i++) {
-        const start = [ring[i][0], ring[i][1]];
-        const end = [ring[i + 1][0], ring[i + 1][1]];
-        const A = lon - start[0];
-        const B = lat - start[1];
-        const C = end[0] - start[0];
-        const D = end[1] - start[1];
-        const lenSq = C * C + D * D;
-        const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, (A * C + B * D) / lenSq));
-        const candidate = [start[0] + t * C, start[1] + t * D];
-        const dist = haversineMiles([lon, lat], candidate);
-        if (!isNaN(dist) && dist < minDistance) {
-          minDistance = Number(dist.toFixed(3));
-          closestPoint = candidate;
-        }
-      }
-    }
-  }
-  if (!isFinite(minDistance) || closestPoint == null) {
-    return { proximity: false, point: [0, 0], distance: null };
-  }
-  const distanceMiles = minDistance;
-  const distanceKm = Number((distanceMiles * 1.609344).toFixed(3));
-  const distanceMeters = Math.round(distanceKm * 1e3);
-  return { proximity: distanceMiles === 0, point: closestPoint, distance: distanceMiles, distanceKm, distanceMeters };
-};
-
-// src/@building/GetEventNodes.ts
-var GetEventNodes = (event) => __async(null, null, function* () {
-  var _a, _b;
-  const nodes = bootstrap.cache.nodes.features;
-  if (!nodes || nodes.length === 0) {
-    return { nodes: [], filtered: true, updated: Date.now() };
-  }
-  const metadata = { nodes: [], proximity: false, filtered: false };
-  const geometry = yield GetEventGeometry(event);
-  if (!geometry || !geometry.coordinates) {
-    return { nodes: [], filtered: false, updated: Date.now() };
-  }
-  for (const node of nodes) {
-    const [longitude, latitude] = node.geometry.coordinates;
-    const getPoint = GetShapeNearestPoint(geometry.coordinates, [longitude, latitude]);
-    const miles = (_a = getPoint.distance) != null ? _a : null;
-    const kilometers = Number((miles * 1.609344).toFixed(3));
-    const info = {
-      id: (_b = node.properties) == null ? void 0 : _b.identifier,
-      coordinates: [longitude, latitude],
-      nearest: getPoint.point,
-      miles,
-      kilometers,
-      proximity: false
-    };
-    metadata.nodes.push(info);
-    if (miles != null && bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMaxDistance) {
-      metadata.proximity = true;
-      info.proximity = true;
-    }
-  }
-  return {
-    nodes: metadata.nodes,
-    filtered: metadata.proximity,
-    updated: Date.now()
-  };
-});
-
-// src/@manager/UpdateNode.ts
-var UpdateNode = (selectedEvent) => __async(null, null, function* () {
-  const events = bootstrap.cache.events.features;
-  const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
-  let total = 0;
-  const TTLEvents = selectedEvent ? [selectedEvent] : events.filter((evt) => {
-    var _a, _b, _c;
-    const lastUpdate = (_c = (_b = (_a = evt == null ? void 0 : evt.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.updated) != null ? _c : null;
-    return lastUpdate == null || Date.now() - lastUpdate >= ttl;
-  });
-  if (TTLEvents.length === 0) return;
-  function update(evt) {
-    return __async(this, null, function* () {
-      const node = yield GetEventNodes(evt);
-      if (node.nodes.length > 0) {
-        total++;
-      }
-      evt.properties.metadata.nodes = node.nodes;
-      evt.properties.metadata.filtered_proximity = node.filtered;
-      evt.properties.metadata.updated = node.updated;
-    });
-  }
-  const concurrency = 4;
-  for (let index = 0; index < TTLEvents.length; index += concurrency) {
-    const batch = TTLEvents.slice(index, index + concurrency);
-    yield Promise.all(batch.map((evt) => update(evt)));
-  }
-  if (total > 0) {
-    SetEventEmit({
-      event: `onNodeUpdate`,
-      metadata: {
-        type: `global-update`,
-        updated: total
-      }
-    });
-  }
-});
-
-// src/@manager/MakeEvents.ts
-var MakeEvents = (events) => __async(null, null, function* () {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
-  let tasked = [];
-  const settings = bootstrap.settings;
-  if (events.length === 0) return;
-  for (const event of events) {
-    const features = bootstrap.cache.events.features;
-    const getHash = event.properties.metadata.hash;
-    const getTracking = event.properties.metadata.tracking;
-    const isEntry = (_a = bootstrap.cache.hashes) == null ? void 0 : _a.find((hash) => hash.tracking === getTracking);
-    const isHashed = (_c = (_b = isEntry == null ? void 0 : isEntry.hashes) == null ? void 0 : _b.includes(getHash)) != null ? _c : false;
-    const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering;
-    const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
-    if (isHashed || event.properties.status_metadata.is_expired) return;
-    SetHash(event, isEntry);
-    if (isNodeFiltering) {
-      yield UpdateNode(event);
-      if (!event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) {
-        return;
-      }
-    }
-    const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
-    if (!isRatelimited.limited) {
-      SetEventEmit({
-        event: `onEventStatus`,
-        metadata: {
-          type: getFeature ? `Updated` : `New`,
-          event
-        },
-        message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
-      });
-    }
-    if (settings.GlobalSettings.EventManagement) {
-      if (event.properties.status_metadata.is_issued || event.properties.status_metadata.is_updated) {
-        if (getFeature) {
-          const getIndex = features.indexOf(getFeature);
-          const cHistory = (_f = (_e = (_d = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _d.metadata) == null ? void 0 : _e.history) != null ? _f : [];
-          const cLocations = (_i = (_h = (_g = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _g.locations) == null ? void 0 : _h.split(";").map((l) => l.trim())) != null ? _i : [];
-          const cUgc = (_l = (_k = (_j = getFeature == null ? void 0 : getFeature.properties) == null ? void 0 : _j.geocode) == null ? void 0 : _k.ugc) != null ? _l : [];
-          const iHistory = (_o = (_n = (_m = event.properties) == null ? void 0 : _m.metadata) == null ? void 0 : _n.history) != null ? _o : [];
-          const iLocations = (_r = (_q = (_p = event.properties) == null ? void 0 : _p.locations) == null ? void 0 : _q.split(";").map((l) => l.trim())) != null ? _r : [];
-          const iUgc = (_u = (_t = (_s = event.properties) == null ? void 0 : _s.geocode) == null ? void 0 : _t.ugc) != null ? _u : [];
-          const mHistory = [...cHistory, ...iHistory].filter((v, i, a) => a.indexOf(v) === i).filter((v, i, a) => a.findIndex((h) => h.description === v.description && h.issued === v.issued) === i);
-          const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join("; ");
-          const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
-          bootstrap.cache.events.features[getIndex] = __spreadProps(__spreadValues({}, event), {
-            properties: __spreadProps(__spreadValues({}, event.properties), {
-              metadata: __spreadProps(__spreadValues({}, (_v = event == null ? void 0 : event.properties) == null ? void 0 : _v.metadata), {
-                history: mHistory
-              }),
-              locations: mLocations,
-              geocode: __spreadProps(__spreadValues({}, (_w = event == null ? void 0 : event.properties) == null ? void 0 : _w.geocode), {
-                ugc: mUgc
-              })
-            })
-          });
-          tasked.push(bootstrap.cache.events.features[getIndex]);
-        } else {
-          features.push(event);
-          tasked.push(event);
-        }
-      }
-    }
-  }
-  yield Tasks(tasked);
-  SetEventEmit({ event: `onEventCache`, metadata: bootstrap.cache.events, limited: true });
-});
-
-// src/@enums/Strings.ts
-var EnumStrings = {
-  cancellation: `{EVENT} has been allowed to expire. This event is no longer in effect.`
-};
-
-// src/@manager/RemoveEvent.ts
-var RemoveEvent = (event, isTimeBasedExpiration) => __async(null, null, function* () {
-  const gTracking = event.properties.metadata.tracking;
-  const isTrackingEventLogged = bootstrap.cache.events.features.find((f) => {
-    var _a, _b;
-    return ((_b = (_a = f == null ? void 0 : f.properties) == null ? void 0 : _a.metadata) == null ? void 0 : _b.tracking) === gTracking;
-  });
-  const isStatement = event.properties.status_metadata.is_statement;
-  if (isTrackingEventLogged) {
-    event.properties.expires = (/* @__PURE__ */ new Date()).toISOString();
-    event.properties.status = `Expired`;
-    event.properties.status_metadata.is_expired = true;
-    const description = isTimeBasedExpiration ? EnumStrings.cancellation.replace(`{SENDER}`, event.properties.geocode.office.name).replace(`{EVENT}`, event.properties.event) : event.properties.description;
-    event.properties.description = description;
-    event.properties.metadata.raw = isTimeBasedExpiration ? description : event.properties.metadata.raw;
-    event.properties.metadata.history.push({
-      description: isTimeBasedExpiration ? description : event.properties.description,
-      issued: event.properties.expires,
-      status: event.properties.status
-    });
-    bootstrap.cache.events.features.splice(bootstrap.cache.events.features.indexOf(isTrackingEventLogged), 1);
-    bootstrap.cache.hashes = bootstrap.cache.hashes.filter((hash) => hash.tracking !== gTracking);
-    if (!isStatement) {
-      SetEventEmit({
-        event: `onEventStatus`,
-        metadata: { type: `Removed`, event },
-        message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
-      });
-      yield Tasks([event]);
-    }
-    SetTimeoutAction({ identifier: gTracking, expire: true });
-  }
-  SetEventEmit({
-    event: `onEventCache`,
-    metadata: bootstrap.cache.events,
-    limited: true
-  });
-});
-
-// src/@enums/States.ts
-var EnumStates = {
-  "AL": "Alabama",
-  "AK": "Alaska",
-  "AZ": "Arizona",
-  "AR": "Arkansas",
-  "CA": "California",
-  "CO": "Colorado",
-  "CT": "Connecticut",
-  "DE": "Delaware",
-  "FL": "Florida",
-  "GA": "Georgia",
-  "HI": "Hawaii",
-  "ID": "Idaho",
-  "IL": "Illinois",
-  "IN": "Indiana",
-  "IA": "Iowa",
-  "KS": "Kansas",
-  "KY": "Kentucky",
-  "LA": "Louisiana",
-  "ME": "Maine",
-  "MD": "Maryland",
-  "MA": "Massachusetts",
-  "MI": "Michigan",
-  "MN": "Minnesota",
-  "MS": "Mississippi",
-  "MO": "Missouri",
-  "MT": "Montana",
-  "NE": "Nebraska",
-  "NV": "Nevada",
-  "NH": "New Hampshire",
-  "NJ": "New Jersey",
-  "NM": "New Mexico",
-  "NY": "New York",
-  "NC": "North Carolina",
-  "ND": "North Dakota",
-  "OH": "Ohio",
-  "OK": "Oklahoma",
-  "OR": "Oregon",
-  "PA": "Pennsylvania",
-  "RI": "Rhode Island",
-  "SC": "South Carolina",
-  "SD": "South Dakota",
-  "TN": "Tennessee",
-  "TX": "Texas",
-  "UT": "Utah",
-  "VT": "Vermont",
-  "VA": "Virginia",
-  "WA": "Washington",
-  "WV": "West Virginia",
-  "WI": "Wisconsin",
-  "WY": "Wyoming",
-  "DC": "District of Columbia"
-};
-
-// src/@modules/@utilities/GetLatestIssuance.ts
-var GetLatestIssuance = () => {
-  const now = /* @__PURE__ */ new Date();
-  const current = now.getUTCHours() * 100 + now.getUTCMinutes();
-  const issuances = [100, 600, 1300, 1630, 2e3];
-  let latest = issuances[0];
-  for (const issuance of issuances) {
-    if (current >= issuance) {
-      latest = issuance;
-    }
-  }
-  return latest.toString().padStart(4, "0");
-};
-
-// src/@building/GetEventAttachments.ts
-var GetEventAttachments = (event) => {
-  var _a, _b, _c, _d, _e, _f, _g;
-  let attachments = [];
-  const settings = bootstrap.settings;
-  const issuanceTime = GetLatestIssuance();
-  const spcNumber = (_b = (_a = event == null ? void 0 : event.properties) == null ? void 0 : _a.discussion_parameters) == null ? void 0 : _b.discussion_number;
-  const watchNumber = (_d = (_c = event == null ? void 0 : event.properties) == null ? void 0 : _c.watch_parameters) == null ? void 0 : _d.watch_number;
-  const locations = (_e = event == null ? void 0 : event.properties) == null ? void 0 : _e.locations_array;
-  const events = [
-    { target: "Storm Prediction Center Day 1 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day1otlk_${issuanceTime}.png` },
-    { target: "Storm Prediction Center Day 2 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day2otlk.png` },
-    { target: "Storm Prediction Center Day 3 Outlook", attachment: `https://www.spc.noaa.gov/products/outlook/day3otlk.png` },
-    { target: "Mesoscale Discussion", attachment: `https://www.spc.noaa.gov/products/md/mcd${spcNumber}.png` },
-    { target: "Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
-    { target: "PDS Tornado Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
-    { target: "Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` },
-    { target: "PDS Severe Thunderstorm Watch", attachment: `https://www.spc.noaa.gov/products/watch/ww${watchNumber}_radar_big.gif` }
-  ];
-  if (events.find((e) => e.target === event.properties.event)) {
-    attachments.push({ name: `Image: Graphic`, link: events.find((e) => e.target.toLowerCase() === event.properties.event.toLowerCase()).attachment });
-  }
-  if (settings.BroadcastifySettings.BroadcastifyAttachments) {
-    for (const location of locations) {
-      if (EnumExpressions.location.test(location)) {
-        const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`];
-        const county = (_f = location == null ? void 0 : location.split(",")[0]) == null ? void 0 : _f.trim().replace(new RegExp(`^(${lines.join("|")}) `), "");
-        const state = EnumStates[(_g = location == null ? void 0 : location.split(",")[1]) == null ? void 0 : _g.trim()];
-        const feeds = bootstrap.database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
-          const typeOrder = ["Other", "Public Safety"];
-          const indexA = typeOrder.indexOf(a.type);
-          const indexB = typeOrder.indexOf(b.type);
-          return indexA - indexB;
-        });
-        const tags = bootstrap.settings.BroadcastifySettings.BroadcastifyTags;
-        const filtered = feeds.filter((feed) => tags.includes(feed.type));
-        if (filtered.length > 0) {
-          filtered.map((filtered2) => {
-            if (!attachments.some((a) => a.link === filtered2.link)) {
-              attachments.push({ name: `${filtered2.type}: ${filtered2.feed}`, link: filtered2.link });
-            }
-          });
-        }
-      }
-    }
-  }
-  return attachments;
-};
-
-// src/@manager/ValidateEvents.ts
-import { createHash } from "crypto";
-var ValidateEvents = (events) => __async(null, null, function* () {
-  const tick = performance.now();
-  if (events.length === 0) return;
-  const configurations = bootstrap.settings;
-  const sets = {};
-  const bools = {};
-  const megered = __spreadValues(__spreadValues({}, configurations.GlobalSettings), configurations.GlobalSettings.EventFiltering);
-  for (const key in megered) {
-    const setting = megered[key];
-    if (Array.isArray(setting)) {
-      sets[key] = new Set(setting.map((item) => item.toLowerCase()));
-    }
-    if (typeof setting === "boolean") {
-      bools[key] = setting;
-    }
-  }
-  const isFiltered = (define2) => {
-    var _a, _b, _c, _d;
-    const properties = define2.properties;
-    const zones = properties.geocode.ugc;
-    const icao = properties.geocode.office.office;
-    if (properties.status_metadata.is_test) {
-      SetEventEmit({ event: `onTestProduct`, metadata: define2 });
-      if (bools == null ? void 0 : bools.IgnoreTestProducts) return true;
-    }
-    if (properties.status_metadata.is_expired) {
-      SetEventEmit({ event: `onExpiredProduct`, metadata: define2 });
-      RemoveEvent(define2, false);
-      return true;
-    }
-    if (((_b = (_a = properties.metadata) == null ? void 0 : _a.vtec) == null ? void 0 : _b.is_watch) && properties.metadata.source != `events.api`) {
-      const isSPC = (_d = (_c = properties.metadata) == null ? void 0 : _c.vtec) == null ? void 0 : _d.prediction_center;
-      SetEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define2 });
-      if ((bools == null ? void 0 : bools.SPCWatchesOnly) && !isSPC) {
-        return true;
-      }
-      if (!(bools == null ? void 0 : bools.SPCWatchesOnly) && isSPC) {
-        return true;
-      }
-    }
-    for (const key in sets) {
-      const setting = sets[key];
-      const values = [...setting];
-      if (key === "ListeningEvents" && setting.size > 0 && !GetMatched(values, define2.properties.event)) {
-        SetEventEmit({
-          event: `onFilteredEvent`,
-          metadata: define2
-        });
-        return true;
-      }
-      if (key === "IgnoredEvents" && setting.size > 0 && GetMatched(values, define2.properties.event)) {
-        SetEventEmit({
-          event: `onIgnoredEvent`,
-          metadata: define2
-        });
-        return true;
-      }
-      if (key === "ListeningICAO" && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) {
-        SetEventEmit({
-          event: `onFilteredICAO`,
-          metadata: define2
-        });
-        return true;
-      }
-      if (key === "IgnoredICAO" && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) {
-        SetEventEmit({
-          event: `onIgnoredICAO`,
-          metadata: define2
-        });
-        return true;
-      }
-      if (key === "ListeningUGC" && setting.size > 0 && zones.length > 0 && !zones.some((ugc) => setting.has(ugc.toLowerCase()))) {
-        SetEventEmit({
-          event: `onFilteredUGC`,
-          metadata: define2
-        });
-        return true;
-      }
-      if (key === "ListeningStates" && setting.size > 0 && zones.length > 0 && !zones.some((ugc) => setting.has(ugc.substring(0, 2).toLowerCase()))) {
-        SetEventEmit({
-          event: `onFilteredState`,
-          metadata: define2
-        });
-        return true;
-      }
-    }
-    return false;
-  };
-  const filtering = events.filter((event) => {
-    bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
-    const define2 = GetEventSignature(event);
-    const pre = __spreadProps(__spreadValues({}, define2), { properties: __spreadProps(__spreadValues({}, define2.properties), { metadata: __spreadValues({}, define2.properties.metadata) }) });
-    const properties = define2.properties;
-    delete pre.properties.metadata.ms;
-    delete pre.properties.metadata.header;
-    const enhanced = properties.event = GetEventEnhancedName(event);
-    const filtered = isFiltered(define2);
-    if (!filtered) {
-      event.geometry = !(bools == null ? void 0 : bools.DisableGeometryParsing) ? GetEventGeometry(event) : null;
-      properties.metadata.attachments = GetEventAttachments(event);
-    }
-    properties.metadata.hash = createHash("sha256").update(JSON.stringify(pre)).digest("hex");
-    SetEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, "")}`, metadata: define2 });
-    return !filtered;
-  });
-  SetDebug({ title: `ValidateEvents (PRE) (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
-  yield MakeEvents(filtering);
-  SetDebug({ title: `MakeEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
-});
-
-// src/@building/CreateEvent.ts
-var CreateEvent = (stanza, ignorePushing) => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
-  const isVtecEvent = stanza.isVTEC && stanza.isUGC;
-  const isUgcEvent = !stanza.isVTEC && stanza.isUGC;
-  const isTextEvent = !stanza.isVTEC && !stanza.isUGC;
-  const isNWWS = stanza.isNWWS;
-  switch (true) {
-    case !isNWWS:
-      yield ParseAPI(stanza);
-      break;
-    case (isNWWS && !StanzaSettings.DisableVTEC && isVtecEvent):
-      yield ParseVTEC(stanza);
-      break;
-    case (isNWWS && !StanzaSettings.DisableUGC && isUgcEvent):
-      yield ParseUGC(stanza);
-      break;
-    case (isNWWS && !StanzaSettings.DisableText && isTextEvent):
-      yield ParseText(stanza);
-      break;
-  }
-  if (!ignorePushing) {
-    yield ValidateEvents(bootstrap.cache.processed);
-  }
-  return "nothing picked";
-});
 
 // src/@modules/@database/ImportStanza.ts
 var ImportStanza = (stanza) => __async(null, null, function* () {
@@ -7472,7 +7701,7 @@ var SetSleep = (options) => __async(null, null, function* () {
 });
 
 // src/@modules/@database/ImportShapefiles.ts
-import { existsSync as existsSync2, mkdirSync as mkdirSync2, writeFileSync as writeFileSync3, unlinkSync as unlinkSync2, rm } from "fs";
+import { existsSync as existsSync3, mkdirSync as mkdirSync2, writeFileSync as writeFileSync3, unlinkSync as unlinkSync3, rm } from "fs";
 import { resolve as resolve5, extname } from "path";
 import { loadAsync } from "jszip";
 import { read } from "shapefile";
@@ -7487,8 +7716,8 @@ var ImportShapefiles = () => __async(null, null, function* () {
         const response2 = yield fetch(shapefile.link);
         const arrayBuff = yield response2.arrayBuffer();
         const content = yield loadAsync(arrayBuff);
-        const directory = resolve5(__dirname, `../../shapefiles`);
-        if (!existsSync2(directory)) {
+        const directory = resolve5(__dirname, `shapefiles`);
+        if (!existsSync3(directory)) {
           mkdirSync2(directory, { recursive: true });
         }
         for (const file of Object.keys(content.files)) {
@@ -7498,7 +7727,7 @@ var ImportShapefiles = () => __async(null, null, function* () {
             writeFileSync3(output, data);
           }
         }
-        const filepath = resolve5(__dirname, "../../shapefiles", shapefile.name + "_" + shapefile.id);
+        const filepath = resolve5(__dirname, "shapefiles", shapefile.name + "_" + shapefile.id);
         const { features } = yield read(
           filepath,
           filepath
@@ -7526,11 +7755,11 @@ var ImportShapefiles = () => __async(null, null, function* () {
             insert.run(final2, location, JSON.stringify(geometry));
           }
         });
-        unlinkSync2(`${filepath}.shp`);
-        unlinkSync2(`${filepath}.dbf`);
+        unlinkSync3(`${filepath}.shp`);
+        unlinkSync3(`${filepath}.dbf`);
         transaction(features);
       }
-      rm(resolve5(__dirname, "../../shapefiles"), { recursive: true, force: true }, () => {
+      rm(resolve5(__dirname, "shapefiles"), { recursive: true, force: true }, () => {
       });
     }
   } catch (error) {
@@ -7585,12 +7814,12 @@ var ImportBroadcastify = () => __async(null, null, function* () {
 });
 
 // src/@modules/@database/InitializeDatabase.ts
-import { existsSync as existsSync3, writeFileSync as writeFileSync4 } from "fs";
+import { existsSync as existsSync4, writeFileSync as writeFileSync4 } from "fs";
 import sqlite3 from "better-sqlite3";
 var InitializeDatabase = () => __async(null, null, function* () {
   const settings = bootstrap.settings;
   try {
-    if (!existsSync3(settings.Database)) {
+    if (!existsSync4(settings.Database)) {
       writeFileSync4(settings.Database, "");
       SetWarning({ message: `Creating new database at ${settings.Database}` });
     }
@@ -7634,116 +7863,6 @@ var GetCachedEvents = () => __async(null, null, function* () {
     }
   } catch (error) {
     SetWarning({ message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` });
-  }
-});
-
-// src/@modules/@xmpp/ReconnectXMPP.ts
-var ReconnectXMPP = (interval) => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  const lastStanza = Date.now() - bootstrap.cache.lastStanza;
-  if (interval < 15) {
-    SetWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` });
-    interval = 15;
-    bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
-  }
-  const reconnectThreshold = interval * 1e3;
-  if (!bootstrap.cache.isConnected && !bootstrap.cache.sigHault || !bootstrap.session_xmpp) {
-    return;
-  }
-  if (lastStanza > reconnectThreshold) {
-    if (!bootstrap.cache.isReconnecting) {
-      bootstrap.cache.isReconnecting = true;
-      bootstrap.cache.isConnected = false;
-      bootstrap.cache.tReconnects += 1;
-      try {
-        SetEventEmit({
-          event: `onServiceStatus`,
-          metadata: {
-            message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
-            data: {
-              last_stanza: lastStanza,
-              nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
-            },
-            type: `reconnect`,
-            error: true
-          },
-          message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`
-        });
-        yield bootstrap.session_xmpp.stop().catch(() => {
-        });
-        yield bootstrap.session_xmpp.start().catch(() => {
-        });
-      } catch (error) {
-        SetWarning({ message: `XMPP Reconnect Failed - ${error.message}` });
-      } finally {
-        bootstrap.cache.isReconnecting = false;
-      }
-    }
-  }
-});
-
-// src/@modules/@utilities/SetCronSchedule.ts
-import { readdirSync, unlinkSync as unlinkSync3, statSync, existsSync as existsSync4 } from "fs";
-import { join as join2 } from "path";
-var SetCronSchedule = () => __async(null, null, function* () {
-  const settings = bootstrap.settings;
-  const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
-  const TTLCUT = Date.now() - TTL * 1e3;
-  const walk = (dir) => {
-    if (existsSync4(dir)) {
-      const entries = readdirSync(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        const fullPath = join2(dir, entry.name);
-        if (entry.isDirectory()) {
-          walk(fullPath);
-          continue;
-        }
-        const stats = statSync(fullPath);
-        if (stats.mtime.getTime() < TTLCUT) {
-          try {
-            unlinkSync3(fullPath);
-          } catch (err) {
-            console.error(`Failed to delete ${fullPath}:`, err);
-          }
-        }
-      }
-    }
-  };
-  walk(settings.GlobalSettings.ArchiveSettings.TextDirectory);
-  walk(settings.GlobalSettings.ArchiveSettings.EasDirectory);
-  walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory);
-  if (settings.EnableWireService) {
-    if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
-      void ReconnectXMPP(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
-    }
-  } else {
-    const response2 = yield CreateHttp({
-      url: settings.NationalWeatherServiceSettings.EventsEndpoint,
-      headers: {
-        "User-Agent": "@atmosx/event-product-parser"
-      }
-    });
-    if (response2.error) {
-      return SetEventEmit({
-        event: `onServiceStatus`,
-        metadata: {
-          type: "fetch-api",
-          message: `Failed to fetch latest events from National Weather Service API - ${response2.message}`,
-          data: {},
-          error: true
-        }
-      });
-    }
-    SetEventEmit({
-      event: `onServiceStatus`,
-      metadata: {
-        message: `Fetched latest events from National Weather Service API`,
-        data: {},
-        type: "fetch-api",
-        error: false
-      }
-    });
-    yield CreateEvent({ message: response2.message, isNWWS: false });
   }
 });
 
@@ -7816,125 +7935,6 @@ var StopService = () => __async(null, null, function* () {
     }
   }
 });
-
-// src/@core/SetNode.ts
-var SetNode = (options) => {
-  const nodes = bootstrap.cache.nodes.features;
-  const exists = nodes.find((node) => node.properties.identifier === options.identifier);
-  if (options.delete) {
-    if (exists) {
-      const index = nodes.indexOf(exists);
-      nodes.splice(index, 1);
-      return SetEventEmit({
-        event: `onNodeDelete`,
-        metadata: {
-          type: `node-delete`,
-          node: exists
-        }
-      });
-    }
-    return SetWarning({ message: `Node with identifier '${options.identifier}' not found.` });
-  }
-  if (exists) {
-    const index = nodes.indexOf(exists);
-    nodes[index] = __spreadProps(__spreadValues({}, exists), {
-      geometry: {
-        type: "Point",
-        coordinates: [options.coordinates.longitude, options.coordinates.latitude]
-      }
-    });
-    return SetEventEmit({
-      event: `onNodeUpdate`,
-      metadata: {
-        type: `node-update`,
-        node: nodes[index]
-      }
-    });
-  }
-  nodes.push({
-    type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [options.coordinates.longitude, options.coordinates.latitude]
-    },
-    properties: {
-      identifier: options.identifier
-    }
-  });
-  return SetEventEmit({
-    event: `onNodeAdd`,
-    metadata: {
-      type: `node-add`,
-      node: nodes[nodes.length - 1]
-    }
-  });
-};
-
-// src/@core/GetEvents.ts
-var GetEvents = () => {
-  return bootstrap.cache.events;
-};
-
-// src/@core/GetNodes.ts
-var GetNodes = () => {
-  return bootstrap.cache.nodes;
-};
-
-// src/@core/ManualEvent.ts
-var ManualEvent = (options) => __async(null, null, function* () {
-  var _a;
-  const isCapEvent = options.message.includes(`<?xml`);
-  const isCapAreaDescription = options.message.includes(`<areaDesc>`);
-  const isVTEC = options.message.match(EnumExpressions.pvtec) != null;
-  const isUGC = options.message.match(EnumExpressions.ugc1) != null;
-  const attributes = {
-    "xmlns": "@atmosx/event-product-parser",
-    "id": "manual_processor.0000",
-    "issue": (/* @__PURE__ */ new Date()).toISOString(),
-    "ttaaii": "XXXXX",
-    "cccc": "XXX",
-    "awipsid": (_a = options.awipsid) != null ? _a : "XXXXXX"
-  };
-  const getType = GetAwipsType({ attributes });
-  const result = {
-    message: options.message,
-    attributes,
-    isCapEvent,
-    isVTEC,
-    isUGC,
-    isCapAreaDescription,
-    isIgnored: false,
-    isNWWS: true,
-    getType
-  };
-  yield CreateEvent(result);
-});
-
-// src/@core/GetRandomEvent.ts
-var GetRandomEvent = () => {
-  return bootstrap.cache.events.features[Math.floor(Math.random() * bootstrap.cache.events.features.length)];
-};
-
-// src/@core/QueryStanza.ts
-var QueryStanza = (options) => __async(null, null, function* () {
-  var _a;
-  const get = yield bootstrap.database.prepare(
-    `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`
-  ).all(`%${options.search}%`, (_a = options.max) != null ? _a : 100);
-  const events = get.map((row) => JSON.parse(row.stanza));
-  return events;
-});
-
-// src/@core/ClearEvents.ts
-var ClearEvents = () => {
-  bootstrap.cache.events.features = [];
-  bootstrap.cache.hashes = [];
-  SetEventEmit({
-    event: `onEventCache`,
-    metadata: bootstrap.cache.events,
-    message: `Manually cleared event cache.`
-  });
-};
 
 // src/index.ts
 var Manager = class {

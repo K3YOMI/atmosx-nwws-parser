@@ -17,14 +17,14 @@
 
 */
 
-import { TypeAttributes } from "../@types/Attributes";
-import { TypeStanzaCompiled } from "../@types/StanzaCompiled"
-import { EnumMatches } from "../@enums/Matches";
-import { bootstrap } from "../bootstrap";
-import { GetEventProperties } from "../@building/GetEventProperties";
-import { GetEventHeader } from "../@building/GetEventHeader";
-import { GetEventTracking } from "../@building/GetEventTracking";
-import { SetDebug } from "../@modules/@utilities/SetDebug";
+import { TypeAttributes } from "types/Attributes"
+import { TypeStanzaCompiled } from "types/StanzaCompiled"
+import { EnumMatches } from "@enums/Matches"
+import { bootstrap } from "@bootstrap"
+import { GetEventProperties } from "@building/GetEventProperties"
+import { GetEventHeader } from "@building/GetEventHeader"
+import { GetEventTracking } from "@building/GetEventTracking"
+import { SetDebug } from "@utilities/SetDebug"
 
 export const ParseText = async (stanza: TypeStanzaCompiled): Promise<void> => {
     const getMessages = stanza?.message

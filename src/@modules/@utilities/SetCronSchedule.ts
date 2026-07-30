@@ -18,14 +18,14 @@
     
 */
 
-import { TypeSettings } from "../../@types/Settings";
-import { ReconnectXMPP } from "../@xmpp/ReconnectXMPP"
-import { bootstrap } from "../../bootstrap";
-import { CreateHttp } from "./CreateHttp";
-import { CreateEvent } from "../../@building/CreateEvent";
-import { SetEventEmit } from "./SetEventEmit";
-import { readdirSync, unlinkSync, statSync, existsSync } from "fs";
-import { join } from "path";
+import { TypeSettings } from "types/Settings"
+import { ReconnectXMPP } from "@xmpp/ReconnectXMPP"
+import { bootstrap } from "@bootstrap"
+import { CreateHttp } from "@utilities/CreateHttp"
+import { SetEventEmit } from "@utilities/SetEventEmit"
+import { CreateEvent } from "@building/CreateEvent"
+import { readdirSync, unlinkSync, statSync, existsSync } from "fs"
+import { join } from "path"
 
 export const SetCronSchedule = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;

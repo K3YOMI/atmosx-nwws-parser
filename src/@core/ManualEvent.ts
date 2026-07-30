@@ -17,10 +17,9 @@
 
 */
 
-import { TypeAttributes } from "../@types/Attributes";
-import { EnumExpressions } from "../@enums/Expressions"
-import { GetAwipsType } from "../@modules/@stanza/GetAwipsType";
-import { CreateEvent } from "../@building/CreateEvent";
+import { EnumExpressions } from "@enums/Expressions"
+import { GetAwipsType } from "@stanza/GetAwipsType"
+import { CreateEvent } from "@building/CreateEvent"
 
 interface CreateEventOptions {
     message: string

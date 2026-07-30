@@ -17,9 +17,9 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
-import { SetEventEmit } from '../@utilities/SetEventEmit';
-import { xml } from '@xmpp/client'
+import { bootstrap } from "@bootstrap"
+import { SetEventEmit } from "@utilities/SetEventEmit"
+import { xml } from "@xmpp/client"
 
 export const OnlineXMPP = () => {
     const settings = bootstrap.settings;

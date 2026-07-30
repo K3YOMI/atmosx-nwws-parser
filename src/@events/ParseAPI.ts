@@ -17,15 +17,15 @@
 
 */
 
-import { TypeStanzaCompiled } from "../@types/StanzaCompiled"
-import { TypePVTEC } from "../@types/VTEC";
-import { EnumICAO } from "../@enums/ICAO";
-import { bootstrap } from "../bootstrap";
-import { GetEventTracking } from "../@building/GetEventTracking";
-import { VTECExtract } from "../@parsers/@pvtec/VTECExtract"
-import { GetEventTags } from "../@building/GetEventTags";
-import { GetTextFromProduct } from "../@parsers/@text/GetTextFromProduct";
-import { SetDebug } from "../@modules/@utilities/SetDebug";
+import { TypeStanzaCompiled } from "types/StanzaCompiled"
+import { TypePVTEC } from "types/VTEC"
+import { EnumICAO } from "@enums/ICAO"
+import { bootstrap } from "@bootstrap"
+import { GetEventTracking } from "@building/GetEventTracking"
+import { VTECExtract } from "@parsers/pvtec/VTECExtract"
+import { GetEventTags } from "@building/GetEventTags"
+import { GetTextFromProduct } from "@parsers/text/GetTextFromProduct"
+import { SetDebug } from "@utilities/SetDebug"
 
 export const ParseAPI = async (stanza: TypeStanzaCompiled): Promise<void> => {
     const messages = Object.values(JSON.parse(stanza.message).features) as any;

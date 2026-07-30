@@ -17,7 +17,7 @@
 
 */
 
-import { bootstrap } from "../../bootstrap"
+import { bootstrap } from "@bootstrap"
 
 interface SetListenerOptions { 
     event: string,

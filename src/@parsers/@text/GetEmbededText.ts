@@ -17,7 +17,7 @@
 
 */
 
-import { TypeEvent } from "../../@types/Event"
+import { TypeEvent } from "types/Event"
 
 export const GetEmebedText = (event: TypeEvent): string => {
     const line = (label: string, value: unknown, condition = true) => condition && value ? `${label} ${value}` : null;

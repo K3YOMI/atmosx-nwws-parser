@@ -17,7 +17,7 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
+import { bootstrap } from "@bootstrap"
 
 export const getCache = (key: string) => {
     return bootstrap.cache.ugc.get(key);

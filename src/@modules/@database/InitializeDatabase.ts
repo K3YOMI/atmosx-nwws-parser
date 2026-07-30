@@ -18,13 +18,13 @@
 */
 
 
-import { TypeSettings } from "../../@types/Settings"
-import { bootstrap } from "../../bootstrap"
-import { SetWarning } from '../@utilities/SetWarning'
-import { ImportShapefiles } from './ImportShapefiles'
-import { ImportBroadcastify } from "./ImportBroadcastify"
+import { TypeSettings } from "types/Settings"
+import { bootstrap } from "@bootstrap"
+import { SetWarning } from "@utilities/SetWarning"
+import { ImportShapefiles } from "@database/ImportShapefiles"
+import { ImportBroadcastify } from "@database/ImportBroadcastify"
 import { existsSync, writeFileSync } from "fs"
-import sqlite3 from 'better-sqlite3'
+import sqlite3 from "better-sqlite3"
 
 export const InitializeDatabase = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;

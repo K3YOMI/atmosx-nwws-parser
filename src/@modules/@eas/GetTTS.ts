@@ -18,9 +18,9 @@
     
 */
 
-import { platform } from 'os'
+import { platform } from "os"
 import { writeFileSync } from "fs"
-import { execSync } from 'child_process'
+import { execSync } from "child_process"
 
 export const GetTTS = async (text: string, outputPath: string): Promise<void> => {
     const vPlatform = platform();

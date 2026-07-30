@@ -17,10 +17,10 @@
 
 */
 
-import { TypeSettings } from "../../@types/Settings";
-import { bootstrap } from "../../bootstrap"
-import { SetEventEmit } from "../@utilities/SetEventEmit";
-import { SetWarning } from "../@utilities/SetWarning";
+import { TypeSettings } from "types/Settings"
+import { bootstrap } from "@bootstrap"
+import { SetEventEmit } from "@utilities/SetEventEmit"
+import { SetWarning } from "@utilities/SetWarning"
 
 export const ReconnectXMPP = async (interval: number): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;

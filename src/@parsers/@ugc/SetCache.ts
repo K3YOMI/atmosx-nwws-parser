@@ -17,7 +17,7 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
+import { bootstrap } from "@bootstrap"
 
 export const setCache = (key: string, value: string[]) => {
 	if (bootstrap.cache.ugc.size >= 5000) {

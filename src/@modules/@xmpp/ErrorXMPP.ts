@@ -17,7 +17,7 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
+import { bootstrap } from "@bootstrap"
 
 export const ErrorXMPP = () => {
     bootstrap.session_xmpp.on(`error`, async (error: Error) => {

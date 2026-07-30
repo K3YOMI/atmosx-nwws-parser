@@ -17,11 +17,11 @@
 
 */
 
-import { TypeEvent } from "../@types/Event"
-import { bootstrap } from "../bootstrap"
-import { EnumStates } from "../@enums/States"
-import { EnumExpressions } from "../@enums/Expressions"
-import { GetLatestIssuance } from "../@modules/@utilities/GetLatestIssuance";
+import { TypeEvent } from "types/Event"
+import { bootstrap } from "@bootstrap"
+import { EnumStates } from "@enums/States"
+import { EnumExpressions } from "@enums/Expressions"
+import { GetLatestIssuance } from "@utilities/GetLatestIssuance"
 
 interface GetEventAttachmentsResponse { 
     name: string

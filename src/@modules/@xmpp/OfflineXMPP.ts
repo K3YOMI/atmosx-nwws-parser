@@ -17,8 +17,8 @@
 
 */
 
-import { bootstrap } from "../../bootstrap";
-import { SetEventEmit } from "../@utilities/SetEventEmit";
+import { bootstrap } from "@bootstrap"
+import { SetEventEmit } from "@utilities/SetEventEmit"
 
 export const OfflineXMPP = () => {
     bootstrap.session_xmpp.on(`offline`, async () => {

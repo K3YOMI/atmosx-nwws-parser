@@ -17,9 +17,9 @@
 
 */
 
-import { bootstrap } from "../bootstrap";
-import { SetWarning } from "../@modules/@utilities/SetWarning"
-import { SetEventEmit } from "../@modules/@utilities/SetEventEmit";
+import { bootstrap } from "@bootstrap"
+import { SetWarning } from "@utilities/SetWarning"
+import { SetEventEmit } from "@utilities/SetEventEmit"
 
 interface GetNodeOptions {
     identifier: string

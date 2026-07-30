@@ -17,9 +17,9 @@
 
 */
 
-import { bootstrap } from "../../bootstrap"
-import { CreateHttp } from '../@utilities/CreateHttp'
-import { SetWarning } from "../@utilities/SetWarning";
+import { bootstrap } from "@bootstrap"
+import { CreateHttp } from "@utilities/CreateHttp"
+import { SetWarning } from "@utilities/SetWarning"
 
 export const ImportBroadcastify = async (): Promise<void> => {
     const settings = bootstrap.settings;

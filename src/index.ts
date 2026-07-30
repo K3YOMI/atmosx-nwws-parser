@@ -17,23 +17,23 @@
 
 */
 
-import { TypeSettings } from './@types/Settings'
-import { SetSettings } from "./@modules/@utilities/SetSettings"
-import { GetEventGeometry } from "./@building/GetEventGeometry";
-import { GetCleanedEvent } from "./@building/GetCleanedEvent"
-import { SetEventEmit } from './@modules/@utilities/SetEventEmit';
-import { SetWarning } from './@modules/@utilities/SetWarning';
-import { CreateListener } from "./@core/CreateListener"
-import { StartService } from "./@core/StartService"
-import { StopService } from "./@core/StopService"
-import { GenerateEASMessage } from './@modules/@eas/GenerateEASMessage';
-import { SetNode } from "./@core/SetNode"
-import { GetEvents } from "./@core/GetEvents"
-import { GetNodes } from "./@core/GetNodes"
-import { ManualEvent } from "./@core/ManualEvent"
-import { GetRandomEvent } from './@core/GetRandomEvent';
-import { QueryStanza } from './@core/QueryStanza';
-import { ClearEvents } from './@core/ClearEvents';
+import { TypeSettings } from "types/Settings"
+import { GetEventGeometry } from "@building/GetEventGeometry"
+import { GetCleanedEvent } from "@building/GetCleanedEvent"
+import { SetSettings } from "@utilities/SetSettings"
+import { SetEventEmit } from "@utilities/SetEventEmit"
+import { SetWarning } from "@utilities/SetWarning"
+import { GenerateEASMessage } from "@eas/GenerateEASMessage"
+import { SetNode } from "@core/SetNode"
+import { GetEvents } from "@core/GetEvents"
+import { GetNodes } from "@core/GetNodes"
+import { ManualEvent } from "@core/ManualEvent"
+import { GetRandomEvent } from "@core/GetRandomEvent"
+import { QueryStanza } from "@core/QueryStanza"
+import { ClearEvents } from "@core/ClearEvents"
+import { CreateListener } from "@core/CreateListener"
+import { StartService } from "@core/StartService"
+import { StopService } from "@core/StopService"
 
 export class Manager { 
     constructor(settings: TypeSettings) { this.trycatch(); StartService(settings) }
@@ -63,7 +63,7 @@ export class Manager {
 }
 
 export default Manager;
-export type { TypeEvent } from './@types/Event';
+export type { TypeEvent } from "types/Event"
 export { 
     SetSettings, GetEventGeometry, ManualEvent,
     GetCleanedEvent, StopService, ClearEvents,

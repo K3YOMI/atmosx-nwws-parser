@@ -17,9 +17,9 @@
 
 */
 
-import { TypeAttributes } from "../@types/Attributes";
-import { TypePVTEC } from "../@types/VTEC";
-import { EnumICAO } from "../@enums/ICAO";
+import { TypeAttributes } from "types/Attributes"
+import { TypePVTEC } from "types/VTEC"
+import { EnumICAO } from "@enums/ICAO"
 
 interface GetOfficeOptions { 
     attributes: TypeAttributes

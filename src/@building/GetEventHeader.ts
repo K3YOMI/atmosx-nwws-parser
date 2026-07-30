@@ -17,8 +17,8 @@
 
 */
 
-import { TypePVTEC } from "../@types/VTEC";
-import { TypeEventProperties } from "../@types/Properties";
+import { TypePVTEC } from "types/VTEC"
+import { TypeEventProperties } from "types/Properties"
 
 interface GetHeaderOptions {
     properties: TypeEventProperties

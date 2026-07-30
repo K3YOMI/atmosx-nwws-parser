@@ -17,9 +17,9 @@
 
 */
 
-import { bootstrap } from "../../bootstrap"
-import { SetTimeoutAction } from "./SetTimeoutAction";
-import { SetWarning } from "./SetWarning";
+import { bootstrap } from "@bootstrap"
+import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
+import { SetWarning } from "@utilities/SetWarning"
 
 interface SetEventEmitOptions { 
     event: string

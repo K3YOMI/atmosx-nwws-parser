@@ -17,7 +17,7 @@
 
 */
 
-import { SetListener } from "../@modules/@utilities/SetListener";
+import { SetListener } from "@utilities/SetListener"
 
 export const CreateListener = (event: string, callback: () => void) => {
     SetListener({event, callback})

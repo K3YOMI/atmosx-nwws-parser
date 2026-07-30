@@ -17,8 +17,8 @@
 
 */
 
-import { bootstrap } from "../bootstrap";
-import { SetEventEmit } from "../@modules/@utilities/SetEventEmit";
+import { bootstrap } from "@bootstrap"
+import { SetEventEmit } from "@utilities/SetEventEmit"
 
 export const ClearEvents = (): void => {
     bootstrap.cache.events.features = [];

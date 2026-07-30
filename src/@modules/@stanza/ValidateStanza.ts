@@ -17,10 +17,10 @@
 
 */
 
-import { TypeStanza } from "../../@types/Stanza"
-import { TypeStanzaCompiled } from "../../@types/StanzaCompiled"
-import { EnumExpressions } from "../../@enums/Expressions"
-import { GetAwipsType } from "./GetAwipsType"
+import { TypeStanza } from "types/Stanza"
+import { TypeStanzaCompiled } from "types/StanzaCompiled"
+import { EnumExpressions } from "@enums/Expressions"
+import { GetAwipsType } from "@stanza/GetAwipsType"
 
 interface ValidateStanzaOptions { 
     stanza: TypeStanza

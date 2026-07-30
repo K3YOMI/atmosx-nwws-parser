@@ -17,19 +17,19 @@
 
 */
 
-import { TypeSettings } from "../@types/Settings";
-import { TypeEvent } from "../@types/Event";
-import { TypeActions } from "../@types/Actions";
-import { bootstrap } from "../bootstrap"
-import { GenerateEASMessage } from "../@modules/@eas/GenerateEASMessage"
-import { SetTimeoutAction } from "../@modules/@utilities/SetTimeoutAction";
-import { GetEmebedText } from "../@parsers/@text/GetEmbededText";
-import { GetStringText } from "../@parsers/@text/GetStringText";
-import { GetCleanedEvent } from "../@building/GetCleanedEvent"
-import { CreateHttp } from "../@modules/@utilities/CreateHttp";
-import { SetDebug } from "../@modules/@utilities/SetDebug";
-import { GetMatched } from "../@modules/@utilities/GetMatched";
-import { mkdir, writeFile, readFile, appendFile } from "fs/promises";
+import { TypeSettings } from "types/Settings"
+import { TypeEvent } from "types/Event"
+import { TypeActions } from "types/Actions"
+import { bootstrap } from "@bootstrap"
+import { GenerateEASMessage } from "@eas/GenerateEASMessage"
+import { GetEmebedText } from "@parsers/text/GetEmbededText"
+import { GetStringText } from "@parsers/text/GetStringText"
+import { GetCleanedEvent } from "@building/GetCleanedEvent"
+import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
+import { CreateHttp } from "@utilities/CreateHttp"
+import { SetDebug } from "@utilities/SetDebug"
+import { GetMatched } from "@utilities/GetMatched"
+import { mkdir, writeFile, readFile, appendFile } from "fs/promises"
 
 export const Tasks = async (events: TypeEvent[]): Promise<void> => {
     const tick = performance.now()

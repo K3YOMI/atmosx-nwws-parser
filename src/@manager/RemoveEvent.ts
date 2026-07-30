@@ -17,12 +17,12 @@
 
 */
 
-import { TypeEvent } from "../@types/Event";
-import { EnumStrings } from "../@enums/Strings";
-import { bootstrap } from "../bootstrap"
-import { SetEventEmit } from "../@modules/@utilities/SetEventEmit";
-import { SetTimeoutAction } from "../@modules/@utilities/SetTimeoutAction";
-import { Tasks } from "./Tasks";
+import { TypeEvent } from "types/Event"
+import { EnumStrings } from "@enums/Strings"
+import { bootstrap } from "@bootstrap"
+import { SetEventEmit } from "@utilities/SetEventEmit"
+import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
+import { Tasks } from "@manager/Tasks"
 
 
 export const RemoveEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):Promise<void> => {

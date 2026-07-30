@@ -17,17 +17,17 @@
 
 */
 
-import { TypeSettings } from "../@types/Settings";
-import { bootstrap } from "../bootstrap";
-import { SetWarning } from "../@modules/@utilities/SetWarning"
-import { SetSettings } from "../@modules/@utilities/SetSettings"
-import { DeployXMPP } from "../@modules/@xmpp/DeployXMPP"
-import { InitializeDatabase } from "../@modules/@database/InitializeDatabase";
-import { GetCachedEvents } from "../@modules/@database/GetCachedEvents";
-import { SetCronSchedule } from "../@modules/@utilities/SetCronSchedule";
-import { UpdateNode } from "../@manager/UpdateNode";
-import { UpdateEvents } from "../@manager/UpdateEvents";
-import { Cron } from "croner";
+import { TypeSettings } from "types/Settings"
+import { bootstrap } from "@bootstrap"
+import { SetWarning } from "@utilities/SetWarning"
+import { SetSettings } from "@utilities/SetSettings"
+import { SetCronSchedule } from "@utilities/SetCronSchedule"
+import { DeployXMPP } from "@xmpp/DeployXMPP"
+import { InitializeDatabase } from "@database/InitializeDatabase"
+import { GetCachedEvents } from "@database/GetCachedEvents"
+import { UpdateNode } from "@manager/UpdateNode"
+import { UpdateEvents } from "@manager/UpdateEvents"
+import { Cron } from "croner"
 
 export const StartService = async (configurations: TypeSettings): Promise<void> => {
     if (!bootstrap.isReady) { 

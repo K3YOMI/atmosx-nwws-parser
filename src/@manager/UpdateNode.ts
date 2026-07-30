@@ -17,10 +17,10 @@
 
 */
 
-import { TypeEvent } from "../@types/Event";
-import { bootstrap } from "../bootstrap"
-import { GetEventNodes } from "../@building/GetEventNodes";
-import { SetEventEmit } from "../@modules/@utilities/SetEventEmit";
+import { TypeEvent } from "types/Event"
+import { bootstrap } from "@bootstrap"
+import { GetEventNodes } from "@building/GetEventNodes"
+import { SetEventEmit } from "@utilities/SetEventEmit"
 
 export const UpdateNode = async (selectedEvent?: TypeEvent): Promise<void> => {
     const events = bootstrap.cache.events.features;

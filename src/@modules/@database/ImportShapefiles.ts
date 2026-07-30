@@ -17,15 +17,15 @@
 
 */
 
-import { TypeSettings } from "../../@types/Settings"
-import { EnumShapefiles } from '../../@enums/Shapefiles'
-import { bootstrap } from "../../bootstrap"
-import { SetSleep } from '../@utilities/SetSleep'
-import { SetWarning } from '../@utilities/SetWarning'
+import { TypeSettings } from "types/Settings"
+import { EnumShapefiles } from "@enums/Shapefiles"
+import { bootstrap } from "@bootstrap"
+import { SetSleep } from "@utilities/SetSleep"
+import { SetWarning } from "@utilities/SetWarning"
 import { existsSync, mkdirSync, writeFileSync, unlinkSync, rm } from "fs"
-import { resolve, extname} from 'path'
-import { loadAsync } from 'jszip'
-import { read } from 'shapefile'
+import { resolve, extname} from "path"
+import { loadAsync } from "jszip"
+import { read } from "shapefile"
 
 export const ImportShapefiles = async (): Promise<void> => {
     const settings = bootstrap.settings as TypeSettings;
@@ -39,7 +39,7 @@ export const ImportShapefiles = async (): Promise<void> => {
                 const response = await fetch(shapefile.link);
                 const arrayBuff = await response.arrayBuffer();
                 const content = await loadAsync(arrayBuff);
-                const directory = resolve(__dirname, `../../shapefiles`);
+                const directory = resolve(__dirname, `shapefiles`);
                 if (!existsSync(directory)) {
                     mkdirSync(directory, { recursive: true });
                 }
@@ -50,7 +50,7 @@ export const ImportShapefiles = async (): Promise<void> => {
                         writeFileSync(output, data)
                     }
                 }
-                const filepath = resolve(__dirname, '../../shapefiles', shapefile.name + '_' + shapefile.id)
+                const filepath = resolve(__dirname, 'shapefiles', shapefile.name + '_' + shapefile.id)
                 const { features } = await read(
                     filepath,
                     filepath,
@@ -85,7 +85,7 @@ export const ImportShapefiles = async (): Promise<void> => {
                 unlinkSync(`${filepath}.dbf`)
                 transaction(features)
             }
-            rm(resolve(__dirname, '../../shapefiles'), { recursive: true, force: true }, () => {});
+            rm(resolve(__dirname, 'shapefiles'), { recursive: true, force: true }, () => {});
         }
     } catch (error) {
         SetWarning( {message: `An error occurred while compiling shapefiles: ${error.message}` }) 

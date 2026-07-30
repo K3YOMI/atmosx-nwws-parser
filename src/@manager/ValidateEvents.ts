@@ -17,18 +17,18 @@
 
 */
 
-import { TypeEvent } from "../@types/Event";
-import { TypeSettings } from "../@types/Settings";
-import { bootstrap } from "../bootstrap"
-import { GetEventEnhancedName } from "../@building/GetEventEnhancedName";
-import { GetEventSignature } from "../@building/GetEventSignature"
-import { MakeEvents } from "./MakeEvents";
-import { RemoveEvent } from "./RemoveEvent";
-import { GetEventAttachments } from "../@building/GetEventAttachments";
-import { SetEventEmit } from "../@modules/@utilities/SetEventEmit";
-import { SetDebug } from "../@modules/@utilities/SetDebug";
-import { GetMatched } from "../@modules/@utilities/GetMatched";
-import { GetEventGeometry } from "../@building/GetEventGeometry";
+import { TypeEvent } from "types/Event"
+import { TypeSettings } from "types/Settings"
+import { bootstrap } from "@bootstrap"
+import { GetEventEnhancedName } from "@building/GetEventEnhancedName"
+import { GetEventSignature } from "@building/GetEventSignature"
+import { MakeEvents } from "@manager/MakeEvents"
+import { RemoveEvent } from "@manager/RemoveEvent"
+import { GetEventAttachments } from "@building/GetEventAttachments"
+import { SetEventEmit } from "@utilities/SetEventEmit"
+import { SetDebug } from "@utilities/SetDebug"
+import { GetMatched } from "@utilities/GetMatched"
+import { GetEventGeometry } from "@building/GetEventGeometry"
 import { createHash } from "crypto"
 
 export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {

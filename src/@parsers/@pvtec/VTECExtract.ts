@@ -17,13 +17,13 @@
 
 */
 
-import { TypePVTEC } from "../../@types/VTEC";
-import { EnumExpressions } from "../../@enums/Expressions";
-import { EnumProducts } from "../../@enums/Products";
-import { EnumEvents } from "../../@enums/Events";
-import { EnumActions } from "../../@enums/Actions";
-import { EnumStatus } from "../../@enums/Status";
-import { GetExpiry } from "./GetExpiry";
+import { TypePVTEC } from "types/VTEC"
+import { EnumExpressions } from "@enums/Expressions"
+import { EnumProducts } from "@enums/Products"
+import { EnumEvents } from "@enums/Events"
+import { EnumActions } from "@enums/Actions"
+import { EnumStatus } from "@enums/Status"
+import { GetExpiry } from "@parsers/pvtec/GetExpiry"
 
 export const VTECExtract = (message: string): TypePVTEC[] | null => {
     if (!message) return null;

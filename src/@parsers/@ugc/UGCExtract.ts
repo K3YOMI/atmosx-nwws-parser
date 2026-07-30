@@ -17,11 +17,11 @@
 
 */
 
-import { TypeUGC } from "../../@types/UGC";
-import { getUGCHeader } from "./GetUGCHeader"
-import { getZones } from "./GetZones";
-import { GetExpiry } from './GetExpiry';
-import { getLocations } from "./GetLocations";
+import { TypeUGC } from "types/UGC"
+import { getUGCHeader } from "@parsers/ugc/GetUGCHeader"
+import { getZones } from "@parsers/ugc/GetZones"
+import { GetExpiry } from "@parsers/ugc/GetExpiry"
+import { getLocations } from "@parsers/ugc/GetLocations"
 
 export const ugcExtract = async (message: string): Promise<TypeUGC> => {
     const head = getUGCHeader(message);

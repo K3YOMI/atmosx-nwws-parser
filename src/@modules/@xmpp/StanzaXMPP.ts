@@ -17,12 +17,12 @@
 
 */
 
-import { TypeStanza } from "../../@types/Stanza";
-import { bootstrap } from "../../bootstrap";
-import { ValidateStanza } from "../@stanza/ValidateStanza";
-import { CreateEvent } from "../../@building/CreateEvent";
-import { ImportStanza } from "../@database/ImportStanza";
-import { SetEventEmit } from "../@utilities/SetEventEmit";
+import { TypeStanza } from "types/Stanza"
+import { bootstrap } from "@bootstrap"
+import { ValidateStanza } from "@stanza/ValidateStanza"
+import { CreateEvent } from "@building/CreateEvent"
+import { ImportStanza } from "@database/ImportStanza"
+import { SetEventEmit } from "@utilities/SetEventEmit"
 
 export const StanzaXMPP = () => {
     bootstrap.session_xmpp.on(`stanza`, async (stanza: TypeStanza) => {

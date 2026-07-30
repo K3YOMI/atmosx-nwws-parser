@@ -17,14 +17,14 @@
 
 */
 
-import { TypeStanzaCompiled } from "../@types/StanzaCompiled"
-import { TypeSettings } from "../@types/Settings"
-import { bootstrap } from "../bootstrap"
-import { ParseText } from "../@events/ParseText"
-import { ParseUGC } from "../@events/ParseUGC"
-import { ParseVTEC } from "../@events/ParseVTEC"
-import { ParseAPI } from "../@events/ParseAPI"
-import { ValidateEvents } from "../@manager/ValidateEvents"
+import { TypeStanzaCompiled } from "types/StanzaCompiled"
+import { TypeSettings } from "types/Settings"
+import { bootstrap } from "@bootstrap"
+import { ParseText } from "@events/ParseText"
+import { ParseUGC } from "@events/ParseUGC"
+import { ParseVTEC } from "@events/ParseVTEC"
+import { ParseAPI } from "@events/ParseAPI"
+import { ValidateEvents } from "@manager/ValidateEvents"
 
 export const CreateEvent = async (stanza: TypeStanzaCompiled, ignorePushing?: boolean): Promise<void | string> => {
     const settings = bootstrap.settings as TypeSettings

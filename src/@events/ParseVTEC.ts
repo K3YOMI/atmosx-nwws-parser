@@ -17,18 +17,18 @@
 
 */
 
-import { TypeAttributes } from "../@types/Attributes";
-import { TypeStanzaCompiled } from "../@types/StanzaCompiled"
-import { TypePVTEC } from "../@types/VTEC";
-import { TypeHVTEC } from "../@types/HVTEC";
-import { bootstrap } from "../bootstrap";
-import { VTECExtract } from "../@parsers/@pvtec/VTECExtract";
-import { HVExtract } from "../@parsers/@hvtec/HVExtract";
-import { ugcExtract } from "../@parsers/@ugc/UGCExtract";
-import { GetEventProperties } from "../@building/GetEventProperties";
-import { GetEventHeader } from "../@building/GetEventHeader";
-import { GetEventTracking } from "../@building/GetEventTracking";
-import { SetDebug } from "../@modules/@utilities/SetDebug";
+import { TypeAttributes } from "types/Attributes"
+import { TypeStanzaCompiled } from "types/StanzaCompiled"
+import { TypePVTEC } from "types/VTEC"
+import { TypeHVTEC } from "types/HVTEC"
+import { bootstrap } from "@bootstrap"
+import { VTECExtract } from "@parsers/pvtec/VTECExtract"
+import { HVExtract } from "@parsers/hvtec/HVExtract"
+import { ugcExtract } from "@parsers/ugc/UGCExtract"
+import { GetEventProperties } from "@building/GetEventProperties"
+import { GetEventHeader } from "@building/GetEventHeader"
+import { GetEventTracking } from "@building/GetEventTracking"
+import { SetDebug } from "@utilities/SetDebug"
 
 export const ParseVTEC = async (stanza: TypeStanzaCompiled): Promise<void> => {
     const getMessages = stanza?.message

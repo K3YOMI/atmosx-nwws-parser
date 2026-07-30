@@ -18,8 +18,8 @@
     
 */
 
-import { GetPCMToFloat } from "./GetPCMToFloat";
-import { GetFloatPCM16 } from "./GetFloatPCM16";
+import { GetPCMToFloat } from "@eas/GetPCMToFloat"
+import { GetFloatPCM16 } from "@eas/GetFloatPCM16"
 
 export const SetRadioEffect = (int16: Int16Array, sampleRate: number): Int16Array => {
     const hpCut = 3555;

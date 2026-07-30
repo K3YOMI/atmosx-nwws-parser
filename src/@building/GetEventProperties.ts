@@ -17,17 +17,17 @@
 
 */
 
-import { TypeEventProperties } from "../@types/Properties";
-import { TypeAttributes } from "../@types/Attributes";
-import { TypeUGC } from "../@types/UGC";
-import { TypePVTEC } from "../@types/VTEC";
-import { TypeHVTEC } from "../@types/HVTEC";
-import { EnumExpressions } from "../@enums/Expressions";
-import { GetDescriptionFromProduct } from "../@parsers/@text/GetDescriptionFromProduct";
-import { getPolygonFromProduct } from "../@parsers/@text/GetPolygonFromProduct";
-import { GetTextFromProduct } from "../@parsers/@text/GetTextFromProduct";
-import { GetEventOffice } from "./GetEventOffice";
-import { GetEventTags } from "./GetEventTags";
+import { TypeEventProperties } from "types/Properties"
+import { TypeAttributes } from "types/Attributes"
+import { TypeUGC } from "types/UGC"
+import { TypePVTEC } from "types/VTEC"
+import { TypeHVTEC } from "types/HVTEC"
+import { EnumExpressions } from "@enums/Expressions"
+import { GetDescriptionFromProduct } from "@parsers/text/GetDescriptionFromProduct"
+import { getPolygonFromProduct } from "@parsers/text/GetPolygonFromProduct"
+import { GetTextFromProduct } from "@parsers/text/GetTextFromProduct"
+import { GetEventOffice } from "@building/GetEventOffice"
+import { GetEventTags } from "@building/GetEventTags"
 
 interface GetEventPropertiesOptions { 
     message: string
