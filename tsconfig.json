@@ -10,7 +10,6 @@
 		"allowSyntheticDefaultImports": true,
 		"skipLibCheck": true,
 		"paths": {
-			"@/*": ["./*"],
 			"@parsers/hvtec/*": ["./src/@parsers/@hvtec/*"],
 			"@parsers/pvtec/*": ["./src/@parsers/@pvtec/*"],
 			"@parsers/ugc/*": ["./src/@parsers/@ugc/*"],
