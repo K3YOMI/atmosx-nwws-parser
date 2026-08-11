@@ -148,7 +148,7 @@ export const EnumTags = {
         { match: /Source\.\.\.Doppler Radar/i, tag: "Confirmed By Radar" },
         { match: /Source\.\.\.Automated Gauges/i, tag: "Confirmed By Automated Gauges" },
         { match: /Source\.\.\.Radar Confirmed/i, tag: "Confirmed By Radar" },
-        { match: /Source\.\.\.Radar Indicated/i, tag: "Indicated By Radar" },
+        { match: /Source\.\.\.Radar Indicated/i, tag: "Radar Indicated" },
         { match: /Source\.\.\.Public/i, tag: "Confirmed By Public" },
         { match: /Source\.\.\.Amateur Radio/i, tag: "Confirmed By Amateur Radio" },
         { match: /Source\.\.\.Emergency Management/i, tag: "Confirmed By Emergency Management" },

@@ -15541,6 +15541,13 @@ var GenerateEASMessage = async (options) => {
   let buffTTS;
   let buffRadio;
   let buffFull = [];
+  if (!directory) {
+    SetWarning({
+      title: `EAS`,
+      message: `EAS directory is not set in the settings. Please set it to generate EAS tones.`
+    });
+    return null;
+  }
   if (!(0, import_fs2.existsSync)(directory)) {
     (0, import_fs2.mkdirSync)(directory, { recursive: true });
   }
@@ -15627,6 +15634,7 @@ var SetNode = (options) => {
     if (exists) {
       const index = nodes.indexOf(exists);
       nodes.splice(index, 1);
+      SetWarning({ message: `Node with identifier '${options.identifier}' deleted.` });
       return SetEventEmit({
         event: `onNodeDelete`,
         metadata: {
@@ -15646,6 +15654,7 @@ var SetNode = (options) => {
         coordinates: [options.coordinates.longitude, options.coordinates.latitude]
       }
     };
+    SetWarning({ message: `Node with identifier '${options.identifier}' updated.` });
     return SetEventEmit({
       event: `onNodeUpdate`,
       metadata: {
@@ -15664,6 +15673,7 @@ var SetNode = (options) => {
       identifier: options.identifier
     }
   });
+  SetWarning({ message: `Node with identifier '${options.identifier}' added.` });
   return SetEventEmit({
     event: `onNodeAdd`,
     metadata: {
@@ -16561,7 +16571,7 @@ var EnumTags = {
     { match: /Source\.\.\.Doppler Radar/i, tag: "Confirmed By Radar" },
     { match: /Source\.\.\.Automated Gauges/i, tag: "Confirmed By Automated Gauges" },
     { match: /Source\.\.\.Radar Confirmed/i, tag: "Confirmed By Radar" },
-    { match: /Source\.\.\.Radar Indicated/i, tag: "Indicated By Radar" },
+    { match: /Source\.\.\.Radar Indicated/i, tag: "Radar Indicated" },
     { match: /Source\.\.\.Public/i, tag: "Confirmed By Public" },
     { match: /Source\.\.\.Amateur Radio/i, tag: "Confirmed By Amateur Radio" },
     { match: /Source\.\.\.Emergency Management/i, tag: "Confirmed By Emergency Management" },
@@ -16594,6 +16604,9 @@ var GetEventProperties = (options) => {
   const properties = {
     locations: options?.ugc?.locations?.join(`; `) ?? null,
     locations_array: options?.ugc?.locations ?? [],
+    location_states: [...new Set(
+      options?.ugc?.locations?.map((location) => location.match(/,\s*([A-Z]{2})\b/)?.[1]).filter(Boolean) ?? []
+    )],
     description: GetDescriptionFromProduct({ message: options.message, handle: options?.pVtec?.vtec ?? null }),
     attributes: options.attributes,
     geocode: {
@@ -17176,7 +17189,10 @@ var ParseAPI = async (stanza) => {
         issued: feature?.properties?.sent ? new Date(feature?.properties?.sent).toISOString() : null,
         expires: feature?.properties?.expires ? new Date(feature?.properties?.expires).toISOString() : null,
         locations: feature?.properties?.areaDesc ?? null,
-        locations_array: feature?.properties?.areaDesc ? feature?.properties?.areaDesc.split(";") : [],
+        locations_array: feature?.properties?.areaDesc ? feature?.properties?.areaDesc.split("; ") : [],
+        location_states: [...new Set(
+          feature?.properties?.areaDesc?.split(";")?.map((location) => location.match(/,\s*([A-Z]{2})\b/)?.[1]).filter(Boolean) ?? []
+        )],
         description: feature?.properties?.description ?? null,
         attributes: feature?.properties?.attributes ?? {},
         geocode: {
@@ -17421,55 +17437,20 @@ var EnumGlobalFilter = [
   "storm prediction center day 3 outlook"
 ];
 
-// src/@manager/SetHash.ts
-var SetHash = (event, entry) => {
-  if (!entry) {
-    bootstrap.cache.hashes.push({
-      tracking: event.properties.metadata.tracking,
-      hashes: [event.properties.metadata.hash],
-      expires: event.properties.expires
-    });
-    return;
-  }
-  entry.hashes.push(event.properties.metadata.hash);
-  entry.expires = event.properties.expires;
-};
-
-// src/@parsers/@text/GetEmbededText.ts
-var GetEmebedText = (event) => {
-  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
-  const isStatement = event.properties.status_metadata.is_statement;
-  const isExpired = event.properties.status_metadata.is_expired;
-  return [
-    line(`**Locations:**`, event?.properties?.locations?.slice(0, 100)),
-    line(`**Issued:**`, `<t:${Math.floor(new Date(event.properties.issued).getTime() / 1e3)}:R>`, !isExpired),
-    line(`**Expires:**`, `<t:${Math.floor(new Date(event.properties.expires).getTime() / 1e3)}:R>`, !isStatement),
-    line(`**Damage Threat:**`, event?.properties?.parameters?.damage_threat, !isExpired),
-    line(`**Flood Threat:**`, event?.properties?.parameters?.flood_threat, !isExpired),
-    line(`**Tornado Threat:**`, event?.properties?.parameters?.tornado_threat, !isExpired),
-    line(`**Estimated Wind Gusts:**`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
-    line(`**Estimated Hail Size:**`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
-    line(`**Discussion:**`, event?.properties?.discussion_parameters?.discussion_number, !isExpired),
-    line(`**Concern:**`, event?.properties?.discussion_parameters?.discussion_concerning, !isExpired),
-    line(`**SPC Max Tornado Threat:**`, event?.properties?.discussion_parameters?.discussion_max_tornado, !isExpired),
-    line(`**SPC Max Hail Threat:**`, event?.properties?.discussion_parameters?.discussion_max_hail, !isExpired),
-    line(`**SPC Max Wind Threat:**`, event?.properties?.discussion_parameters?.discussion_max_wind, !isExpired),
-    line(`**SPC Watch Issuance Probability:**`, event?.properties?.discussion_parameters?.discussion_watch_issuance ? `${event?.properties?.discussion_parameters?.discussion_watch_issuance}%` : null, !isExpired),
-    line(`**Watch Number:**`, event?.properties?.watch_parameters?.watch_number, !isExpired),
-    line(`**Strong Tornadoes Probability:**`, event?.properties?.watch_parameters?.strong_tornadoes_probability ? `${event?.properties?.watch_parameters?.strong_tornadoes_probability}%` : null, !isExpired),
-    line(`**Additional Tornadoes Probability:**`, event?.properties?.watch_parameters?.additional_tornadoes_probability ? `${event?.properties?.watch_parameters?.additional_tornadoes_probability}%` : null, !isExpired),
-    line(`**Combined Hail/Wind Probability:**`, event?.properties?.watch_parameters?.combined_hail_wind_probability ? `${event?.properties?.watch_parameters?.combined_hail_wind_probability}%` : null, !isExpired),
-    line(`**Severe Hail Probability:**`, event?.properties?.watch_parameters?.severe_hail_probability ? `${event?.properties?.watch_parameters?.severe_hail_probability}%` : null, !isExpired),
-    line(`**Hail >2in Probability:**`, event?.properties?.watch_parameters?.hail_2in_probability ? `${event?.properties?.watch_parameters?.hail_2in_probability}%` : null, !isExpired),
-    line(`**Max Hail Inches:**`, event?.properties?.watch_parameters?.max_hail_in, !isExpired),
-    line(`**Severe Wind Probability:**`, event?.properties?.watch_parameters?.severe_wind_probability ? `${event?.properties?.watch_parameters?.severe_wind_probability}%` : null, !isExpired),
-    line(`**Max Surface Wind:**`, event?.properties?.watch_parameters?.max_wind_surface, !isExpired),
-    line(`**Max Tops (x100 feet):**`, event?.properties?.watch_parameters?.max_tops_x100feet, !isExpired),
-    line(`**Tags:**`, event?.properties?.parameters?.tags?.length > 0 ? event?.properties?.parameters?.tags.join(", ") : null, !isExpired),
-    line(`**Sender:**`, event?.properties?.geocode?.office?.name ? `${event?.properties?.geocode?.office?.name} (${event?.properties?.geocode?.office?.office})` : event?.properties?.geocode?.office?.office),
-    line(`**Tracking:**`, event?.properties?.metadata?.tracking),
-    line(`**Logs:**`, event?.properties?.metadata?.history?.length > 0 ? event?.properties?.metadata?.history.length : null)
-  ].filter(Boolean).join("\n");
+// src/@modules/@utilities/GetMatched.ts
+var GetMatched = (strings, string) => {
+  const isMatched = strings.some((pattern) => {
+    if (!pattern) return false;
+    const lowerP = pattern.toLowerCase();
+    const lowerS = string.toLowerCase();
+    if (lowerP === "*" || lowerP === lowerS) return true;
+    if (lowerP.includes("*")) {
+      const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
+      return new RegExp(regex).test(lowerS);
+    }
+    return false;
+  });
+  return isMatched;
 };
 
 // src/@parsers/@text/GetStringText.ts
@@ -17486,8 +17467,8 @@ var GetStringText = (event) => {
     line(`Damage Threat:`, event?.properties?.parameters?.damage_threat, !isExpired),
     line(`Flood Threat:`, event?.properties?.parameters?.flood_threat, !isExpired),
     line(`Tornado Threat:`, event?.properties?.parameters?.tornado_threat, !isExpired),
-    line(`Estimated Wind Gusts:`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
-    line(`Estimated Hail Size:`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
+    line(`Wind Gusts:`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
+    line(`Hail Size:`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
     line(`Discussion:`, event?.properties?.discussion_parameters?.discussion_number, !isExpired),
     line(`Concern:`, event?.properties?.discussion_parameters?.discussion_concerning, !isExpired),
     line(`SPC Max Tornado Threat:`, event?.properties?.discussion_parameters?.discussion_max_tornado, !isExpired),
@@ -17507,6 +17488,38 @@ var GetStringText = (event) => {
     line(`Sender:`, event?.properties?.geocode?.office?.name ? `${event?.properties?.geocode?.office?.name} (${event?.properties?.geocode?.office?.office})` : event?.properties?.geocode?.office?.office),
     line(`Tracking:`, event?.properties?.metadata?.tracking)
   ].filter(Boolean).join("\n");
+};
+
+// src/@tasks/TaskGenerateAudio.ts
+var TaskGenerateAudio = async function(options) {
+  const { filename, description, header } = options;
+  return await GenerateEASMessage({
+    title: filename,
+    message: description,
+    header
+  });
+};
+
+// src/@tasks/TaskGenerateText.ts
+var import_promises = require("fs/promises");
+var TaskGenerateText = async function(options) {
+  const { string, directory, filename } = options;
+  if (directory) {
+    await (0, import_promises.mkdir)(directory, { recursive: true });
+    await (0, import_promises.appendFile)(directory + "/" + filename, `${string}${"\n".repeat(5)}`);
+  }
+  return string;
+};
+
+// src/@tasks/TaskGenerateJSON.ts
+var import_promises2 = require("fs/promises");
+var TaskGenerateJSON = async function(options) {
+  const { string, directory, filename } = options;
+  if (directory) {
+    await (0, import_promises2.mkdir)(directory, { recursive: true });
+    await (0, import_promises2.writeFile)(directory + "/" + filename, `${string}${"\n".repeat(5)}`);
+  }
+  return string;
 };
 
 // src/@modules/@utilities/CreateHttp.ts
@@ -17552,216 +17565,289 @@ var CreateHttp = async (options) => {
   }
 };
 
-// src/@modules/@utilities/GetMatched.ts
-var GetMatched = (strings, string) => {
-  const isMatched = strings.some((pattern) => {
-    if (!pattern) return false;
-    const lowerP = pattern.toLowerCase();
-    const lowerS = string.toLowerCase();
-    if (lowerP === "*" || lowerP === lowerS) return true;
-    if (lowerP.includes("*")) {
-      const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
-      return new RegExp(regex).test(lowerS);
+// src/@tasks/TaskSendNTFY.ts
+var TaskSendNTFY = async function(options) {
+  const { event, toggles, priority, body, topic } = options;
+  const { properties } = event;
+  const configurations = bootstrap.settings.NotifyServer;
+  const authentication = configurations?.Credentials?.Username && configurations?.Credentials?.Password ? {
+    username: configurations.Credentials.Username,
+    password: configurations.Credentials.Password
+  } : void 0;
+  const image = properties.metadata.attachments?.find((a) => a.name === "Image: Graphic");
+  const buttons = [
+    ...toggles?.eas && configurations?.MediaStorage?.EAS ? [{
+      "action": "view",
+      "label": "Listen",
+      "url": `${configurations.MediaStorage.EAS}/${properties.event}_${properties.metadata.tracking}.wav`
+    }] : [],
+    ...toggles?.text && configurations?.MediaStorage?.TEXT ? [{
+      "action": "view",
+      "label": "View Text",
+      "url": `${configurations.MediaStorage.TEXT}/${properties.event}_${properties.metadata.tracking}.txt`
+    }] : [],
+    ...image ? [{
+      "action": "view",
+      "label": "View Image",
+      "url": image.link
+    }] : []
+  ];
+  const headers = {
+    "Title": `${properties.event} (${properties.status})`,
+    "Tags": properties.parameters.tags?.join(",") ?? "N/A",
+    "Priority": priority ?? "5",
+    ...buttons.length > 0 && { "Actions": JSON.stringify(buttons) }
+  };
+  const post = async (topic2) => {
+    const response2 = await CreateHttp({
+      url: `${configurations?.Server?.replace(/\/$/, "")}/${topic2}`,
+      timeout: 15e3,
+      method: "PUT",
+      ...authentication && { auth: authentication },
+      headers,
+      body
+    });
+    if (response2.error) {
+      SetDebug({ title: `Tasks/NTFY`, message: `Failed to send notification to topic "${topic2}": ${response2.message}` });
     }
-    return false;
-  });
-  return isMatched;
+  };
+  const topics = [
+    topic,
+    ...properties.metadata.filtered_proximity ? ["LOCAL"] : [],
+    ...properties.location_states.map((state) => `${topic}-${state}`)
+  ];
+  await Promise.all([...new Set(topics)].map(post));
 };
 
-// src/@manager/Tasks.ts
-var import_promises = require("fs/promises");
-var Tasks = async (events) => {
-  const tick = performance.now();
-  const settings = bootstrap.settings;
-  const notifyServer = settings.NotifyServer;
-  const actions = settings.ActionSettings;
-  for (const event of events) {
-    const properties = event.properties;
-    const hasActions = Array.isArray(actions) && actions.length > 0;
-    if (!hasActions) {
-      SetDebug({ title: `Tasks`, message: `${Math.round(performance.now() - tick)}ms` });
+// src/@parsers/@text/GetEmbededText.ts
+var GetEmebedText = (event) => {
+  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
+  const isStatement = event.properties.status_metadata.is_statement;
+  const isExpired = event.properties.status_metadata.is_expired;
+  return [
+    line(`**Locations:**`, event?.properties?.locations?.slice(0, 100)),
+    line(`**Issued:**`, `<t:${Math.floor(new Date(event.properties.issued).getTime() / 1e3)}:R>`, !isExpired),
+    line(`**Expires:**`, `<t:${Math.floor(new Date(event.properties.expires).getTime() / 1e3)}:R>`, !isStatement),
+    line(`**Damage Threat:**`, event?.properties?.parameters?.damage_threat, !isExpired),
+    line(`**Flood Threat:**`, event?.properties?.parameters?.flood_threat, !isExpired),
+    line(`**Tornado Threat:**`, event?.properties?.parameters?.tornado_threat, !isExpired),
+    line(`**Wind Gusts:**`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
+    line(`**Hail Size:**`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
+    line(`**Discussion:**`, event?.properties?.discussion_parameters?.discussion_number, !isExpired),
+    line(`**Concern:**`, event?.properties?.discussion_parameters?.discussion_concerning, !isExpired),
+    line(`**SPC Max Tornado Threat:**`, event?.properties?.discussion_parameters?.discussion_max_tornado, !isExpired),
+    line(`**SPC Max Hail Threat:**`, event?.properties?.discussion_parameters?.discussion_max_hail, !isExpired),
+    line(`**SPC Max Wind Threat:**`, event?.properties?.discussion_parameters?.discussion_max_wind, !isExpired),
+    line(`**SPC Watch Issuance Probability:**`, event?.properties?.discussion_parameters?.discussion_watch_issuance ? `${event?.properties?.discussion_parameters?.discussion_watch_issuance}%` : null, !isExpired),
+    line(`**Watch Number:**`, event?.properties?.watch_parameters?.watch_number, !isExpired),
+    line(`**Strong Tornadoes Probability:**`, event?.properties?.watch_parameters?.strong_tornadoes_probability ? `${event?.properties?.watch_parameters?.strong_tornadoes_probability}%` : null, !isExpired),
+    line(`**Additional Tornadoes Probability:**`, event?.properties?.watch_parameters?.additional_tornadoes_probability ? `${event?.properties?.watch_parameters?.additional_tornadoes_probability}%` : null, !isExpired),
+    line(`**Combined Hail/Wind Probability:**`, event?.properties?.watch_parameters?.combined_hail_wind_probability ? `${event?.properties?.watch_parameters?.combined_hail_wind_probability}%` : null, !isExpired),
+    line(`**Severe Hail Probability:**`, event?.properties?.watch_parameters?.severe_hail_probability ? `${event?.properties?.watch_parameters?.severe_hail_probability}%` : null, !isExpired),
+    line(`**Hail >2in Probability:**`, event?.properties?.watch_parameters?.hail_2in_probability ? `${event?.properties?.watch_parameters?.hail_2in_probability}%` : null, !isExpired),
+    line(`**Max Hail Inches:**`, event?.properties?.watch_parameters?.max_hail_in, !isExpired),
+    line(`**Severe Wind Probability:**`, event?.properties?.watch_parameters?.severe_wind_probability ? `${event?.properties?.watch_parameters?.severe_wind_probability}%` : null, !isExpired),
+    line(`**Max Surface Wind:**`, event?.properties?.watch_parameters?.max_wind_surface, !isExpired),
+    line(`**Max Tops (x100 feet):**`, event?.properties?.watch_parameters?.max_tops_x100feet, !isExpired),
+    line(`**Tags:**`, event?.properties?.parameters?.tags?.length > 0 ? event?.properties?.parameters?.tags.join(", ") : null, !isExpired),
+    line(`**Sender:**`, event?.properties?.geocode?.office?.name ? `${event?.properties?.geocode?.office?.name} (${event?.properties?.geocode?.office?.office})` : event?.properties?.geocode?.office?.office),
+    line(`**Tracking:**`, event?.properties?.metadata?.tracking),
+    line(`**Logs:**`, event?.properties?.metadata?.history?.length > 0 ? event?.properties?.metadata?.history.length : null)
+  ].filter(Boolean).join("\n");
+};
+
+// src/@tasks/TaskSendWebhook.ts
+var import_promises3 = require("fs/promises");
+var TaskSendWebhook = async function(options) {
+  const { event, webhook, attachments } = options;
+  const { properties } = event;
+  const isRatelimited = SetTimeoutAction({
+    identifier: webhook.Destination,
+    interval: (webhook.Ratelimit ?? 2) * 2,
+    max: webhook.Ratelimit ?? 2,
+    addTime: true
+  });
+  if (isRatelimited.limited) {
+    return;
+  }
+  const newForm = new FormData();
+  const newEmbed = {
+    title: `${properties.event} (${properties.status})`,
+    description: GetEmebedText(event),
+    fields: [],
+    color: 16711680,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    footer: { text: webhook.Title ?? `AtmosphericX` }
+  };
+  if (properties.description && !properties.status_metadata.is_expired) {
+    const description = properties.description.length > 900 ? properties.description.substring(0, 900) + "\n\n[Message truncated due to length]" : properties.description;
+    newEmbed.fields.push({
+      name: "Description",
+      value: description ? "```\n" + description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
+    });
+  }
+  if (properties.metadata.attachments?.length > 0) {
+    const attachments2 = properties.metadata.attachments.slice(0, 5);
+    newEmbed.fields.push({
+      name: "Attachments",
+      value: attachments2.map((attachment) => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + "..." : attachment.name}](${attachment.link})`).join("\n")
+    });
+  }
+  if (attachments?.text) {
+    newForm.append("fUpload", new Blob([Buffer.from(attachments.text)], { type: "application/text" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`);
+  }
+  if (attachments?.json) {
+    newForm.append("fUpload2", new Blob([Buffer.from(attachments.json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
+  }
+  if (attachments?.eas) {
+    const file = await (0, import_promises3.readFile)(attachments.eas);
+    newForm.append("fUpload3", new Blob([Buffer.from(file)], { type: "application/wav" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.wav`);
+  }
+  newForm.append("payload_json", JSON.stringify({
+    username: webhook.Title ?? `AtmosphericX`,
+    content: webhook.Message ?? "",
+    embeds: [newEmbed]
+  }));
+  await CreateHttp({
+    url: webhook.Destination,
+    timeout: 15e3,
+    method: `POST`,
+    body: newForm
+  });
+};
+
+// src/@modules/@utilities/QueueManager.ts
+var QueueManager = class {
+  constructor(options = {}) {
+    this.queue = [];
+    this.running = 0;
+    this.draining = false;
+    const concurrency = options.concurrency ?? 1;
+    this.concurrency = concurrency;
+    this.onError = options.onError ?? ((error) => {
+      console.error("[QueueManager] Task failed:", error);
+    });
+  }
+  enqueue(task) {
+    this.queue.push(task);
+    this.drain();
+  }
+  drain() {
+    if (this.draining) {
       return;
     }
-    const metadata = {
-      text: null,
-      eas: null,
-      json: null,
-      name: properties.event,
-      status: properties.status,
-      description: properties.description,
-      tracking: properties.metadata.tracking,
-      header: properties.metadata.header,
-      raw: properties.metadata.raw,
-      expired: properties.status_metadata.is_expired,
-      attachments: properties.metadata.attachments
-    };
-    const archiveSettings = settings.GlobalSettings?.ArchiveSettings;
-    const textArchiveDir = archiveSettings?.TextDirectory;
-    const jsonArchiveDir = archiveSettings?.JSONDirectory;
-    const eventBaseName = `${metadata.name}_${metadata.tracking}`;
-    const easTitle = `${metadata.name}_${metadata.status}_${metadata.tracking}`;
-    const cleanedEventText = JSON.stringify(GetCleanedEvent(event), null, 2);
-    const stringText = GetStringText(event);
-    const embedText = GetEmebedText(event);
-    for (const action of actions) {
-      const events2 = action?.Events;
-      const webhook = action?.Webhook;
-      const notify = action?.NotificationServer;
-      const uploads = action?.Uploads;
-      const isMatched = GetMatched(events2 ?? [], metadata.name);
-      if (events2?.length == 0 || isMatched) {
-        const t = performance.now();
-        if (uploads?.EAS && !metadata.eas) {
-          metadata.eas = await GenerateEASMessage({
-            title: easTitle,
-            message: metadata.description,
-            header: metadata.header
-          });
-          SetDebug({
-            title: "Tasks/EAS",
-            message: `${Math.round(performance.now() - t)}ms`
-          });
-        }
-        if (uploads?.TEXT && metadata.text === null) {
-          const t2 = performance.now();
-          if (textArchiveDir) {
-            const file = `${textArchiveDir}/${eventBaseName}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
-            await (0, import_promises.mkdir)(textArchiveDir, { recursive: true });
-            await (0, import_promises.appendFile)(file, `${metadata.raw}${"\n".repeat(5)}`);
-            SetDebug({
-              title: "Tasks/TEXT",
-              message: `${Math.round(performance.now() - t2)}ms`
-            });
-          }
-          metadata.text = metadata.raw;
-        }
-        if (uploads?.JSON && metadata.json === null) {
-          const t2 = performance.now();
-          if (jsonArchiveDir) {
-            const file = `${jsonArchiveDir}/${eventBaseName}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
-            await (0, import_promises.mkdir)(jsonArchiveDir, { recursive: true });
-            await (0, import_promises.writeFile)(file, cleanedEventText);
-            SetDebug({
-              title: "Tasks/JSON",
-              message: `${Math.round(performance.now() - t2)}ms`
-            });
-          }
-          metadata.json = cleanedEventText;
-        }
-        if (notifyServer?.Enabled && notify?.Enabled && notify?.Topic) {
-          let buttons = [];
-          const t2 = performance.now();
-          const auth = notifyServer?.Credentials?.Username && notifyServer?.Credentials?.Password ? { username: notifyServer?.Credentials?.Username, password: notifyServer?.Credentials?.Password } : void 0;
-          const image = metadata.attachments?.find((a) => a.name === "Image: Graphic");
-          if (notifyServer?.MediaStorage?.EAS) {
-            if (metadata.eas) {
-              buttons.push({
-                "action": "view",
-                "label": "Listen",
-                "url": `${notifyServer?.MediaStorage?.EAS}/${metadata.name}_${metadata.status}_${metadata.tracking}.wav`
-              });
-            }
-          }
-          if (metadata.json) {
-            buttons.push({
-              "action": "view",
-              "label": "View JSON",
-              "url": `${notifyServer?.MediaStorage?.JSON}/${metadata.name}_${metadata.tracking}.json`
-            });
-          }
-          if (metadata.text) {
-            buttons.push({
-              "action": "view",
-              "label": "View Text",
-              "url": `${notifyServer?.MediaStorage?.TEXT}/${metadata.name}_${metadata.tracking}.txt`
-            });
-          }
-          if (image) {
-            buttons.push({
-              "action": "view",
-              "label": "View Image",
-              "url": image.link
-            });
-          }
-          await CreateHttp({
-            url: `${notifyServer?.Server?.replace(/\/$/, "")}/${notify.Topic}`,
-            timeout: 15e3,
-            method: "PUT",
-            ...auth && { auth },
-            headers: {
-              "Title": `${metadata.name} (${metadata.status})`,
-              "Tags": properties.parameters.tags?.join(",") ?? "N/A",
-              "Priority": notify?.Priority ?? "5",
-              ...buttons.length > 0 && { "Actions": JSON.stringify(buttons) }
-            },
-            body: stringText
-          });
-          SetDebug({
-            title: "Tasks/NTFY",
-            message: `${Math.round(performance.now() - t2)}ms`
-          });
-        }
-        if (webhook?.Enabled && webhook?.Destination) {
-          const t2 = performance.now();
-          const isRatelimited = SetTimeoutAction({ identifier: webhook.Destination, interval: (webhook.Ratelimit ?? 2) * 2, max: webhook.Ratelimit ?? 2, addTime: true });
-          const form = new FormData();
-          const embed = {
-            title: `${metadata.name} (${metadata.status})`,
-            description: embedText,
-            fields: [],
-            color: 16711680,
-            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-            footer: { text: webhook.Title ?? `AtmosphericX` }
-          };
-          if (isRatelimited.limited) {
-            return;
-          }
-          if (metadata.description && !metadata.expired) {
-            const description = metadata.description.length > 900 ? metadata.description.substring(0, 900) + "\n\n[Message truncated due to length]" : metadata.description;
-            embed.fields.push({
-              name: "Description",
-              value: description ? "```\n" + description.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n```" : ""
-            });
-          }
-          if (metadata.attachments?.length > 0) {
-            const attachments = metadata.attachments.slice(0, 5);
-            embed.fields.push({
-              name: "Attachments",
-              value: attachments.map((attachment) => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + "..." : attachment.name}](${attachment.link})`).join("\n")
-            });
-          }
-          if (uploads?.TEXT) {
-            form.append("fUpload", new Blob([Buffer.from(metadata.text)], { type: "application/text" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`);
-          }
-          if (uploads?.JSON) {
-            form.append("fUpload2", new Blob([Buffer.from(metadata.json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
-          }
-          if (uploads?.EAS) {
-            if (metadata.eas) {
-              const file = await (0, import_promises.readFile)(metadata.eas);
-              form.append("fEas", new Blob([Buffer.from(file)], { type: "audio/mpeg" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}_eas.mp3`);
-            }
-          }
-          form.append("payload_json", JSON.stringify({
-            username: webhook.Title ?? "AtmosphericX",
-            content: webhook.Message ?? "",
-            embeds: [embed]
-          }));
-          await CreateHttp({
-            url: webhook.Destination,
-            timeout: 15e3,
-            method: `POST`,
-            body: form
-          });
-          SetDebug({
-            title: "Tasks/Webhook",
-            message: `${Math.round(performance.now() - t2)}ms`
-          });
-        }
+    this.draining = true;
+    while (this.running < this.concurrency && this.queue.length > 0) {
+      const task = this.queue.shift();
+      if (!task) {
+        continue;
       }
+      this.running++;
+      void this.execute(task);
+    }
+    this.draining = false;
+  }
+  async execute(task) {
+    try {
+      await task();
+    } catch (error) {
+      try {
+        this.onError(error);
+      } catch (handlerError) {
+      }
+    } finally {
+      this.running--;
+      this.drain();
     }
   }
-  SetDebug({ title: `Tasks`, message: `${Math.round(performance.now() - tick)}ms` });
+};
+
+// src/@manager/CreateTasks.ts
+var Webhooks = new QueueManager({ concurrency: 1 });
+var NTFY = new QueueManager({ concurrency: 5 });
+var CreateTasks = async (events) => {
+  const tick = performance.now();
+  const settings = bootstrap.settings;
+  const { ActionSettings, GlobalSettings, NotifyServer } = settings;
+  const actions = ActionSettings;
+  for (const event of events) {
+    const { properties } = event;
+    const isActioning = Array.isArray(actions) && actions.length > 0;
+    if (!isActioning) {
+      continue;
+    }
+    for (const action of actions) {
+      const { Events, Webhook, NotificationServer, Uploads } = action;
+      const isValidAction = GetMatched(Events, properties.event);
+      if (Events.length == 0 || isValidAction) {
+        const a = performance.now();
+        const [eas, text, json] = await Promise.all([
+          Uploads?.EAS ? TaskGenerateAudio({
+            filename: `${properties.event}_${properties.metadata.tracking}`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
+            description: properties.description,
+            header: properties.metadata.header
+          }).then((result) => {
+            return result;
+          }) : Promise.resolve(null),
+          Uploads?.TEXT ? TaskGenerateText({
+            string: properties.metadata.raw,
+            directory: GlobalSettings?.ArchiveSettings?.TextDirectory,
+            filename: `${properties.event}-${properties.metadata.tracking}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+          }).then((result) => {
+            return result;
+          }) : Promise.resolve(null),
+          Uploads?.JSON ? TaskGenerateJSON({
+            string: JSON.stringify(GetCleanedEvent(event), null, 2),
+            directory: GlobalSettings?.ArchiveSettings?.JSONDirectory,
+            filename: `${properties.event}-${properties.metadata.tracking}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+          }).then((result) => {
+            return result;
+          }) : Promise.resolve(null)
+        ]);
+        SetDebug({ title: `Tasks/Generative`, message: `${Math.round(performance.now() - a)}ms` });
+        const b2 = performance.now();
+        await Promise.all([
+          NotificationServer?.Enabled && NotifyServer?.Enabled && NotificationServer?.Topic ? NTFY.enqueue(() => TaskSendNTFY({
+            event,
+            toggles: {
+              eas: Uploads?.EAS,
+              json: Uploads?.JSON,
+              text: Uploads?.TEXT
+            },
+            priority: NotificationServer?.Priority ?? 5,
+            body: GetStringText(event),
+            topic: NotificationServer?.Topic
+          })) : Promise.resolve(null),
+          Webhook?.Enabled && Webhook?.Destination ? Webhooks.enqueue(() => TaskSendWebhook({
+            event,
+            webhook: Webhook,
+            attachments: {
+              text,
+              eas,
+              json
+            }
+          })) : Promise.resolve(null)
+        ]);
+        SetDebug({ title: `Tasks/Send`, message: `${Math.round(performance.now() - b2)}ms` });
+      }
+    }
+    SetDebug({ title: `Tasks/CompletedEventTask`, message: `${Math.round(performance.now() - tick)}ms` });
+  }
+  SetDebug({ title: `Tasks/Global`, message: `${Math.round(performance.now() - tick)}ms` });
+};
+
+// src/@manager/SetHash.ts
+var SetHash = (event, entry) => {
+  if (!entry) {
+    bootstrap.cache.hashes.push({
+      tracking: event.properties.metadata.tracking,
+      hashes: [event.properties.metadata.hash],
+      expires: event.properties.expires
+    });
+    return;
+  }
+  entry.hashes.push(event.properties.metadata.hash);
+  entry.expires = event.properties.expires;
 };
 
 // src/@modules/@utilities/GetShapeNearestPoint.ts
@@ -17859,7 +17945,7 @@ var GetShapeNearestPoint = (coordinates, point) => {
 var GetEventNodes = async (event) => {
   const nodes = bootstrap.cache.nodes.features;
   if (!nodes || nodes.length === 0) {
-    return { nodes: [], filtered: true, updated: Date.now() };
+    return { nodes: [], filtered: false, updated: Date.now() };
   }
   const metadata = { nodes: [], proximity: false, filtered: false };
   const geometry = await GetEventGeometry(event);
@@ -17879,11 +17965,11 @@ var GetEventNodes = async (event) => {
       kilometers,
       proximity: false
     };
-    metadata.nodes.push(info);
-    if (miles != null && bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering && miles < bootstrap.settings.GlobalSettings.NodeMaxDistance) {
-      metadata.proximity = true;
+    if (miles != null && miles < bootstrap.settings.GlobalSettings.NodeMaxDistance) {
       info.proximity = true;
+      metadata.proximity = true;
     }
+    metadata.nodes.push(info);
   }
   return {
     nodes: metadata.nodes,
@@ -17932,17 +18018,18 @@ var MakeEvents = async (events) => {
   let tasked = [];
   const settings = bootstrap.settings;
   if (events.length === 0) return;
-  for (const event of events) {
+  await Promise.all(events.map(async (event) => {
     const features = bootstrap.cache.events.features;
     const getHash = event.properties.metadata.hash;
     const getTracking = event.properties.metadata.tracking;
     const isEntry = bootstrap.cache.hashes?.find((hash) => hash.tracking === getTracking);
     const isHashed = isEntry?.hashes?.includes(getHash) ?? false;
     const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering;
+    const getNodes = bootstrap.cache.nodes.features;
     const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
     if (isHashed || event.properties.status_metadata.is_expired) return;
     SetHash(event, isEntry);
-    if (isNodeFiltering) {
+    if (isNodeFiltering && getNodes.length > 0) {
       await UpdateNode(event);
       if (!event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) {
         return;
@@ -17994,9 +18081,9 @@ var MakeEvents = async (events) => {
         }
       }
     }
-  }
-  await Tasks(tasked);
+  }));
   SetEventEmit({ event: `onEventCache`, metadata: bootstrap.cache.events, limited: true });
+  return await CreateTasks(tasked);
 };
 
 // src/@enums/Strings.ts
@@ -18029,7 +18116,7 @@ var RemoveEvent = async (event, isTimeBasedExpiration) => {
         metadata: { type: `Removed`, event },
         message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
       });
-      await Tasks([event]);
+      CreateTasks([event]);
     }
     SetTimeoutAction({ identifier: gTracking, expire: true });
   }
@@ -18263,13 +18350,12 @@ var ValidateEvents = async (events) => {
     SetEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, "")}`, metadata: define2 });
     return !filtered;
   });
-  SetDebug({ title: `ValidateEvents (PRE) (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
+  SetDebug({ title: `ValidateEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
   await MakeEvents(filtering);
-  SetDebug({ title: `MakeEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` });
 };
 
 // src/@building/CreateEvent.ts
-var CreateEvent = async (stanza, ignorePushing) => {
+var CreateEvent = async (stanza) => {
   const settings = bootstrap.settings;
   const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
   const isVtecEvent = stanza.isVTEC && stanza.isUGC;
@@ -18290,9 +18376,7 @@ var CreateEvent = async (stanza, ignorePushing) => {
       await ParseText(stanza);
       break;
   }
-  if (!ignorePushing) {
-    await ValidateEvents(bootstrap.cache.processed);
-  }
+  await ValidateEvents(bootstrap.cache.processed);
   return "nothing picked";
 };
 
@@ -21451,9 +21535,8 @@ var GetCachedEvents = async () => {
         return !isSkippable;
       });
       events = events.sort((a, b2) => b2.issued - a.issued);
-      await Promise.all(events.map((event) => CreateEvent(event, true)));
+      await Promise.all(events.map((event) => CreateEvent(event)));
       SetWarning({ message: `Processed ${events.length} cached stanzas in ${Math.floor(performance.now() - tick)} ms` });
-      await ValidateEvents(bootstrap.cache.processed);
     }
   } catch (error) {
     SetWarning({ message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` });

@@ -136,7 +136,6 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         return !filtered
     })
     
-    SetDebug({ title: `ValidateEvents (PRE) (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
+    SetDebug({ title: `ValidateEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
     await MakeEvents(filtering)
-    SetDebug({ title: `MakeEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
 }

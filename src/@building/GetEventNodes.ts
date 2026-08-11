@@ -38,7 +38,7 @@ interface GetEventNodesResponse {
 export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResponse> => {
     const nodes = bootstrap.cache.nodes.features;
     if (!nodes || nodes.length === 0) {
-        return { nodes: [], filtered: true, updated: Date.now() };
+        return { nodes: [], filtered: false, updated: Date.now() };
     }
     const metadata = { nodes: [], proximity: false, filtered: false };
     const geometry = await GetEventGeometry(event);
@@ -59,11 +59,11 @@ export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResp
             kilometers,
             proximity: false
         }
-        metadata.nodes.push(info)
-        if (miles != null && (bootstrap.settings.GlobalSettings.EventFiltering.NodeLocationFiltering) && (miles < bootstrap.settings.GlobalSettings.NodeMaxDistance)) {
-            metadata.proximity = true;
+        if (miles != null && (miles < bootstrap.settings.GlobalSettings.NodeMaxDistance)) {
             info.proximity = true;
+            metadata.proximity = true;
         }
+        metadata.nodes.push(info)
     }
     return {
         nodes: metadata.nodes,

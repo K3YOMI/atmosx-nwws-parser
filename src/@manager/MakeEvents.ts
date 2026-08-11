@@ -21,29 +21,31 @@ import { TypeEvent } from "types/Event"
 import { TypeSettings } from "types/Settings"
 import { EnumGlobalFilter } from "@enums/GlobalFilter"
 import { bootstrap } from "@bootstrap"
+import { CreateTasks } from "@manager/CreateTasks"
 import { SetHash } from "@manager/SetHash"
-import { Tasks } from "@manager/Tasks"
 import { UpdateNode } from "@manager/UpdateNode"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
+
 
 export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
     let tasked = [];
     const settings = bootstrap.settings as TypeSettings;
     if (events.length === 0) return
-    for (const event of events) {
+    await Promise.all(events.map(async event => {
         const features = bootstrap.cache.events.features;
         const getHash = event.properties.metadata.hash;
         const getTracking = event.properties.metadata.tracking;
         const isEntry = bootstrap.cache.hashes?.find(hash => hash.tracking === getTracking)
         const isHashed = isEntry?.hashes?.includes(getHash) ?? false;
         const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering
+        const getNodes = bootstrap.cache.nodes.features;
         const getFeature = features.find(feature => feature.properties.metadata.tracking === getTracking);    
-    
+
         if (isHashed || event.properties.status_metadata.is_expired) return
         SetHash(event, isEntry)
         
-        if (isNodeFiltering) {
+        if (isNodeFiltering && getNodes.length > 0) {
             await UpdateNode(event);
             if (!event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) { 
                 return
@@ -93,6 +95,7 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
                             },
                         }
                     };
+
                     tasked.push(bootstrap.cache.events.features[getIndex])
                 } else { 
                     features.push(event);
@@ -100,7 +103,7 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
                 }
             }
         }
-    }
-    await Tasks(tasked)
+    }))
     SetEventEmit({ event: `onEventCache`, metadata: bootstrap.cache.events, limited: true })
+    return await CreateTasks(tasked)
 }

@@ -62,6 +62,14 @@ export const GenerateEASMessage = async (options: GenerateEASMessageOptions): Pr
     let buffRadio: any;
     let buffFull: any[] = [];
 
+    if (!directory) {
+        SetWarning({
+            title: `EAS`,
+            message: `EAS directory is not set in the settings. Please set it to generate EAS tones.`
+        });
+        return null;
+    }
+    
     if (!existsSync(directory)) {
         mkdirSync(directory, { recursive: true });
     }

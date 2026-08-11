@@ -36,7 +36,9 @@ import { StartService } from "@core/StartService"
 import { StopService } from "@core/StopService"
 
 export class Manager { 
-    constructor(settings: TypeSettings) { this.trycatch(); StartService(settings) }
+    public constructor(settings: TypeSettings) { 
+        this.trycatch(); StartService(settings) 
+    }
 
     on(event: string, callback: () => void) {
         CreateListener(event, callback)

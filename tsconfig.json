@@ -20,6 +20,7 @@
 			"@utilities/*": ["./src/@modules/@utilities/*"],
 			"@xmpp/*": ["./src/@modules/@xmpp/*"],
 			"@manager/*": ["./src/@manager/*"],
+			"@tasks/*": ["./src/@tasks/*"],
 			"@events/*": ["./src/@events/*"],
 			"@enums/*": ["./src/@enums/*"],
 			"@core/*": ["./src/@core/*"],

@@ -26,7 +26,7 @@ import { ParseVTEC } from "@events/ParseVTEC"
 import { ParseAPI } from "@events/ParseAPI"
 import { ValidateEvents } from "@manager/ValidateEvents"
 
-export const CreateEvent = async (stanza: TypeStanzaCompiled, ignorePushing?: boolean): Promise<void | string> => {
+export const CreateEvent = async (stanza: TypeStanzaCompiled): Promise<void | string> => {
     const settings = bootstrap.settings as TypeSettings
     const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
 
@@ -49,8 +49,6 @@ export const CreateEvent = async (stanza: TypeStanzaCompiled, ignorePushing?: bo
             await ParseText(stanza)
             break;
     }
-    if (!ignorePushing) {
-        await ValidateEvents(bootstrap.cache.processed)
-    }
+    await ValidateEvents(bootstrap.cache.processed)
     return 'nothing picked';
 }

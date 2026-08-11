@@ -43,6 +43,11 @@ export const GetEventProperties = (options: GetEventPropertiesOptions): TypeEven
     const properties = {
         locations: options?.ugc?.locations?.join(`; `) ?? null,
         locations_array: options?.ugc?.locations ?? [],
+        location_states: [...new Set(
+            options?.ugc?.locations
+            ?.map((location: string) => location.match(/,\s*([A-Z]{2})\b/)?.[1])
+            .filter(Boolean) ?? []
+        )],
         description: GetDescriptionFromProduct({ message: options.message, handle: options?.pVtec?.vtec ?? null }),
         attributes: options.attributes,
         geocode: {

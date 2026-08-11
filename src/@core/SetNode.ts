@@ -34,6 +34,7 @@ export const SetNode = (options: GetNodeOptions) => {
         if (exists) {
             const index = nodes.indexOf(exists);
             nodes.splice(index, 1);
+            SetWarning({ message: `Node with identifier '${options.identifier}' deleted.` })
             return SetEventEmit({
                 event: `onNodeDelete`,
                 metadata: {
@@ -53,6 +54,7 @@ export const SetNode = (options: GetNodeOptions) => {
                 coordinates: [options.coordinates.longitude, options.coordinates.latitude]
             }
         };
+        SetWarning({ message: `Node with identifier '${options.identifier}' updated.` })
         return SetEventEmit({
             event: `onNodeUpdate`,
             metadata: {
@@ -71,6 +73,7 @@ export const SetNode = (options: GetNodeOptions) => {
             identifier: options.identifier
         }
     });
+    SetWarning({ message: `Node with identifier '${options.identifier}' added.` })
     return SetEventEmit({
         event: `onNodeAdd`,
         metadata: {

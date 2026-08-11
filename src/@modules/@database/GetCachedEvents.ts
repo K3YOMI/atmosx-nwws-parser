@@ -40,9 +40,8 @@ export const GetCachedEvents = async (): Promise<void> => {
                     return !isSkippable
                 });
             events = events.sort((a, b) => b.issued - a.issued)
-            await Promise.all(events.map(event => CreateEvent(event, true)))
+            await Promise.all(events.map(event => CreateEvent(event)))
             SetWarning({ message: `Processed ${events.length} cached stanzas in ${Math.floor(performance.now() - tick)} ms` })
-            await ValidateEvents(bootstrap.cache.processed)
         }
     } catch (error) {
         SetWarning({ message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` })
