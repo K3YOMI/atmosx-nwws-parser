@@ -4,7 +4,8 @@
 	</a>
 	<br>
 	<p>A TypeScript/JavaScript library for parsing and ingesting NOAA and NWS Weather Text Products</p>
-	<small>A project built and maintained with ❤️ by the AtmosphericX team</small>
+	<small>A project built and maintained with ❤️ by the AtmosphericX team<br><i>Not affiliated with NOAA or NWS</i></small>
+	<br>
 	<p align="center">
 		<a href="https://atmosphericx.scriptkitty.cafe"><b>Documentation</b></a> |
 		<a href="https://github.com/AtmosphericX"><b>Repositories</b></a> |
@@ -56,6 +57,7 @@
 	- 5.3 [NTFY Push Notifications](/.github/docs/docs-integrations.md#53---ntfy-push-notifications)
 		- 5.3.1 [Server Configuration](/.github/docs/docs-integrations.md#531---server-configuration)
 		- 5.3.2 [Action Configuration](/.github/docs/docs-integrations.md#532---action-configuration)
+		- 5.3.3 [Node Filtering & Local Events](./github/docs/docs-integrations.md#533---node-filtering---local-events)
 	- 5.4 [Broadcastify Feed Attachments](/.github/docs/docs-integrations.md#54---broadcastify-feed-attachments)
 		- 5.4.1 [Tag Filtering](/.github/docs/docs-integrations.md#541---tag-filtering)
 	- 5.5 [Mock EAS Generator](/.github/docs/docs-integrations.md#55---mock-eas-generator)
