@@ -13,8 +13,8 @@
 		"start": "cd ./test && node ./index.js",
 		"build": "node ./tools/build.js && cd ./test && node index.js",
 		"watch": "node ./tools/build.js --watch",
-		"publish": "tsup && npm publish --access public",
-		"publish-beta-branch": "tsup && npm publish --tag v3-beta-branch --access public"
+		"publish": "node ./tools/build.js && npm publish --access public",
+		"publish-beta-branch": "node ./tools/build.js && npm publish --tag v3-beta-branch --access public"
 	},
 	"keywords": [
 		"NWWS",
