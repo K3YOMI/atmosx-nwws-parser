@@ -27,11 +27,11 @@ import { readFile } from "fs/promises"
 interface TaskSendWebhook {
     event: TypeEvent;
     webhook: {
-        Enabled: boolean;
-        Destination: string;
-        Message: string;
-        Title: string;
-        Ratelimit: number;
+        enabled: boolean;
+        destination: string;
+        message: string;
+        title: string;
+        ratelimit: number;
     };
     attachments: {
         text?: string;
@@ -44,9 +44,9 @@ export const TaskSendWebhook = async function(options: TaskSendWebhook): Promise
     const { event, webhook, attachments } = options;
     const { properties } = event;
     const isRatelimited = SetTimeoutAction({
-        identifier: webhook.Destination,
-        interval: (webhook.Ratelimit ?? 2) * 2,
-        max: (webhook.Ratelimit ?? 2), 
+        identifier: webhook.destination,
+        interval: (webhook.ratelimit ?? 2) * 2,
+        max: (webhook.ratelimit ?? 2), 
         addTime: true 
     })
     if (isRatelimited.limited) { return }
@@ -57,7 +57,7 @@ export const TaskSendWebhook = async function(options: TaskSendWebhook): Promise
         fields: [],
         color: 16711680,
         timestamp: new Date().toISOString(),
-        footer: { text: webhook.Title ?? `AtmosphericX` }
+        footer: { text: webhook.title ?? `AtmosphericX` }
     };
     if (properties.description && !properties.status_metadata.is_expired) {
         const description = properties.description.length > 900
@@ -87,13 +87,13 @@ export const TaskSendWebhook = async function(options: TaskSendWebhook): Promise
     }
 
     newForm.append("payload_json", JSON.stringify({ 
-        username: webhook.Title ?? `AtmosphericX`,
-        content: webhook.Message ?? "",
+        username: webhook.title ?? `AtmosphericX`,
+        content: webhook.message ?? "",
         embeds: [newEmbed]
     }));
 
     await CreateHttp({
-        url: webhook.Destination,
+        url: webhook.destination,
         timeout: 15e3,
         method: `POST`,
         body: newForm

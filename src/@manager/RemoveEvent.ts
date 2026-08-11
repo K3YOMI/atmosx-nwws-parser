@@ -22,7 +22,7 @@ import { EnumStrings } from "@enums/Strings"
 import { bootstrap } from "@bootstrap"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
-import { CreateTasks } from "@manager/CreateTasks"
+import { CreateTasks } from "@tasks/CreateTasks"
 
 
 export const RemoveEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):Promise<void> => {

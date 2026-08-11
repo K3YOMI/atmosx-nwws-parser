@@ -87,7 +87,13 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
                     })) : Promise.resolve(null),
                     Webhook?.Enabled && Webhook?.Destination ? Webhooks.enqueue(() => TaskSendWebhook({
                         event: event,
-                        webhook: Webhook,
+                        webhook: {
+                            enabled: Webhook?.Enabled,
+                            destination: Webhook?.Destination,
+                            message: Webhook?.Message,
+                            title: Webhook?.Title,
+                            ratelimit: Webhook?.Ratelimit
+                        },
                         attachments: {
                             text: text,
                             eas: eas,

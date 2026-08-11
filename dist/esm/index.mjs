@@ -17644,9 +17644,9 @@ var TaskSendWebhook = async function(options) {
   const { event, webhook, attachments } = options;
   const { properties } = event;
   const isRatelimited = SetTimeoutAction({
-    identifier: webhook.Destination,
-    interval: (webhook.Ratelimit ?? 2) * 2,
-    max: webhook.Ratelimit ?? 2,
+    identifier: webhook.destination,
+    interval: (webhook.ratelimit ?? 2) * 2,
+    max: webhook.ratelimit ?? 2,
     addTime: true
   });
   if (isRatelimited.limited) {
@@ -17659,7 +17659,7 @@ var TaskSendWebhook = async function(options) {
     fields: [],
     color: 16711680,
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    footer: { text: webhook.Title ?? `AtmosphericX` }
+    footer: { text: webhook.title ?? `AtmosphericX` }
   };
   if (properties.description && !properties.status_metadata.is_expired) {
     const description = properties.description.length > 900 ? properties.description.substring(0, 900) + "\n\n[Message truncated due to length]" : properties.description;
@@ -17686,12 +17686,12 @@ var TaskSendWebhook = async function(options) {
     newForm.append("fUpload3", new Blob([Buffer.from(file)], { type: "application/wav" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.wav`);
   }
   newForm.append("payload_json", JSON.stringify({
-    username: webhook.Title ?? `AtmosphericX`,
-    content: webhook.Message ?? "",
+    username: webhook.title ?? `AtmosphericX`,
+    content: webhook.message ?? "",
     embeds: [newEmbed]
   }));
   await CreateHttp({
-    url: webhook.Destination,
+    url: webhook.destination,
     timeout: 15e3,
     method: `POST`,
     body: newForm
@@ -17744,7 +17744,7 @@ var QueueManager = class {
   }
 };
 
-// src/@manager/CreateTasks.ts
+// src/@tasks/CreateTasks.ts
 var Webhooks = new QueueManager({ concurrency: 1 });
 var NTFY = new QueueManager({ concurrency: 5 });
 var CreateTasks = async (events) => {
@@ -17802,7 +17802,13 @@ var CreateTasks = async (events) => {
           })) : Promise.resolve(null),
           Webhook?.Enabled && Webhook?.Destination ? Webhooks.enqueue(() => TaskSendWebhook({
             event,
-            webhook: Webhook,
+            webhook: {
+              enabled: Webhook?.Enabled,
+              destination: Webhook?.Destination,
+              message: Webhook?.Message,
+              title: Webhook?.Title,
+              ratelimit: Webhook?.Ratelimit
+            },
             attachments: {
               text,
               eas,
