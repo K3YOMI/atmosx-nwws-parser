@@ -87,7 +87,6 @@ export const TaskSendNTFY = async function(options: TaskSendNTFYOptions): Promis
     const topics = [
         topic,
         ...(properties.metadata.filtered_proximity ? [`${topic}-LOCAL`] : []),
-        ...properties.location_states.map((state) => `${topic}-${state}`),
     ];
 
     await Promise.all([...new Set(topics)].map(post));

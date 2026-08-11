@@ -47,6 +47,9 @@ export const SetNode = (options: GetNodeOptions) => {
     }
     if (exists) {
         const index = nodes.indexOf(exists);
+        if (exists.geometry.coordinates[0] === options.coordinates.longitude && exists.geometry.coordinates[1] === options.coordinates.latitude) {
+            return;
+        }
         nodes[index] = {
             ...exists,
             geometry: {

@@ -15627,6 +15627,9 @@ var SetNode = (options) => {
   }
   if (exists) {
     const index = nodes.indexOf(exists);
+    if (exists.geometry.coordinates[0] === options.coordinates.longitude && exists.geometry.coordinates[1] === options.coordinates.latitude) {
+      return;
+    }
     nodes[index] = {
       ...exists,
       geometry: {
@@ -17593,8 +17596,7 @@ var TaskSendNTFY = async function(options) {
   };
   const topics = [
     topic,
-    ...properties.metadata.filtered_proximity ? [`${topic}-LOCAL`] : [],
-    ...properties.location_states.map((state) => `${topic}-${state}`)
+    ...properties.metadata.filtered_proximity ? [`${topic}-LOCAL`] : []
   ];
   await Promise.all([...new Set(topics)].map(post));
 };
@@ -18009,13 +18011,14 @@ var MakeEvents = async (events) => {
     const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
     if (isHashed || event.properties.status_metadata.is_expired) return;
     SetHash(event, isEntry);
+    await UpdateNode(event);
     if (isNodeFiltering && getNodes.length > 0) {
-      await UpdateNode(event);
       if (!event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) {
         return;
       }
     }
     const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true });
+    const isLocal = event.properties.metadata.filtered_proximity ? `[LOCAL] ` : ``;
     if (!isRatelimited.limited) {
       SetEventEmit({
         event: `onEventStatus`,
@@ -18023,7 +18026,7 @@ var MakeEvents = async (events) => {
           type: getFeature ? `Updated` : `New`,
           event
         },
-        message: `[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+        message: `${isLocal}[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
       });
     }
     if (settings.GlobalSettings.EventManagement) {

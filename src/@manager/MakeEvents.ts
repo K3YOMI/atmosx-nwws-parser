@@ -44,15 +44,15 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
 
         if (isHashed || event.properties.status_metadata.is_expired) return
         SetHash(event, isEntry)
-        
+        await UpdateNode(event);
         if (isNodeFiltering && getNodes.length > 0) {
-            await UpdateNode(event);
             if (!event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) { 
                 return
             }
         }
         
         const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true })
+        const isLocal = event.properties.metadata.filtered_proximity ? `[LOCAL] ` : ``;
         if (!isRatelimited.limited) {
             SetEventEmit({
                 event: `onEventStatus`,
@@ -60,7 +60,7 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
                     type: getFeature ? `Updated` : `New`,
                     event: event
                 },
-                message: `[${getFeature ? 'Updated' : 'New'}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+                message: `${isLocal}[${getFeature ? 'Updated' : 'New'}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
             })
         }
 
