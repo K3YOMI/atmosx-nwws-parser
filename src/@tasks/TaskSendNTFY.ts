@@ -86,7 +86,7 @@ export const TaskSendNTFY = async function(options: TaskSendNTFYOptions): Promis
     }
     const topics = [
         topic,
-        ...(properties.metadata.filtered_proximity ? ["LOCAL"] : []),
+        ...(properties.metadata.filtered_proximity ? [`${topic}-LOCAL`] : []),
         ...properties.location_states.map((state) => `${topic}-${state}`),
     ];
 
