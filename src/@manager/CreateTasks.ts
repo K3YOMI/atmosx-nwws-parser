@@ -60,18 +60,18 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
                     Uploads?.TEXT ? TaskGenerateText({
                         string: properties.metadata.raw,
                         directory: GlobalSettings?.ArchiveSettings?.TextDirectory,
-                        filename: (`${properties.event}-${properties.metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+                        filename: (`${properties.event}_${properties.metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
                     }).then((result) => { return result; }) : Promise.resolve(null),
 
                     Uploads?.JSON ? TaskGenerateJSON({
                         string: JSON.stringify(GetCleanedEvent(event), null, 2),
                         directory: GlobalSettings?.ArchiveSettings?.JSONDirectory,
-                        filename: (`${properties.event}-${properties.metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+                        filename: (`${properties.event}_${properties.metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
                     }).then((result) => { return result; }) : Promise.resolve(null),
                 ]);
 
                 SetDebug({ title: `Tasks/Generative`, message: `${Math.round(performance.now() - a)}ms` })
-                
+
                 const b = performance.now();
                 await Promise.all([
                     NotificationServer?.Enabled && NotifyServer?.Enabled && NotificationServer?.Topic ? NTFY.enqueue(() => TaskSendNTFY({
