@@ -17,34 +17,46 @@
 
 */
 
-import { TypeStanza } from "types/Stanza"
+import { TypeStanza } from "types-lower/Stanza"
 import { TypeStanzaCompiled } from "types/StanzaCompiled"
 import { EnumExpressions } from "@enums/Expressions"
 import { GetAwipsType } from "@stanza/GetAwipsType"
 
 interface ValidateStanzaOptions { 
-    stanza: TypeStanza
+    Stanza: TypeStanza
 }
 
-export const ValidateStanza = (options: ValidateStanzaOptions): TypeStanzaCompiled => {
-    if (options.stanza.is(`message`)) {
-        const cb = options.stanza.getChild(`x`) as TypeStanza;
+export const ValidateStanza = ({ Stanza }: ValidateStanzaOptions): TypeStanzaCompiled => {
+    if (Stanza.is(`message`)) {
+        const cb = Stanza.getChild(`x`) as TypeStanza;
         if (cb && cb.children) {
             const message = unescape(cb.children[0]);
             const attributes = cb.attrs;
             if (attributes.awipsid && attributes.awipsid.length > 1) { 
                 const isCapEvent = message.includes(`<?xml`);
                 const isCapAreaDescription = message.includes(`<areaDesc>`)
-                const isVTEC = message.match(EnumExpressions.pvtec) != null;
+                const isVTEC = message.match(EnumExpressions.vtec) != null;
                 const isUGC = message.match(EnumExpressions.ugc1) != null;
-                const getType = GetAwipsType({ attributes: attributes})
-                if (getType.type != null) {
+                const getType = GetAwipsType({ Attributes: attributes})
+                if (getType.Type != null) {
                     return { 
-                        message, attributes, isCapEvent, isVTEC, isUGC, isCapAreaDescription, isIgnored: false, isNWWS: true, getType
+                        Message: message, 
+                        Attributes: attributes, 
+                        CapEvent: isCapEvent, 
+                        VTEC: isVTEC, 
+                        UGC: isUGC, 
+                        CapAreaDescription: isCapAreaDescription, 
+                        Ignored: false, 
+                        NWWS: true, 
+                        Type: {
+                            Type: getType.Type, 
+                            Prefix: getType.Prefix,
+                            Discovered: getType.Discovered
+                        }
                     }
                 }
             }
         }
     }
-    return { isIgnored: true}
+    return { Ignored: true}
 }

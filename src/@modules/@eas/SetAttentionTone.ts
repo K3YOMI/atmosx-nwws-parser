@@ -18,16 +18,21 @@
     
 */
 
-export const SetAttentionTone = (ms: number, sampleRate: number): Int16Array => {
-    const len = Math.floor(ms * sampleRate);
+interface SetAttentionToneOptions {
+    MS: number
+    SampleRate: number
+}
+
+export const SetAttentionTone = ({ MS, SampleRate }: SetAttentionToneOptions): Int16Array => {
+    const len = Math.floor(MS * SampleRate);
     const out = new Int16Array(len);
     const f1 = 853;
     const f2 = 960;
     const twoPi = Math.PI * 2;
     const amp = 0.1;
-    const fadeLen = Math.floor(sampleRate * 0.00); 
+    const fadeLen = Math.floor(SampleRate * 0.00); 
     for (let i = 0; i < len; i++) {
-        const t = i / sampleRate;
+        const t = i / SampleRate;
         const s = Math.sin(twoPi * f1 * t) + Math.sin(twoPi * f2 * t);
         let gain = 1;
         if (i < fadeLen) gain = i / fadeLen;

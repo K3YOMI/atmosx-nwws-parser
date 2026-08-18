@@ -18,7 +18,7 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { GetSettings } from "@utilities/GetSettings"
 import { getZonePolygon } from "@parsers/ugc/GetZonePolygon"
 
@@ -36,7 +36,7 @@ export const GetEventGeometry = (event: TypeEvent): GetGeometryResponse  => {
         coordinates: generated != null ? JSON.parse(Buffer.from(generated, 'base64').toString('utf-8')) : null
     }
     if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) { 
-        geo = getZonePolygon({zones: ugc, isUnion: false})
+        geo = getZonePolygon({Zones: ugc, Union: false})
         if (geo == null) {
             geo = {
                 type: `Polygon`,

@@ -17,18 +17,18 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { TypeSettings } from "types/Settings"
 
 interface SetWarningOptions { 
-    title?: string
-    message: string
+    Title?: string
+    Message: string
 }
 
-export const SetWarning = (options: SetWarningOptions): void => {
-    const settings = bootstrap.settings as TypeSettings;
-    bootstrap.listener.emit(`log`, `${options.title ?? `[${bootstrap.ansi_colors.YELLOW}@atmosx/product-parser${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
+export const SetWarning = ({ Title, Message }: SetWarningOptions): void => {
+    const settings = Bootstrap.Settings as TypeSettings;
+    Bootstrap.Listener.emit(`log`, `${Title ?? `[${Bootstrap.Colors.Yellow}@atmosx/product-parser${Bootstrap.Colors.Reset}]`} ${Message}`)
     if (settings.EnableJournal) { 
-        console.log(`${options.title ?? `[${bootstrap.ansi_colors.YELLOW}@atmosx/product-parser${bootstrap.ansi_colors.RESET}]`} ${options.message}`)
+        console.log(`${Title ?? `[${Bootstrap.Colors.Yellow}@atmosx/product-parser${Bootstrap.Colors.Reset}]`} ${Message}`)
     }
 }

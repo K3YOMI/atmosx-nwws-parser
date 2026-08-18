@@ -18,7 +18,7 @@
 */
 
 export type TypeHash = {
-    tracking: string
-    hashes: string[]
-    expires: string
+    Tracking: string
+    Hashes: string[]
+    Expires: string
 }

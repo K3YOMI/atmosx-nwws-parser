@@ -17,7 +17,7 @@
 
 */
 
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { EnumEnhanced } from "@enums/Enhanced"
 
 export const GetEventEnhancedName = (event: TypeEvent): string => {

@@ -17,8 +17,8 @@
 
 */
 
-import { TypeEvent } from "types/Event"
-import { bootstrap } from "@bootstrap"
+import { TypeEvent } from "types-lower/Event"
+import { Bootstrap } from "@bootstrap"
 import { EnumStates } from "@enums/States"
 import { EnumExpressions } from "@enums/Expressions"
 import { GetLatestIssuance } from "@utilities/GetLatestIssuance"
@@ -38,7 +38,7 @@ type BroadcastifyResponse = {
 
 export const GetEventAttachments = (event: TypeEvent): GetEventAttachmentsResponse[] | null => {
     let attachments = [];
-    const settings = bootstrap.settings;
+    const settings = Bootstrap.Settings;
     const issuanceTime = GetLatestIssuance();
     const spcNumber = event?.properties?.discussion_parameters?.discussion_number;
     const watchNumber = event?.properties?.watch_parameters?.watch_number;
@@ -64,13 +64,13 @@ export const GetEventAttachments = (event: TypeEvent): GetEventAttachmentsRespon
                 const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`]
                 const county = location?.split(',')[0]?.trim().replace(new RegExp(`^(${lines.join('|')}) `), '')
                 const state = EnumStates[location?.split(',')[1]?.trim()]
-                const feeds = bootstrap.database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
+                const feeds = Bootstrap.Database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
                     const typeOrder = ['Other', 'Public Safety'];
                     const indexA = typeOrder.indexOf(a.type);
                     const indexB = typeOrder.indexOf(b.type);
                     return indexA - indexB;
                 })
-                const tags = bootstrap.settings.BroadcastifySettings.BroadcastifyTags;
+                const tags = Bootstrap.Settings.BroadcastifySettings.BroadcastifyTags;
                 const filtered = feeds.filter((feed: BroadcastifyResponse) => tags.includes(feed.type));
                 if (filtered.length > 0) {
                     filtered.map((filtered: BroadcastifyResponse) => {

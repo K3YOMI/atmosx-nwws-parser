@@ -17,20 +17,25 @@
 
 */
 
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { TypeHash } from "types/Hash"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
-export const SetHash = (event: TypeEvent, entry: TypeHash): void => {
-    if (!entry) {
-        bootstrap.cache.hashes.push({
-            tracking: event.properties.metadata.tracking,
-            hashes: [event.properties.metadata.hash],
-            expires: event.properties.expires
+interface SetHashOptions {
+    Event: TypeEvent
+    Entry: TypeHash
+}
+
+export const SetHash = ({ Event, Entry }: SetHashOptions): void => {
+    if (!Entry) {
+        Bootstrap.Cache.Hashes.push({
+            Tracking: Event.properties.metadata.tracking,
+            Hashes: [Event.properties.metadata.hash],
+            Expires: Event.properties.expires
         });
         return;
     }
 
-    entry.hashes.push(event.properties.metadata.hash);
-    entry.expires = event.properties.expires;
+    Entry.Hashes.push(Event.properties.metadata.hash);
+    Entry.Expires = Event.properties.expires;
 }

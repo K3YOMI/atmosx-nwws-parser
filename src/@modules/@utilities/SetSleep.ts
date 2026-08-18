@@ -19,14 +19,14 @@
 */
 
 interface SetSleepOptions { 
-    timeout: number
+    Timeout: number
 }
 
-export const SetSleep = async (options: SetSleepOptions): Promise<void> => {
+export const SetSleep = async ({ Timeout }: SetSleepOptions): Promise<void> => {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve();
-        }, options.timeout);
+        }, Timeout);
     });
 }
 

@@ -19,8 +19,8 @@
 export type QueueTask = () => Promise<void>;
 
 export interface QueueManagerOptions {
-    concurrency?: number;
-    onError?: (error: unknown) => void;
+    Concurrency?: number;
+    Error?: (error: unknown) => void;
 }
 
 export class QueueManager {
@@ -31,10 +31,9 @@ export class QueueManager {
     private running = 0;
     private draining = false;
 
-    public constructor(options: QueueManagerOptions = {}) {
-        const concurrency = options.concurrency ?? 1;
-        this.concurrency = concurrency;
-        this.onError = options.onError ?? ((error) => {
+    public constructor({ Concurrency, Error }: QueueManagerOptions = {}) {
+        this.concurrency = Concurrency ?? 1;
+        this.onError = Error ?? ((error) => {
             console.error("[QueueManager] Task failed:", error);
         });
     }

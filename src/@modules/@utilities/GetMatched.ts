@@ -17,11 +17,16 @@
 
 */
 
-export const GetMatched = (strings: string[], string: string): boolean => {
-    const isMatched = strings.some(pattern => {
+interface GetMatchedOptions {
+    Strings: string[]
+    String: string
+}
+
+export const GetMatched = ({ Strings, String }: GetMatchedOptions): boolean => {
+    const isMatched = Strings.some(pattern => {
         if (!pattern) return false;
         const lowerP = pattern.toLowerCase();
-        const lowerS = string.toLowerCase()
+        const lowerS = String.toLowerCase()
         if (lowerP === "*" || lowerP === lowerS) return true;
         if (lowerP.includes("*")) {
             const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";

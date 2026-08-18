@@ -17,32 +17,31 @@
 
 */
 
-import { TypeAttributes } from "types/Attributes"
+import { TypeAttributes } from "types-lower/Attributes"
 import { EnumAWIPS } from "@enums/AWIPS"
 
 interface GetAwipsTypeOptions { 
-    attributes: TypeAttributes
+    Attributes: TypeAttributes
 }
 
 interface GetAwipsTypeResponse { 
-    type: string
-    prefix: string
-    discovered: boolean
+    Type: string
+    Prefix: string
+    Discovered: boolean
 }
 
-export const GetAwipsType = (options: GetAwipsTypeOptions): GetAwipsTypeResponse => {
-    const attributes = options.attributes;
-    if (!attributes.awipsid) { 
+export const GetAwipsType = ({ Attributes }: GetAwipsTypeOptions): GetAwipsTypeResponse => {
+    if (!Attributes.awipsid) { 
         return { 
-            type: null, 
-            prefix: null,
-            discovered: false
+            Type: null, 
+            Prefix: null,
+            Discovered: false
         }
     }
     for (const [prefix, type] of Object.entries(EnumAWIPS)) {
-        if (attributes.awipsid.startsWith(prefix)) {
-            return { type, prefix, discovered: true }
+        if (Attributes.awipsid.startsWith(prefix)) {
+            return { Type: type, Prefix: prefix, Discovered: true }
         }
     }
-    return { type: options.attributes.awipsid, prefix: options.attributes.awipsid, discovered: false }
+    return { Type: Attributes.awipsid, Prefix: Attributes.awipsid, Discovered: false }
 }

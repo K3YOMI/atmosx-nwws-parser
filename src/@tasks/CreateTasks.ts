@@ -17,9 +17,9 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { TypeActions } from "types/Actions"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetDebug } from "@utilities/SetDebug"
 import { GetMatched } from "@utilities/GetMatched"
 import { GetStringText } from "@parsers/text/GetStringText"
@@ -31,12 +31,12 @@ import { TaskSendNTFY } from "@tasks/TaskSendNTFY"
 import { TaskSendWebhook } from "@tasks/TaskSendWebhook"
 import { QueueManager } from "@utilities/QueueManager"
 
-const Webhooks = new QueueManager({ concurrency: 1 });
-const NTFY = new QueueManager({ concurrency: 5 });
+const Webhooks = new QueueManager({ Concurrency: 1 });
+const NTFY = new QueueManager({ Concurrency: 5 });
 
 export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
     const tick = performance.now()
-    const settings = bootstrap.settings as TypeSettings;
+    const settings = Bootstrap.Settings as TypeSettings;
     const { ActionSettings, GlobalSettings, NotifyServer } = settings;
     const actions = ActionSettings as TypeActions[];
     
@@ -47,64 +47,64 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
 
         for (const action of actions) {
             const { Events, Webhook, NotificationServer, Uploads } = action;
-            const isValidAction = GetMatched(Events, properties.event)
+            const isValidAction = GetMatched({ Strings: Events, String: properties.event });
             if ((Events.length == 0 || isValidAction)) {
                 const a = performance.now();
                 const [eas, text, json] = await Promise.all([
                     Uploads?.EAS ? TaskGenerateAudio({
-                        filename: (`${properties.event}_${properties.metadata.tracking}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
-                        description: properties.description,
-                        header: properties.metadata.header
+                        Filename: (`${properties.event}_${properties.metadata.tracking}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
+                        Description: properties.description,
+                        Header: properties.metadata.header
                     }).then((result) => { return result; }) : Promise.resolve(null),
 
                     Uploads?.TEXT ? TaskGenerateText({
-                        string: properties.metadata.raw,
-                        directory: GlobalSettings?.ArchiveSettings?.TextDirectory,
-                        filename: (`${properties.event}_${properties.metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+                        String: properties.metadata.raw,
+                        Directory: GlobalSettings?.ArchiveSettings?.TextDirectory,
+                        Filename: (`${properties.event}_${properties.metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
                     }).then((result) => { return result; }) : Promise.resolve(null),
 
                     Uploads?.JSON ? TaskGenerateJSON({
-                        string: JSON.stringify(GetCleanedEvent(event), null, 2),
-                        directory: GlobalSettings?.ArchiveSettings?.JSONDirectory,
-                        filename: (`${properties.event}_${properties.metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+                        String: JSON.stringify(GetCleanedEvent(event), null, 2),
+                        Directory: GlobalSettings?.ArchiveSettings?.JSONDirectory,
+                        Filename: (`${properties.event}_${properties.metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
                     }).then((result) => { return result; }) : Promise.resolve(null),
                 ]);
 
-                SetDebug({ title: `Tasks/Generative`, message: `${Math.round(performance.now() - a)}ms` })
+                SetDebug({ Title: `Tasks/Generative`, Message: `${Math.round(performance.now() - a)}ms` })
 
                 const b = performance.now();
                 await Promise.all([
                     NotificationServer?.Enabled && NotifyServer?.Enabled && NotificationServer?.Topic ? NTFY.enqueue(() => TaskSendNTFY({
-                        event: event,
-                        toggles: {
-                            eas: Uploads?.EAS,
-                            json: Uploads?.JSON,
-                            text: Uploads?.TEXT
+                        Event: event,
+                        Toggles: {
+                            EAS: Uploads?.EAS,
+                            Json: Uploads?.JSON,
+                            Text: Uploads?.TEXT
                         },
-                        priority: NotificationServer?.Priority ?? 5,
-                        body: GetStringText(event),
-                        topic: NotificationServer?.Topic
+                        Priority: NotificationServer?.Priority ?? 5,
+                        Body: GetStringText(event),
+                        Topic: NotificationServer?.Topic
                     })) : Promise.resolve(null),
                     Webhook?.Enabled && Webhook?.Destination ? Webhooks.enqueue(() => TaskSendWebhook({
-                        event: event,
-                        webhook: {
-                            enabled: Webhook?.Enabled,
-                            destination: Webhook?.Destination,
-                            message: Webhook?.Message,
-                            title: Webhook?.Title,
-                            ratelimit: Webhook?.Ratelimit
+                        Event: event,
+                        Webhook: {
+                            Enabled: Webhook?.Enabled,
+                            Destination: Webhook?.Destination,
+                            Message: Webhook?.Message,
+                            Title: Webhook?.Title,
+                            Ratelimit: Webhook?.Ratelimit
                         },
-                        attachments: {
-                            text: text,
-                            eas: eas,
-                            json: json
+                        Attachments: {
+                            Text: text,
+                            EAS: eas,
+                            Json: json
                         }
                     })) : Promise.resolve(null)
                 ]);
-                SetDebug({ title: `Tasks/Send`, message: `${Math.round(performance.now() - b)}ms` })
+                SetDebug({ Title: `Tasks/Send`, Message: `${Math.round(performance.now() - b)}ms` })
             }
         }
-        SetDebug({ title: `Tasks/CompletedEventTask`, message: `${Math.round(performance.now() - tick)}ms` })
+        SetDebug({ Title: `Tasks/CompletedEventTask`, Message: `${Math.round(performance.now() - tick)}ms` })
     }
-    SetDebug({ title: `Tasks/Global`, message: `${Math.round(performance.now() - tick)}ms` })
+    SetDebug({ Title: `Tasks/Global`, Message: `${Math.round(performance.now() - tick)}ms` })
 }

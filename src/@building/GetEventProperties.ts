@@ -17,10 +17,10 @@
 
 */
 
-import { TypeEventProperties } from "types/Properties"
-import { TypeAttributes } from "types/Attributes"
+import { TypeEventProperties } from "types-lower/Properties"
+import { TypeAttributes } from "types-lower/Attributes"
 import { TypeUGC } from "types/UGC"
-import { TypePVTEC } from "types/VTEC"
+import { TypeVTEC } from "types/VTEC"
 import { TypeHVTEC } from "types/HVTEC"
 import { EnumExpressions } from "@enums/Expressions"
 import { GetDescriptionFromProduct } from "@parsers/text/GetDescriptionFromProduct"
@@ -30,68 +30,68 @@ import { GetEventOffice } from "@building/GetEventOffice"
 import { GetEventTags } from "@building/GetEventTags"
 
 interface GetEventPropertiesOptions { 
-    message: string
-    attributes: TypeAttributes
-    ugc?: TypeUGC
-    pVtec?: TypePVTEC
-    hVtec?: TypeHVTEC
+    Message: string
+    Attributes: TypeAttributes
+    UGC?: TypeUGC
+    VTEC?: TypeVTEC
 }
 
-export const GetEventProperties = (options: GetEventPropertiesOptions): TypeEventProperties => {
-    const organization = options.message.match(EnumExpressions.wmo)?.[0] ?? null
-    const polygons = getPolygonFromProduct(options.message)
+
+export const GetEventProperties = ({ Message, Attributes, UGC, VTEC }: GetEventPropertiesOptions): TypeEventProperties => {
+    const organization = Message.match(EnumExpressions.wmo)?.[0] ?? null
+    const polygons = getPolygonFromProduct(Message)
     const properties = {
-        locations: options?.ugc?.locations?.join(`; `) ?? null,
-        locations_array: options?.ugc?.locations ?? [],
+        locations: UGC?.Locations?.join(`; `) ?? null,
+        locations_array: UGC?.Locations ?? [],
         location_states: [...new Set(
-            options?.ugc?.locations
+            UGC?.Locations
             ?.map((location: string) => location.match(/,\s*([A-Z]{2})\b/)?.[1])
             .filter(Boolean) ?? []
         )],
-        description: GetDescriptionFromProduct({ message: options.message, handle: options?.pVtec?.vtec ?? null }),
-        attributes: options.attributes,
+        description: GetDescriptionFromProduct({ Message: Message, Handle: VTEC?.Raw ?? null }),
+        attributes: Attributes,
         geocode: {
-            office: GetEventOffice({ attributes: options.attributes, organization: organization, pVtec: options.pVtec }),
+            office: GetEventOffice({ Attributes: Attributes, Organization: organization, VTEC: VTEC }),
             organization: organization,
-            ugc: options?.ugc?.zones ?? [],
+            ugc: UGC?.Zones ?? [],
             polygon: polygons.length > 0 ? Buffer.from(JSON.stringify([polygons])).toString('base64') : null,
             polygon_generated: polygons.length > 0 ? true : false
         },
         parameters: {
-            tags: GetEventTags(options.message),
-            instructions: GetTextFromProduct({ message: options.message, find: [`For your protection`, `do not`, `use extreme caution`], append: `...`, removal: [`.`]})  ?? null,
-            source: GetTextFromProduct({ message: options.message, find: [`SOURCE...`], removal: [`.`]}) ?? null,
-            hazards: GetTextFromProduct({ message: options.message, find: [`HAZARD...`], removal: [`.`]}) ?? null,
-            impacts: GetTextFromProduct({ message: options.message, find: [`IMPACT...`], removal: [`.`]}) ?? null,
-            estimated_hail_size: GetTextFromProduct({ message: options.message, find: [`MAX HAIL SIZE...`, `HAIL...`], removal: ['in']}) ?? null,
-            estimated_wind_gusts: GetTextFromProduct({ message: options.message, find: [`MAX WIND GUST...`, `WIND...`]}) ?? null,
-            damage_threat: GetTextFromProduct({ message: options.message, find: [`DAMAGE THREAT...`], removal: []}) ?? null,
-            tornado_threat: GetTextFromProduct({ message: options.message, find: [`TORNADO...`, `WATERSPOUT...`] }) ?? null,
-            flood_threat: GetTextFromProduct({ message: options.message, find: [`FLASH FLOOD...`]}) ?? null,
-            wind_threat: GetTextFromProduct({ message: options.message, find: [`WIND THREAT...`]}) ?? null,
-            hail_threat: GetTextFromProduct({ message: options.message, find: [`HAIL THREAT...`], removal: []}) ?? null,
+            tags: GetEventTags(Message),
+            instructions: GetTextFromProduct({ Message: Message, Find: [`For your protection`, `do not`, `use extreme caution`], Append: `...`, Removal: [`.`]})  ?? null,
+            source: GetTextFromProduct({ Message: Message, Find: [`SOURCE...`], Removal: [`.`]}) ?? null,
+            hazards: GetTextFromProduct({ Message: Message, Find: [`HAZARD...`], Removal: [`.`]}) ?? null,
+            impacts: GetTextFromProduct({ Message: Message, Find: [`IMPACT...`], Removal: [`.`]}) ?? null,
+            estimated_hail_size: GetTextFromProduct({ Message: Message, Find: [`MAX HAIL SIZE...`, `HAIL...`], Removal: ['in']}) ?? null,
+            estimated_wind_gusts: GetTextFromProduct({ Message: Message, Find: [`MAX WIND GUST...`, `WIND...`]}) ?? null,
+            damage_threat: GetTextFromProduct({ Message: Message, Find: [`DAMAGE THREAT...`], Removal: []}) ?? null,
+            tornado_threat: GetTextFromProduct({ Message: Message, Find: [`TORNADO...`, `WATERSPOUT...`] }) ?? null,
+            flood_threat: GetTextFromProduct({ Message: Message, Find: [`FLASH FLOOD...`]}) ?? null,
+            wind_threat: GetTextFromProduct({ Message: Message, Find: [`WIND THREAT...`]}) ?? null,
+            hail_threat: GetTextFromProduct({ Message: Message, Find: [`HAIL THREAT...`], Removal: []}) ?? null,
         },
         discussion_parameters: {
-            discussion_number: GetTextFromProduct({ message: options.message, find: [`Mesoscale Discussion `], removal: [`Mesoscale Discussion`, `Number`, `...`] })?.toString()?.padStart(4, "0") ?? null,
-            discussion_concerning: GetTextFromProduct({ message: options.message, find: [`Concerning...`] }) ?? null,
-            discussion_max_tornado: GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
-            discussion_max_hail: GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
-            discussion_max_wind: GetTextFromProduct({ message: options.message, find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
-            discussion_watch_issuance: GetTextFromProduct({ message: options.message, find: [`Probability of Watch Issuance...`], removal: [`percent`]}) ?? null,
+            discussion_number: GetTextFromProduct({ Message: Message, Find: [`Mesoscale Discussion `], Removal: [`Mesoscale Discussion`, `Number`, `...`] })?.toString()?.padStart(4, "0") ?? null,
+            discussion_concerning: GetTextFromProduct({ Message: Message, Find: [`Concerning...`] }) ?? null,
+            discussion_max_tornado: GetTextFromProduct({ Message: Message, Find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
+            discussion_max_hail: GetTextFromProduct({ Message: Message, Find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
+            discussion_max_wind: GetTextFromProduct({ Message: Message, Find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
+            discussion_watch_issuance: GetTextFromProduct({ Message: Message, Find: [`Probability of Watch Issuance...`], Removal: [`percent`]}) ?? null,
         },
         watch_parameters: {
-            watch_number: options?.pVtec?.is_watch ? ( GetTextFromProduct({ message: options.message, find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, '')?.trim()?.toString()?.padStart(4, "0") ?? options?.pVtec?.tracking?.slice(-4)?.toString()?.padStart(4, "0") ?? null) : null,
-            watch_type: options.message.includes(`TORNADO WATCH`) ? `Tornado` : options?.message.includes(`SEVERE`) ? `Severe` : null,
-            additional_tornadoes_probability: GetTextFromProduct({ message: options.message, find: [`PROB OF 2 OR MORE TORNADOES`], removal: [`%`, `<`, `:`] }) ?? null,
-            strong_tornadoes_probability: GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], removal: [`%`, `<`, `:`] }) ?? null,
-            severe_wind_probability: GetTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], removal: [`%`, `<`, `:`] }) ?? null,
-            severe_hail_probability: GetTextFromProduct({ message: options.message, find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], removal: [`%`, `<`, `:`] }) ?? null,
-            hail_2in_probability: GetTextFromProduct({ message: options.message, find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], removal: [`%`, `<`, `:`] }) ?? null,
-            combined_hail_wind_probability: GetTextFromProduct({ message: options.message, find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], removal: [`%`, `<`, `:`] }) ?? null,
-            max_hail_in: GetTextFromProduct({ message: options.message, find: [`MAX HAIL /INCHES/`], removal: [`%`, `<`, `:`] }) ?? null,
-            max_wind_surface:  GetTextFromProduct({ message: options.message, find: [`MAX WIND GUSTS SURFACE /KNOTS/`], removal: [`%`, `<`, `:`] }) ?? null,
-            max_tops_x100feet:  GetTextFromProduct({ message: options.message, find: [`MAX TOPS /X 100 FEET/`], removal: [`%`, `<`, `:`] }) ?? null,
-            pds_watch: (GetTextFromProduct({ message: options.message, find: [`PARTICULARLY DANGEROUS SITUATION`], removal: [`%`, `<`, `:`] }) === `YES` ? true : null)
+            watch_number: VTEC?.Watch ? ( GetTextFromProduct({ Message: Message, Find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], Removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, '')?.trim()?.toString()?.padStart(4, "0") ?? VTEC?.Tracking?.slice(-4)?.toString()?.padStart(4, "0") ?? null) : null,
+            watch_type: Message.includes(`TORNADO WATCH`) ? `Tornado` : Message.includes(`SEVERE`) ? `Severe` : null,
+            additional_tornadoes_probability: GetTextFromProduct({ Message: Message, Find: [`PROB OF 2 OR MORE TORNADOES`], Removal: [`%`, `<`, `:`] }) ?? null,
+            strong_tornadoes_probability: GetTextFromProduct({ Message: Message, Find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], Removal: [`%`, `<`, `:`] }) ?? null,
+            severe_wind_probability: GetTextFromProduct({ Message: Message, Find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
+            severe_hail_probability: GetTextFromProduct({ Message: Message, Find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
+            hail_2in_probability: GetTextFromProduct({ Message: Message, Find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], Removal: [`%`, `<`, `:`] }) ?? null,
+            combined_hail_wind_probability: GetTextFromProduct({ Message: Message, Find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
+            max_hail_in: GetTextFromProduct({ Message: Message, Find: [`MAX HAIL /INCHES/`], Removal: [`%`, `<`, `:`] }) ?? null,
+            max_wind_surface:  GetTextFromProduct({ Message: Message, Find: [`MAX WIND GUSTS SURFACE /KNOTS/`], Removal: [`%`, `<`, `:`] }) ?? null,
+            max_tops_x100feet:  GetTextFromProduct({ Message: Message, Find: [`MAX TOPS /X 100 FEET/`], Removal: [`%`, `<`, `:`] }) ?? null,
+            pds_watch: (GetTextFromProduct({ Message: Message, Find: [`PARTICULARLY DANGEROUS SITUATION`], Removal: [`%`, `<`, `:`] }) === `YES` ? true : null)
         }
     }
     if (isNaN(Number(properties.watch_parameters.watch_number))) {

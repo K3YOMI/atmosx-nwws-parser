@@ -18,11 +18,11 @@
 */
 
 interface GetXMLOptions {
-    message: string
-    targets: string[]
+    Message: string
+    Targets: string[]
 }
 
-export const GetXML = (options: GetXMLOptions): Record<string, string> => {
+export const GetXML = ({ Message, Targets }: GetXMLOptions): Record<string, string> => {
     const extracted: Record<string, any> = {};   
     const findValueByKey = (obj: any, searchKey: string) => {
         const results = [];
@@ -52,8 +52,8 @@ export const GetXML = (options: GetXMLOptions): Record<string, string> => {
         }
         return results;
     };
-    for (const key of options.targets) {
-        const values = findValueByKey(options.message, key);
+    for (const key of Targets) {
+        const values = findValueByKey(Message, key);
         const uniqueValues = [...new Set(values)];
         extracted[key] = uniqueValues.length === 0 ? null : (uniqueValues.length === 1 ? uniqueValues[0] : uniqueValues);
     }

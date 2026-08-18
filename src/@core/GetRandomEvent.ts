@@ -17,8 +17,8 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 export const GetRandomEvent = (): any => {
-    return bootstrap.cache.events.features[Math.floor(Math.random() * bootstrap.cache.events.features.length)]
+    return Bootstrap.Cache.Events.features[Math.floor(Math.random() * Bootstrap.Cache.Events.features.length)]
 }

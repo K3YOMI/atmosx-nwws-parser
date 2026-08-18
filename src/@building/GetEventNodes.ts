@@ -17,8 +17,8 @@
 
 */
 
-import { TypeEvent } from "types/Event"
-import { bootstrap } from "@bootstrap"
+import { TypeEvent } from "types-lower/Event"
+import { Bootstrap } from "@bootstrap"
 import { GetEventGeometry } from "@building/GetEventGeometry"
 import { GetShapeNearestPoint } from "@utilities/GetShapeNearestPoint"
 
@@ -36,7 +36,7 @@ interface GetEventNodesResponse {
 }
 
 export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResponse> => {
-    const nodes = bootstrap.cache.nodes.features;
+    const nodes = Bootstrap.Cache.Nodes.features;
     if (!nodes || nodes.length === 0) {
         return { nodes: [], filtered: false, updated: Date.now() };
     }
@@ -47,19 +47,19 @@ export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResp
     }
     for (const node of nodes) {
         const [longitude, latitude] = node.geometry.coordinates;
-        const getPoint = GetShapeNearestPoint(geometry.coordinates, [longitude, latitude])
-        const miles = getPoint.distance ?? null;
+        const getPoint = GetShapeNearestPoint({ Coordinates: geometry.coordinates, Point: [longitude, latitude] });
+        const miles = getPoint.Distance ?? null;
         const kilometers = Number((miles * 1.609344).toFixed(3));
 
         const info = {
             id: node.properties?.identifier,
             coordinates: [longitude, latitude],
-            nearest: getPoint.point,
+            nearest: getPoint.Point,
             miles,
             kilometers,
             proximity: false
         }
-        if (miles != null && (miles < bootstrap.settings.GlobalSettings.NodeMaxDistance)) {
+        if (miles != null && (miles < Bootstrap.Settings.GlobalSettings.NodeMaxDistance)) {
             info.proximity = true;
             metadata.proximity = true;
         }

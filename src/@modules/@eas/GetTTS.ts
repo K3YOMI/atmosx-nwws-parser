@@ -22,18 +22,23 @@ import { platform } from "os"
 import { writeFileSync } from "fs"
 import { execSync } from "child_process"
 
-export const GetTTS = async (text: string, outputPath: string): Promise<void> => {
+interface GetTTSOptions {
+    Text: string
+    OutputPath: string
+}
+
+export const GetTTS = async ({ Text, OutputPath }: GetTTSOptions): Promise<void> => {
     const vPlatform = platform();
     switch (vPlatform) {
         case 'win32': {
             try {
-                const txtPath = outputPath + ".txt";
-                writeFileSync(txtPath, text, "utf8");
+                const txtPath = OutputPath + ".txt";
+                writeFileSync(txtPath, Text, "utf8");
                 const command = [
                     "Add-Type -AssemblyName System.Speech;",
                     `$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;`,
                     `$text = Get-Content -Raw -LiteralPath '${txtPath}';`,
-                    `$speak.SetOutputToWaveFile('${outputPath}');`,
+                    `$speak.SetOutputToWaveFile('${OutputPath}');`,
                     `$speak.Speak($text);`,
                     `$speak.Dispose();`
                 ].join(" ");
@@ -45,7 +50,7 @@ export const GetTTS = async (text: string, outputPath: string): Promise<void> =>
         }
         case 'linux':
             try {
-                execSync(`espeak -w "${outputPath}" "${text.replace(/"/g, '\\"')}"`);
+                execSync(`espeak -w "${OutputPath}" "${Text.replace(/"/g, '\\"')}"`);
             } catch {}
             break;
         default: break;

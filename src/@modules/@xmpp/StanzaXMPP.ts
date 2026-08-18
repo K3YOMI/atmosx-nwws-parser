@@ -17,31 +17,31 @@
 
 */
 
-import { TypeStanza } from "types/Stanza"
-import { bootstrap } from "@bootstrap"
+import { TypeStanza } from "types-lower/Stanza"
+import { Bootstrap } from "@bootstrap"
 import { ValidateStanza } from "@stanza/ValidateStanza"
 import { CreateEvent } from "@building/CreateEvent"
 import { ImportStanza } from "@database/ImportStanza"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 
 export const StanzaXMPP = () => {
-    bootstrap.session_xmpp.on(`stanza`, async (stanza: TypeStanza) => {
+    Bootstrap.Session.on(`stanza`, async (stanza: TypeStanza) => {
         const msgFrom = stanza?.attrs?.from ?? ``
         const msgType = stanza?.attrs?.type ?? ``
         SetEventEmit({
-            event: `onServiceStatus`,
-            metadata: {
-                message: stanza,
-                from: msgFrom,
-                type: `stanza`
+            Event: `onServiceStatus`,
+            Metadata: {
+                Message: stanza,
+                From: msgFrom,
+                Type: `stanza`
             },
         })
-        bootstrap.cache.lastStanza = Date.now();
+        Bootstrap.Cache.LastStanzaTime = Date.now();
         if (stanza.is(`message`)) {
-            const result = ValidateStanza({ stanza });
-            const isSkippable = result.isIgnored ||
-                (result.isCapEvent) ||
-                (result.isCapEvent && !result.isCapAreaDescription)
+            const result = ValidateStanza({ Stanza: stanza });
+            const isSkippable = result.Ignored ||
+                (result.CapEvent) ||
+                (result.CapEvent && !result.CapAreaDescription)
             if (isSkippable) { return; }
             await CreateEvent(result);
             await ImportStanza(result);
@@ -50,12 +50,12 @@ export const StanzaXMPP = () => {
             const getOccupant = msgFrom.split(`/`).slice(1).join(`/`)
             const getAvailability = msgType === `unavailable`
             SetEventEmit({
-                event: `onServiceStatus`,
-                metadata: {
-                    message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
-                    data: {},
-                    type: `occupant`,
-                    error: false 
+                Event: `onServiceStatus`,
+                Metadata: {
+                    Message: `Occupant ${getOccupant} has ${getAvailability ? `left` : `joined`} the room`,
+                    Data: {},
+                    Type: `occupant`,
+                    Error: false 
                 },
             })
         }

@@ -17,7 +17,7 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { getCache } from "@parsers/ugc/GetCache"
 import { setCache } from "@parsers/ugc/SetCache"
 
@@ -41,7 +41,7 @@ export const getLocations = async (zones: string[]): Promise<string[]> => {
     }
 
     if (missing.length > 0) {
-        const rows = await bootstrap.database
+        const rows = await Bootstrap.Database
             .prepare(
                 `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => '?').join(',')})`
             )
@@ -49,7 +49,7 @@ export const getLocations = async (zones: string[]): Promise<string[]> => {
 
         for (let i = 0; i < rows.length; i++) {
             const r = rows[i] as any;
-            setCache(r.id, [r.location]);
+            setCache({ Key: r.id, Value: [r.location] });
             results.push(r.location);
         }
     }

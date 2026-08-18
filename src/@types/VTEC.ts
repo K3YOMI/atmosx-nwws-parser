@@ -17,14 +17,14 @@
 
 */
 
-export type TypePVTEC = { 
-    vtec: string
-    product: string
-    tracking: string
-    event: string
-    status: string
-    organization: string
-    expires: string
-    is_watch: boolean
-    prediction_center: boolean
+export type TypeVTEC = { 
+    Raw: string
+    ProductType: string
+    Tracking: string
+    Event: string
+    Status: string
+    WMO: string
+    Expires: string
+    Watch: boolean
+    PredictionCenter: boolean
 }

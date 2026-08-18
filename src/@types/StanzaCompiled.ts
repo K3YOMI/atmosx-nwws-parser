@@ -17,20 +17,20 @@
 
 */
 
-import { TypeAttributes } from "types/Attributes"
+import { TypeAttributes } from "types-lower/Attributes"
 
 export type TypeStanzaCompiled = {
-    message?: string
-    attributes?: TypeAttributes
-    isCapEvent?: boolean
-    isVTEC?: boolean
-    isUGC?: boolean
-    isCapAreaDescription?: boolean
-    isIgnored?: boolean
-    isNWWS?: boolean
-    getType?: {
-        type: string
-        prefix: string
-        discovered: boolean
+    Message?: string
+    Attributes?: TypeAttributes
+    CapEvent?: boolean
+    VTEC?: boolean
+    UGC?: boolean
+    CapAreaDescription?: boolean
+    Ignored?: boolean
+    NWWS?: boolean
+    Type?: {
+        Type: string
+        Prefix: string
+        Discovered: boolean
     }
 }

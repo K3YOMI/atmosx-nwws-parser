@@ -20,7 +20,7 @@
 
 import { TypeSettings } from "types/Settings"
 import { ReconnectXMPP } from "@xmpp/ReconnectXMPP"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { CreateHttp } from "@utilities/CreateHttp"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 import { CreateEvent } from "@building/CreateEvent"
@@ -28,7 +28,7 @@ import { readdirSync, unlinkSync, statSync, existsSync } from "fs"
 import { join } from "path"
 
 export const SetCronSchedule = async (): Promise<void> => {
-    const settings = bootstrap.settings as TypeSettings;
+    const settings = Bootstrap.Settings as TypeSettings;
 
     const TTL = settings.GlobalSettings.ArchiveSettings.TTL
     const TTLCUT = Date.now() - TTL * 1000;
@@ -62,15 +62,15 @@ export const SetCronSchedule = async (): Promise<void> => {
         }
     } else { 
         const response = await CreateHttp({
-            url: settings.NationalWeatherServiceSettings.EventsEndpoint,
-            headers: {
+            URL: settings.NationalWeatherServiceSettings.EventsEndpoint,
+            Headers: {
                 "User-Agent": "@atmosx/event-product-parser"
             }
         })
         if (response.error) {
             return SetEventEmit({
-                event: `onServiceStatus`,
-                metadata: {
+                Event: `onServiceStatus`,
+                Metadata: {
                     type: "fetch-api",
                     message: `Failed to fetch latest events from National Weather Service API - ${response.message}`,
                     data: {},
@@ -79,15 +79,15 @@ export const SetCronSchedule = async (): Promise<void> => {
             })
         }
         SetEventEmit({
-            event: `onServiceStatus`,
-            metadata: {
-                message: `Fetched latest events from National Weather Service API`,
-                data: {},
-                type: "fetch-api",
-                error: false
+            Event: `onServiceStatus`,
+            Metadata: {
+                Message: `Fetched latest events from National Weather Service API`,
+                Data: {},
+                Type: "fetch-api",
+                Error: false
             },
         })
-        await CreateEvent({ message: response.message, isNWWS: false })
+        await CreateEvent({ Message: response.message, NWWS: false })
     }
 }
 

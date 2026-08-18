@@ -17,52 +17,52 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetWarning } from "@utilities/SetWarning"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 
 interface GetNodeOptions {
-    identifier: string
-    delete?: boolean
-    coordinates: { longitude: number; latitude: number }
+    Identifier: string
+    Delete?: boolean
+    Coordinates: { Longitude: number; Latitude: number }
 }
 
-export const SetNode = (options: GetNodeOptions) => {
-    const nodes = bootstrap.cache.nodes.features;
-    const exists = nodes.find((node) => node.properties.identifier === options.identifier);
-    if (options.delete) {
+export const SetNode = ({ Identifier, Delete, Coordinates }: GetNodeOptions) => {
+    const nodes = Bootstrap.Cache.Nodes.features;
+    const exists = nodes.find((node) => node.properties.identifier === Identifier);
+    if (Delete) {
         if (exists) {
             const index = nodes.indexOf(exists);
             nodes.splice(index, 1);
-            SetWarning({ message: `Node with identifier '${options.identifier}' deleted.` })
+            SetWarning({ Message: `Node with identifier '${Identifier}' deleted.` })
             return SetEventEmit({
-                event: `onNodeDelete`,
-                metadata: {
-                    type: `node-delete`,
-                    node: exists
+                Event: `onNodeDelete`,
+                Metadata: {
+                    Type: `node-delete`,
+                    Node: exists
                 }
             })
         }
-        return SetWarning({ message: `Node with identifier '${options.identifier}' not found.` })
+        return SetWarning({ Message: `Node with identifier '${Identifier}' not found.` })
     }
     if (exists) {
         const index = nodes.indexOf(exists);
-        if (exists.geometry.coordinates[0] === options.coordinates.longitude && exists.geometry.coordinates[1] === options.coordinates.latitude) {
+        if (exists.geometry.coordinates[0] === Coordinates.Longitude && exists.geometry.coordinates[1] === Coordinates.Latitude) {
             return;
         }
         nodes[index] = {
             ...exists,
             geometry: {
                 type: "Point",
-                coordinates: [options.coordinates.longitude, options.coordinates.latitude]
+                coordinates: [Coordinates.Longitude, Coordinates.Latitude]
             }
         };
-        SetWarning({ message: `Node with identifier '${options.identifier}' updated.` })
+        SetWarning({ Message: `Node with identifier '${Identifier}' updated.` })
         return SetEventEmit({
-            event: `onNodeUpdate`,
-            metadata: {
-                type: `node-update`,
-                node: nodes[index]
+            Event: `onNodeUpdate`,
+            Metadata: {
+                Type: `node-update`,
+                Node: nodes[index]
             }
         })
     }
@@ -70,18 +70,18 @@ export const SetNode = (options: GetNodeOptions) => {
         type: "Feature",
         geometry: {
             type: "Point",
-            coordinates: [options.coordinates.longitude, options.coordinates.latitude]
+            coordinates: [Coordinates.Longitude, Coordinates.Latitude]
         },
         properties: {
-            identifier: options.identifier
+            identifier: Identifier
         }
     });
-    SetWarning({ message: `Node with identifier '${options.identifier}' added.` })
+    SetWarning({ Message: `Node with identifier '${Identifier}' added.` })
     return SetEventEmit({
-        event: `onNodeAdd`,
-        metadata: {
-            type: `node-add`,
-            node: nodes[nodes.length - 1]
+        Event: `onNodeAdd`,
+        Metadata: {
+            Type: `node-add`,
+            Node: nodes[nodes.length - 1]
         }
     })
 }

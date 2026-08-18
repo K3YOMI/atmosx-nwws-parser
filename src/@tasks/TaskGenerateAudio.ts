@@ -20,16 +20,15 @@
 import { GenerateEASMessage } from "@eas/GenerateEASMessage"
 
 interface TaskGenerateAudioOptions {
-    filename: string;
-    description: string;
-    header: string;
+    Filename: string;
+    Description: string;
+    Header: string;
 }
 
-export const TaskGenerateAudio = async function(options: TaskGenerateAudioOptions): Promise<string> { 
-    const { filename, description, header } = options;
+export const TaskGenerateAudio = async function({ Filename, Description, Header }: TaskGenerateAudioOptions): Promise<string> { 
     return await GenerateEASMessage({
-        title: filename,
-        message: description,
-        header: header
+        Title: Filename,
+        Message: Description,
+        Header: Header
     });
 }

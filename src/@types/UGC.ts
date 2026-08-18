@@ -18,7 +18,7 @@
 */
 
 export type TypeUGC = { 
-    zones: string[]
-    locations: string[]
-    expires: string
+    Zones: string[]
+    Locations: string[]
+    Expires: string
 }

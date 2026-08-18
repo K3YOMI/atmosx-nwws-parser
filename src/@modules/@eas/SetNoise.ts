@@ -21,9 +21,14 @@
 import { GetPCMToFloat } from "@eas/GetPCMToFloat"
 import { GetFloatPCM16 } from "@eas/GetFloatPCM16"
 
-export const SetNoise = (int16: Int16Array, noiseLevel: number = 0.02): Int16Array => {
-    const x = GetPCMToFloat(int16);
-    for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * noiseLevel;
+interface SetNoiseOptions {
+    Int16: Int16Array
+    NoiseLevel?: number
+}
+
+export const SetNoise = ({ Int16, NoiseLevel }: SetNoiseOptions): Int16Array => {
+    const x = GetPCMToFloat(Int16);
+    for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * (NoiseLevel ?? 0.02);
     let peak = 0;
     for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
     if (peak > 1) for (let i = 0; i < x.length; i++) x[i] *= 0.98 / peak;

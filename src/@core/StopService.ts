@@ -17,16 +17,16 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 export const StopService = async (): Promise<void> => {
-    if (bootstrap.isReady) {
-        bootstrap.isReady = false;
-        if (bootstrap.session_xmpp) {
-            try { await bootstrap.session_xmpp.stop(); } catch {}
-            bootstrap.cache.isConnected = false;
-            bootstrap.cache.sigHault = true;
-            bootstrap.session_xmpp = null;
+    if (Bootstrap.Ready) {
+        Bootstrap.Ready = false;
+        if (Bootstrap.Session) {
+            try { await Bootstrap.Session.stop(); } catch {}
+            Bootstrap.Cache.Connected = false;
+            Bootstrap.Cache.Hault = true;
+            Bootstrap.Session = null;
         }
     }
 }

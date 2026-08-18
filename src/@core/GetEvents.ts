@@ -17,8 +17,8 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 export const GetEvents = (): any => {
-    return bootstrap.cache.events
+    return Bootstrap.Cache.Events
 }

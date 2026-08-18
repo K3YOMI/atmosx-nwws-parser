@@ -22,22 +22,30 @@ import { SetAFSK } from "@eas/SetAFSK"
 import { SetAsciiToBits } from "@eas/SetAsciiToBits"
 import { GetMergedPCM16 } from "@eas/GetMergedPCM16"
 
-export const SetSameHeader = (vtec: string, repeats: number, sampleRate: number = 8000, options: {preMarkSec?: number, gapSec?: number} = {}): Int16Array => {
-    const preMarkSec = options.preMarkSec ?? 0.3;
-    const gapSec = options.gapSec ?? 0.1;
+interface SetSameHeaderOptions {
+    VTEC: string
+    Repeats: number
+    SampleRate?: number
+    PreMarkSec?: number
+    GapSec?: number
+}
+
+export const SetSameHeader = ({ VTEC, Repeats, SampleRate, PreMarkSec, GapSec }: SetSameHeaderOptions): Int16Array => {
+    const preMarkSec = PreMarkSec ?? 0.3;
+    const gapSec = GapSec ?? 0.1;
     const bursts = [];
-    const gap = new Int16Array(Math.floor(gapSec * sampleRate));
-    for (let i = 0; i < repeats; i++) {
-        const bodyBits = SetAsciiToBits(vtec);
-        const body = SetAFSK(bodyBits, sampleRate);
-        const extendedBodyDuration = Math.round(preMarkSec * sampleRate);
+    const gap = new Int16Array(Math.floor(gapSec * SampleRate));
+    for (let i = 0; i < Repeats; i++) {
+        const bodyBits = SetAsciiToBits(VTEC);
+        const body = SetAFSK({ Bits: bodyBits, SampleRate: SampleRate});
+        const extendedBodyDuration = Math.round(preMarkSec * SampleRate);
         const extendedBody = new Int16Array(extendedBodyDuration + gap.length);
         for (let j = 0; j < extendedBodyDuration; j++) { 
             extendedBody[j] = Math.round(body[j % body.length] * 0.2); 
         }
         extendedBody.set(gap, extendedBodyDuration);
         bursts.push(extendedBody);
-        if (i !== repeats - 1) bursts.push(gap);
+        if (i !== Repeats - 1) bursts.push(gap);
     }
     return GetMergedPCM16(bursts);
 }

@@ -18,7 +18,7 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { OnlineXMPP } from "@xmpp/OnlineXMPP"
 import { OfflineXMPP } from "@xmpp/OfflineXMPP"
 import { ErrorXMPP } from "@xmpp/ErrorXMPP"
@@ -28,10 +28,10 @@ import { client } from "@xmpp/client"
 
 export const DeployXMPP = async (): Promise<void> => {
     let session;
-    const settings = bootstrap.settings as TypeSettings
+    const settings = Bootstrap.Settings as TypeSettings
     settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname 
         ??= settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username;
-    session = bootstrap.session_xmpp = client({
+    session = Bootstrap.Session = client({
         service: 'xmpp://nwws-oi.weather.gov',
         domain: 'nwws-oi.weather.gov',
         username: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username,
@@ -45,12 +45,12 @@ export const DeployXMPP = async (): Promise<void> => {
         await session.start()
     } catch (error) {
         SetEventEmit({
-            event: `onServiceStatus`,
-            metadata: {
-                message: `Error occured while starting XMPP Session: ${error}`,
-                data: {},
-                type: `error`,
-                error: true 
+            Event: `onServiceStatus`,
+            Metadata: {
+                Message: `Error occured while starting XMPP Session: ${error}`,
+                Data: {},
+                Type: `error`,
+                Error: true 
             },
         })
     }

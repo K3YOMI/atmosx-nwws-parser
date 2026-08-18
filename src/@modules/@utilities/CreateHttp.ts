@@ -18,27 +18,27 @@
 */
 
 interface CreateHttpOptions { 
-    url: string
-    headers?: any
-    timeout?: number
-    auth?: {
-        username: string
-        password: string
+    URL: string
+    Headers?: any
+    Timeout?: number
+    Auth?: {
+        Username: string
+        Password: string
     }
-    method?: `GET` | `POST` | `PUT` | `DELETE`
-    body?: any;
-    formData?: any;
+    Method?: `GET` | `POST` | `PUT` | `DELETE`
+    Body?: any;
+    Form?: any;
 }
 
-export const CreateHttp = async (options: CreateHttpOptions): Promise<any> => {
+export const CreateHttp = async ({ URL, Headers, Timeout, Auth, Method, Body, Form }: CreateHttpOptions): Promise<any> => {
 	const requestOptions: RequestInit = {
-        method: options.method ?? "GET",
-        headers: options.headers ?? {
+        method: Method ?? "GET",
+        headers: Headers ?? {
             "User-Agent": "AtmosphericX",
             "Accept": "application/geo+json, text/plain, */*; q=0.9",
             "Accept-Language": "en-US,en;q=0.9",
         },
-        signal: AbortSignal.timeout(options.timeout ?? 10_000),
+        signal: AbortSignal.timeout(Timeout ?? 10_000),
         redirect: "follow"
     };
 
@@ -47,8 +47,8 @@ export const CreateHttp = async (options: CreateHttpOptions): Promise<any> => {
 		return { error: error, options: requestOptions, status, message };
 	}
 
-    if (options?.auth) {
-        const authString = `${options.auth.username}:${options.auth.password}`;
+    if (Auth) {
+        const authString = `${Auth.Username}:${Auth.Password}`;
         const encodedAuth = Buffer.from(authString).toString("base64");
         requestOptions.headers = {
             ...requestOptions.headers,
@@ -56,20 +56,20 @@ export const CreateHttp = async (options: CreateHttpOptions): Promise<any> => {
         };
     }
 
-	if (options?.formData) { 
-		requestOptions.body = options.formData;
-	} else if (options?.body != undefined) {
+	if (Form) { 
+		requestOptions.body = Form;
+	} else if (Body != undefined) {
         requestOptions.body =
-        options.body instanceof FormData
-            ? options.body
-            : typeof options.body === "string"
-                ? options.body
-                : JSON.stringify(options.body);
+        Body instanceof FormData
+            ? Body
+            : typeof Body === "string"
+                ? Body
+                : JSON.stringify(Body);
 	}
 
 	try { 
 		const response = await fetch(
-			options?.url ?? `https://api.weather.gov/alerts/active`,
+			URL ?? `https://api.weather.gov/alerts/active`,
 			requestOptions
 		)
 		const body = await response.text();

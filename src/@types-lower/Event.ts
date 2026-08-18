@@ -17,9 +17,9 @@
 
 */
 
-import { TypeEventProperties as BaseTypeEventProperties } from "types/Properties"
+import { TypeEventProperties as BaseTypeEventProperties } from "./Properties"
 import { TypeHVTEC } from "types/HVTEC"
-import { TypePVTEC } from "types/VTEC"
+import { TypeVTEC } from "types/VTEC"
 
 export type TypeEvent = {
     type: string
@@ -46,7 +46,7 @@ export type TypeEvent = {
             tracking: string
             hash?: string
             header: string
-            vtec?: TypePVTEC | null
+            vtec?: TypeVTEC | null
             hvtec?: TypeHVTEC[] | null
             nodes?: {
                 id?: string | number

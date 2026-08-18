@@ -18,17 +18,23 @@
     
 */
 
-export const GetSampledPCM16 = (int16: Int16Array, originalRate: number, targetRate: number): Int16Array => {
-    if (originalRate === targetRate) return int16;
-    const ratio = targetRate / originalRate;
-    const outLen = Math.max(1, Math.round(int16.length * ratio));
+interface GetSampledPCM16Options {
+    Int16: Int16Array
+    OriginalRate: number
+    TargetRate: number
+}
+
+export const GetSampledPCM16 = ({ Int16, OriginalRate, TargetRate }: GetSampledPCM16Options): Int16Array => {
+    if (OriginalRate === TargetRate) return Int16;
+    const ratio = TargetRate / OriginalRate;
+    const outLen = Math.max(1, Math.round(Int16.length * ratio));
     const out = new Int16Array(outLen);
     for (let i = 0; i < outLen; i++) {
         const pos = i / ratio;
         const i0 = Math.floor(pos);
-        const i1 = Math.min(i0 + 1, int16.length - 1);
+        const i1 = Math.min(i0 + 1, Int16.length - 1);
         const frac = pos - i0;
-        const v = int16[i0] * (1 - frac) + int16[i1] * frac;
+        const v = Int16[i0] * (1 - frac) + Int16[i1] * frac;
         out[i] = Math.round(v);
     }
     return out;

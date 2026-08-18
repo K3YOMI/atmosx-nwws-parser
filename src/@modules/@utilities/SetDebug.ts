@@ -18,20 +18,20 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 interface SetDebugOptions { 
-    title?: string
-    message: string
+    Title?: string
+    Message: string
 }
 
-export const SetDebug = (options: SetDebugOptions): void => {
-    const settings = bootstrap.settings as TypeSettings;
-    bootstrap.listener.emit(`debug`, {
-        message: options.message,
-        function: options.title ?? `debug`,
+export const SetDebug = ({ Title, Message }: SetDebugOptions): void => {
+    const settings = Bootstrap.Settings as TypeSettings;
+    Bootstrap.Listener.emit(`debug`, {
+        message: Message,
+        function: Title ?? `debug`,
     })
     if (settings.EnableDebugging) { 
-        console.log(`[${bootstrap.ansi_colors.BLUE}${options.title ?? `debug`}${bootstrap.ansi_colors.RESET}] ${options.message}`)
+        console.log(`[${Bootstrap.Colors.Blue}${Title ?? `debug`}${Bootstrap.Colors.Reset}] ${Message}`)
     }
 }

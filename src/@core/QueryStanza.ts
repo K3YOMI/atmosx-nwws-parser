@@ -17,12 +17,12 @@
 
 */
 
-import { TypeStanza } from "types/Stanza"
-import { bootstrap } from "@bootstrap"
+import { TypeStanza } from "types-lower/Stanza"
+import { Bootstrap } from "@bootstrap"
 
 interface QueryStanzaOptions {
-    search: string
-    max?: number
+    Search: string
+    Max?: number
 }
 
 type QueryStanza = {
@@ -30,10 +30,10 @@ type QueryStanza = {
     stanza: string
 }
 
-export const QueryStanza = async (options: QueryStanzaOptions): Promise<TypeStanza[]> => {
-    const get = await bootstrap.database.prepare(
+export const QueryStanza = async ({ Search, Max }: QueryStanzaOptions): Promise<TypeStanza[]> => {
+    const get = await Bootstrap.Database.prepare(
         `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`)
-    .all(`%${options.search}%`, options.max ?? 100) as QueryStanza[];
+    .all(`%${Search}%`, Max ?? 100) as QueryStanza[];
     const events = get.map((row) => JSON.parse(row.stanza));
     return events as TypeStanza[];
 }

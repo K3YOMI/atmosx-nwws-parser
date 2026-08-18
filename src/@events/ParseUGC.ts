@@ -17,47 +17,47 @@
 
 */
 
-import { TypeAttributes } from "types/Attributes"
+import { TypeAttributes } from "types-lower/Attributes"
 import { TypeStanzaCompiled } from "types/StanzaCompiled"
 import { EnumMatches } from "@enums/Matches"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { ugcExtract } from "@parsers/ugc/UGCExtract"
 import { GetEventProperties } from "@building/GetEventProperties"
 import { GetEventHeader } from "@building/GetEventHeader"
 import { GetEventTracking } from "@building/GetEventTracking"
 import { SetDebug } from "@utilities/SetDebug"
 
-export const ParseUGC = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    const getMessages = stanza?.message
+export const ParseUGC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
+    const getMessages = Stanza?.Message
         ?.split(/(?=\$\$)/g)
         ?.map(message => message.trim())
         ?.filter(message => message && message !== "$$");
     if (!getMessages || getMessages?.length == 0 ) return;
     for (const message of getMessages) {
         const tick = performance.now();
-        const attributes = stanza?.attributes as TypeAttributes
+        const attributes = Stanza?.Attributes as TypeAttributes
         const ugc = await ugcExtract(message)
 
         if (ugc != null ) {
-            const props = GetEventProperties({ message, attributes, ugc: ugc })
+            const props = GetEventProperties({ Message: message, Attributes: attributes, UGC: ugc })
             const issued = new Date(attributes.issue)
-            const expires = new Date(ugc.expires)
-            const header = GetEventHeader({properties: props, getType: stanza.getType })
-            const matches = EnumMatches[stanza.getType.prefix]?.find(match => match.match.test(message.toUpperCase()));
+            const expires = new Date(ugc.Expires)
+            const header = GetEventHeader({ Properties: props, VTEC: null, Type: Stanza.Type })
+            const matches = EnumMatches[Stanza.Type.Prefix]?.find(match => match.match.test(message.toUpperCase()));
             
             let event = matches?.label;
             let isStatement = matches?.statement ?? false;
             
             if (!event) { 
-                event = stanza.getType.type;
-                if (!stanza.getType.discovered) {
+                event = Stanza.Type.Type;
+                if (!Stanza.Type.Discovered) {
                     event += ` (AWIPSID)`
                 }
                 isStatement = true;
 
             }
             
-            bootstrap.cache.processed.push({
+            Bootstrap.Cache.Parsed.push({
                 type: `Feature`,
                 geometry: {
                     type: `Point`,
@@ -73,7 +73,7 @@ export const ParseUGC = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     metadata: {
                         ms: performance.now() - tick,
                         source: `events.ugc`,
-                        tracking: GetEventTracking({ type: `RAW`, stanza, attributes, properties: props }),
+                        tracking: GetEventTracking({ Type: `RAW`, Stanza, Attributes: attributes, Properties: props }),
                         header: header,
                         vtec: null,
                         hvtec: null,
@@ -88,7 +88,7 @@ export const ParseUGC = async (stanza: TypeStanzaCompiled): Promise<void> => {
                     }
                 }
             })
-            SetDebug({ title: `ParseUGC`, message: `${Math.round(performance.now() - tick)}ms` })
+            SetDebug({ Title: `ParseUGC`, Message: `${Math.round(performance.now() - tick)}ms` })
         }
     }
 }

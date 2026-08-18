@@ -18,46 +18,46 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 import { SetWarning } from "@utilities/SetWarning"
 
 export const ReconnectXMPP = async (interval: number): Promise<void> => {
-    const settings = bootstrap.settings as TypeSettings;
-    const lastStanza = Date.now() - bootstrap.cache.lastStanza
+    const settings = Bootstrap.Settings as TypeSettings;
+    const last = Date.now() - Bootstrap.Cache.LastStanzaTime
     if (interval < 15) { 
-        SetWarning({ message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` })
+        SetWarning({ Message: `Reconnection interval of ${interval} seconds is too low, setting to 15 seconds` })
         interval = 15;
-        bootstrap.settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
+        Bootstrap.Settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval = 15;
     }
     const reconnectThreshold = interval * 1e3
-    if ((!bootstrap.cache.isConnected && !bootstrap.cache.sigHault) || !bootstrap.session_xmpp) { 
+    if ((!Bootstrap.Cache.Connected && !Bootstrap.Cache.Hault) || !Bootstrap.Session) { 
         return; 
     }
-    if (lastStanza > reconnectThreshold) {
-        if (!bootstrap.cache.isReconnecting) {
-            bootstrap.cache.isReconnecting = true;
-            bootstrap.cache.isConnected = false;
-            bootstrap.cache.tReconnects += 1;
+    if (last > reconnectThreshold) {
+        if (!Bootstrap.Cache.Reconnecting) {
+            Bootstrap.Cache.Reconnecting = true;
+            Bootstrap.Cache.Connected = false;
+            Bootstrap.Cache.TotalReconnects += 1;
             try { 
                 SetEventEmit({
-                    event: `onServiceStatus`,
-                    metadata: {
-                        message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
-                        data: {
-                            last_stanza: lastStanza,
-                            nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
+                    Event: `onServiceStatus`,
+                    Metadata: {
+                        Message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${Bootstrap.Cache.TotalReconnects})`,
+                        Data: {
+                            Last: last,
+                            Nickname: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname
                         },
-                        type: `reconnect`,
-                        error: true
-                    }, message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${bootstrap.cache.tReconnects})`,
+                        Type: `reconnect`,
+                        Error: true
+                    }, Message: `Attempting to reconnect to XMPP Service (Reconnect Attempt ${Bootstrap.Cache.TotalReconnects})`,
                 })
-                await bootstrap.session_xmpp.stop().catch(() => {});
-                await bootstrap.session_xmpp.start().catch(() => {});
+                await Bootstrap.Session.stop().catch(() => {});
+                await Bootstrap.Session.start().catch(() => {});
             } catch (error) {
-                SetWarning({ message: `XMPP Reconnect Failed - ${(error as Error).message}` })
+                SetWarning({ Message: `XMPP Reconnect Failed - ${(error as Error).message}` })
             } finally { 
-                bootstrap.cache.isReconnecting = false;
+                Bootstrap.Cache.Reconnecting = false;
             }
         }
     }

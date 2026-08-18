@@ -17,11 +17,11 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 export const ErrorXMPP = () => {
-    bootstrap.session_xmpp.on(`error`, async (error: Error) => {
-        bootstrap.cache.isConnected = false;
-        bootstrap.cache.sigHault = true;
+    Bootstrap.Session.on(`error`, async () => {
+        Bootstrap.Cache.Connected = false;
+        Bootstrap.Cache.Hault = true;
     })
 }

@@ -17,19 +17,19 @@
 
 */
 
-import { TypeEvent } from "types/Event"
-import { bootstrap } from "@bootstrap"
+import { TypeEvent } from "types-lower/Event"
+import { Bootstrap } from "@bootstrap"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 import { RemoveEvent } from "@manager/RemoveEvent"
 
-export const UpdateEvents = async (selectedEvent?: TypeEvent): Promise<void> => {
-    const events = bootstrap.cache.events.features;
+export const UpdateEvents = async (selected?: TypeEvent): Promise<void> => {
+    const events = Bootstrap.Cache.Events.features;
     async function update(event: TypeEvent) {
         if (new Date(event.properties.expires) < new Date()) {
-            SetEventEmit({ event: `onExpiredProduct`, metadata: event })
-            await RemoveEvent(event, true)
+            SetEventEmit({ Event: `onExpiredProduct`, Metadata: event })
+            await RemoveEvent({ Event: event, IsTimeBasedExpiration: true })
         }
     }
-    if (!selectedEvent) { await Promise.all(events.map(async (event) => { await update(event) })) } 
-    if (selectedEvent) { await update(selectedEvent) }
+    if (!selected) { await Promise.all(events.map(async (event) => { await update(event) })) } 
+    if (selected) { await update(selected) }
 }

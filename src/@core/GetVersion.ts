@@ -17,8 +17,8 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 export const GetVersion = (): any => {
-    return bootstrap.version
+    return Bootstrap.Version
 }

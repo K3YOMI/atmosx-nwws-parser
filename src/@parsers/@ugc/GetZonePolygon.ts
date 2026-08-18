@@ -17,12 +17,12 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { union } from "polygon-clipping"
 
 interface CoordinatesOptions {
-    zones: string[]
-    isUnion: boolean
+    Zones: string[]
+    Union: boolean
 }
 
 interface CoordinatesResponse { 
@@ -30,12 +30,12 @@ interface CoordinatesResponse {
     coordinates: any[]
 }
 
-export const getZonePolygon = (options: CoordinatesOptions): CoordinatesResponse | null => {
-    const list = [...new Set(options.zones.map(z => z.trim()))].filter(z => z === 'XX000' ? false : true);
+export const getZonePolygon = ({ Zones, Union }: CoordinatesOptions): CoordinatesResponse | null => {
+    const list = [...new Set(Zones.map(z => z.trim()))].filter(z => z === 'XX000' ? false : true);
     if (list.length === 0) return null;
 
     const placeholders = list.map(() => "?").join(",");
-    const rows = bootstrap.database
+    const rows = Bootstrap.Database
         .prepare(`SELECT geometry FROM shapefiles WHERE id IN (${placeholders})`)
         .all(...list);
     const polygons: any[] = [];
@@ -49,7 +49,7 @@ export const getZonePolygon = (options: CoordinatesOptions): CoordinatesResponse
 
     if (polygons.length === 0) return null;
 
-    if (options.isUnion) {
+    if (Union) {
         const unionFn = union as (...polys: any[]) => any;
         const mergedCoords = unionFn(...polygons);
         if (!mergedCoords || mergedCoords.length === 0) return null;
@@ -71,7 +71,7 @@ export const getZonePolygon = (options: CoordinatesOptions): CoordinatesResponse
         }
         if (!bestPoly || bestPoly.length === 0) return null;
         const outerRing = bestPoly[0];
-        const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
+        const skip = Math.max(1, parseInt(String(Bootstrap.Settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
         let skipped = outerRing.filter((_: any, idx: number) => idx % skip === 0);
         if (skipped.length < 4) {
             skipped = outerRing.slice();
@@ -90,7 +90,7 @@ export const getZonePolygon = (options: CoordinatesOptions): CoordinatesResponse
             }
         }
         if (multi.length === 0) return null;
-        const skip = Math.max(1, parseInt(String(bootstrap.settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
+        const skip = Math.max(1, parseInt(String(Bootstrap.Settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
         if (skip > 1) {
             for (let p = 0; p < multi.length; p++) {
                 for (let r = 0; r < multi[p].length; r++) {

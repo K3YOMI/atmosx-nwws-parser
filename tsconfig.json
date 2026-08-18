@@ -11,7 +11,7 @@
 		"skipLibCheck": true,
 		"paths": {
 			"@parsers/hvtec/*": ["./src/@parsers/@hvtec/*"],
-			"@parsers/pvtec/*": ["./src/@parsers/@pvtec/*"],
+			"@parsers/vtec/*": ["./src/@parsers/@vtec/*"],
 			"@parsers/ugc/*": ["./src/@parsers/@ugc/*"],
 			"@parsers/text/*": ["./src/@parsers/@text/*"],
 			"@database/*": ["./src/@modules/@database/*"],
@@ -26,6 +26,7 @@
 			"@core/*": ["./src/@core/*"],
 			"@building/*": ["./src/@building/*"],
 			"types/*": ["./src/@types/*"],
+			"types-lower/*": ["./src/@types-lower/*"],
 			"@bootstrap": ["./src/bootstrap.ts"],
 		}
 	},

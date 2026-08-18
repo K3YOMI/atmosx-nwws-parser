@@ -18,8 +18,8 @@
 */
 
 export type TypeHVTEC = { 
-    hvtec: string
-    severity: string
-    cause: string
-    record: string
+    HVTEC: string
+    Severity: string
+    Cause: string
+    Record: string
 }

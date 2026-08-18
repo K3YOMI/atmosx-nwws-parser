@@ -20,12 +20,11 @@
 import { EnumExpressions } from "@enums/Expressions"
 
 interface GetDescriptionFromProductOptions { 
-    message: string
-    handle?: string
+    Message: string
+    Handle?: string
 }
 
-export const GetDescriptionFromProduct = (options: GetDescriptionFromProductOptions): string => {
-    let message = options.message;
+export const GetDescriptionFromProduct = ({ Message, Handle }: GetDescriptionFromProductOptions): string => {
     const predefinedEndMarkers = ['&&', 'LAT...'];
     const getEndIndex = (text: string, fromIndex = 0): number => {
         const indices = predefinedEndMarkers
@@ -33,28 +32,28 @@ export const GetDescriptionFromProduct = (options: GetDescriptionFromProductOpti
             .filter((idx) => idx !== -1);
         return indices.length ? Math.min(...indices) : -1;
     };
-    const dates = Array.from(message.matchAll(EnumExpressions.dateline));
+    const dates = Array.from(Message.matchAll(EnumExpressions.dateline));
     if (dates.length) {
         const lastMatch = dates[dates.length - 1][0];
-        const sIndx = message.lastIndexOf(lastMatch);
+        const sIndx = Message.lastIndexOf(lastMatch);
         if (sIndx !== -1) {
-            const endIndx = getEndIndex(message, sIndx);
-            message = message.substring(sIndx + lastMatch.length, endIndx !== -1 ? endIndx : undefined).trimStart();
-            if (message.startsWith('/')) message = message.slice(1).trimStart();
-            if (options.handle && message.includes(options.handle)) {
-                const handleIdx = message.indexOf(options.handle);
-                message = message.substring(handleIdx + options.handle.length).trimStart();
-                if (message.startsWith('/')) message = message.slice(1).trimStart();
+            const endIndx = getEndIndex(Message, sIndx);
+            Message = Message.substring(sIndx + lastMatch.length, endIndx !== -1 ? endIndx : undefined).trimStart();
+            if (Message.startsWith('/')) Message = Message.slice(1).trimStart();
+            if (Handle && Message.includes(Handle)) {
+                const handleIdx = Message.indexOf(Handle);
+                Message = Message.substring(handleIdx + Handle.length).trimStart();
+                if (Message.startsWith('/')) Message = Message.slice(1).trimStart();
             }
         }
-    } else if (options.handle) {
-        const handleIndx = message.indexOf(options.handle);
+    } else if (Handle) {
+        const handleIndx = Message.indexOf(Handle);
         if (handleIndx !== -1) {
-            let afterHandle = message.substring(handleIndx + options.handle.length).trimStart();
+            let afterHandle = Message.substring(handleIndx + Handle.length).trimStart();
             if (afterHandle.startsWith('/')) afterHandle = afterHandle.slice(1).trimStart();
             const latEnd = getEndIndex(afterHandle);
-            message = latEnd !== -1 ? afterHandle.substring(0, latEnd).trim() : afterHandle.trim();
+            Message = latEnd !== -1 ? afterHandle.substring(0, latEnd).trim() : afterHandle.trim();
         }
     }
-    return message.trim();
+    return Message.trim();
 }

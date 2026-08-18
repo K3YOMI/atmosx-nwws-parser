@@ -17,30 +17,30 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 import { xml } from "@xmpp/client"
 
 export const OnlineXMPP = () => {
-    const settings = bootstrap.settings;
-    bootstrap.session_xmpp.on(`online`, async (address: string) => {
-        bootstrap.cache.sigHault = false;
-        bootstrap.cache.isConnected = true;
-        bootstrap.cache.tReconnects = 0;
+    const settings = Bootstrap.Settings;
+    Bootstrap.Session.on(`online`, async () => {
+        Bootstrap.Cache.Hault = false;
+        Bootstrap.Cache.Connected = true;
+        Bootstrap.Cache.TotalReconnects = 0;
         const nickname = settings.NOAAWeatherWireServiceSettings.CredentialSettings.Nickname;
-        bootstrap.session_xmpp.send(xml('presence', {
+        Bootstrap.Session.send(xml('presence', {
             to: `nwws@conference.nwws-oi.weather.gov/${nickname}`,
             xmlns: 'http://jabber.org/protocol/muc',
         }))
         SetEventEmit({
-            event: `onServiceStatus`,
-            metadata: {
-                message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
-                data: {},
-                type: `online`,
-                error: false
+            Event: `onServiceStatus`,
+            Metadata: {
+                Message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
+                Data: {},
+                Type: `online`,
+                Error: false
             },
-            message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
+            Message: `Succesfully connected to NOAA Weather Wire Service as "${nickname}"`,
         })
     })
 }

@@ -19,17 +19,16 @@
 
 import { mkdir, appendFile } from "fs/promises"
 
-interface TaskGenerateText {
-    string: string;
-    directory: string;
-    filename: string;
+interface TaskGenerateTextOptions {
+    String: string;
+    Directory: string;
+    Filename: string;
 }
 
-export const TaskGenerateText = async function(options: TaskGenerateText): Promise<string> { 
-    const { string, directory, filename } = options;
-    if (directory) { 
-        await mkdir(directory, { recursive: true });
-        await appendFile(directory + "/" + filename, `${string}${"\n".repeat(5)}`);
+export const TaskGenerateText = async function({ String, Directory, Filename }: TaskGenerateTextOptions): Promise<string> { 
+    if (Directory) { 
+        await mkdir(Directory, { recursive: true });
+        await appendFile(Directory + "/" + Filename, `${String}${"\n".repeat(5)}`);
     }
-    return string;
+    return String;
 }

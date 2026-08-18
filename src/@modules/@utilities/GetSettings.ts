@@ -18,8 +18,8 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 export const GetSettings = (): TypeSettings => {
-    return bootstrap.settings;
+    return Bootstrap.Settings;
 }

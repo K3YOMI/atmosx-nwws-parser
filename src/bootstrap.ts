@@ -20,32 +20,32 @@
 import path from "path"
 import { EventEmitter } from "node:events"
 
-export const bootstrap = {
-    version: `3.0.622`,
-    isReady: true,
-    ratelimits: {},
-    session_xmpp: null,
-    database: null,
-    cron: null,
-    listener: new EventEmitter(),
-    ansi_colors: {
-        RED: `\x1b[31m`, GREEN: `\x1b[32m`, YELLOW: `\x1b[33m`,
-        BLUE: `\x1b[34m`, MAGENTA: `\x1b[35m`, CYAN: `\x1b[36m`,
-        WHITE: `\x1b[37m`, RESET: `\x1b[0m`
+export const Bootstrap = {
+    Version: `3.0.63`,
+    Ready: true,
+    Ratelimits: {},
+    Session: null,
+    Database: null,
+    Job: null,
+    Listener: new EventEmitter(),
+    Colors: {
+        Red: `\x1b[31m`, Green: `\x1b[32m`, Yellow: `\x1b[33m`,
+        Blue: `\x1b[34m`, Magenta: `\x1b[35m`, Cyan: `\x1b[36m`,
+        White: `\x1b[37m`, Reset: `\x1b[0m`
     },
-    cache: {
-        lastStanza: null,
-        isConnected: false,
-        isReconnecting: false,
-        tReconnects: 0,
-        sigHault: false,
-        events: {type: "FeatureCollection", features: []},
-        nodes: {type: "FeatureCollection", features: []},
-        hashes: [],
-        processed: [],
-        ugc: new Map<string, string[]>()
+    Cache: {
+        LastStanzaTime: null,
+        Connected: false,
+        Reconnecting: false,
+        TotalReconnects: 0,
+        Hault: false,
+        Events: {type: "FeatureCollection", features: []},
+        Nodes: {type: "FeatureCollection", features: []},
+        Hashes: [],
+        Parsed: [],
+        UGC: new Map<string, string[]>()
     },
-    settings: {
+    Settings: {
         Database: path.join(process.cwd(), 'shapefiles.db'),
         EnableWireService: false,
         EnableDebugging: false,

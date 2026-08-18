@@ -17,12 +17,17 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
-export const setCache = (key: string, value: string[]) => {
-	if (bootstrap.cache.ugc.size >= 5000) {
-        const firstKey = bootstrap.cache.ugc.keys().next().value;
-        bootstrap.cache.ugc.delete(firstKey);
+interface SetCacheOptions {
+    Key: string
+    Value: string[]
+}
+
+export const setCache = ({ Key, Value }: SetCacheOptions) => {
+	if (Bootstrap.Cache.UGC.size >= 5000) {
+        const firstKey = Bootstrap.Cache.UGC.keys().next().value;
+        Bootstrap.Cache.UGC.delete(firstKey);
     }
-    bootstrap.cache.ugc.set(key, value);
+    Bootstrap.Cache.UGC.set(Key, Value);
 };

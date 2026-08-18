@@ -18,10 +18,10 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
-export const SetSettings = (newSettings: TypeSettings): TypeSettings => {
-    const settings = bootstrap.settings as Record<string, unknown>;
+export const SetSettings = (imported: TypeSettings): TypeSettings => {
+    const settings = Bootstrap.Settings as Record<string, unknown>;
     const merge = (target: Record<string, unknown>, source: Record<string, unknown>) => {
         for (const key in source) {
             if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
@@ -37,6 +37,6 @@ export const SetSettings = (newSettings: TypeSettings): TypeSettings => {
             }
         }
     };
-    merge(settings, newSettings as Record<string, unknown>);
+    merge(settings, imported as Record<string, unknown>);
     return settings as TypeSettings;
 }

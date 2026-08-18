@@ -17,25 +17,25 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
 import { SetWarning } from "@utilities/SetWarning"
 
 interface SetEventEmitOptions { 
-    event: string
-    metadata: any
-    message?: string
-    limited?: boolean
+    Event: string
+    Metadata: any
+    Message?: string
+    Limited?: boolean
 }
 
-export const SetEventEmit = (options: SetEventEmitOptions): void => {
-    if (options.limited) {
-        const isTimeout = SetTimeoutAction({ identifier: `event.${options.event}`, addTime: true, max: 1, interval: 1 })
-        if (isTimeout.limited) return;
+export const SetEventEmit = ({ Event, Metadata, Message, Limited }: SetEventEmitOptions): void => {
+    if (Limited) {
+        const isTimeout = SetTimeoutAction({ Identifier: `event.${Event}`, AddTime: true, Max: 1, Interval: 1 })
+        if (isTimeout.Limited) return;
     }
-    bootstrap.listener.emit(options.event, options.metadata)
-    if (options.event != `log`) { bootstrap.listener.emit(`*`, {event: options.event, data: options.metadata}) }
-    if (options.message) {
-        SetWarning({ message: options.message })
+    Bootstrap.Listener.emit(Event, Metadata)
+    if (Event != `log`) { Bootstrap.Listener.emit(`*`, {event: Event, data: Metadata}) }
+    if (Message) {
+        SetWarning({ Message: Message })
     }
 }

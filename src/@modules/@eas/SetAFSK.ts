@@ -18,7 +18,12 @@
     
 */
 
-export const SetAFSK = (bits: number[], sampleRate: number): Int16Array => {
+interface SetAFSKOptions {
+    Bits: number[]
+    SampleRate: number
+}
+
+export const SetAFSK = ({ Bits, SampleRate }: SetAFSKOptions): Int16Array => {
     const baud = 520.83;
     const markFreq = 2083.3;
     const spaceFreq = 1562.5;
@@ -27,20 +32,20 @@ export const SetAFSK = (bits: number[], sampleRate: number): Int16Array => {
     const result = [];
     let phase = 0;
     let frac = 0;
-    for (let b = 0; b < bits.length; b++) {
-        const bit = bits[b];
+    for (let b = 0; b < Bits.length; b++) {
+        const bit = Bits[b];
         const freq = bit ? markFreq : spaceFreq;
-        const samplesPerBit = sampleRate / baud + frac;
+        const samplesPerBit = SampleRate / baud + frac;
         const n = Math.round(samplesPerBit);
         frac = samplesPerBit - n;
-        const inc = twoPi * freq / sampleRate;
+        const inc = twoPi * freq / SampleRate;
         for (let i = 0; i < n; i++) {
             result.push(Math.round(Math.sin(phase) * amplitude * 32767));
             phase += inc;
             if (phase > twoPi) phase -= twoPi;
         }
     }
-    const fadeSamples = Math.floor(sampleRate * 0.002);
+    const fadeSamples = Math.floor(SampleRate * 0.002);
     for (let i = 0; i < fadeSamples; i++) {
         const gain = i / fadeSamples;
         result[i] = Math.round(result[i] * gain);

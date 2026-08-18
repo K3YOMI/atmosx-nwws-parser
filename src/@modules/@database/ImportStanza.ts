@@ -19,29 +19,29 @@
 
 import { TypeSettings } from "types/Settings"
 import { TypeStanzaCompiled } from "types/StanzaCompiled"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetWarning } from "@utilities/SetWarning"
 
-export const ImportStanza = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    const settings = bootstrap.settings as TypeSettings;
+export const ImportStanza = async (Stanza: TypeStanzaCompiled): Promise<void> => {
+    const settings = Bootstrap.Settings as TypeSettings;
     try { 
         if (!settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) { return }
-        bootstrap.database
+        Bootstrap.Database
             .prepare(`INSERT OR IGNORE INTO stanzas (type, stanza, issued) VALUES (?, ?, ?)`)
-            .run(stanza.getType.type, JSON.stringify(stanza), stanza.attributes.issue)
-        const count = bootstrap.database
+            .run(Stanza.Type.Type, JSON.stringify(Stanza), Stanza.Attributes.issue)
+        const count = Bootstrap.Database
             .prepare(`SELECT COUNT(*) as total FROM stanzas`)
             .get() as { total: number }
         const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxDatabaseHistory;
         if (count.total > max) { 
             const toDelete = count.total - max;
             if (toDelete > 0) {
-                bootstrap.database
+                Bootstrap.Database
                     .prepare(`DELETE FROM stanzas WHERE id IN (SELECT id FROM stanzas ORDER BY issued ASC LIMIT ?)`)
                     .run(toDelete);
             }
         }
     } catch (error) {
-        SetWarning({ message: `An error occurred while importing stanza: ${error.message}` })
+        SetWarning({ Message: `An error occurred while importing stanza: ${error.message}` })
     }
 }

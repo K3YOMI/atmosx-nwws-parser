@@ -17,9 +17,9 @@
 
 */
 
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { GetEventEnhancedName } from "@building/GetEventEnhancedName"
 import { GetEventSignature } from "@building/GetEventSignature"
 import { MakeEvents } from "@manager/MakeEvents"
@@ -34,7 +34,7 @@ import { createHash } from "crypto"
 export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
     const tick = performance.now();
     if (events.length === 0) return
-    const configurations = bootstrap.settings as TypeSettings
+    const configurations = Bootstrap.Settings as TypeSettings
     const sets = {} as Record<string, Set<string>>;
     const bools = {} as Record<string, boolean>;
     const megered = {...configurations.GlobalSettings, ...configurations.GlobalSettings.EventFiltering}
@@ -50,19 +50,19 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         const icao = properties.geocode.office.office
 
         if (properties.status_metadata.is_test) { 
-            SetEventEmit({ event: `onTestProduct`, metadata: define })
+            SetEventEmit({ Event: `onTestProduct`, Metadata: define })
             if (bools?.IgnoreTestProducts) return true; 
         }
         
         if (properties.status_metadata.is_expired) { 
-            SetEventEmit({ event: `onExpiredProduct`, metadata: define })
-            RemoveEvent(define, false)
+            SetEventEmit({ Event: `onExpiredProduct`, Metadata: define })
+            RemoveEvent({ Event: define, IsTimeBasedExpiration: false })
             return true; 
         }
         
-        if (properties.metadata?.vtec?.is_watch && properties.metadata.source != `events.api`) {
-            const isSPC = properties.metadata?.vtec?.prediction_center;
-            SetEventEmit({ event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, metadata: define })
+        if (properties.metadata?.vtec?.Watch && properties.metadata.source != `events.api`) {
+            const isSPC = properties.metadata?.vtec?.PredictionCenter;
+            SetEventEmit({ Event: isSPC ? `onStormPredictionWatch` : `onNonStormPredictionWatch`, Metadata: define })
             if (bools?.SPCWatchesOnly && !isSPC) {
                 return true;
             }
@@ -74,45 +74,45 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         for (const key in sets) {
             const setting = sets[key]
             const values = [...setting];
-            if (key === 'ListeningEvents' && setting.size > 0 && !GetMatched(values, define.properties.event)) {
+            if (key === 'ListeningEvents' && setting.size > 0 && !GetMatched({ Strings: values, String: define.properties.event })) {
                 SetEventEmit({
-                    event: `onFilteredEvent`,
-                    metadata: define
+                    Event: `onFilteredEvent`,
+                    Metadata: define
                 }); 
                 return true 
             } 
-            if (key === 'IgnoredEvents' && setting.size > 0 && GetMatched(values, define.properties.event)) {
+            if (key === 'IgnoredEvents' && setting.size > 0 && GetMatched({ Strings: values, String: define.properties.event })) {
                 SetEventEmit({
-                    event: `onIgnoredEvent`,
-                    metadata: define
+                    Event: `onIgnoredEvent`,
+                    Metadata: define
                 }); 
                 return true 
             } 
             if (key === 'ListeningICAO' && setting.size > 0 && icao != null && !setting.has(icao.toLowerCase())) { 
                 SetEventEmit({
-                    event: `onFilteredICAO`,
-                    metadata: define
+                    Event: `onFilteredICAO`,
+                    Metadata: define
                 }); 
                 return true 
             }
             if (key === 'IgnoredICAO' && setting.size > 0 && icao != null && setting.has(icao.toLowerCase())) { 
                 SetEventEmit({
-                    event: `onIgnoredICAO`,
-                    metadata: define
+                    Event: `onIgnoredICAO`,
+                    Metadata: define
                 }); 
                 return true 
             }
             if (key === 'ListeningUGC' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.toLowerCase()))) { 
                 SetEventEmit({
-                    event: `onFilteredUGC`,
-                    metadata: define
+                    Event: `onFilteredUGC`,
+                    Metadata: define
                 }); 
                 return true 
             }
             if (key === 'ListeningStates' && setting.size > 0 && zones.length > 0 && !zones.some((ugc: string) => setting.has(ugc.substring(0, 2).toLowerCase()))) { 
                 SetEventEmit({
-                    event: `onFilteredState`,
-                    metadata: define
+                    Event: `onFilteredState`,
+                    Metadata: define
                 }); 
                 return true 
             }
@@ -121,7 +121,7 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
     }
 
     const filtering = events.filter((event: TypeEvent) => {
-        bootstrap.cache.processed = bootstrap.cache.processed.filter((e) => e !== event);
+        Bootstrap.Cache.Parsed = Bootstrap.Cache.Parsed.filter((e) => e !== event);
         const define = GetEventSignature(event) as TypeEvent;
         const pre = {...define,properties: {...define.properties,  metadata: {...define.properties.metadata }}};
         const properties = define.properties; delete pre.properties.metadata.ms; delete pre.properties.metadata.header;
@@ -132,10 +132,10 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
             properties.metadata.attachments = GetEventAttachments(event)
         }
         properties.metadata.hash = createHash("sha256").update(JSON.stringify(pre)).digest("hex")  
-        SetEventEmit({ event: `onProductType${enhanced.replace(/\s+/g, '')}`, metadata: define });
+        SetEventEmit({ Event: `onProductType${enhanced.replace(/\s+/g, '')}`, Metadata: define });
         return !filtered
     })
     
-    SetDebug({ title: `ValidateEvents (${filtering.length}/${events.length})`, message: `${Math.round(performance.now() - tick)}ms` })
+    SetDebug({ Title: `ValidateEvents (${filtering.length}/${events.length})`, Message: `${Math.round(performance.now() - tick)}ms` })
     await MakeEvents(filtering)
 }

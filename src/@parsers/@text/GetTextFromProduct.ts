@@ -18,25 +18,25 @@
 */
 
 interface GetTextFromProductOptions {
-    message: string
-    find: string[]
-    append?: string
-    removal?: string[]
+    Message: string
+    Find: string[]
+    Append?: string
+    Removal?: string[]
 }
 
-export const GetTextFromProduct = (options: GetTextFromProductOptions): string => {
-    const lines = options.message.split(`\n`);
+export const GetTextFromProduct = ({ Message, Find, Append, Removal }: GetTextFromProductOptions): string => {
+    const lines = Message.split(`\n`);
     for (const line of lines) {
-        const matchedFind = options.find.find((find) => line.includes(find));
+        const matchedFind = Find.find((find) => line.includes(find));
         if (matchedFind) {
             let result = line.slice(line.indexOf(matchedFind) + matchedFind.length).trim();
-            if (options.removal) {
-                for (const str of options.removal) {
+            if (Removal) {
+                for (const str of Removal) {
                     result = result.toLowerCase().split(str.toLowerCase()).join('');
                 }
                 result = result.replace(matchedFind, '').replace('<', '').trim();
             }
-            return result.toUpperCase() + (options?.append ?? ``);
+            return result.toUpperCase() + (Append ?? ``);
         }
     }
     return null;

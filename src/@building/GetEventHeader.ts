@@ -17,21 +17,21 @@
 
 */
 
-import { TypePVTEC } from "types/VTEC"
-import { TypeEventProperties } from "types/Properties"
+import { TypeVTEC } from "types/VTEC"
+import { TypeEventProperties } from "types-lower/Properties"
 
 interface GetHeaderOptions {
-    properties: TypeEventProperties
-    vtec?: TypePVTEC
-    getType: {
-        type: string
-        prefix: string
+    Properties: TypeEventProperties
+    VTEC?: TypeVTEC
+    Type: {
+        Type: string
+        Prefix: string
     }
 }
 
-export const GetEventHeader = (options: GetHeaderOptions): string => {
-    const properties = options.properties
-    const vtec = options.vtec ?? null
+export const GetEventHeader = ({ Properties, VTEC, Type }: GetHeaderOptions): string => {
+    const properties = Properties
+    const vtec = VTEC ?? null
     const ugc = properties.geocode.ugc != null ? properties.geocode.ugc.join(`-`) : `0`;
-    return `ZCZC-ATMOSX-${options.getType.prefix}-${ugc}-${vtec?.status ?? `Issued`}-${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}-${properties.geocode.office.office ?? `KWNS`}`
+    return `ZCZC-ATMOSX-${Type?.Prefix}-${ugc}-${vtec?.Status ?? `Issued`}-${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}-${properties.geocode.office.office ?? `KWNS`}`
 }

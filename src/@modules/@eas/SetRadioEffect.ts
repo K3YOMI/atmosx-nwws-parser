@@ -21,11 +21,16 @@
 import { GetPCMToFloat } from "@eas/GetPCMToFloat"
 import { GetFloatPCM16 } from "@eas/GetFloatPCM16"
 
-export const SetRadioEffect = (int16: Int16Array, sampleRate: number): Int16Array => {
+interface SetRadioEffectOptions {
+    Int16: Int16Array
+    SampleRate: number
+}
+
+export const SetRadioEffect = ({ Int16, SampleRate }: SetRadioEffectOptions): Int16Array => {
     const hpCut = 3555;
     const lpCut = 1600;
-    const x = GetPCMToFloat(int16);
-    const dt = 1 / sampleRate;
+    const x = GetPCMToFloat(Int16);
+    const dt = 1 / SampleRate;
     const rcHP = 1 / (2 * Math.PI * hpCut);
     const aHP = rcHP / (rcHP + dt);
     let yHP = 0, xPrev = 0;

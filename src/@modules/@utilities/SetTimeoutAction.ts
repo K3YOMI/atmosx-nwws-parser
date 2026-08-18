@@ -17,48 +17,48 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 interface SetTimeoutActionOptions {
-    identifier: string
-    addTime?: boolean
-    max?: number
-    interval?: number
-    expire?: boolean
+    Identifier: string
+    AddTime?: boolean
+    Max?: number
+    Interval?: number
+    Expire?: boolean
 }
 
 type SetTimeoutActionResponse = {
-    limited: boolean
-    remaining?: number
-    response?: string
+    Limited: boolean
+    Remaining?: number
+    Response?: string
 }
 
-export const SetTimeoutAction = (options: SetTimeoutActionOptions): SetTimeoutActionResponse =>  {
-    let target = bootstrap?.ratelimits?.[options?.identifier];
+export const SetTimeoutAction = ({ Identifier, AddTime, Max, Interval, Expire }: SetTimeoutActionOptions): SetTimeoutActionResponse =>  {
+    let target = Bootstrap?.Ratelimits?.[Identifier];
     if (!target) {
-        bootstrap.ratelimits[options?.identifier] = [];
-        target = bootstrap.ratelimits[options?.identifier];
+        Bootstrap.Ratelimits[Identifier] = [];
+        target = Bootstrap.Ratelimits[Identifier];
     }
-    if (options?.expire) {
-        delete bootstrap.ratelimits[options?.identifier];
-        return { limited: false };
+    if (Expire) {
+        delete Bootstrap.Ratelimits[Identifier];
+        return { Limited: false };
     }
     if (target?.length > 0) {
-       bootstrap.ratelimits[options?.identifier] = target.filter((ts: number) => Date.now() - ts < options?.interval * 1000);
-       target = bootstrap.ratelimits[options?.identifier];
+       Bootstrap.Ratelimits[Identifier] = target.filter((ts: number) => Date.now() - ts < Interval * 1000);
+       target = Bootstrap.Ratelimits[Identifier];
     }
 
     const oldestTimestamp = target?.[0];
-    const getWait = oldestTimestamp ? Math.ceil((options?.interval * 1000) - (Date.now() - oldestTimestamp)) : 0;
-    const max = options?.max ?? 1;
+    const getWait = oldestTimestamp ? Math.ceil((Interval * 1000) - (Date.now() - oldestTimestamp)) : 0;
+    const max = Max ?? 1;
     
     if (target?.length >= max && getWait > 0) {
         return {
-            limited: true,
-            remaining: getWait,
-            response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
+            Limited: true,
+            Remaining: getWait,
+            Response: `You are being rate limited, please wait ${(getWait / 1e3).toFixed(1)} second(s) before performing this action again.`
         }
     }
-    bootstrap.ratelimits[options?.identifier].push(Date.now());
-    return { limited: false };
+    Bootstrap.Ratelimits[Identifier].push(Date.now());
+    return { Limited: false };
 }

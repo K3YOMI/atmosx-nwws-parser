@@ -17,14 +17,14 @@
 
 */
 
-import { TypeAttributes } from "types/Attributes"
-import { TypePVTEC } from "types/VTEC"
+import { TypeAttributes } from "types-lower/Attributes"
+import { TypeVTEC } from "types/VTEC"
 import { EnumICAO } from "@enums/ICAO"
 
 interface GetOfficeOptions { 
-    attributes: TypeAttributes
-    organization: string
-    pVtec: TypePVTEC
+    Attributes: TypeAttributes
+    Organization: string
+    VTEC: TypeVTEC
 }
 
 interface GetOfficeResponse { 
@@ -32,11 +32,11 @@ interface GetOfficeResponse {
     name: string | null
 }
 
-export const GetEventOffice = (options: GetOfficeOptions): GetOfficeResponse => {
-    const office = options.pVtec != null 
-        ? options.pVtec?.tracking?.split(`.`)[0] : (options.attributes?.cccc ??
-            (options.organization != null ? 
-                (Array.isArray(options.organization) ? options.organization?.[0] : options.organization) 
+export const GetEventOffice = ({ Attributes, Organization, VTEC }: GetOfficeOptions): GetOfficeResponse => {
+    const office = VTEC != null 
+        ? VTEC?.Tracking?.split(`.`)[0] : (Attributes?.cccc ??
+            (Organization != null ? 
+                (Array.isArray(Organization) ? Organization?.[0] : Organization) 
         : null));
     const name = EnumICAO?.[office] ?? null;
     return { office, name };

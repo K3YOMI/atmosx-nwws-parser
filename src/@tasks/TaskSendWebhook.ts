@@ -17,47 +17,46 @@
 
 */
 
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { CreateHttp } from "@utilities/CreateHttp";
 import { SetTimeoutAction } from "@utilities/SetTimeoutAction";
 import { GetEmebedText } from "@parsers/text/GetEmbededText";
 import { parentPort } from "worker_threads"
 import { readFile } from "fs/promises"
 
-interface TaskSendWebhook {
-    event: TypeEvent;
-    webhook: {
-        enabled: boolean;
-        destination: string;
-        message: string;
-        title: string;
-        ratelimit: number;
+interface TaskSendWebhookOptions {
+    Event: TypeEvent;
+    Webhook: {
+        Enabled: boolean;
+        Destination: string;
+        Message: string;
+        Title: string;
+        Ratelimit: number;
     };
-    attachments: {
-        text?: string;
-        eas?: string;
-        json?: string;
+    Attachments: {
+        Text?: string;
+        EAS?: string;
+        Json?: string;
     }
 }
 
-export const TaskSendWebhook = async function(options: TaskSendWebhook): Promise<void> { 
-    const { event, webhook, attachments } = options;
-    const { properties } = event;
+export const TaskSendWebhook = async function({ Event, Webhook, Attachments }: TaskSendWebhookOptions): Promise<void> { 
+    const { properties } = Event;
     const isRatelimited = SetTimeoutAction({
-        identifier: webhook.destination,
-        interval: (webhook.ratelimit ?? 2) * 2,
-        max: (webhook.ratelimit ?? 2), 
-        addTime: true 
+        Identifier: Webhook.Destination,
+        Interval: (Webhook.Ratelimit ?? 2) * 2,
+        Max: (Webhook.Ratelimit ?? 2), 
+        AddTime: true 
     })
-    if (isRatelimited.limited) { return }
+    if (isRatelimited.Limited) { return }
     const newForm = new FormData();
     const newEmbed = {
         title: `${properties.event} (${properties.status})`,
-        description: GetEmebedText(event),
+        description: GetEmebedText(Event),
         fields: [],
         color: 16711680,
         timestamp: new Date().toISOString(),
-        footer: { text: webhook.title ?? `AtmosphericX` }
+        footer: { text: Webhook.Title ?? `AtmosphericX` }
     };
     if (properties.description && !properties.status_metadata.is_expired) {
         const description = properties.description.length > 900
@@ -75,27 +74,27 @@ export const TaskSendWebhook = async function(options: TaskSendWebhook): Promise
             value: attachments.map(attachment => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + '...' : attachment.name}](${attachment.link})`).join('\n')
         });
     }
-    if (attachments?.text) {
-        newForm.append("fUpload", new Blob([Buffer.from(attachments.text)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
+    if (Attachments?.Text) {
+        newForm.append("fUpload", new Blob([Buffer.from(Attachments.Text)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
     }
-    if (attachments?.json) {
-        newForm.append("fUpload2", new Blob([Buffer.from(attachments.json)], {type: "application/json"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`)
+    if (Attachments?.Json) {
+        newForm.append("fUpload2", new Blob([Buffer.from(Attachments.Json)], {type: "application/json"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`)
     }
-    if (attachments?.eas) {
-        const file = await readFile(attachments.eas);
+    if (Attachments?.EAS) {
+        const file = await readFile(Attachments.EAS);
         newForm.append("fUpload3", new Blob([Buffer.from(file)], {type: "application/wav"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.wav`)
     }
 
     newForm.append("payload_json", JSON.stringify({ 
-        username: webhook.title ?? `AtmosphericX`,
-        content: webhook.message ?? "",
+        username: Webhook.Title ?? `AtmosphericX`,
+        content: Webhook.Message ?? "",
         embeds: [newEmbed]
     }));
 
     await CreateHttp({
-        url: webhook.destination,
-        timeout: 15e3,
-        method: `POST`,
-        body: newForm
+        URL: Webhook.Destination,
+        Timeout: 15e3,
+        Method: `POST`,
+        Body: newForm
     })
 }

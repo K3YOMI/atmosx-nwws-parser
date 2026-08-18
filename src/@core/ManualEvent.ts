@@ -22,33 +22,33 @@ import { GetAwipsType } from "@stanza/GetAwipsType"
 import { CreateEvent } from "@building/CreateEvent"
 
 interface CreateEventOptions {
-    message: string
-    awipsid?: string
+    Message: string
+    Awipsid?: string
 }
 
-export const ManualEvent = async (options: CreateEventOptions): Promise<void> => {
-    const isCapEvent = options.message.includes(`<?xml`);
-    const isCapAreaDescription = options.message.includes(`<areaDesc>`)
-    const isVTEC = options.message.match(EnumExpressions.pvtec) != null;
-    const isUGC = options.message.match(EnumExpressions.ugc1) != null;
+export const ManualEvent = async ({ Message, Awipsid }: CreateEventOptions): Promise<void> => {
+    const isCapEvent = Message.includes(`<?xml`);
+    const isCapAreaDescription = Message.includes(`<areaDesc>`)
+    const isVTEC = Message.match(EnumExpressions.vtec) != null;
+    const isUGC = Message.match(EnumExpressions.ugc1) != null;
     const attributes = {
         "xmlns": "@atmosx/event-product-parser",
         "id": "manual_processor.0000",
         "issue": new Date().toISOString(),
         "ttaaii": "XXXXX",
         "cccc": "XXX",
-        "awipsid": options.awipsid ?? "XXXXXX",
+        "awipsid": Awipsid ?? "XXXXXX",
     }
-    const getType = GetAwipsType({ attributes })
+    const getType = GetAwipsType({ Attributes: attributes})
     const result = { 
-        message: options.message, 
-        attributes,
-        isCapEvent, 
-        isVTEC, 
-        isUGC, 
-        isCapAreaDescription, 
-        isIgnored: false, 
-        isNWWS: true, 
+        Message: Message, 
+        Attributes: attributes,
+        CapEvent: isCapEvent, 
+        VTEC: isVTEC, 
+        UGC: isUGC, 
+        CapAreaDescription: isCapAreaDescription, 
+        Ignored: false, 
+        NWWS: true, 
         getType 
     }
     await CreateEvent(result);

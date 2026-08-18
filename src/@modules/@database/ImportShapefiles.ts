@@ -19,7 +19,7 @@
 
 import { TypeSettings } from "types/Settings"
 import { EnumShapefiles } from "@enums/Shapefiles"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetSleep } from "@utilities/SetSleep"
 import { SetWarning } from "@utilities/SetWarning"
 import { existsSync, mkdirSync, writeFileSync, unlinkSync, rm } from "fs"
@@ -28,13 +28,12 @@ import { loadAsync } from "jszip"
 import { read } from "shapefile"
 
 export const ImportShapefiles = async (): Promise<void> => {
-    const settings = bootstrap.settings as TypeSettings;
     try { 
-        const tShapefiles = bootstrap.database
+        const tShapefiles = Bootstrap.Database
             .prepare(`SELECT COUNT(*) AS count FROM shapefiles`)
             .get().count;
         if (tShapefiles === 0) {
-            await SetSleep({timeout: 1e3});
+            await SetSleep({Timeout: 1e3});
             for (const shapefile of EnumShapefiles) {
                 const response = await fetch(shapefile.link);
                 const arrayBuff = await response.arrayBuffer();
@@ -55,10 +54,10 @@ export const ImportShapefiles = async (): Promise<void> => {
                     filepath,
                     filepath,
                 );
-                SetWarning({ message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` })
-                const insert = bootstrap.database
+                SetWarning({ Message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` })
+                const insert = Bootstrap.Database
                     .prepare(`INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`)
-                const transaction = bootstrap.database.transaction((entries: any[]) => {
+                const transaction = Bootstrap.Database.transaction((entries: any[]) => {
                     for (const entry of entries) {
                         const { properties, geometry } = entry;
                         let final: string, location: string;
@@ -88,6 +87,6 @@ export const ImportShapefiles = async (): Promise<void> => {
             rm(resolve(__dirname, 'shapefiles'), { recursive: true, force: true }, () => {});
         }
     } catch (error) {
-        SetWarning( {message: `An error occurred while compiling shapefiles: ${error.message}` }) 
+        SetWarning( {Message: `An error occurred while compiling shapefiles: ${error.message}` }) 
     }
 }

@@ -17,8 +17,8 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 export const GetNodes = (): any => {
-    return bootstrap.cache.nodes
+    return Bootstrap.Cache.Nodes
 }

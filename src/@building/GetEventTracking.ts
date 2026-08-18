@@ -17,49 +17,45 @@
 
 */
 
-import { TypeAttributes } from "types/Attributes"
-import { TypeEventProperties } from "types/Properties"
+import { TypeAttributes } from "types-lower/Attributes"
+import { TypeEventProperties } from "types-lower/Properties"
 import { TypeStanzaCompiled } from "types/StanzaCompiled"
-import { TypePVTEC } from "types/VTEC"
+import { TypeVTEC } from "types/VTEC"
 
 interface GetTrackingOptions { 
-    type: `RAW` | `VTEC` | `API`
-    stanza?: TypeStanzaCompiled
-    attributes?: TypeAttributes
-    properties?: TypeEventProperties
-    organization?: {
-        wmoidentifier: string
-        featureId: string
+    Type: `RAW` | `VTEC` | `API`
+    Stanza?: TypeStanzaCompiled
+    Attributes?: TypeAttributes
+    Properties?: TypeEventProperties
+    WMO?: {
+        Identifier: string
+        ID: string
     }
-    vtec?: TypePVTEC
+    VTEC?: TypeVTEC
 }
 
-export const GetEventTracking = (options: GetTrackingOptions): string => {
-    const properties = options.properties
-    const attributes = options.attributes
-    const stanza = options.stanza
-    const vtec = options.vtec
-    if (options.type === `RAW`) { 
-        const getWatchNumber = properties.watch_parameters.watch_number ?? null
+export const GetEventTracking = ({ Type, Stanza, Attributes, Properties, WMO, VTEC }: GetTrackingOptions): string => {
+    if (Type === `RAW`) { 
+        const getWatchNumber = Properties?.watch_parameters?.watch_number ?? null
         if (getWatchNumber) {
-            return `${properties.geocode.office.office}.${stanza.getType.prefix}.A.${getWatchNumber}`
+            return `${Properties.geocode.office.office}.${Stanza.Type.Prefix}.A.${getWatchNumber}`
         }
-        return `${properties.geocode.office.office}.${attributes.ttaaii}.${attributes.id.slice(-4).replace(`.`, ``) ?? '0'}`
+        return `${Properties.geocode.office.office}.${Attributes.ttaaii}.${Attributes.id.slice(-4).replace(`.`, ``) ?? '0'}`
     }
-    if (options.type === `VTEC`) {
-        return vtec.tracking;
+    if (Type === `VTEC`) {
+        return VTEC?.Tracking;
     }
-    if (options.type === `API`) {
-        if (options.vtec) { 
-            const vtecValue = Array.isArray(options.vtec) 
-                ? options.vtec[0].vtec : options.vtec?.vtec;
-            const splitPVTEC = vtecValue.split('.');
-            return `${splitPVTEC[2]}.${splitPVTEC[3]}.${splitPVTEC[4]}.${splitPVTEC[5]}`;
+    if (Type === `API`) {
+        if (VTEC) { 
+            const vtecValue = Array.isArray(VTEC) 
+                ? VTEC[0].vtec : VTEC?.Raw;
+            const splitVTEC = vtecValue.split('.');
+            return `${splitVTEC[2]}.${splitVTEC[3]}.${splitVTEC[4]}.${splitVTEC[5]}`;
         }
-        const wmoMatch = options.organization?.wmoidentifier?.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
+        const wmoMatch = WMO?.Identifier?.match(/([A-Z]{4}\d{2})\s+([A-Z]{4})/);
         const station = wmoMatch?.[2] ?? '---';
-        if (options.organization.featureId) {
-            const idMatch = options.organization.featureId.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
+        if (WMO?.ID) {
+            const idMatch = WMO?.ID.match(/([a-f0-9]+)\.(\d+)\.(\d+)$/);
             return `${station}.${idMatch?.[0]?.replace(/\./g, '') ?? '---'}`;
         }
         const id = wmoMatch?.[1] ?? '---';

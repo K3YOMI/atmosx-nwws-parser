@@ -17,12 +17,12 @@
 
 */
 
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 export const GetStringText = (event: TypeEvent): string => {
-    const settings = bootstrap.settings as TypeSettings;
+    const settings = Bootstrap.Settings as TypeSettings;
     const timezone = settings.NotifyServer.Timezone ?? `UTC`;
     const line = (label: string, value: unknown, condition = true) => condition && value ? `${label} ${value}` : null;
     const isStatement = event.properties.status_metadata.is_statement;

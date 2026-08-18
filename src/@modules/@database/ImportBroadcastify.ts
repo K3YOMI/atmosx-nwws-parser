@@ -17,38 +17,37 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { CreateHttp } from "@utilities/CreateHttp"
 import { SetWarning } from "@utilities/SetWarning"
 
 export const ImportBroadcastify = async (): Promise<void> => {
-    const settings = bootstrap.settings;
+    const settings = Bootstrap.Settings;
     
-    const isBroadcastifyImported = bootstrap.database
+    const isBroadcastifyImported = Bootstrap.Database
         .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';`)
         .get();
-
 
     if (!settings.BroadcastifySettings.BroadcastifyAttachments) { return }
     if (isBroadcastifyImported) { return } 
 
     const broadcastify = await CreateHttp({
-        url: settings.BroadcastifySettings.BroadcastifyDatabase,
-        timeout: 5000,
+        URL: settings.BroadcastifySettings.BroadcastifyDatabase,
+        Timeout: 5000,
     });
     if (!broadcastify.error) {  
-        bootstrap.database.prepare(`CREATE TABLE broadcastify ( state TEXT, county TEXT, feed TEXT, type TEXT, link TEXT);`)
+        Bootstrap.Database.prepare(`CREATE TABLE broadcastify ( state TEXT, county TEXT, feed TEXT, type TEXT, link TEXT);`)
             .run();
         const states = JSON.parse(broadcastify.message);
-        const insert = bootstrap.database.prepare(`INSERT INTO broadcastify (state, county, feed, type, link) VALUES (?, ?, ?, ?, ?)`);
-        const transaction = bootstrap.database.transaction((rows: any[]) => {
+        const insert = Bootstrap.Database.prepare(`INSERT INTO broadcastify (state, county, feed, type, link) VALUES (?, ?, ?, ?, ?)`);
+        const transaction = Bootstrap.Database.transaction((rows: any[]) => {
             for (const row of rows) {
                 insert.run(row);
             }
         });
         const batch: any[] = [];
         for (const state of states) {
-            SetWarning({ message: `Importing ${state.counties.length} counties from ${state.state} for Broadcastify` });
+            SetWarning({ Message: `Importing ${state.counties.length} counties from ${state.state} for Broadcastify` });
             for (const county of state.counties) {
                 const countyName = county.county;
                 for (const feed of county.feeds) {
@@ -65,6 +64,6 @@ export const ImportBroadcastify = async (): Promise<void> => {
         transaction(batch);
     }
     if (broadcastify.error) {
-        SetWarning({ message: `Error importing Broadcastify data: ${broadcastify.message}` });
+        SetWarning({ Message: `Error importing Broadcastify data: ${broadcastify.message}` });
     }
 };

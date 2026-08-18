@@ -17,7 +17,7 @@
 
 */
 
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { EnumCorrelations } from "@enums/Correlations"
 import { EnumCancellation } from "@enums/Cancellation"
 import { EnumTesting} from "@enums/Testing"
@@ -44,7 +44,7 @@ export const GetEventSignature = (event: TypeEvent): TypeEvent => {
         properties.status_metadata = { ...properties.status_metadata, is_expired: true };
     }
     
-    const getProduct = vtec?.vtec?.split(`.`)[0]?.replace(`/`, ``)
+    const getProduct = vtec?.Raw?.split(`.`)[0]?.replace(`/`, ``)
     const isTestProduct = EnumProducts[getProduct] == `Test Product`
     if (isTestProduct || EnumTesting.some(sig => properties.description?.toLowerCase().includes(sig.toLowerCase()) ?? properties?.parameters?.instructions?.toLowerCase().includes(sig.toLowerCase()))) {
         properties.status_metadata = { ...properties.status_metadata, is_test: true }

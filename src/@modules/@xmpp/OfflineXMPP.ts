@@ -17,20 +17,20 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 
 export const OfflineXMPP = () => {
-    bootstrap.session_xmpp.on(`offline`, async () => {
-        bootstrap.cache.isConnected = false;
-        bootstrap.cache.sigHault = true;
+    Bootstrap.Session.on(`offline`, async () => {
+        Bootstrap.Cache.Connected = false;
+        Bootstrap.Cache.Hault = true;
         SetEventEmit({
-            event: `onServiceStatus`,
-            metadata: {
-                message: `Client has gone offline`,
-                data: {},
-                type: `offline`,
-                error: true 
+            Event: `onServiceStatus`,
+            Metadata: {
+                Message: `Client has gone offline`,
+                Data: {},
+                Type: `offline`,
+                Error: true 
             },
         })
     })

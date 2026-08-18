@@ -30,10 +30,10 @@ export const HVExtract = (message: string): TypeHVTEC[] | null => {
         const sub = vtec.split(`.`);
         if (sub.length < 7) continue;
         vtecs.push({
-            hvtec: vtec,
-            severity: EnumSeverity[sub[1]],
-            cause: EnumCauses[sub[2]],
-            record: EnumRecords[sub[6]]
+            HVTEC: vtec,
+            Severity: EnumSeverity[sub[1]],
+            Cause: EnumCauses[sub[2]],
+            Record: EnumRecords[sub[6]]
         })
     }
     return vtecs.length > 0 ? vtecs : null;

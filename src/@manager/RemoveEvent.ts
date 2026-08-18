@@ -17,54 +17,58 @@
 
 */
 
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { EnumStrings } from "@enums/Strings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
 import { CreateTasks } from "@tasks/CreateTasks"
 
+interface RemoveEventOptions {
+    Event: TypeEvent
+    IsTimeBasedExpiration: boolean
+}
 
-export const RemoveEvent = async (event: TypeEvent, isTimeBasedExpiration: boolean):Promise<void> => {
-    const gTracking = event.properties.metadata.tracking;
-    const isTrackingEventLogged = bootstrap.cache.events.features
+export const RemoveEvent = async ({ Event, IsTimeBasedExpiration }: RemoveEventOptions):Promise<void> => {
+    const gTracking = Event.properties.metadata.tracking;
+    const isTrackingEventLogged = Bootstrap.Cache.Events.features
         .find(f => f?.properties?.metadata?.tracking === gTracking);
-    const isStatement = event.properties.status_metadata.is_statement;
+    const isStatement = Event.properties.status_metadata.is_statement;
 
     if (isTrackingEventLogged) { 
-        event.properties.expires = new Date().toISOString();
-        event.properties.status = `Expired`;
-        event.properties.status_metadata.is_expired = true;
+        Event.properties.expires = new Date().toISOString();
+        Event.properties.status = `Expired`;
+        Event.properties.status_metadata.is_expired = true;
 
-        const description = isTimeBasedExpiration ? EnumStrings.cancellation
-            .replace(`{SENDER}`, event.properties.geocode.office.name)
-            .replace(`{EVENT}`, event.properties.event) : event.properties.description
-        event.properties.description = description; 
-        event.properties.metadata.raw = isTimeBasedExpiration ? description : event.properties.metadata.raw;
-        event.properties.metadata.history.push({
-            description: isTimeBasedExpiration ? description : event.properties.description,
-            issued: event.properties.expires,
-            status: event.properties.status
+        const description = IsTimeBasedExpiration ? EnumStrings.cancellation
+            .replace(`{SENDER}`, Event.properties.geocode.office.name)
+            .replace(`{EVENT}`, Event.properties.event) : Event.properties.description
+        Event.properties.description = description; 
+        Event.properties.metadata.raw = IsTimeBasedExpiration ? description : Event.properties.metadata.raw;
+        Event.properties.metadata.history.push({
+            description: IsTimeBasedExpiration ? description : Event.properties.description,
+            issued: Event.properties.expires,
+            status: Event.properties.status
         })
         
-        bootstrap.cache.events.features
-            .splice(bootstrap.cache.events.features.indexOf(isTrackingEventLogged), 1);
-        bootstrap.cache.hashes = bootstrap.cache.hashes
+        Bootstrap.Cache.Events.features
+            .splice(Bootstrap.Cache.Events.features.indexOf(isTrackingEventLogged), 1);
+        Bootstrap.Cache.Hashes = Bootstrap.Cache.Hashes
             .filter(hash => hash.tracking !== gTracking);
 
         if (!isStatement) { 
             SetEventEmit({
-                event: `onEventStatus`,
-                metadata: { type: `Removed`, event: event },
-                message: `[Removed] ${event.properties.event} (${event.properties.status}) (${gTracking})`
+                Event: `onEventStatus`,
+                Metadata: { type: `Removed`, event: Event },
+                Message: `[Removed] ${Event.properties.event} (${Event.properties.status}) (${gTracking})`
             })
-            CreateTasks([event])
+            CreateTasks([Event])
         }
-        SetTimeoutAction({ identifier: gTracking, expire: true })
+        SetTimeoutAction({ Identifier: gTracking, Expire: true })
     }
     SetEventEmit({
-        event: `onEventCache`,
-        metadata: bootstrap.cache.events,
-        limited: true
+        Event: `onEventCache`,
+        Metadata: Bootstrap.Cache.Events,
+        Limited: true
     })
 }

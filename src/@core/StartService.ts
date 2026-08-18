@@ -18,7 +18,7 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetWarning } from "@utilities/SetWarning"
 import { SetSettings } from "@utilities/SetSettings"
 import { SetCronSchedule } from "@utilities/SetCronSchedule"
@@ -30,13 +30,13 @@ import { UpdateEvents } from "@manager/UpdateEvents"
 import { Cron } from "croner"
 
 export const StartService = async (configurations: TypeSettings): Promise<void> => {
-    if (!bootstrap.isReady) { 
+    if (!Bootstrap.Ready) { 
         return SetWarning({ 
-            message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!` 
+            Message: `You can not create another instance without shutting down the current one first, please make sure to call the stop() method first!` 
         })
     }
     const settings = SetSettings(configurations);
-    bootstrap.isReady = true;
+    Bootstrap.Ready = true;
     await InitializeDatabase();
     if (settings.EnableWireService) {
         (async () => {
@@ -47,14 +47,14 @@ export const StartService = async (configurations: TypeSettings): Promise<void> 
     await SetCronSchedule()
     let scheduleInterval = !settings.EnableWireService ? settings.NationalWeatherServiceSettings.CallbackInterval : 1;
     if (!settings.EnableWireService && scheduleInterval < 15) {
-        SetWarning({ message: `Schedule interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` })
-        bootstrap.settings.NationalWeatherServiceSettings.CallbackInterval = 15;
+        SetWarning({ Message: `Schedule interval of ${scheduleInterval} seconds is too low, setting to 15 seconds` })
+        Bootstrap.Settings.NationalWeatherServiceSettings.CallbackInterval = 15;
         scheduleInterval = 15;
     }
-    bootstrap.cron = new Cron(`*/${scheduleInterval} * * * * *`, async () => {
+    Bootstrap.Job = new Cron(`*/${scheduleInterval} * * * * *`, async () => {
         await SetCronSchedule();
     })
-    bootstrap.cron = new Cron(`* * * * * *`, async () => { 
+    Bootstrap.Job = new Cron(`* * * * * *`, async () => { 
         await UpdateNode();
         await UpdateEvents();
     })

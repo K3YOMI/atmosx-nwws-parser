@@ -18,7 +18,7 @@
 */
 
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { GetWavPCM16 } from "@eas/GetWavPCM16"
 import { GetSampledPCM16 } from "@eas/GetSampledPCM16"
 import { SetRadioEffect } from "@eas/SetRadioEffect"
@@ -38,23 +38,21 @@ import { platform } from "os"
 
 
 interface GenerateEASMessageOptions { 
-    message: string
-    header: string
-    title: string
+    Message: string
+    Header: string
+    Title: string
 }
 
-export const GenerateEASMessage = async (options: GenerateEASMessageOptions): Promise<string> => {
+export const GenerateEASMessage = async ({ Message, Header, Title }: GenerateEASMessageOptions): Promise<string> => {
     const tick = performance.now()
-    const settings = bootstrap.settings as TypeSettings;
+    const settings = Bootstrap.Settings as TypeSettings;
     const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
     const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
-    let message = options.message;
-    let header = options.header;
-    let title = (options.title ?? `${Math.random().toString(36).substring(2, 15)}-${header.replace(/[^a-zA-Z0-9]/g, '')}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
-    if (!message || !header) {
+    let title = (Title ?? `${Math.random().toString(36).substring(2, 15)}-${Header.replace(/[^a-zA-Z0-9]/g, '')}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
+    if (!Message || !Header) {
         SetWarning({
-            title: `EAS`,
-            message: `Message and header are required to generate an EAS tone.`
+            Title: `EAS`,
+            Message: `Message and header are required to generate an EAS tone.`
         })
         return null;
     }
@@ -64,8 +62,8 @@ export const GenerateEASMessage = async (options: GenerateEASMessageOptions): Pr
 
     if (!directory) {
         SetWarning({
-            title: `EAS`,
-            message: `EAS directory is not set in the settings. Please set it to generate EAS tones.`
+            Title: `EAS`,
+            Message: `EAS directory is not set in the settings. Please set it to generate EAS tones.`
         });
         return null;
     }
@@ -79,16 +77,16 @@ export const GenerateEASMessage = async (options: GenerateEASMessageOptions): Pr
 
     if (vPlatform === 'darwin') {
         SetWarning({
-            title: `EAS`,
-            message: `EAS tone generation is not supported on macOS.`
+            Title: `EAS`,
+            Message: `EAS tone generation is not supported on macOS.`
         });
         return null
     }
 
 
     await new Promise<void>((resolve, reject) => {
-        const tMsg = GetCleanDescription(message)
-        GetTTS(tMsg, tmpTTS).then(() => {
+        const tMsg = GetCleanDescription(Message)
+        GetTTS({Text: tMsg, OutputPath: tmpTTS}).then(() => {
             resolve();
         });
     });
@@ -97,8 +95,8 @@ export const GenerateEASMessage = async (options: GenerateEASMessageOptions): Pr
     }
     buffTTS = readFileSync(tmpTTS);
     const vWav = GetWavPCM16(buffTTS);
-    const vSamples = GetSampledPCM16(vWav.samples, vWav.sampleRate, 8000)
-    const vRadio = SetRadioEffect(vSamples, 8000)
+    const vSamples = GetSampledPCM16({Int16: vWav.Samples, OriginalRate: vWav.SampleRate, TargetRate: 8000})
+    const vRadio = SetRadioEffect({Int16: vSamples, SampleRate: 8000});
 
     if (existsSync(prefix)) {
         let tBuffer = readFileSync(prefix);
@@ -117,35 +115,35 @@ export const GenerateEASMessage = async (options: GenerateEASMessageOptions): Pr
         }
 
         if (tWav == null) {
-            SetWarning({ title: `EAS`, message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` })
+            SetWarning({ 
+                Title: `EAS`, 
+                Message: `Intro tone isn't a valid .WAV file or isn't in PCM 16-bit format. Converted attempt failed; please convert it then try again.` 
+            })
             return null;
         }
 
-        const tSamples = (tWav.sampleRate != 8000 ? GetSampledPCM16(tWav.samples, tWav.sampleRate, 8000) : tWav.samples)
-        buffRadio = SetRadioEffect(tSamples, 8000)
+        const tSamples = (tWav.SampleRate != 8000 ? GetSampledPCM16({Int16: tWav.Samples, OriginalRate: tWav.SampleRate, TargetRate: 8000}) : tWav.Samples)
+        buffRadio = SetRadioEffect({Int16: tSamples, SampleRate: 8000})
     }
 
     buffFull = buffRadio != null ? [buffRadio, new Int16Array(Math.floor(0.5 * 8000))] : [];
     buffFull.push(
-        SetSameHeader(header, 3, 8000, {
-            preMarkSec: 1.1,
-            gapSec: 0.5,
-        }),
+        SetSameHeader({ VTEC: Header, Repeats: 3, SampleRate: 8000, PreMarkSec: 1.1, GapSec: 0.5 }),
         new Int16Array(Math.floor(0.5 * 8000)),
-        SetAttentionTone(8, 8000),
+        SetAttentionTone({ MS: 8, SampleRate: 8000 }),
         new Int16Array(Math.floor(0.5 * 8000)),
         vRadio
     )
     for (let i = 0; i < 3; i++) {
-        buffFull.push(SetSameHeader(header, 1, 8000, { preMarkSec: 0.5, gapSec: 0.1 }))
+        buffFull.push(SetSameHeader({ VTEC: Header, Repeats: 1, SampleRate: 8000, PreMarkSec: 0.5, GapSec: 0.1 }))
         buffFull.push(new Int16Array(Math.floor(0.5 * 8000)));
     }
     const aSamples = GetMergedPCM16(buffFull);
-    const aFinal = SetNoise(aSamples, 0.002);
-    const aBuffer = GetPCM16(Array.from(aFinal).map(v => ({ value: v })), 8000);
+    const aFinal = SetNoise({ Int16: aSamples, NoiseLevel: 0.002 });
+    const aBuffer = GetPCM16({ Samples: Array.from(aFinal).map(v => ({ value: v })), SampleRate: 8000 });
     writeFileSync(outTTS, aBuffer)
     try{ unlinkSync(tmpTTS) } catch {}
-    SetDebug({ title: `GenerateEASMessage`, message: `${Math.round(performance.now() - tick)}ms` })
+    SetDebug({ Title: `GenerateEASMessage`, Message: `${Math.round(performance.now() - tick)}ms` })
     return outTTS;
 }
 

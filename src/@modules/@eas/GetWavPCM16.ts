@@ -19,10 +19,10 @@
 */
 
 interface getWavPCM16Response { 
-    samples: Int16Array
-    sampleRate: number
-    channels: number
-    bitsPerSample: number
+    Samples: Int16Array
+    SampleRate: number
+    Channels: number
+    BitsPerSample: number
 }
 
 export const GetWavPCM16 = (buffer: Buffer): getWavPCM16Response => {
@@ -46,7 +46,7 @@ export const GetWavPCM16 = (buffer: Buffer): getWavPCM16Response => {
     const bitsPerSample = fmt.readUInt16LE(14);
     if (audioFormat !== 1 || bitsPerSample !== 16 || channels !== 1) { return null; }
     const samples = new Int16Array(data.buffer, data.byteOffset, data.length / 2);
-    return { samples: new Int16Array(samples), sampleRate, channels, bitsPerSample };
+    return { Samples: new Int16Array(samples), SampleRate: sampleRate, Channels: channels, BitsPerSample: bitsPerSample };
 }
 
 

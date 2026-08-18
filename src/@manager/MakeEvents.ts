@@ -17,10 +17,10 @@
 
 */
 
-import { TypeEvent } from "types/Event"
+import { TypeEvent } from "types-lower/Event"
 import { TypeSettings } from "types/Settings"
 import { EnumGlobalFilter } from "@enums/GlobalFilter"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { CreateTasks } from "@tasks/CreateTasks"
 import { SetHash } from "@manager/SetHash"
 import { UpdateNode } from "@manager/UpdateNode"
@@ -30,20 +30,20 @@ import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
 
 export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
     let tasked = [];
-    const settings = bootstrap.settings as TypeSettings;
+    const settings = Bootstrap.Settings as TypeSettings;
     if (events.length === 0) return
     await Promise.all(events.map(async event => {
-        const features = bootstrap.cache.events.features;
+        const features = Bootstrap.Cache.Events.features;
         const getHash = event.properties.metadata.hash;
         const getTracking = event.properties.metadata.tracking;
-        const isEntry = bootstrap.cache.hashes?.find(hash => hash.tracking === getTracking)
+        const isEntry = Bootstrap.Cache.Hashes?.find(hash => hash.tracking === getTracking)
         const isHashed = isEntry?.hashes?.includes(getHash) ?? false;
         const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering
-        const getNodes = bootstrap.cache.nodes.features;
+        const getNodes = Bootstrap.Cache.Nodes.features;
         const getFeature = features.find(feature => feature.properties.metadata.tracking === getTracking);    
 
         if (isHashed || event.properties.status_metadata.is_expired) return
-        SetHash(event, isEntry)
+        SetHash({ Event: event, Entry: isEntry })
         await UpdateNode(event);
         if (isNodeFiltering && getNodes.length > 0) {
             if (!event.properties.metadata.filtered_proximity && !EnumGlobalFilter.includes(event.properties.event.toLowerCase())) { 
@@ -51,16 +51,16 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
             }
         }
         
-        const isRatelimited = SetTimeoutAction({ identifier: getTracking, interval: 1, max: 1, addTime: true })
+        const isRatelimited = SetTimeoutAction({ Identifier: getTracking, Interval: 1, Max: 1, AddTime: true })
         const isLocal = event.properties.metadata.filtered_proximity ? `[LOCAL] ` : ``;
-        if (!isRatelimited.limited) {
+        if (!isRatelimited.Limited) {
             SetEventEmit({
-                event: `onEventStatus`,
-                metadata: {
-                    type: getFeature ? `Updated` : `New`,
-                    event: event
+                Event: `onEventStatus`,
+                Metadata: {
+                    Type: getFeature ? `Updated` : `New`,
+                    Event: event
                 },
-                message: `${isLocal}[${getFeature ? 'Updated' : 'New'}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
+                Message: `${isLocal}[${getFeature ? 'Updated' : 'New'}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
             })
         }
 
@@ -80,7 +80,7 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
                     const mLocations = [...cLocations, ...iLocations].filter((v, i, a) => a.indexOf(v) === i).join('; ');
                     const mUgc = [...cUgc, ...iUgc].filter((v, i, a) => a.indexOf(v) === i);
         
-                    bootstrap.cache.events.features[getIndex] = {
+                    Bootstrap.Cache.Events.features[getIndex] = {
                         ...event,
                         properties: {
                             ...event.properties,
@@ -96,7 +96,7 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
                         }
                     };
 
-                    tasked.push(bootstrap.cache.events.features[getIndex])
+                    tasked.push(Bootstrap.Cache.Events.features[getIndex])
                 } else { 
                     features.push(event);
                     tasked.push(event)
@@ -104,6 +104,6 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
             }
         }
     }))
-    SetEventEmit({ event: `onEventCache`, metadata: bootstrap.cache.events, limited: true })
+    SetEventEmit({ Event: `onEventCache`, Metadata: Bootstrap.Cache.Events, Limited: true })
     return await CreateTasks(tasked)
 }

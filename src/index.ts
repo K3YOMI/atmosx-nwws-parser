@@ -34,6 +34,7 @@ import { ClearEvents } from "@core/ClearEvents"
 import { CreateListener } from "@core/CreateListener"
 import { StartService } from "@core/StartService"
 import { StopService } from "@core/StopService"
+import { GetVersion } from "@core/GetVersion"
 
 export class Manager { 
     public constructor(settings: TypeSettings) { 
@@ -49,27 +50,27 @@ export class Manager {
             const ignored = ['ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENOTFOUND', 'ECONNREFUSED', 'EPIPE', 'EADDRINUSE', 'EALREADY', 'EACCES', 'EAGAIN', 'EHOSTDOWN', 'STARTTLS_FAILURE'];
             if (ignored.includes(err?.code)) { 
                 SetEventEmit({
-                    event: `onServiceStatus`,
-                    metadata: {
-                        message: `Ignored Critical Error: ${err?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
-                        data: {},
-                        type: `error`,
-                        error: true 
+                    Event: `onServiceStatus`,
+                    Metadata: {
+                        Message: `Ignored Critical Error: ${err?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
+                        Data: {},
+                        Type: `error`,
+                        Error: true 
                     }
                 })
                 return; 
             }
-            SetWarning({message: `Uncaught Exception: ${err instanceof Error ? err.stack ?? err.message : String(err)}`})
+            SetWarning({Message: `Uncaught Exception: ${err instanceof Error ? err.stack ?? err.message : String(err)}`})
         })
     }
 }
 
 export default Manager;
-export type { TypeEvent } from "types/Event"
+export type { TypeEvent } from "./@types-lower/Event"
 export { 
     SetSettings, GetEventGeometry, ManualEvent,
     GetCleanedEvent, StopService, ClearEvents,
-    StartService, SetNode, GetRandomEvent,
+    StartService, SetNode, GetRandomEvent, GetVersion,
     GetEvents, GetNodes, GenerateEASMessage, QueryStanza
 }
 

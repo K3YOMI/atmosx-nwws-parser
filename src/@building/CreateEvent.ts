@@ -19,36 +19,36 @@
 
 import { TypeStanzaCompiled } from "types/StanzaCompiled"
 import { TypeSettings } from "types/Settings"
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { ParseText } from "@events/ParseText"
 import { ParseUGC } from "@events/ParseUGC"
 import { ParseVTEC } from "@events/ParseVTEC"
 import { ParseAPI } from "@events/ParseAPI"
 import { ValidateEvents } from "@manager/ValidateEvents"
 
-export const CreateEvent = async (stanza: TypeStanzaCompiled): Promise<void | string> => {
-    const settings = bootstrap.settings as TypeSettings
+export const CreateEvent = async (Stanza: TypeStanzaCompiled): Promise<void | string> => {
+    const settings = Bootstrap.Settings as TypeSettings
     const StanzaSettings = settings.NOAAWeatherWireServiceSettings.StanzaSettings;
 
-    const isVtecEvent = (stanza.isVTEC && stanza.isUGC)
-    const isUgcEvent = (!stanza.isVTEC && stanza.isUGC)
-    const isTextEvent = (!stanza.isVTEC && !stanza.isUGC)
-    const isNWWS = (stanza.isNWWS)
-
+    const isVtecEvent = (Stanza.VTEC && Stanza.UGC)
+    const isUgcEvent = (!Stanza.VTEC && Stanza.UGC)
+    const isTextEvent = (!Stanza.VTEC && !Stanza.UGC)
+    
+    const isNWWS = (Stanza.NWWS)
     switch (true) {
         case (!isNWWS):
-            await ParseAPI(stanza)
+            await ParseAPI(Stanza)
             break;
         case (isNWWS && !StanzaSettings.DisableVTEC && isVtecEvent):
-            await ParseVTEC(stanza)
+            await ParseVTEC(Stanza)
             break;
         case (isNWWS && !StanzaSettings.DisableUGC && isUgcEvent):
-            await ParseUGC(stanza)
+            await ParseUGC(Stanza)
             break;
         case (isNWWS && !StanzaSettings.DisableText && isTextEvent):
-            await ParseText(stanza)
+            await ParseText(Stanza)
             break;
     }
-    await ValidateEvents(bootstrap.cache.processed)
+    await ValidateEvents(Bootstrap.Cache.Parsed)
     return 'nothing picked';
 }

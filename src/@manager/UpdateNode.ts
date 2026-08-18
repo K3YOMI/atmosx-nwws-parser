@@ -17,17 +17,17 @@
 
 */
 
-import { TypeEvent } from "types/Event"
-import { bootstrap } from "@bootstrap"
+import { TypeEvent } from "types-lower/Event"
+import { Bootstrap } from "@bootstrap"
 import { GetEventNodes } from "@building/GetEventNodes"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 
-export const UpdateNode = async (selectedEvent?: TypeEvent): Promise<void> => {
-    const events = bootstrap.cache.events.features;
-    const ttl = bootstrap.settings.GlobalSettings.NodeTTL * 1e3;
+export const UpdateNode = async (selected?: TypeEvent): Promise<void> => {
+    const events = Bootstrap.Cache.Events.features;
+    const ttl = Bootstrap.Settings.GlobalSettings.NodeTTL * 1e3;
     let total = 0;
 
-    const TTLEvents = selectedEvent ? [selectedEvent] : events.filter((evt) => {
+    const TTLEvents = selected ? [selected] : events.filter((evt) => {
         const lastUpdate = evt?.properties?.metadata?.updated ?? null;
         return lastUpdate == null || (Date.now() - lastUpdate) >= ttl;
     });
@@ -52,10 +52,10 @@ export const UpdateNode = async (selectedEvent?: TypeEvent): Promise<void> => {
 
     if (total > 0) {
         SetEventEmit({
-            event: `onNodeUpdate`,
-            metadata: {
-                type: `global-update`,
-                updated: total
+            Event: `onNodeUpdate`,
+            Metadata: {
+                Type: `global-update`,
+                Updated: total
             },
         })
     }

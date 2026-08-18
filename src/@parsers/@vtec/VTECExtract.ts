@@ -17,32 +17,32 @@
 
 */
 
-import { TypePVTEC } from "types/VTEC"
+import { TypeVTEC } from "types/VTEC"
 import { EnumExpressions } from "@enums/Expressions"
 import { EnumProducts } from "@enums/Products"
 import { EnumEvents } from "@enums/Events"
 import { EnumActions } from "@enums/Actions"
 import { EnumStatus } from "@enums/Status"
-import { GetExpiry } from "@parsers/pvtec/GetExpiry"
+import { GetExpiry } from "./GetExpiry"
 
-export const VTECExtract = (message: string): TypePVTEC[] | null => {
+export const VTECExtract = (message: string): TypeVTEC[] | null => {
     if (!message) return null;
-    const getVTECs = message.match(EnumExpressions.pvtec) ?? [];
-    const vtecs: TypePVTEC[] = [];
+    const getVTECs = message.match(EnumExpressions.vtec) ?? [];
+    const vtecs: TypeVTEC[] = [];
     for (const vtec of getVTECs) {
         const sub = vtec.split(`.`);
         if (sub?.length < 7) continue;
         const dates = sub[6]?.split(`-`);
         vtecs.push({
-            vtec: vtec,
-            product: EnumProducts[sub[0]],
-            tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
-            event: `${EnumEvents[sub[3]]} ${EnumActions[sub[4]]}`,
-            status: EnumStatus[sub[1]],
-            organization: message.match(EnumExpressions.wmo)?.[0] ?? null,
-            expires: GetExpiry(dates),
-            is_watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
-            prediction_center: sub[2] == `KWNS` ? true : false
+            Raw: vtec,
+            ProductType: EnumProducts[sub[0]],
+            Tracking: `${sub[2]}.${sub[3]}.${sub[4]}.${sub[5]}`,
+            Event: `${EnumEvents[sub[3]]} ${EnumActions[sub[4]]}`,
+            Status: EnumStatus[sub[1]],
+            WMO: message.match(EnumExpressions.wmo)?.[0] ?? null,
+            Expires: GetExpiry(dates),
+            Watch: (sub[4] == `A` || sub[4] == `Y`) && (sub[3] == `TO` || sub[3] == `SV`),
+            PredictionCenter: sub[2] == `KWNS` ? true : false
         })
     }
     return vtecs.length > 0 ? vtecs : null;

@@ -17,12 +17,12 @@
 
 */
 
-import { TypeAttributes } from "types/Attributes"
+import { TypeAttributes } from "types-lower/Attributes"
 import { TypeStanzaCompiled } from "types/StanzaCompiled"
-import { TypePVTEC } from "types/VTEC"
+import { TypeVTEC } from "types/VTEC"
 import { TypeHVTEC } from "types/HVTEC"
-import { bootstrap } from "@bootstrap"
-import { VTECExtract } from "@parsers/pvtec/VTECExtract"
+import { Bootstrap } from "@bootstrap"
+import { VTECExtract } from "@parsers/vtec/VTECExtract"
 import { HVExtract } from "@parsers/hvtec/HVExtract"
 import { ugcExtract } from "@parsers/ugc/UGCExtract"
 import { GetEventProperties } from "@building/GetEventProperties"
@@ -30,57 +30,56 @@ import { GetEventHeader } from "@building/GetEventHeader"
 import { GetEventTracking } from "@building/GetEventTracking"
 import { SetDebug } from "@utilities/SetDebug"
 
-export const ParseVTEC = async (stanza: TypeStanzaCompiled): Promise<void> => {
-    const getMessages = stanza?.message
+export const ParseVTEC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
+    const getMessages = Stanza?.Message
         ?.split(/(?=\$\$)/g)
         ?.map(message => message.trim())
         ?.filter(message => message && message !== "$$");
     if (!getMessages || getMessages?.length == 0 ) return;
     for (const message of getMessages) {
         const tick = performance.now();
-        const attributes = stanza?.attributes as TypeAttributes
-        const pVtec = VTECExtract(message) as TypePVTEC[];
-        const hVtec = HVExtract(message) as TypeHVTEC[];
+        const attributes = Stanza?.Attributes as TypeAttributes
+        const VTEC = VTECExtract(message) as TypeVTEC[];
+        const hVTEC = HVExtract(message) as TypeHVTEC[];
         const ugc = await ugcExtract(message)
-        if (pVtec != null && ugc != null ) {
-            for (const pv of pVtec) {
-                const vtec = pv;
-                const props = GetEventProperties({ message, attributes, ugc, pVtec: vtec })
-                const header = GetEventHeader({properties: props, getType: stanza.getType, vtec: vtec})
+        if (VTEC != null && ugc != null ) {
+            for (const vtec of VTEC) {
+                const props = GetEventProperties({ Message: message, Attributes: attributes, UGC: ugc, VTEC: vtec })
+                const header = GetEventHeader({ Properties: props, VTEC: vtec, Type: Stanza.Type })
                 const issued = new Date(attributes.issue)?? new Date()
-                const expires = new Date(vtec.expires)
-                bootstrap.cache.processed.push({
+                const expires = new Date(vtec.Expires)
+                Bootstrap.Cache.Parsed.push({
                     type: `Feature`,
                     geometry: {
                         type: `Point`,
                         coordinates: []
                     },
                     properties: { 
-                        event: pv.event,
-                        parent: pv.event,
-                        status: pv.status,
+                        event: vtec.Event,
+                        parent: vtec.Event,
+                        status: vtec.Status,
                         issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
-                        expires: (!isNaN(expires.getTime())) ? expires.toISOString() : ugc.expires ??  new Date(issued.getTime() + 60 * 60 * 1000).toISOString(),
+                        expires: (!isNaN(expires.getTime())) ? expires.toISOString() : ugc.Expires ??  new Date(issued.getTime() + 60 * 60 * 1000).toISOString(),
                         ...props,
                         metadata: {
                             ms: performance.now() - tick,
                             source: `events.vtec`,
-                            tracking: GetEventTracking({ type: `VTEC`, stanza, attributes, properties: props, vtec }),
+                            tracking: GetEventTracking({ Type: `VTEC`, Stanza, Attributes: attributes, Properties: props, VTEC: vtec }),
                             header: header,
-                            vtec: pv,
-                            hvtec: hVtec,
+                            vtec: vtec,
+                            hvtec: hVTEC,
                             raw: message,
                             history: [
                                 {
                                     description: props.description,
                                     issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
-                                    status: pv.status
+                                    status: vtec.Status
                                 }
                             ]
                         }
                     }
                 })
-                SetDebug({ title: `ParseVTEC`, message: `${Math.round(performance.now() - tick)}ms` })
+                SetDebug({ Title: `ParseVTEC`, Message: `${Math.round(performance.now() - tick)}ms` })
             }
         }
     }

@@ -17,15 +17,15 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 import { SetEventEmit } from "@utilities/SetEventEmit"
 
 export const ClearEvents = (): void => {
-    bootstrap.cache.events.features = [];
-    bootstrap.cache.hashes = [];
+    Bootstrap.Cache.Events.features = [];
+    Bootstrap.Cache.Hashes = [];
     SetEventEmit({
-        event: `onEventCache`,
-        metadata: bootstrap.cache.events,
-        message: `Manually cleared event cache.`
+        Event: `onEventCache`,
+        Metadata: Bootstrap.Cache.Events,
+        Message: `Manually cleared event cache.`
     })
 }

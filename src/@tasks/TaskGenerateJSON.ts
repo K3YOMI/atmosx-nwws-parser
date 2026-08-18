@@ -20,16 +20,15 @@
 import { mkdir, writeFile } from "fs/promises"
 
 interface TaskGenerateJSONOptions {
-    string: string;
-    directory: string;
-    filename: string;
+    String: string;
+    Directory: string;
+    Filename: string;
 }
 
-export const TaskGenerateJSON = async function(options: TaskGenerateJSONOptions): Promise<string> { 
-    const { string, directory, filename } = options;
-    if (directory) { 
-        await mkdir(directory, { recursive: true });
-        await writeFile(directory + "/" + filename, `${string}${"\n".repeat(5)}`);
+export const TaskGenerateJSON = async function({ String, Directory, Filename }: TaskGenerateJSONOptions): Promise<string> { 
+    if (Directory) { 
+        await mkdir(Directory, { recursive: true });
+        await writeFile(Directory + "/" + Filename, `${String}${"\n".repeat(5)}`);
     }
-    return string;
+    return String;
 }

@@ -17,14 +17,14 @@
 
 */
 
-import { bootstrap } from "@bootstrap"
+import { Bootstrap } from "@bootstrap"
 
 interface SetListenerOptions { 
-    event: string,
-    callback: () => void
+    Event: string,
+    Callback: () => void
 }
 
-export const SetListener = (options: SetListenerOptions): (() => void) => {
-    bootstrap.listener.on(options.event, options.callback)
-    return () => { void bootstrap.listener.off(options.event, options.callback) };
+export const SetListener = ({ Event, Callback }: SetListenerOptions): (() => void) => {
+    Bootstrap.Listener.on(Event, Callback)
+    return () => { void Bootstrap.Listener.off(Event, Callback) };
 }

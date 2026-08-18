@@ -17,21 +17,14 @@
 
 */
 
-export type TypeStanza = {
-    getChild(arg0: string): unknown
-    is(arg0: string): unknown
-    name: string
-    parent: TypeStanza | null
-    children: any
-    attrs: {
-        xmlns: string 
-        id: string
-        issue: string
-        ttaaii: string
-        cccc: string
-        awipsid: string 
-        from: string
-        to: string
-        type: string
-    }
+import { EnumExpressions } from "@enums/Expressions"
+
+export const GetHeader = (message: string): string | null => {
+    const start = message.search(EnumExpressions.ugc1)
+    const sub = message.substring(start)
+    const end = sub.search(EnumExpressions.ugc2)
+    const fin = sub.substring(0, end)
+        .replace(/\s+/g, '')
+        .slice(0, -1);
+    return fin ?? null
 }

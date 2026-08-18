@@ -17,17 +17,22 @@
 
 */
 
-interface GetShapeNearestPointResponse { 
-    proximity: boolean
-    point: [number, number]
-    distance: number | null 
-    distanceKm?: number | null
-    distanceMeters?: number | null
+interface GetShapeNearestPointOptions {
+    Coordinates: number[][]
+    Point: [number, number]
 }
 
-export const GetShapeNearestPoint = (coordinates: number[][], point: [number, number]): GetShapeNearestPointResponse => {
-    if (!coordinates || !point) { 
-        return { proximity: false, point: [0, 0], distance: null }
+interface GetShapeNearestPointResponse { 
+    Proximity: boolean
+    Point: [number, number]
+    Distance: number | null 
+    DistanceKm?: number | null
+    DistanceMeters?: number | null
+}
+
+export const GetShapeNearestPoint = ({ Coordinates, Point }: GetShapeNearestPointOptions): GetShapeNearestPointResponse => {
+    if (!Coordinates || !Point) { 
+        return { Proximity: false, Point: [0, 0], Distance: null }
     }
     const normalize = (coords: any): any[] => {
         if (!Array.isArray(coords)) return [];
@@ -43,10 +48,10 @@ export const GetShapeNearestPoint = (coordinates: number[][], point: [number, nu
         }
         return [];
     }
-    const polys = normalize(coordinates);
-    if (polys.length === 0) return { proximity: false, point: [0, 0], distance: null };
-    const lon = point[0];
-    const lat = point[1];
+    const polys = normalize(Coordinates);
+    if (polys.length === 0) return { Proximity: false, Point: [0, 0], Distance: null };
+    const lon = Point[0];
+    const lat = Point[1];
     const pointInRing = (pt: [number, number], ring: number[][]): boolean => {
         let x = pt[0], y = pt[1];
         let inside = false;
@@ -76,13 +81,13 @@ export const GetShapeNearestPoint = (coordinates: number[][], point: [number, nu
     for (const poly of polys) {
         const outer = poly[0];
         const holes = poly.slice(1);
-        if (pointInRing(point, outer)) {
+        if (pointInRing(Point, outer)) {
             let inHole = false;
             for (const hole of holes) {
-                if (pointInRing(point, hole)) { inHole = true; break; }
+                if (pointInRing(Point, hole)) { inHole = true; break; }
             }
             if (!inHole) {
-                return { proximity: true, point, distance: 0 };
+                return { Proximity: true, Point, Distance: 0 };
             }
         }
         for (const ring of poly) {
@@ -105,10 +110,10 @@ export const GetShapeNearestPoint = (coordinates: number[][], point: [number, nu
         }
     }
     if (!isFinite(minDistance) || closestPoint == null) {
-        return { proximity: false, point: [0,0], distance: null };
+        return { Proximity: false, Point: [0,0], Distance: null };
     }
     const distanceMiles = minDistance;
     const distanceKm = Number((distanceMiles * 1.609344).toFixed(3));
     const distanceMeters = Math.round(distanceKm * 1000);
-    return { proximity: distanceMiles === 0, point: closestPoint, distance: distanceMiles, distanceKm, distanceMeters };
+    return { Proximity: distanceMiles === 0, Point: closestPoint, Distance: distanceMiles, DistanceKm: distanceKm, DistanceMeters: distanceMeters };
 }

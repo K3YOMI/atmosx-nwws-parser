@@ -17,7 +17,7 @@
 
 */
 
-export const getZones = (header: string): string[] => {
+export const GetZones = (header: string): string[] => {
     const splits = header.split('-');
     const zones: string[] = [];
     let state = splits[0].substring(0, 2);
