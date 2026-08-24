@@ -17,18 +17,18 @@
 
 */
 
-import { TypeAttributes } from "types-lower/Attributes"
-import { TypeStanzaCompiled } from "types/StanzaCompiled"
-import { TypeVTEC } from "types/VTEC"
-import { TypeHVTEC } from "types/HVTEC"
-import { Bootstrap } from "@bootstrap"
-import { VTECExtract } from "@parsers/vtec/VTECExtract"
-import { HVExtract } from "@parsers/hvtec/HVExtract"
-import { ugcExtract } from "@parsers/ugc/UGCExtract"
-import { GetEventProperties } from "@building/GetEventProperties"
-import { GetEventHeader } from "@building/GetEventHeader"
-import { GetEventTracking } from "@building/GetEventTracking"
-import { SetDebug } from "@utilities/SetDebug"
+import { TypeAttributes } from "StaticTypes/Attributes"
+import { TypeStanzaCompiled } from "Types/StanzaCompiled"
+import { TypeVTEC } from "Types/VTEC"
+import { TypeHVTEC } from "Types/HVTEC"
+import { Bootstrap } from "@Bootstrap"
+import { VTECExtract } from "@ParsingVTEC/VTECExtract"
+import { HVExtract } from "@ParsingHVTEC/HVExtract"
+import { ugcExtract } from "@ParsingUGC/UGCExtract"
+import { GetEventProperties } from "@Building/GetEventProperties"
+import { GetEventHeader } from "@Building/GetEventHeader"
+import { GetEventTracking } from "@Building/GetEventTracking"
+import { SetDebug } from "@Utilities/SetDebug"
 
 export const ParseVTEC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
     const getMessages = Stanza?.Message

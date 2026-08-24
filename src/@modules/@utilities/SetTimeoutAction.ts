@@ -17,7 +17,7 @@
 
 */
 
-import { Bootstrap } from "@bootstrap"
+import { Bootstrap } from "@Bootstrap"
 
 interface SetTimeoutActionOptions {
     Identifier: string

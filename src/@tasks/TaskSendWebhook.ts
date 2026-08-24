@@ -17,10 +17,10 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { CreateHttp } from "@utilities/CreateHttp";
-import { SetTimeoutAction } from "@utilities/SetTimeoutAction";
-import { GetEmebedText } from "@parsers/text/GetEmbededText";
+import { TypeEvent } from "StaticTypes/Event"
+import { CreateHttp } from "@Utilities/CreateHttp";
+import { SetTimeoutAction } from "@Utilities/SetTimeoutAction";
+import { GetEmebedText } from "@ParsingText/GetEmbededText";
 import { readFile } from "fs/promises"
 
 interface TaskSendWebhookOptions {

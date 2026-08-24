@@ -17,7 +17,7 @@
 
 */
 
-import { Bootstrap } from "@bootstrap"
+import { Bootstrap } from "@Bootstrap"
 import { union } from "polygon-clipping"
 
 interface CoordinatesOptions {

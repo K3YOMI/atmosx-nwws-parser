@@ -17,7 +17,7 @@
 
 */
 
-import { EnumExpressions } from "@enums/Expressions"
+import { EnumExpressions } from "@Enums/Expressions"
 
 interface GetDescriptionFromProductOptions { 
     Message: string

@@ -17,11 +17,11 @@
 
 */
 
-import { TypeHVTEC } from "types/HVTEC"
-import { EnumCauses } from "@enums/Causes"
-import { EnumRecords } from "@enums/Records"
-import { EnumExpressions } from "@enums/Expressions"
-import { EnumSeverity } from "@enums/Severity"
+import { TypeHVTEC } from "Types/HVTEC"
+import { EnumCauses } from "@Enums/Causes"
+import { EnumRecords } from "@Enums/Records"
+import { EnumExpressions } from "@Enums/Expressions"
+import { EnumSeverity } from "@Enums/Severity"
 
 export const HVExtract = (message: string): TypeHVTEC[] | null => {
     const getHVTECs = message.match(EnumExpressions.hvtec) ?? [];

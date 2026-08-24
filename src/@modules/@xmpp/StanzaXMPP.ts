@@ -17,12 +17,12 @@
 
 */
 
-import { TypeStanza } from "types-lower/Stanza"
-import { Bootstrap } from "@bootstrap"
-import { ValidateStanza } from "@stanza/ValidateStanza"
-import { CreateEvent } from "@building/CreateEvent"
-import { ImportStanza } from "@database/ImportStanza"
-import { SetEventEmit } from "@utilities/SetEventEmit"
+import { TypeStanza } from "StaticTypes/Stanza"
+import { Bootstrap } from "@Bootstrap"
+import { ValidateStanza } from "@Stanza/ValidateStanza"
+import { CreateEvent } from "@Building/CreateEvent"
+import { ImportStanza } from "@Database/ImportStanza"
+import { SetEventEmit } from "@Utilities/SetEventEmit"
 
 export const StanzaXMPP = () => {
     Bootstrap.Session.on(`stanza`, async (stanza: TypeStanza) => {

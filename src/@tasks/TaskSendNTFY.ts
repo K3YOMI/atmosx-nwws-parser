@@ -17,10 +17,10 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { Bootstrap } from "@bootstrap"
-import { CreateHttp } from "@utilities/CreateHttp";
-import { SetDebug } from "@utilities/SetDebug";
+import { TypeEvent } from "StaticTypes/Event"
+import { Bootstrap } from "@Bootstrap"
+import { CreateHttp } from "@Utilities/CreateHttp";
+import { SetDebug } from "@Utilities/SetDebug";
 
 interface TaskSendNTFYOptions {
     Event: TypeEvent;

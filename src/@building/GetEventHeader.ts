@@ -17,8 +17,8 @@
 
 */
 
-import { TypeVTEC } from "types/VTEC"
-import { TypeEventProperties } from "types-lower/Properties"
+import { TypeVTEC } from "Types/VTEC"
+import { TypeEventProperties } from "StaticTypes/Properties"
 
 interface GetHeaderOptions {
     Properties: TypeEventProperties

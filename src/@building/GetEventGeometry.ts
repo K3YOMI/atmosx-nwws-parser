@@ -17,10 +17,10 @@
 
 */
 
-import { TypeSettings } from "types/Settings"
-import { TypeEvent } from "types-lower/Event"
-import { GetSettings } from "@utilities/GetSettings"
-import { getZonePolygon } from "@parsers/ugc/GetZonePolygon"
+import { TypeSettings } from "Types/Settings"
+import { TypeEvent } from "StaticTypes/Event"
+import { GetSettings } from "@Utilities/GetSettings"
+import { getZonePolygon } from "@ParsingUGC/GetZonePolygon"
 
 interface GetGeometryResponse { 
     type: `Polygon` | `MultiPolygon`

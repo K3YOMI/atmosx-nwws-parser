@@ -17,8 +17,8 @@
 
 */
 
-import { TypeSettings } from "types/Settings"
-import { Bootstrap } from "@bootstrap"
+import { TypeSettings } from "Types/Settings"
+import { Bootstrap } from "@Bootstrap"
 
 interface SetDebugOptions { 
     Title?: string

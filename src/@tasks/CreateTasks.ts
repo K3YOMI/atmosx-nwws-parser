@@ -16,20 +16,20 @@
     Internal Package: @atmosx/event-product-parser
 */
 
-import { TypeSettings } from "types/Settings"
-import { TypeEvent } from "types-lower/Event"
-import { TypeActions } from "types/Actions"
-import { Bootstrap } from "@bootstrap"
-import { SetDebug } from "@utilities/SetDebug"
-import { GetMatched } from "@utilities/GetMatched"
-import { GetStringText } from "@parsers/text/GetStringText"
-import { GetCleanedEvent } from "@building/GetCleanedEvent"
-import { TaskGenerateAudio } from "@tasks/TaskGenerateAudio"
-import { TaskGenerateText } from "@tasks/TaskGenerateText"
-import { TaskGenerateJSON } from "@tasks/TaskGenerateJSON"
-import { TaskSendNTFY } from "@tasks/TaskSendNTFY"
-import { TaskSendWebhook } from "@tasks/TaskSendWebhook"
-import { QueueManager } from "@utilities/QueueManager"
+import { TypeSettings } from "Types/Settings"
+import { TypeEvent } from "StaticTypes/Event"
+import { TypeActions } from "Types/Actions"
+import { Bootstrap } from "@Bootstrap"
+import { SetDebug } from "@Utilities/SetDebug"
+import { GetMatched } from "@Utilities/GetMatched"
+import { GetStringText } from "@ParsingText/GetStringText"
+import { GetCleanedEvent } from "@Building/GetCleanedEvent"
+import { TaskGenerateAudio } from "@Tasks/TaskGenerateAudio"
+import { TaskGenerateText } from "@Tasks/TaskGenerateText"
+import { TaskGenerateJSON } from "@Tasks/TaskGenerateJSON"
+import { TaskSendNTFY } from "@Tasks/TaskSendNTFY"
+import { TaskSendWebhook } from "@Tasks/TaskSendWebhook"
+import { QueueManager } from "@Utilities/QueueManager"
 
 const Webhooks = new QueueManager({ Concurrency: 1 });
 const NTFY = new QueueManager({ Concurrency: 5 });

@@ -17,7 +17,7 @@
 
 */
 
-import { TypeActions } from "types/Actions"
+import { TypeActions } from "Types/Actions"
 
 type TypeTimezones = string | "CST" | "CDT" | "MDT" | "MST" | "EST" | "EDT" | "HST" | "HDT" | "PDT" | "UTC"
 

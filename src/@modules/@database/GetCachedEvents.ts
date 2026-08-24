@@ -17,10 +17,10 @@
 
 */
 
-import { TypeSettings } from "types/Settings"
-import { Bootstrap } from "@bootstrap"
-import { SetWarning } from "@utilities/SetWarning"
-import { CreateEvent } from "@building/CreateEvent"
+import { TypeSettings } from "Types/Settings"
+import { Bootstrap } from "@Bootstrap"
+import { SetWarning } from "@Utilities/SetWarning"
+import { CreateEvent } from "@Building/CreateEvent"
 
 export const GetCachedEvents = async (): Promise<void> => {
     try { 

@@ -17,18 +17,18 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { TypeSettings } from "types/Settings"
-import { Bootstrap } from "@bootstrap"
-import { GetEventEnhancedName } from "@building/GetEventEnhancedName"
-import { GetEventSignature } from "@building/GetEventSignature"
-import { MakeEvents } from "@manager/MakeEvents"
-import { RemoveEvent } from "@manager/RemoveEvent"
-import { GetEventAttachments } from "@building/GetEventAttachments"
-import { SetEventEmit } from "@utilities/SetEventEmit"
-import { SetDebug } from "@utilities/SetDebug"
-import { GetMatched } from "@utilities/GetMatched"
-import { GetEventGeometry } from "@building/GetEventGeometry"
+import { TypeEvent } from "StaticTypes/Event"
+import { TypeSettings } from "Types/Settings"
+import { Bootstrap } from "@Bootstrap"
+import { GetEventEnhancedName } from "@Building/GetEventEnhancedName"
+import { GetEventSignature } from "@Building/GetEventSignature"
+import { MakeEvents } from "@Manager/MakeEvents"
+import { RemoveEvent } from "@Manager/RemoveEvent"
+import { GetEventAttachments } from "@Building/GetEventAttachments"
+import { SetEventEmit } from "@Utilities/SetEventEmit"
+import { SetDebug } from "@Utilities/SetDebug"
+import { GetMatched } from "@Utilities/GetMatched"
+import { GetEventGeometry } from "@Building/GetEventGeometry"
 import { createHash } from "crypto"
 
 export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {

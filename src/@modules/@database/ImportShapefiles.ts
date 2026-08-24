@@ -17,11 +17,11 @@
 
 */
 
-import { TypeSettings } from "types/Settings"
-import { EnumShapefiles } from "@enums/Shapefiles"
-import { Bootstrap } from "@bootstrap"
-import { SetSleep } from "@utilities/SetSleep"
-import { SetWarning } from "@utilities/SetWarning"
+import { TypeSettings } from "Types/Settings"
+import { EnumShapefiles } from "@Enums/Shapefiles"
+import { Bootstrap } from "@Bootstrap"
+import { SetSleep } from "@Utilities/SetSleep"
+import { SetWarning } from "@Utilities/SetWarning"
 import { existsSync, mkdirSync, writeFileSync, unlinkSync, rm } from "fs"
 import { resolve, extname} from "path"
 import { loadAsync } from "jszip"

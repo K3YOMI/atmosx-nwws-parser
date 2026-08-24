@@ -17,7 +17,7 @@
 
 */
 
-import { TypeAttributes } from "types-lower/Attributes"
+import { TypeAttributes } from "StaticTypes/Attributes"
 
 export type TypeStanzaCompiled = {
     Message?: string

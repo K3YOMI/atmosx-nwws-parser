@@ -17,14 +17,14 @@
 
 */
 
-import { TypeSettings } from "types/Settings"
-import { Bootstrap } from "@bootstrap"
-import { OnlineXMPP } from "@xmpp/OnlineXMPP"
-import { OfflineXMPP } from "@xmpp/OfflineXMPP"
-import { ErrorXMPP } from "@xmpp/ErrorXMPP"
-import { StanzaXMPP } from "@xmpp/StanzaXMPP"
-import { SetEventEmit } from "@utilities/SetEventEmit"
-import { client } from "@xmpp/client"
+import { TypeSettings } from "Types/Settings"
+import { Bootstrap } from "@Bootstrap"
+import { OnlineXMPP } from "@XMPP/OnlineXMPP"
+import { OfflineXMPP } from "@XMPP/OfflineXMPP"
+import { ErrorXMPP } from "@XMPP/ErrorXMPP"
+import { StanzaXMPP } from "@XMPP/StanzaXMPP"
+import { SetEventEmit } from "@Utilities/SetEventEmit"
+import { client } from "@XMPP/client"
 
 export const DeployXMPP = async (): Promise<void> => {
     let session;

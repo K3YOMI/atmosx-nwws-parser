@@ -17,16 +17,16 @@
 
 */
 
-import { TypeSettings } from "types/Settings"
-import { Bootstrap } from "@bootstrap"
-import { SetWarning } from "@utilities/SetWarning"
-import { SetSettings } from "@utilities/SetSettings"
-import { SetCronSchedule } from "@utilities/SetCronSchedule"
-import { DeployXMPP } from "@xmpp/DeployXMPP"
-import { InitializeDatabase } from "@database/InitializeDatabase"
-import { GetCachedEvents } from "@database/GetCachedEvents"
-import { UpdateNode } from "@manager/UpdateNode"
-import { UpdateEvents } from "@manager/UpdateEvents"
+import { TypeSettings } from "Types/Settings"
+import { Bootstrap } from "@Bootstrap"
+import { SetWarning } from "@Utilities/SetWarning"
+import { SetSettings } from "@Utilities/SetSettings"
+import { SetCronSchedule } from "@Utilities/SetCronSchedule"
+import { DeployXMPP } from "@XMPP/DeployXMPP"
+import { InitializeDatabase } from "@Database/InitializeDatabase"
+import { GetCachedEvents } from "@Database/GetCachedEvents"
+import { UpdateNode } from "@Manager/UpdateNode"
+import { UpdateEvents } from "@Manager/UpdateEvents"
 import { Cron } from "croner"
 
 export const StartService = async (configurations: TypeSettings): Promise<void> => {

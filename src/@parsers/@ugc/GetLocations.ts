@@ -17,9 +17,9 @@
 
 */
 
-import { Bootstrap } from "@bootstrap"
-import { getCache } from "@parsers/ugc/GetCache"
-import { setCache } from "@parsers/ugc/SetCache"
+import { Bootstrap } from "@Bootstrap"
+import { getCache } from "@ParsingUGC/GetCache"
+import { setCache } from "@ParsingUGC/SetCache"
 
 export const getLocations = async (zones: string[]): Promise<string[]> => {
     const uniqueZones = Array.from(new Set(zones));

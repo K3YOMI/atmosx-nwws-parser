@@ -17,8 +17,8 @@
 
 */
 
-import { TypeAttributes } from "types-lower/Attributes"
-import { EnumAWIPS } from "@enums/AWIPS"
+import { TypeAttributes } from "StaticTypes/Attributes"
+import { EnumAWIPS } from "@Enums/AWIPS"
 
 interface GetAwipsTypeOptions { 
     Attributes: TypeAttributes

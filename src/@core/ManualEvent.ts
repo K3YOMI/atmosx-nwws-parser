@@ -17,9 +17,9 @@
 
 */
 
-import { EnumExpressions } from "@enums/Expressions"
-import { GetAwipsType } from "@stanza/GetAwipsType"
-import { CreateEvent } from "@building/CreateEvent"
+import { EnumExpressions } from "@Enums/Expressions"
+import { GetAwipsType } from "@Stanza/GetAwipsType"
+import { CreateEvent } from "@Building/CreateEvent"
 
 interface CreateEventOptions {
     Message: string

@@ -17,7 +17,7 @@
 
 */
 
-import { Bootstrap } from "@bootstrap"
+import { Bootstrap } from "@Bootstrap"
 
 export const ErrorXMPP = () => {
     Bootstrap.Session.on(`error`, async () => {

@@ -18,9 +18,9 @@
     
 */
 
-import { SetAFSK } from "@eas/SetAFSK"
-import { SetAsciiToBits } from "@eas/SetAsciiToBits"
-import { GetMergedPCM16 } from "@eas/GetMergedPCM16"
+import { SetAFSK } from "@EAS/SetAFSK"
+import { SetAsciiToBits } from "@EAS/SetAsciiToBits"
+import { GetMergedPCM16 } from "@EAS/GetMergedPCM16"
 
 interface SetSameHeaderOptions {
     VTEC: string

@@ -17,12 +17,12 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { EnumStrings } from "@enums/Strings"
-import { Bootstrap } from "@bootstrap"
-import { SetEventEmit } from "@utilities/SetEventEmit"
-import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
-import { CreateTasks } from "@tasks/CreateTasks"
+import { TypeEvent } from "StaticTypes/Event"
+import { EnumStrings } from "@Enums/Strings"
+import { Bootstrap } from "@Bootstrap"
+import { SetEventEmit } from "@Utilities/SetEventEmit"
+import { SetTimeoutAction } from "@Utilities/SetTimeoutAction"
+import { CreateTasks } from "@Tasks/CreateTasks"
 
 interface RemoveEventOptions {
     Event: TypeEvent

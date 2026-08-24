@@ -17,7 +17,7 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
+import { TypeEvent } from "StaticTypes/Event"
 
 export const GetEmebedText = (event: TypeEvent): string => {
     const line = (label: string, value: unknown, condition = true) => condition && value ? `${label} ${value}` : null;

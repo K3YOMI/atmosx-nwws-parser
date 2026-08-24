@@ -18,11 +18,11 @@
 */
 
 
-import { TypeSettings } from "types/Settings"
-import { Bootstrap } from "@bootstrap"
-import { SetWarning } from "@utilities/SetWarning"
-import { ImportShapefiles } from "@database/ImportShapefiles"
-import { ImportBroadcastify } from "@database/ImportBroadcastify"
+import { TypeSettings } from "Types/Settings"
+import { Bootstrap } from "@Bootstrap"
+import { SetWarning } from "@Utilities/SetWarning"
+import { ImportShapefiles } from "@Database/ImportShapefiles"
+import { ImportBroadcastify } from "@Database/ImportBroadcastify"
 import { existsSync, writeFileSync } from "fs"
 import sqlite3 from "better-sqlite3"
 

@@ -17,7 +17,7 @@
 
 */
 
-export type TypeStanza = { // This should be the only thing that isn't touched
+export type TypeStanza = {
     getChild(arg0: string): unknown
     is(arg0: string): unknown
     name: string

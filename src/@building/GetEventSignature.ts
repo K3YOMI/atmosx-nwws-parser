@@ -17,12 +17,12 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { EnumCorrelations } from "@enums/Correlations"
-import { EnumCancellation } from "@enums/Cancellation"
-import { EnumTesting} from "@enums/Testing"
-import { EnumProducts } from "@enums/Products"
-import { EnumHail } from "@enums/Hail"
+import { TypeEvent } from "StaticTypes/Event"
+import { EnumCorrelations } from "@Enums/Correlations"
+import { EnumCancellation } from "@Enums/Cancellation"
+import { EnumTesting} from "@Enums/Testing"
+import { EnumProducts } from "@Enums/Products"
+import { EnumHail } from "@Enums/Hail"
 
 export const GetEventSignature = (event: TypeEvent): TypeEvent => {
     const properties = event?.properties;

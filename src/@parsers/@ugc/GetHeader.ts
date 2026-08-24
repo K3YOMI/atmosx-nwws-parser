@@ -17,7 +17,7 @@
 
 */
 
-import { EnumExpressions } from "@enums/Expressions"
+import { EnumExpressions } from "@Enums/Expressions"
 
 export const GetHeader = (message: string): string | null => {
     const start = message.search(EnumExpressions.ugc1)

@@ -18,8 +18,8 @@
     
 */
 
-import { GetPCMToFloat } from "@eas/GetPCMToFloat"
-import { GetFloatPCM16 } from "@eas/GetFloatPCM16"
+import { GetPCMToFloat } from "@EAS/GetPCMToFloat"
+import { GetFloatPCM16 } from "@EAS/GetFloatPCM16"
 
 interface SetRadioEffectOptions {
     Int16: Int16Array

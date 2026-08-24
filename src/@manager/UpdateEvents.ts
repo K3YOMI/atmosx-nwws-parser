@@ -17,10 +17,10 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { Bootstrap } from "@bootstrap"
-import { SetEventEmit } from "@utilities/SetEventEmit"
-import { RemoveEvent } from "@manager/RemoveEvent"
+import { TypeEvent } from "StaticTypes/Event"
+import { Bootstrap } from "@Bootstrap"
+import { SetEventEmit } from "@Utilities/SetEventEmit"
+import { RemoveEvent } from "@Manager/RemoveEvent"
 
 export const UpdateEvents = async (selected?: TypeEvent): Promise<void> => {
     const events = Bootstrap.Cache.Events.features;

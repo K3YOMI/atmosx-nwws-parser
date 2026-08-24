@@ -17,7 +17,7 @@
 
 */
 
-import { GenerateEASMessage } from "@eas/GenerateEASMessage"
+import { GenerateEASMessage } from "@EAS/GenerateEASMessage"
 
 interface TaskGenerateAudioOptions {
     Filename: string;

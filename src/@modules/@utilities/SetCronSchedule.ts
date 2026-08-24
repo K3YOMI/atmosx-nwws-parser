@@ -18,12 +18,12 @@
     
 */
 
-import { TypeSettings } from "types/Settings"
-import { ReconnectXMPP } from "@xmpp/ReconnectXMPP"
-import { Bootstrap } from "@bootstrap"
-import { CreateHttp } from "@utilities/CreateHttp"
-import { SetEventEmit } from "@utilities/SetEventEmit"
-import { CreateEvent } from "@building/CreateEvent"
+import { TypeSettings } from "Types/Settings"
+import { ReconnectXMPP } from "@XMPP/ReconnectXMPP"
+import { Bootstrap } from "@Bootstrap"
+import { CreateHttp } from "@Utilities/CreateHttp"
+import { SetEventEmit } from "@Utilities/SetEventEmit"
+import { CreateEvent } from "@Building/CreateEvent"
 import { readdirSync, unlinkSync, statSync, existsSync } from "fs"
 import { join } from "path"
 

@@ -17,8 +17,8 @@
 
 */
 
-import { Bootstrap } from "@bootstrap"
-import { TypeSettings } from "types/Settings"
+import { Bootstrap } from "@Bootstrap"
+import { TypeSettings } from "Types/Settings"
 
 interface SetWarningOptions { 
     Title?: string

@@ -17,9 +17,9 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { TypeHash } from "types/Hash"
-import { Bootstrap } from "@bootstrap"
+import { TypeEvent } from "StaticTypes/Event"
+import { TypeHash } from "Types/Hash"
+import { Bootstrap } from "@Bootstrap"
 
 interface SetHashOptions {
     Event: TypeEvent

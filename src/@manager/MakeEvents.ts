@@ -17,15 +17,15 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { TypeSettings } from "types/Settings"
-import { EnumGlobalFilter } from "@enums/GlobalFilter"
-import { Bootstrap } from "@bootstrap"
-import { CreateTasks } from "@tasks/CreateTasks"
-import { SetHash } from "@manager/SetHash"
-import { UpdateNode } from "@manager/UpdateNode"
-import { SetEventEmit } from "@utilities/SetEventEmit"
-import { SetTimeoutAction } from "@utilities/SetTimeoutAction"
+import { TypeEvent } from "StaticTypes/Event"
+import { TypeSettings } from "Types/Settings"
+import { EnumGlobalFilter } from "@Enums/GlobalFilter"
+import { Bootstrap } from "@Bootstrap"
+import { CreateTasks } from "@Tasks/CreateTasks"
+import { SetHash } from "@Manager/SetHash"
+import { UpdateNode } from "@Manager/UpdateNode"
+import { SetEventEmit } from "@Utilities/SetEventEmit"
+import { SetTimeoutAction } from "@Utilities/SetTimeoutAction"
 
 
 export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {

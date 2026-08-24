@@ -17,9 +17,9 @@
 
 */
 
-import { TypeEvent } from "types-lower/Event"
-import { TypeSettings } from "types/Settings"
-import { Bootstrap } from "@bootstrap"
+import { TypeEvent } from "StaticTypes/Event"
+import { TypeSettings } from "Types/Settings"
+import { Bootstrap } from "@Bootstrap"
 
 export const GetStringText = (event: TypeEvent): string => {
     const settings = Bootstrap.Settings as TypeSettings;

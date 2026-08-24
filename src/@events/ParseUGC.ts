@@ -17,15 +17,15 @@
 
 */
 
-import { TypeAttributes } from "types-lower/Attributes"
-import { TypeStanzaCompiled } from "types/StanzaCompiled"
-import { EnumMatches } from "@enums/Matches"
-import { Bootstrap } from "@bootstrap"
-import { ugcExtract } from "@parsers/ugc/UGCExtract"
-import { GetEventProperties } from "@building/GetEventProperties"
-import { GetEventHeader } from "@building/GetEventHeader"
-import { GetEventTracking } from "@building/GetEventTracking"
-import { SetDebug } from "@utilities/SetDebug"
+import { TypeAttributes } from "StaticTypes/Attributes"
+import { TypeStanzaCompiled } from "Types/StanzaCompiled"
+import { EnumMatches } from "@Enums/Matches"
+import { Bootstrap } from "@Bootstrap"
+import { ugcExtract } from "@ParsingUGC/UGCExtract"
+import { GetEventProperties } from "@Building/GetEventProperties"
+import { GetEventHeader } from "@Building/GetEventHeader"
+import { GetEventTracking } from "@Building/GetEventTracking"
+import { SetDebug } from "@Utilities/SetDebug"
 
 export const ParseUGC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
     const getMessages = Stanza?.Message
