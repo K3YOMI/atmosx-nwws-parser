@@ -16597,6 +16597,15 @@ var GetEventTags = (message) => {
   )];
 };
 
+// src/@building/GetEventDirection.ts
+var GetEventDirection = (message) => {
+  const direction = message.match(/moving\s+(north|south|east|west|northeast|northwest|southeast|southwest)\s+at\s+\d+\s+mph/i);
+  if (direction) {
+    return direction[0].replace(/moving\s+/i, "").replace(/\s+at\s+/i, " @ ").toLowerCase().replace(/\bmph\b/i, "MPH").replace(/^./, (char) => char.toUpperCase());
+  }
+  return null;
+};
+
 // src/@building/GetEventProperties.ts
 var GetEventProperties = ({ Message, Attributes, UGC, VTEC }) => {
   const organization = Message.match(EnumExpressions.wmo)?.[0] ?? null;
@@ -16624,6 +16633,7 @@ var GetEventProperties = ({ Message, Attributes, UGC, VTEC }) => {
       impacts: GetTextFromProduct({ Message, Find: [`IMPACT...`], Removal: [`.`] }) ?? null,
       estimated_hail_size: GetTextFromProduct({ Message, Find: [`MAX HAIL SIZE...`, `HAIL...`], Removal: ["in"] }) ?? null,
       estimated_wind_gusts: GetTextFromProduct({ Message, Find: [`MAX WIND GUST...`, `WIND...`] }) ?? null,
+      direction: GetEventDirection(Message) ?? null,
       damage_threat: GetTextFromProduct({ Message, Find: [`DAMAGE THREAT...`], Removal: [] }) ?? null,
       tornado_threat: GetTextFromProduct({ Message, Find: [`TORNADO...`, `WATERSPOUT...`] }) ?? null,
       flood_threat: GetTextFromProduct({ Message, Find: [`FLASH FLOOD...`] }) ?? null,
@@ -17208,6 +17218,7 @@ var ParseAPI = async (Stanza) => {
           impacts: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`IMPACT...`], Removal: [`.`] }) ?? null,
           estimated_hail_size: feature?.properties?.parameters?.maxHailSize?.[0] ?? null,
           estimated_wind_gusts: feature?.properties?.parameters?.maxWindGust?.[0] ?? null,
+          direction: GetEventDirection(feature?.properties?.description) ?? null,
           damage_threat: feature?.properties?.parameters?.thunderstormDamageThreat?.[0] ?? null,
           tornado_threat: feature?.properties?.parameters?.tornadoDetection?.[0] ?? null,
           flood_threat: feature?.properties?.parameters?.floodDetection?.[0] ?? null,
@@ -17464,6 +17475,7 @@ var GetStringText = (event) => {
     line(`Tornado Threat:`, event?.properties?.parameters?.tornado_threat, !isExpired),
     line(`Wind Gusts:`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
     line(`Hail Size:`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
+    line(`Direction:`, event?.properties?.parameters?.direction, !isExpired && event?.properties?.parameters?.direction != null),
     line(`Discussion:`, event?.properties?.discussion_parameters?.discussion_number, !isExpired),
     line(`Concern:`, event?.properties?.discussion_parameters?.discussion_concerning, !isExpired),
     line(`SPC Max Tornado Threat:`, event?.properties?.discussion_parameters?.discussion_max_tornado, !isExpired),
@@ -17623,6 +17635,7 @@ var GetEmebedText = (event) => {
     line(`**Tornado Threat:**`, event?.properties?.parameters?.tornado_threat, !isExpired),
     line(`**Wind Gusts:**`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
     line(`**Hail Size:**`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
+    line(`**Direction:**`, event?.properties?.parameters?.direction, !isExpired && event?.properties?.parameters?.direction != null),
     line(`**Discussion:**`, event?.properties?.discussion_parameters?.discussion_number, !isExpired),
     line(`**Concern:**`, event?.properties?.discussion_parameters?.discussion_concerning, !isExpired),
     line(`**SPC Max Tornado Threat:**`, event?.properties?.discussion_parameters?.discussion_max_tornado, !isExpired),

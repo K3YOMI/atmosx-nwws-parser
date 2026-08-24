@@ -24,6 +24,7 @@ import { Bootstrap } from "@bootstrap"
 import { GetEventTracking } from "@building/GetEventTracking"
 import { VTECExtract } from "@parsers/vtec/VTECExtract"
 import { GetEventTags } from "@building/GetEventTags"
+import { GetEventDirection } from "@building/GetEventDirection"
 import { GetTextFromProduct } from "@parsers/text/GetTextFromProduct"
 import { SetDebug } from "@utilities/SetDebug"
 
@@ -71,6 +72,7 @@ export const ParseAPI = async (Stanza: TypeStanzaCompiled): Promise<void> => {
                     impacts: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`IMPACT...`], Removal: [`.`]}) ?? null,
                     estimated_hail_size: feature?.properties?.parameters?.maxHailSize?.[0] ?? null,
                     estimated_wind_gusts: feature?.properties?.parameters?.maxWindGust?.[0] ?? null,
+                    direction: GetEventDirection(feature?.properties?.description) ?? null,
                     damage_threat: feature?.properties?.parameters?.thunderstormDamageThreat?.[0] ?? null,
                     tornado_threat: feature?.properties?.parameters?.tornadoDetection?.[0] ?? null,
                     flood_threat: feature?.properties?.parameters?.floodDetection?.[0] ?? null,

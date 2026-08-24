@@ -28,6 +28,7 @@ import { getPolygonFromProduct } from "@parsers/text/GetPolygonFromProduct"
 import { GetTextFromProduct } from "@parsers/text/GetTextFromProduct"
 import { GetEventOffice } from "@building/GetEventOffice"
 import { GetEventTags } from "@building/GetEventTags"
+import { GetEventDirection } from "@building/GetEventDirection"
 
 interface GetEventPropertiesOptions { 
     Message: string
@@ -35,7 +36,6 @@ interface GetEventPropertiesOptions {
     UGC?: TypeUGC
     VTEC?: TypeVTEC
 }
-
 
 export const GetEventProperties = ({ Message, Attributes, UGC, VTEC }: GetEventPropertiesOptions): TypeEventProperties => {
     const organization = Message.match(EnumExpressions.wmo)?.[0] ?? null
@@ -65,6 +65,7 @@ export const GetEventProperties = ({ Message, Attributes, UGC, VTEC }: GetEventP
             impacts: GetTextFromProduct({ Message: Message, Find: [`IMPACT...`], Removal: [`.`]}) ?? null,
             estimated_hail_size: GetTextFromProduct({ Message: Message, Find: [`MAX HAIL SIZE...`, `HAIL...`], Removal: ['in']}) ?? null,
             estimated_wind_gusts: GetTextFromProduct({ Message: Message, Find: [`MAX WIND GUST...`, `WIND...`]}) ?? null,
+            direction: GetEventDirection(Message) ?? null,
             damage_threat: GetTextFromProduct({ Message: Message, Find: [`DAMAGE THREAT...`], Removal: []}) ?? null,
             tornado_threat: GetTextFromProduct({ Message: Message, Find: [`TORNADO...`, `WATERSPOUT...`] }) ?? null,
             flood_threat: GetTextFromProduct({ Message: Message, Find: [`FLASH FLOOD...`]}) ?? null,

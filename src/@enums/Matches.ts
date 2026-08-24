@@ -17,8 +17,13 @@
 
 */
 
+type EnumMatchesType = {
+    match: RegExp;
+    label: string;
+    statement: boolean;
+};
 
-export const EnumMatches = {
+export const EnumMatches: Record<string, EnumMatchesType[]> = {
     SPS: [
         { match: /STRONG THUNDERSTORM/i, label: "Convective Special Weather Statement", statement: false },
         { match: /SPECIAL WEATHER STATEMENT/i, label: "Special Weather Statement", statement: false }

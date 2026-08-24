@@ -17,7 +17,12 @@
 
 */
 
-export const EnumTags = {
+type EnumTagsType = {
+    match: RegExp;
+    tag: string;
+};
+
+export const EnumTags: Record<string, EnumTagsType[]> = {
     SEVERE_WEATHER: [
         { match: /A Large And Extremely Dangerous Tornado/i, tag: "Large and Dangerous Tornado" },
         { match: /This Is A Particularly Dangerous Situation/i, tag: "Particularly Dangerous Situation" },

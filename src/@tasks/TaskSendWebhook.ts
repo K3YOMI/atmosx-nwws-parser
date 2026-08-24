@@ -21,7 +21,6 @@ import { TypeEvent } from "types-lower/Event"
 import { CreateHttp } from "@utilities/CreateHttp";
 import { SetTimeoutAction } from "@utilities/SetTimeoutAction";
 import { GetEmebedText } from "@parsers/text/GetEmbededText";
-import { parentPort } from "worker_threads"
 import { readFile } from "fs/promises"
 
 interface TaskSendWebhookOptions {

@@ -43,6 +43,7 @@ export type TypeEventProperties = {
         impacts: string
         estimated_hail_size: string
         estimated_wind_gusts: string
+        direction: string
         damage_threat: string
         tornado_threat: string
         flood_threat: string

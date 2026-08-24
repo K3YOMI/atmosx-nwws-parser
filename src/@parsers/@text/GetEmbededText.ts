@@ -32,6 +32,7 @@ export const GetEmebedText = (event: TypeEvent): string => {
         line(`**Tornado Threat:**`, event?.properties?.parameters?.tornado_threat, !isExpired),
         line(`**Wind Gusts:**`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ''}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
         line(`**Hail Size:**`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ''}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
+        line(`**Direction:**`, event?.properties?.parameters?.direction, !isExpired && event?.properties?.parameters?.direction != null),
         line(`**Discussion:**`, event?.properties?.discussion_parameters?.discussion_number, !isExpired),
         line(`**Concern:**`, event?.properties?.discussion_parameters?.discussion_concerning, !isExpired),
         line(`**SPC Max Tornado Threat:**`, event?.properties?.discussion_parameters?.discussion_max_tornado, !isExpired),
