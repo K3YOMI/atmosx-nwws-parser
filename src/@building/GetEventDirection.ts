@@ -17,14 +17,10 @@
 
 */
 
-export const GetEventDirection = (message: string): string => {
-    const direction = message.match(/moving\s+(north|south|east|west|northeast|northwest|southeast|southwest)\s+at\s+\d+\s+mph/i);
+export const GetEventDirection = (message: string): string | null => {
+    const direction = message.match(/moving\s+(north|south|east|west|northeast|northwest|southeast|southwest)\s+at\s+(\d+)\s+mph/i);
     if (direction) {
-        return direction[0]
-            .replace(/moving\s+/i, "")
-            .replace(/\s+at\s+/i, " @ ")
-            .toLowerCase()
-            .replace(/\bmph\b/i, "MPH")
+        return `${direction[1]} @ ${direction[2]} MPH`
             .replace(/^./, char => char.toUpperCase());
     }
     return null;
