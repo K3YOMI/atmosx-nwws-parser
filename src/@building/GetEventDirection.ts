@@ -22,7 +22,7 @@ export const GetEventDirection = (message: string): string | null => {
         .replace(/\s+/g, ' ')
         .match(/moving\s+(north|south|east|west|northeast|northwest|southeast|southwest)\s+at\s+(\d+)\s+mph/i);
     if (direction) {
-        return `${direction[1]} @ ${direction[2]} MPH`;
+        return direction[1].charAt(0).toUpperCase() + direction[1].slice(1).toLowerCase() + ` @ ${direction[2]} MPH`;   
     }
     return null;
 };
