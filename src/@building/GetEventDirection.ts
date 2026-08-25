@@ -14,14 +14,15 @@
     Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
 
     Internal Package: @atmosx/event-product-parser
-
+    
 */
 
 export const GetEventDirection = (message: string): string | null => {
-    const direction = message.match(/moving\s+(north|south|east|west|northeast|northwest|southeast|southwest)\s+at\s+(\d+)\s+mph/i);
+    const direction = message
+        .replace(/\s+/g, ' ')
+        .match(/moving\s+(north|south|east|west|northeast|northwest|southeast|southwest)\s+at\s+(\d+)\s+mph/i);
     if (direction) {
-        return `${direction[1]} @ ${direction[2]} MPH`
-            .replace(/^./, char => char.toUpperCase());
+        return `${direction[1]} @ ${direction[2]} MPH`;
     }
     return null;
 };
