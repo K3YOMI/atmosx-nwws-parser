@@ -53,7 +53,8 @@ export const InitializeDatabase = async (): Promise<void> => {
             await ImportShapefiles();
             SetWarning({ Message: `Building has completed, you can now continue or close the terminal`})
         }
-    } catch (error) {
-        SetWarning({ Message: `An error occurred while initializing the database: ${error.message}` })
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        SetWarning({ Message: `An error occurred while initializing the database: ${message}` })
     }
 }

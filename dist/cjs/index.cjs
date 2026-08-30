@@ -1,3 +1,4 @@
+"use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -21298,7 +21299,8 @@ var ImportStanza = async (Stanza) => {
       }
     }
   } catch (error) {
-    SetWarning({ Message: `An error occurred while importing stanza: ${error.message}` });
+    const message = error instanceof Error ? error.message : String(error);
+    SetWarning({ Message: `An error occurred while importing stanza: ${message}` });
   }
 };
 
@@ -21453,7 +21455,8 @@ var ImportShapefiles = async () => {
       });
     }
   } catch (error) {
-    SetWarning({ Message: `An error occurred while compiling shapefiles: ${error.message}` });
+    const message = error instanceof Error ? error.message : String(error);
+    SetWarning({ Message: `An error occurred while compiling shapefiles: ${message}` });
   }
 };
 
@@ -21525,7 +21528,8 @@ var InitializeDatabase = async () => {
       SetWarning({ Message: `Building has completed, you can now continue or close the terminal` });
     }
   } catch (error) {
-    SetWarning({ Message: `An error occurred while initializing the database: ${error.message}` });
+    const message = error instanceof Error ? error.message : String(error);
+    SetWarning({ Message: `An error occurred while initializing the database: ${message}` });
   }
 };
 
@@ -21550,7 +21554,8 @@ var GetCachedEvents = async () => {
       SetWarning({ Message: `Processed ${events.length} cached stanzas in ${Math.floor(performance.now() - tick)} ms` });
     }
   } catch (error) {
-    SetWarning({ Message: `An error occurred while fetching cached stanzas: ${error.message} -> ${error.stack}` });
+    const message = error instanceof Error ? error.message : String(error);
+    SetWarning({ Message: `An error occurred while fetching cached stanzas: ${message}` });
   }
 };
 

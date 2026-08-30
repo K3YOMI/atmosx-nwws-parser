@@ -86,7 +86,8 @@ export const ImportShapefiles = async (): Promise<void> => {
             }
             rm(resolve(__dirname, 'shapefiles'), { recursive: true, force: true }, () => {});
         }
-    } catch (error) {
-        SetWarning( {Message: `An error occurred while compiling shapefiles: ${error.message}` }) 
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        SetWarning( {Message: `An error occurred while compiling shapefiles: ${message}` }) 
     }
 }

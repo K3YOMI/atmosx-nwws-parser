@@ -41,7 +41,8 @@ export const ImportStanza = async (Stanza: TypeStanzaCompiled): Promise<void> =>
                     .run(toDelete);
             }
         }
-    } catch (error) {
-        SetWarning({ Message: `An error occurred while importing stanza: ${error.message}` })
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        SetWarning({ Message: `An error occurred while importing stanza: ${message}` })
     }
 }

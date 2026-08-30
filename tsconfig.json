@@ -9,6 +9,10 @@
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"skipLibCheck": true,
+		"strict": true,
+        "strictNullChecks": false, // TODO: Will work on stricter null checks on later updates ( Wait I can comment in here???? )
+		"noImplicitAny": false, // TODO: Remove `any` or `unknown` types and set this to `true` in the future
+		// TBH, I don't really need strictNullChecks as I have a lot of chaining and null checks in the code, but I will work on it in the future
 		"paths": {
 			"@ParsingHVTEC/*": ["./src/@parsers/@hvtec/*"],
 			"@ParsingVTEC/*": ["./src/@parsers/@vtec/*"],
