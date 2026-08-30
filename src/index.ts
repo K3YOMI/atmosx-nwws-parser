@@ -38,29 +38,41 @@ import { GetVersion } from "@Core/GetVersion"
 
 export class Manager { 
     public constructor(settings: TypeSettings) { 
-        this.trycatch(); StartService(settings) 
+        this.ErrorHandler(); StartService(settings) 
     }
 
-    on(event: string, callback: () => void) {
+    public on(event: string, callback: () => void) {
         CreateListener(event, callback)
     }
 
-    trycatch() {
-        process.on('uncaughtException', (err: any) => {
-            const ignored = ['ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENOTFOUND', 'ECONNREFUSED', 'EPIPE', 'EADDRINUSE', 'EALREADY', 'EACCES', 'EAGAIN', 'EHOSTDOWN', 'STARTTLS_FAILURE'];
-            if (ignored.includes(err?.code)) { 
+    private ErrorHandler() {
+        process.on('uncaughtException', (error: any) => {
+            const _IGNORED = [
+                'ETIMEDOUT', 
+                'ECONNRESET', 
+                'EHOSTUNREACH', 
+                'ENOTFOUND', 
+                'ECONNREFUSED', 
+                'EPIPE', 
+                'EADDRINUSE', 
+                'EALREADY', 
+                'EACCES', 
+                'EAGAIN', 
+                'EHOSTDOWN', 
+                'STARTTLS_FAILURE'
+            ];
+            if (_IGNORED.includes(error?.code)) { 
                 SetEventEmit({
                     Event: `onServiceStatus`,
                     Metadata: {
-                        Message: `Ignored Critical Error: ${err?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
+                        Message: `Ignored Critical Error: ${error?.code ?? 'Unknown error code'}. This may indicate a connection issue. Attempting to continue...`,
                         Data: {},
                         Type: `error`,
                         Error: true 
                     }
                 })
-                return; 
             }
-            SetWarning({Message: `Uncaught Exception: ${err instanceof Error ? err.stack ?? err.message : String(err)}`})
+            SetWarning({Message: `Uncaught Exception: ${error instanceof Error ? error.stack ?? error.message : String(error)}`})
         })
     }
 }

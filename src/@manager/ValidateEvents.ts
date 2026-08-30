@@ -39,11 +39,14 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
     const bools = {} as Record<string, boolean>;
     const megered = {...configurations.GlobalSettings, ...configurations.GlobalSettings.EventFiltering}
     for (const key in megered) {
-        const setting = megered[key];
-        if (Array.isArray(setting)) { sets[key] = new Set(setting.map(item => item.toLowerCase())); }
-        if (typeof setting === 'boolean') { bools[key] = setting; }
+        const setting = megered[key as keyof typeof megered]
+        if (Array.isArray(setting)) { 
+            (sets as Record<string, any>)[key] = new Set(setting.map(item => String(item).toLowerCase())); 
+        }
+        if (typeof setting === 'boolean') { 
+            (bools as Record<string, any>)[key] = setting; 
+        }
     }
-
     const isFiltered = (define: TypeEvent): boolean => {
         const properties = define.properties;
         const zones = properties.geocode.ugc;

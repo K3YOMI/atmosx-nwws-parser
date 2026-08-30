@@ -20,29 +20,20 @@
 import { Bootstrap } from "@Bootstrap"
 import { CreateHttp } from "@Utilities/CreateHttp"
 import { SetWarning } from "@Utilities/SetWarning"
+import { CreateQuery } from "@Database/CreateQuery";
 
 export const ImportBroadcastify = async (): Promise<void> => {
     const settings = Bootstrap.Settings;
-    
-    const isBroadcastifyImported = Bootstrap.Database
-        .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';`)
-        .get();
-
-    if (!settings.BroadcastifySettings.BroadcastifyAttachments) { return }
-    if (isBroadcastifyImported) { return } 
-
     const broadcastify = await CreateHttp({
         URL: settings.BroadcastifySettings.BroadcastifyDatabase,
         Timeout: 5000,
     });
     if (!broadcastify.error) {  
-        Bootstrap.Database.prepare(`CREATE TABLE broadcastify ( state TEXT, county TEXT, feed TEXT, type TEXT, link TEXT);`)
-            .run();
         const states = JSON.parse(broadcastify.message);
-        const insert = Bootstrap.Database.prepare(`INSERT INTO broadcastify (state, county, feed, type, link) VALUES (?, ?, ?, ?, ?)`);
+        const insert = `INSERT INTO broadcastify (state, county, feed, type, link) VALUES (?, ?, ?, ?, ?)`;
         const transaction = Bootstrap.Database.transaction((rows: any[]) => {
             for (const row of rows) {
-                insert.run(row);
+                CreateQuery({ Query: insert, Parameters: row });
             }
         });
         const batch: any[] = [];

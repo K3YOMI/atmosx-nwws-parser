@@ -18,10 +18,11 @@
 */
 
 import { TypeEvent } from "StaticTypes/Event"
-import { Bootstrap } from "@Bootstrap"
 import { EnumStates } from "@Enums/States"
+import { Bootstrap } from "@Bootstrap"
 import { EnumExpressions } from "@Enums/Expressions"
 import { GetLatestIssuance } from "@Utilities/GetLatestIssuance"
+import { CreateQuery } from "@Database/CreateQuery"
 
 interface GetEventAttachmentsResponse { 
     name: string
@@ -64,14 +65,15 @@ export const GetEventAttachments = (event: TypeEvent): GetEventAttachmentsRespon
                 const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`]
                 const county = location?.split(',')[0]?.trim().replace(new RegExp(`^(${lines.join('|')}) `), '')
                 const state = EnumStates[location?.split(',')[1]?.trim()]
-                const feeds = Bootstrap.Database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b) => {
+                const feeds = CreateQuery({ Query: `SELECT * FROM broadcastify WHERE state = ? AND county = ?`, Parameters: [state, county] }) as BroadcastifyResponse[];
+                const so = feeds.sort((a: BroadcastifyResponse, b: BroadcastifyResponse) => {
                     const typeOrder = ['Other', 'Public Safety'];
                     const indexA = typeOrder.indexOf(a.type);
                     const indexB = typeOrder.indexOf(b.type);
                     return indexA - indexB;
-                })
+                });
                 const tags = Bootstrap.Settings.BroadcastifySettings.BroadcastifyTags;
-                const filtered = feeds.filter((feed: BroadcastifyResponse) => tags.includes(feed.type));
+                const filtered = so.filter((feed: BroadcastifyResponse) => tags.includes(feed.type));
                 if (filtered.length > 0) {
                     filtered.map((filtered: BroadcastifyResponse) => {
                         if (!attachments.some((a) => a.link === filtered.link)) {

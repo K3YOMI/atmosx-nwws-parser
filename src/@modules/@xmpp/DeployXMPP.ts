@@ -34,8 +34,8 @@ export const DeployXMPP = async (): Promise<void> => {
     session = Bootstrap.Session = client({
         service: 'xmpp://nwws-oi.weather.gov',
         domain: 'nwws-oi.weather.gov',
-        username: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username,
-        password: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Password
+        username: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Username as string,
+        password: settings.NOAAWeatherWireServiceSettings.CredentialSettings.Password as string
     })
     try {
         await OfflineXMPP();

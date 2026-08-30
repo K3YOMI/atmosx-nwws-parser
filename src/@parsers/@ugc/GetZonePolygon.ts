@@ -18,6 +18,7 @@
 */
 
 import { Bootstrap } from "@Bootstrap"
+import { CreateQuery } from "@Database/CreateQuery"
 import { union } from "polygon-clipping"
 
 interface CoordinatesOptions {
@@ -35,9 +36,10 @@ export const getZonePolygon = ({ Zones, Union }: CoordinatesOptions): Coordinate
     if (list.length === 0) return null;
 
     const placeholders = list.map(() => "?").join(",");
-    const rows = Bootstrap.Database
-        .prepare(`SELECT geometry FROM shapefiles WHERE id IN (${placeholders})`)
-        .all(...list);
+    const rows = CreateQuery({ 
+        Query: `SELECT geometry FROM shapefiles WHERE id IN (${placeholders})`, 
+        Parameters: list 
+    }) as { geometry: string }[];
     const polygons: any[] = [];
     for (const row of rows) {
         if (!row?.geometry) continue;

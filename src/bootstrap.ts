@@ -17,16 +17,21 @@
 
 */
 
-import path from "path"
+import { TypeEvent } from "StaticTypes/Event"
+import { TypeHash } from "Types/Hash"
+import { TypeNode } from "Types/Nodes"
 import { EventEmitter } from "node:events"
+import { client } from "@xmpp/client"
+import { Database } from "better-sqlite3"
+import path from "path"
 
 export const Bootstrap = {
     Version: `3.0.63`,
     Ready: true,
-    Ratelimits: {},
-    Session: null,
-    Database: null,
-    Job: null,
+    Ratelimits: {} as Record<string, number[]>,
+    Session: null as ReturnType<typeof client>,
+    Database: null as Database,
+    Job: null as unknown,
     Listener: new EventEmitter(),
     Colors: {
         Red: `\x1b[31m`, Green: `\x1b[32m`, Yellow: `\x1b[33m`,
@@ -34,15 +39,15 @@ export const Bootstrap = {
         White: `\x1b[37m`, Reset: `\x1b[0m`
     },
     Cache: {
-        LastStanzaTime: null,
+        LastStanzaTime: null as number,
         Connected: false,
         Reconnecting: false,
         TotalReconnects: 0,
         Hault: false,
-        Events: {type: "FeatureCollection", features: []},
-        Nodes: {type: "FeatureCollection", features: []},
-        Hashes: [],
-        Parsed: [],
+        Events: {type: "FeatureCollection", features: [] as TypeEvent[]},
+        Nodes: {type: "FeatureCollection", features: [] as TypeNode[]},
+        Hashes: [] as TypeHash[],
+        Parsed: [] as TypeEvent[],
         UGC: new Map<string, string[]>()
     },
     Settings: {
@@ -50,14 +55,15 @@ export const Bootstrap = {
         EnableWireService: false,
         EnableDebugging: false,
         EnableJournal: true,
+        EnhancedEventJournaling: false,
         NOAAWeatherWireServiceSettings: {
             ReconnectionSettings: {
                 Enabled: true,
                 ReconnectionInterval: 60,
             },
             CredentialSettings: {
-                Username: null,
-                Password: null,
+                Username: null as string,
+                Password: null as string,
                 Nickname: "@atmosx/event-product-parser/3.0",
             },   
             CacheSettings: {
@@ -85,16 +91,16 @@ export const Bootstrap = {
             Server: `https://ntfy.sh`,
             Timezone: "UTC",
             MediaStorage: {
-                EAS: null,
-                TEXT: null,
-                JSON: null,
+                EAS: null as string,
+                TEXT: null as string,
+                JSON: null as string,
             },
             Credentials: {
-                Username: null,
-                Password: null
+                Username: null as string,
+                Password: null as string
             }
         },
-        ActionSettings: [],
+        ActionSettings: [] as unknown[],
         GlobalSettings: {
             EventManagement: true,
             DisableGeometryParsing: false,
@@ -104,21 +110,21 @@ export const Bootstrap = {
             NodeTTL: 60,
             NodeMaxDistance: 120,
             EventFiltering: {
-                ListeningEvents: [],
-                ListeningICAO: [],
-                ListeningUGC: [],
-                ListeningStates: [],
-                IgnoredICAO: [],
+                ListeningEvents: [] as string[],
+                ListeningICAO: [] as string[],
+                ListeningUGC: [] as string[],
+                ListeningStates: [] as string[],
+                IgnoredICAO: [] as string[],
                 IgnoredEvents: [`Test Message`],
                 NodeLocationFiltering: false,
                 IgnoreTestProducts: true,
             },
             ArchiveSettings: {
                 TTL: 60,
-                JSONDirectory: null,
-                TextDirectory: null,
-                EasDirectory: null,
-                EasToneout: null
+                JSONDirectory: null as string,
+                TextDirectory: null as string,
+                EasDirectory: null as string,
+                EasToneout: null as string
             }
         }
     },

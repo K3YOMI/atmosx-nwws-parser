@@ -26,9 +26,10 @@ interface SetEventEmitOptions {
     Metadata: any
     Message?: string
     Limited?: boolean
+    Tree?: string[]
 }
 
-export const SetEventEmit = ({ Event, Metadata, Message, Limited }: SetEventEmitOptions): void => {
+export const SetEventEmit = ({ Event, Metadata, Message, Limited, Tree }: SetEventEmitOptions): void => {
     if (Limited) {
         const isTimeout = SetTimeoutAction({ Identifier: `event.${Event}`, AddTime: true, Max: 1, Interval: 1 })
         if (isTimeout.Limited) return;
@@ -36,6 +37,6 @@ export const SetEventEmit = ({ Event, Metadata, Message, Limited }: SetEventEmit
     Bootstrap.Listener.emit(Event, Metadata)
     if (Event != `log`) { Bootstrap.Listener.emit(`*`, {event: Event, data: Metadata}) }
     if (Message) {
-        SetWarning({ Message: Message })
+        SetWarning({ Message: Message, Tree: Tree })
     }
 }

@@ -43,6 +43,9 @@
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
-		"@types/node": "25.2.0"
+		"@types/better-sqlite3": "^7.6.13",
+		"@types/node": "25.2.0",
+		"@types/shapefile": "^0.6.4",
+		"@types/xmpp__client": "^0.14.1"
 	}
 }

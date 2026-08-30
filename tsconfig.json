@@ -10,9 +10,8 @@
 		"allowSyntheticDefaultImports": true,
 		"skipLibCheck": true,
 		"strict": true,
-        "strictNullChecks": false, // TODO: Will work on stricter null checks on later updates ( Wait I can comment in here???? )
-		"noImplicitAny": false, // TODO: Remove `any` or `unknown` types and set this to `true` in the future
-		// TBH, I don't really need strictNullChecks as I have a lot of chaining and null checks in the code, but I will work on it in the future
+        "strictNullChecks": false, // Note: I use optional changing and heavily rely on `null` and `undefined` values in the codebase. Please do not set this to true unless you want the compiler to throw a fucking temper tantrum every time you try to access a property of an object that may or may not be null or undefined. I have better things to do than to deal with that nonsense.
+		"noImplicitAny": true,
 		"paths": {
 			"@ParsingHVTEC/*": ["./src/@parsers/@hvtec/*"],
 			"@ParsingVTEC/*": ["./src/@parsers/@vtec/*"],

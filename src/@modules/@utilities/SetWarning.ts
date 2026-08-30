@@ -23,12 +23,25 @@ import { TypeSettings } from "Types/Settings"
 interface SetWarningOptions { 
     Title?: string
     Message: string
+    Tree?: string[]
 }
 
-export const SetWarning = ({ Title, Message }: SetWarningOptions): void => {
+export const SetWarning = ({ Title, Message, Tree }: SetWarningOptions): void => {
     const settings = Bootstrap.Settings as TypeSettings;
-    Bootstrap.Listener.emit(`log`, `${Title ?? `[${Bootstrap.Colors.Yellow}@atmosx/product-parser${Bootstrap.Colors.Reset}]`} ${Message}`)
-    if (settings.EnableJournal) { 
-        console.log(`${Title ?? `[${Bootstrap.Colors.Yellow}@atmosx/product-parser${Bootstrap.Colors.Reset}]`} ${Message}`)
-    }
-}
+    const title = Title ?? (`[${Bootstrap.Colors.Yellow}@atmosx/event-product-parser${Bootstrap.Colors.Reset}]`);
+    const log = (message: string): void => {
+        Bootstrap.Listener.emit(`log`, message);
+        if (settings.EnableJournal) { console.log(message); }
+    };
+    log(`${title} ${Message}`);
+
+    if (!Tree?.length) return;
+
+    const cleanTitle = title.replace(/\x1b\[[0-9;]*m/g, ``);
+    const padding = ` `.repeat(cleanTitle.length + 1);
+    const entries = Tree.filter((entry): entry is NonNullable<typeof entry> => entry !== undefined && entry !== null);
+    entries.forEach((entry, index) => {
+        const prefix = index === entries.length - 1 ? `└─` : `├─`;
+        log(`${padding}${prefix} ${entry}`);
+    });
+};

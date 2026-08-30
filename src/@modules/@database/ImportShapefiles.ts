@@ -17,11 +17,11 @@
 
 */
 
-import { TypeSettings } from "Types/Settings"
 import { EnumShapefiles } from "@Enums/Shapefiles"
 import { Bootstrap } from "@Bootstrap"
 import { SetSleep } from "@Utilities/SetSleep"
 import { SetWarning } from "@Utilities/SetWarning"
+import { CreateQuery } from "@Database/CreateQuery"
 import { existsSync, mkdirSync, writeFileSync, unlinkSync, rm } from "fs"
 import { resolve, extname} from "path"
 import { loadAsync } from "jszip"
@@ -29,10 +29,8 @@ import { read } from "shapefile"
 
 export const ImportShapefiles = async (): Promise<void> => {
     try { 
-        const tShapefiles = Bootstrap.Database
-            .prepare(`SELECT COUNT(*) AS count FROM shapefiles`)
-            .get().count;
-        if (tShapefiles === 0) {
+        const tShapefiles = CreateQuery({ Query: `SELECT COUNT(*) AS count FROM shapefiles` })[0] as { count: number };
+        if (tShapefiles.count === 0) {
             await SetSleep({Timeout: 1e3});
             for (const shapefile of EnumShapefiles) {
                 const response = await fetch(shapefile.link);
@@ -55,8 +53,7 @@ export const ImportShapefiles = async (): Promise<void> => {
                     filepath,
                 );
                 SetWarning({ Message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` })
-                const insert = Bootstrap.Database
-                    .prepare(`INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`)
+                const insert = `INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`;
                 const transaction = Bootstrap.Database.transaction((entries: any[]) => {
                     for (const entry of entries) {
                         const { properties, geometry } = entry;
@@ -77,7 +74,7 @@ export const ImportShapefiles = async (): Promise<void> => {
                             final = properties.ID ?? properties.WFO
                             location = properties.NAME;
                         }
-                        insert.run(final, location, JSON.stringify(geometry));
+                        CreateQuery({ Query: insert, Parameters: [final, location, JSON.stringify(geometry)] })
                     }
                 })
                 unlinkSync(`${filepath}.shp`)

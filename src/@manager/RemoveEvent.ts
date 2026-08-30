@@ -54,7 +54,7 @@ export const RemoveEvent = async ({ Event, IsTimeBasedExpiration }: RemoveEventO
         Bootstrap.Cache.Events.features
             .splice(Bootstrap.Cache.Events.features.indexOf(isTrackingEventLogged), 1);
         Bootstrap.Cache.Hashes = Bootstrap.Cache.Hashes
-            .filter(hash => hash.tracking !== gTracking);
+            .filter(hash => hash.Tracking !== gTracking);
 
         if (!isStatement) { 
             SetEventEmit({

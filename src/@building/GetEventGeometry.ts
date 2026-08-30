@@ -19,7 +19,7 @@
 
 import { TypeSettings } from "Types/Settings"
 import { TypeEvent } from "StaticTypes/Event"
-import { GetSettings } from "@Utilities/GetSettings"
+import { Bootstrap } from "@Bootstrap"
 import { getZonePolygon } from "@ParsingUGC/GetZonePolygon"
 
 interface GetGeometryResponse { 
@@ -28,7 +28,7 @@ interface GetGeometryResponse {
 }
 
 export const GetEventGeometry = (event: TypeEvent): GetGeometryResponse  => {
-    const settings = GetSettings() as TypeSettings
+    const settings = Bootstrap.Settings as TypeSettings
     const generated = event?.properties?.geocode?.polygon ?? null;
     const ugc = event?.properties?.geocode?.ugc ?? null;
     let geo: GetGeometryResponse = {

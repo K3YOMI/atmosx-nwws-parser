@@ -17,7 +17,7 @@
 
 */
 
-import { Bootstrap } from "@Bootstrap"
+import { CreateQuery } from "@Database/CreateQuery";
 import { getCache } from "@ParsingUGC/GetCache"
 import { setCache } from "@ParsingUGC/SetCache"
 
@@ -41,12 +41,7 @@ export const getLocations = async (zones: string[]): Promise<string[]> => {
     }
 
     if (missing.length > 0) {
-        const rows = await Bootstrap.Database
-            .prepare(
-                `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => '?').join(',')})`
-            )
-            .all(...missing);
-
+        const rows = CreateQuery({ Query: `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => '?').join(',')})`, Parameters: missing }) as { id: string, location: string }[];
         for (let i = 0; i < rows.length; i++) {
             const r = rows[i] as any;
             setCache({ Key: r.id, Value: [r.location] });

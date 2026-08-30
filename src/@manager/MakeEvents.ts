@@ -26,18 +26,18 @@ import { SetHash } from "@Manager/SetHash"
 import { UpdateNode } from "@Manager/UpdateNode"
 import { SetEventEmit } from "@Utilities/SetEventEmit"
 import { SetTimeoutAction } from "@Utilities/SetTimeoutAction"
-
+import { GetStringText } from "@ParsingText/GetStringText"
 
 export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
-    let tasked = [];
+    let tasked = [] as TypeEvent[];
     const settings = Bootstrap.Settings as TypeSettings;
     if (events.length === 0) return
     await Promise.all(events.map(async event => {
         const features = Bootstrap.Cache.Events.features;
         const getHash = event.properties.metadata.hash;
         const getTracking = event.properties.metadata.tracking;
-        const isEntry = Bootstrap.Cache.Hashes?.find(hash => hash.tracking === getTracking)
-        const isHashed = isEntry?.hashes?.includes(getHash) ?? false;
+        const isEntry = Bootstrap.Cache.Hashes?.find(hash => hash.Tracking === getTracking)
+        const isHashed = isEntry?.Hashes?.includes(getHash) ?? false;
         const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering
         const getNodes = Bootstrap.Cache.Nodes.features;
         const getFeature = features.find(feature => feature.properties.metadata.tracking === getTracking);    
@@ -60,6 +60,7 @@ export const MakeEvents = async (events: TypeEvent[]): Promise<void> => {
                     Type: getFeature ? `Updated` : `New`,
                     Event: event
                 },
+                Tree: Bootstrap.Settings.EnhancedEventJournaling ? GetStringText(event).split('\n').filter(line => line.trim() !== '') : [],
                 Message: `${isLocal}[${getFeature ? 'Updated' : 'New'}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
             })
         }

@@ -40,30 +40,33 @@ export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResp
     if (!nodes || nodes.length === 0) {
         return { nodes: [], filtered: false, updated: Date.now() };
     }
-    const metadata = { nodes: [], proximity: false, filtered: false };
+    const metadata = { nodes: [] as GetEventNodesResponse['nodes'], proximity: false, filtered: false };
     const geometry = await GetEventGeometry(event);
     if (!geometry || !geometry.coordinates) {
         return { nodes: [], filtered: false, updated: Date.now() }
     }
     for (const node of nodes) {
-        const [longitude, latitude] = node.geometry.coordinates;
+        // FIX: Cast the coordinates array immediately so longitude and latitude are bound to a strict tuple structure
+        const [longitude, latitude] = (node?.geometry?.coordinates ?? []) as [number, number];
+        
         const getPoint = GetShapeNearestPoint({ Coordinates: geometry.coordinates, Point: [longitude, latitude] });
         const miles = getPoint.Distance ?? null;
-        const kilometers = Number((miles * 1.609344).toFixed(3));
+        const kilometers = miles != null ? Number((miles * 1.609344).toFixed(3)) : null;
 
         const info = {
             id: node.properties?.identifier,
-            coordinates: [longitude, latitude],
-            nearest: getPoint.Point,
+            coordinates: [longitude, latitude] as [number, number],
+            nearest: getPoint.Point as [number, number],
             miles,
             kilometers,
             proximity: false
-        }
+        };
+        
         if (miles != null && (miles < Bootstrap.Settings.GlobalSettings.NodeMaxDistance)) {
             info.proximity = true;
             metadata.proximity = true;
         }
-        metadata.nodes.push(info)
+        metadata.nodes.push(info);
     }
     return {
         nodes: metadata.nodes,

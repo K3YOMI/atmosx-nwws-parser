@@ -21,6 +21,7 @@ import { TypeSettings } from "Types/Settings"
 import { Bootstrap } from "@Bootstrap"
 import { SetWarning } from "@Utilities/SetWarning"
 import { CreateEvent } from "@Building/CreateEvent"
+import { CreateQuery } from "@Database/CreateQuery"
 
 export const GetCachedEvents = async (): Promise<void> => {
     try { 
@@ -28,7 +29,10 @@ export const GetCachedEvents = async (): Promise<void> => {
         const tick = performance.now();
         if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
             const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory ?? 500;
-            const get = await Bootstrap.Database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max) as { rowid: number; stanza: string }[];
+            const get = await CreateQuery({ 
+                Query: `SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`, 
+                Parameters: [max] 
+            }) as { rowid: number; stanza: string }[];
             SetWarning({ Message: `Fetched ${get.length} cached stanzas from the database in ${Math.floor(performance.now() - tick)} ms` })
             let events = get.map((row) => JSON.parse(row.stanza))
                 .filter(stanza => {

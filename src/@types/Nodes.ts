@@ -17,11 +17,13 @@
 
 */
 
-export type TypeAttributes = {
-    xmlns: string 
-    id: string
-    issue: string
-    ttaaii: string
-    cccc: string
-    awipsid: string
+export type TypeNode = {
+    type: string
+    geometry: {
+        type: string
+        coordinates: number[]
+    }
+    properties: {
+        identifier: string
+    }
 }

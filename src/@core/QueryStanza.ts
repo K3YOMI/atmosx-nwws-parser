@@ -18,7 +18,7 @@
 */
 
 import { TypeStanza } from "StaticTypes/Stanza"
-import { Bootstrap } from "@Bootstrap"
+import { CreateQuery } from "@Database/CreateQuery"
 
 interface QueryStanzaOptions {
     Search: string
@@ -31,9 +31,10 @@ type QueryStanza = {
 }
 
 export const QueryStanza = async ({ Search, Max }: QueryStanzaOptions): Promise<TypeStanza[]> => {
-    const get = await Bootstrap.Database.prepare(
-        `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`)
-    .all(`%${Search}%`, Max ?? 100) as QueryStanza[];
-    const events = get.map((row) => JSON.parse(row.stanza));
+    const query = CreateQuery({ 
+        Query: `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`, 
+        Parameters: [`%${Search}%`, Max ?? 100] 
+    }) as QueryStanza[];
+    const events = query.map((row) => JSON.parse(row.stanza));
     return events as TypeStanza[];
 }

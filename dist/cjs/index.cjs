@@ -14857,8 +14857,8 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 
 // src/bootstrap.ts
-var import_path = __toESM(require("path"));
 var import_node_events = require("node:events");
+var import_path = __toESM(require("path"));
 var Bootstrap = {
   Version: `3.0.63`,
   Ready: true,
@@ -14894,6 +14894,7 @@ var Bootstrap = {
     EnableWireService: false,
     EnableDebugging: false,
     EnableJournal: true,
+    EnhancedEventJournaling: false,
     NOAAWeatherWireServiceSettings: {
       ReconnectionSettings: {
         Enabled: true,
@@ -14968,9 +14969,37 @@ var Bootstrap = {
   }
 };
 
-// src/@modules/@utilities/GetSettings.ts
-var GetSettings = () => {
-  return Bootstrap.Settings;
+// src/@modules/@utilities/SetWarning.ts
+var SetWarning = ({ Title, Message, Tree }) => {
+  const settings = Bootstrap.Settings;
+  const title = Title ?? `[${Bootstrap.Colors.Yellow}@atmosx/event-product-parser${Bootstrap.Colors.Reset}]`;
+  const log = (message) => {
+    Bootstrap.Listener.emit(`log`, message);
+    if (settings.EnableJournal) {
+      console.log(message);
+    }
+  };
+  log(`${title} ${Message}`);
+  if (!Tree?.length) return;
+  const cleanTitle = title.replace(/\x1b\[[0-9;]*m/g, ``);
+  const padding = ` `.repeat(cleanTitle.length + 1);
+  const entries = Tree.filter((entry) => entry !== void 0 && entry !== null);
+  entries.forEach((entry, index) => {
+    const prefix = index === entries.length - 1 ? `\u2514\u2500` : `\u251C\u2500`;
+    log(`${padding}${prefix} ${entry}`);
+  });
+};
+
+// src/@modules/@database/CreateQuery.ts
+var CreateQuery = function({ Query, Parameters }) {
+  try {
+    const parameters = Array.isArray(Parameters) ? Parameters : [];
+    const statement = Bootstrap.Database.prepare(Query);
+    return /^\s*select/i.test(Query) ? statement.all(...parameters) : statement.run(...parameters);
+  } catch (error) {
+    SetWarning({ Message: `Database Query Error: ${error instanceof Error ? error.stack ?? error.message : String(error)}` });
+    throw error;
+  }
 };
 
 // src/@parsers/@ugc/GetZonePolygon.ts
@@ -14979,7 +15008,10 @@ var getZonePolygon = ({ Zones, Union }) => {
   const list = [...new Set(Zones.map((z) => z.trim()))].filter((z) => z === "XX000" ? false : true);
   if (list.length === 0) return null;
   const placeholders = list.map(() => "?").join(",");
-  const rows = Bootstrap.Database.prepare(`SELECT geometry FROM shapefiles WHERE id IN (${placeholders})`).all(...list);
+  const rows = CreateQuery({
+    Query: `SELECT geometry FROM shapefiles WHERE id IN (${placeholders})`,
+    Parameters: list
+  });
   const polygons = [];
   for (const row of rows) {
     if (!row?.geometry) continue;
@@ -15052,7 +15084,7 @@ var getZonePolygon = ({ Zones, Union }) => {
 
 // src/@building/GetEventGeometry.ts
 var GetEventGeometry = (event) => {
-  const settings = GetSettings();
+  const settings = Bootstrap.Settings;
   const generated = event?.properties?.geocode?.polygon ?? null;
   const ugc = event?.properties?.geocode?.ugc ?? null;
   let geo = {
@@ -15135,17 +15167,8 @@ var SetTimeoutAction = ({ Identifier, AddTime, Max, Interval, Expire }) => {
   return { Limited: false };
 };
 
-// src/@modules/@utilities/SetWarning.ts
-var SetWarning = ({ Title, Message }) => {
-  const settings = Bootstrap.Settings;
-  Bootstrap.Listener.emit(`log`, `${Title ?? `[${Bootstrap.Colors.Yellow}@atmosx/product-parser${Bootstrap.Colors.Reset}]`} ${Message}`);
-  if (settings.EnableJournal) {
-    console.log(`${Title ?? `[${Bootstrap.Colors.Yellow}@atmosx/product-parser${Bootstrap.Colors.Reset}]`} ${Message}`);
-  }
-};
-
 // src/@modules/@utilities/SetEventEmit.ts
-var SetEventEmit = ({ Event, Metadata, Message, Limited }) => {
+var SetEventEmit = ({ Event, Metadata, Message, Limited, Tree }) => {
   if (Limited) {
     const isTimeout = SetTimeoutAction({ Identifier: `event.${Event}`, AddTime: true, Max: 1, Interval: 1 });
     if (isTimeout.Limited) return;
@@ -15155,7 +15178,7 @@ var SetEventEmit = ({ Event, Metadata, Message, Limited }) => {
     Bootstrap.Listener.emit(`*`, { event: Event, data: Metadata });
   }
   if (Message) {
-    SetWarning({ Message });
+    SetWarning({ Message, Tree });
   }
 };
 
@@ -16853,9 +16876,7 @@ var getLocations = async (zones) => {
     }
   }
   if (missing.length > 0) {
-    const rows = await Bootstrap.Database.prepare(
-      `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => "?").join(",")})`
-    ).all(...missing);
+    const rows = CreateQuery({ Query: `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => "?").join(",")})`, Parameters: missing });
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
       setCache({ Key: r.id, Value: [r.location] });
@@ -17961,10 +17982,10 @@ var GetEventNodes = async (event) => {
     return { nodes: [], filtered: false, updated: Date.now() };
   }
   for (const node of nodes) {
-    const [longitude, latitude] = node.geometry.coordinates;
+    const [longitude, latitude] = node?.geometry?.coordinates ?? [];
     const getPoint = GetShapeNearestPoint({ Coordinates: geometry.coordinates, Point: [longitude, latitude] });
     const miles = getPoint.Distance ?? null;
-    const kilometers = Number((miles * 1.609344).toFixed(3));
+    const kilometers = miles != null ? Number((miles * 1.609344).toFixed(3)) : null;
     const info = {
       id: node.properties?.identifier,
       coordinates: [longitude, latitude],
@@ -18030,8 +18051,8 @@ var MakeEvents = async (events) => {
     const features = Bootstrap.Cache.Events.features;
     const getHash = event.properties.metadata.hash;
     const getTracking = event.properties.metadata.tracking;
-    const isEntry = Bootstrap.Cache.Hashes?.find((hash) => hash.tracking === getTracking);
-    const isHashed = isEntry?.hashes?.includes(getHash) ?? false;
+    const isEntry = Bootstrap.Cache.Hashes?.find((hash) => hash.Tracking === getTracking);
+    const isHashed = isEntry?.Hashes?.includes(getHash) ?? false;
     const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering;
     const getNodes = Bootstrap.Cache.Nodes.features;
     const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
@@ -18052,6 +18073,7 @@ var MakeEvents = async (events) => {
           Type: getFeature ? `Updated` : `New`,
           Event: event
         },
+        Tree: Bootstrap.Settings.EnhancedEventJournaling ? GetStringText(event).split("\n").filter((line) => line.trim() !== "") : [],
         Message: `${isLocal}[${getFeature ? "Updated" : "New"}] ${event.properties.event} (${event.properties.status}) (${event.properties.metadata.tracking})`
       });
     }
@@ -18118,7 +18140,7 @@ var RemoveEvent = async ({ Event, IsTimeBasedExpiration }) => {
       status: Event.properties.status
     });
     Bootstrap.Cache.Events.features.splice(Bootstrap.Cache.Events.features.indexOf(isTrackingEventLogged), 1);
-    Bootstrap.Cache.Hashes = Bootstrap.Cache.Hashes.filter((hash) => hash.tracking !== gTracking);
+    Bootstrap.Cache.Hashes = Bootstrap.Cache.Hashes.filter((hash) => hash.Tracking !== gTracking);
     if (!isStatement) {
       SetEventEmit({
         Event: `onEventStatus`,
@@ -18232,14 +18254,15 @@ var GetEventAttachments = (event) => {
         const lines = [`Northern`, `Southern`, `Eastern`, `Western`, `Inland`, `Costal`, `County`];
         const county = location?.split(",")[0]?.trim().replace(new RegExp(`^(${lines.join("|")}) `), "");
         const state = EnumStates[location?.split(",")[1]?.trim()];
-        const feeds = Bootstrap.Database.prepare(`SELECT * FROM broadcastify WHERE state = ? AND county = ?`).all(state, county).sort((a, b2) => {
+        const feeds = CreateQuery({ Query: `SELECT * FROM broadcastify WHERE state = ? AND county = ?`, Parameters: [state, county] });
+        const so = feeds.sort((a, b2) => {
           const typeOrder = ["Other", "Public Safety"];
           const indexA = typeOrder.indexOf(a.type);
           const indexB = typeOrder.indexOf(b2.type);
           return indexA - indexB;
         });
         const tags = Bootstrap.Settings.BroadcastifySettings.BroadcastifyTags;
-        const filtered = feeds.filter((feed) => tags.includes(feed.type));
+        const filtered = so.filter((feed) => tags.includes(feed.type));
         if (filtered.length > 0) {
           filtered.map((filtered2) => {
             if (!attachments.some((a) => a.link === filtered2.link)) {
@@ -18265,7 +18288,7 @@ var ValidateEvents = async (events) => {
   for (const key in megered) {
     const setting = megered[key];
     if (Array.isArray(setting)) {
-      sets[key] = new Set(setting.map((item) => item.toLowerCase()));
+      sets[key] = new Set(setting.map((item) => String(item).toLowerCase()));
     }
     if (typeof setting === "boolean") {
       bools[key] = setting;
@@ -18425,10 +18448,11 @@ var GetRandomEvent = () => {
 
 // src/@core/QueryStanza.ts
 var QueryStanza = async ({ Search, Max }) => {
-  const get = await Bootstrap.Database.prepare(
-    `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`
-  ).all(`%${Search}%`, Max ?? 100);
-  const events = get.map((row) => JSON.parse(row.stanza));
+  const query = CreateQuery({
+    Query: `SELECT * FROM stanzas WHERE stanza LIKE ? LIMIT ?`,
+    Parameters: [`%${Search}%`, Max ?? 100]
+  });
+  const events = query.map((row) => JSON.parse(row.stanza));
   return events;
 };
 
@@ -21289,13 +21313,13 @@ var ImportStanza = async (Stanza) => {
     if (!settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
       return;
     }
-    Bootstrap.Database.prepare(`INSERT OR IGNORE INTO stanzas (type, stanza, issued) VALUES (?, ?, ?)`).run(Stanza.Type.Type, JSON.stringify(Stanza), Stanza.Attributes.issue);
-    const count = Bootstrap.Database.prepare(`SELECT COUNT(*) as total FROM stanzas`).get();
+    CreateQuery({ Query: `INSERT OR IGNORE INTO stanzas (type, stanza, issued) VALUES (?, ?, ?)`, Parameters: [Stanza.Type.Type, JSON.stringify(Stanza), Stanza.Attributes.issue] });
+    const count = CreateQuery({ Query: `SELECT COUNT(*) as total FROM stanzas` });
     const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxDatabaseHistory;
     if (count.total > max) {
       const toDelete = count.total - max;
       if (toDelete > 0) {
-        Bootstrap.Database.prepare(`DELETE FROM stanzas WHERE id IN (SELECT id FROM stanzas ORDER BY issued ASC LIMIT ?)`).run(toDelete);
+        CreateQuery({ Query: `DELETE FROM stanzas WHERE id IN (SELECT id FROM stanzas ORDER BY issued ASC LIMIT ?)`, Parameters: [toDelete] });
       }
     }
   } catch (error) {
@@ -21402,8 +21426,8 @@ var import_jszip = __toESM(require_lib3());
 var import_shapefile = __toESM(require_shapefile_node());
 var ImportShapefiles = async () => {
   try {
-    const tShapefiles = Bootstrap.Database.prepare(`SELECT COUNT(*) AS count FROM shapefiles`).get().count;
-    if (tShapefiles === 0) {
+    const tShapefiles = CreateQuery({ Query: `SELECT COUNT(*) AS count FROM shapefiles` })[0];
+    if (tShapefiles.count === 0) {
       await SetSleep({ Timeout: 1e3 });
       for (const shapefile of EnumShapefiles) {
         const response2 = await fetch(shapefile.link);
@@ -21426,7 +21450,7 @@ var ImportShapefiles = async () => {
           filepath
         );
         SetWarning({ Message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` });
-        const insert = Bootstrap.Database.prepare(`INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`);
+        const insert = `INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`;
         const transaction = Bootstrap.Database.transaction((entries) => {
           for (const entry of entries) {
             const { properties, geometry } = entry;
@@ -21444,7 +21468,7 @@ var ImportShapefiles = async () => {
               final2 = properties.ID ?? properties.WFO;
               location = properties.NAME;
             }
-            insert.run(final2, location, JSON.stringify(geometry));
+            CreateQuery({ Query: insert, Parameters: [final2, location, JSON.stringify(geometry)] });
           }
         });
         (0, import_fs4.unlinkSync)(`${filepath}.shp`);
@@ -21463,24 +21487,16 @@ var ImportShapefiles = async () => {
 // src/@modules/@database/ImportBroadcastify.ts
 var ImportBroadcastify = async () => {
   const settings = Bootstrap.Settings;
-  const isBroadcastifyImported = Bootstrap.Database.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';`).get();
-  if (!settings.BroadcastifySettings.BroadcastifyAttachments) {
-    return;
-  }
-  if (isBroadcastifyImported) {
-    return;
-  }
   const broadcastify = await CreateHttp({
     URL: settings.BroadcastifySettings.BroadcastifyDatabase,
     Timeout: 5e3
   });
   if (!broadcastify.error) {
-    Bootstrap.Database.prepare(`CREATE TABLE broadcastify ( state TEXT, county TEXT, feed TEXT, type TEXT, link TEXT);`).run();
     const states = JSON.parse(broadcastify.message);
-    const insert = Bootstrap.Database.prepare(`INSERT INTO broadcastify (state, county, feed, type, link) VALUES (?, ?, ?, ?, ?)`);
+    const insert = `INSERT INTO broadcastify (state, county, feed, type, link) VALUES (?, ?, ?, ?, ?)`;
     const transaction = Bootstrap.Database.transaction((rows) => {
       for (const row of rows) {
-        insert.run(row);
+        CreateQuery({ Query: insert, Parameters: row });
       }
     });
     const batch = [];
@@ -21517,15 +21533,20 @@ var InitializeDatabase = async () => {
       SetWarning({ Message: `Creating new database at ${settings.Database}` });
     }
     Bootstrap.Database = new import_better_sqlite3.default(settings.Database);
-    Bootstrap.Database.prepare(`CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )`).run();
-    Bootstrap.Database.prepare(`CREATE TABLE IF NOT EXISTS shapefiles (id TEXT PRIMARY KEY, location TEXT, geometry TEXT)`).run();
-    const isNeedingShapefiles = Bootstrap.Database.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='shapefiles';`).get();
-    const isNeedingBroadcastify = Bootstrap.Database.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';`).get();
-    if (!isNeedingShapefiles || !isNeedingBroadcastify) {
+    CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )` });
+    const isNeedingShapefiles = CreateQuery({ Query: `SELECT name FROM sqlite_master WHERE type='table' AND name='shapefiles';` });
+    const isNeedingBroadcastify = CreateQuery({ Query: `SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';` });
+    if (isNeedingShapefiles.length === 0 || isNeedingBroadcastify.length === 0) {
+      CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS broadcastify ( state TEXT, county TEXT, feed TEXT, type TEXT, link TEXT)` });
+      CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS shapefiles ( id TEXT PRIMARY KEY, location TEXT, geometry TEXT )` });
       SetWarning({ Message: `Required database tables are currently building, please ${Bootstrap.Colors.Red}DO NOT${Bootstrap.Colors.Reset} close your terminal. The building will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` });
-      await ImportBroadcastify();
-      await ImportShapefiles();
-      SetWarning({ Message: `Building has completed, you can now continue or close the terminal` });
+      if (isNeedingBroadcastify.length === 0) {
+        await ImportBroadcastify();
+      }
+      if (isNeedingShapefiles.length === 0) {
+        await ImportShapefiles();
+      }
+      SetWarning({ Message: `Database initialization complete. You may now close your terminal or continue using the application.` });
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -21540,7 +21561,10 @@ var GetCachedEvents = async () => {
     const tick = performance.now();
     if (settings.NOAAWeatherWireServiceSettings.CacheSettings.Enabled) {
       const max = settings.NOAAWeatherWireServiceSettings.CacheSettings.MaxRetentionHistory ?? 500;
-      const get = await Bootstrap.Database.prepare(`SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`).all(max);
+      const get = await CreateQuery({
+        Query: `SELECT * FROM stanzas ORDER BY rowid DESC LIMIT ?`,
+        Parameters: [max]
+      });
       SetWarning({ Message: `Fetched ${get.length} cached stanzas from the database in ${Math.floor(performance.now() - tick)} ms` });
       let events = get.map((row) => JSON.parse(row.stanza)).filter((stanza) => {
         if (!stanza) {
@@ -22285,28 +22309,40 @@ var GetVersion = () => {
 // src/index.ts
 var Manager = class {
   constructor(settings) {
-    this.trycatch();
+    this.ErrorHandler();
     StartService(settings);
   }
   on(event, callback) {
     CreateListener(event, callback);
   }
-  trycatch() {
-    process.on("uncaughtException", (err) => {
-      const ignored = ["ETIMEDOUT", "ECONNRESET", "EHOSTUNREACH", "ENOTFOUND", "ECONNREFUSED", "EPIPE", "EADDRINUSE", "EALREADY", "EACCES", "EAGAIN", "EHOSTDOWN", "STARTTLS_FAILURE"];
-      if (ignored.includes(err?.code)) {
+  ErrorHandler() {
+    process.on("uncaughtException", (error) => {
+      const _IGNORED = [
+        "ETIMEDOUT",
+        "ECONNRESET",
+        "EHOSTUNREACH",
+        "ENOTFOUND",
+        "ECONNREFUSED",
+        "EPIPE",
+        "EADDRINUSE",
+        "EALREADY",
+        "EACCES",
+        "EAGAIN",
+        "EHOSTDOWN",
+        "STARTTLS_FAILURE"
+      ];
+      if (_IGNORED.includes(error?.code)) {
         SetEventEmit({
           Event: `onServiceStatus`,
           Metadata: {
-            Message: `Ignored Critical Error: ${err?.code ?? "Unknown error code"}. This may indicate a connection issue. Attempting to continue...`,
+            Message: `Ignored Critical Error: ${error?.code ?? "Unknown error code"}. This may indicate a connection issue. Attempting to continue...`,
             Data: {},
             Type: `error`,
             Error: true
           }
         });
-        return;
       }
-      SetWarning({ Message: `Uncaught Exception: ${err instanceof Error ? err.stack ?? err.message : String(err)}` });
+      SetWarning({ Message: `Uncaught Exception: ${error instanceof Error ? error.stack ?? error.message : String(error)}` });
     });
   }
 };

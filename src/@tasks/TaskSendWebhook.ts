@@ -52,7 +52,7 @@ export const TaskSendWebhook = async function({ Event, Webhook, Attachments }: T
     const newEmbed = {
         title: `${properties.event} (${properties.status})`,
         description: GetEmebedText(Event),
-        fields: [],
+        fields: [] as { name: string, value: string }[],
         color: 16711680,
         timestamp: new Date().toISOString(),
         footer: { text: Webhook.Title ?? `AtmosphericX` }

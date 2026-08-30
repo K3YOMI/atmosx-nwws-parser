@@ -17,12 +17,12 @@
 
 */
 
-
 import { TypeSettings } from "Types/Settings"
 import { Bootstrap } from "@Bootstrap"
 import { SetWarning } from "@Utilities/SetWarning"
 import { ImportShapefiles } from "@Database/ImportShapefiles"
 import { ImportBroadcastify } from "@Database/ImportBroadcastify"
+import { CreateQuery } from "@Database/CreateQuery"
 import { existsSync, writeFileSync } from "fs"
 import sqlite3 from "better-sqlite3"
 
@@ -34,25 +34,24 @@ export const InitializeDatabase = async (): Promise<void> => {
             SetWarning({ Message: `Creating new database at ${settings.Database}` })
         }
         Bootstrap.Database = new sqlite3(settings.Database);
-        Bootstrap.Database
-            .prepare(`CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )`)
-            .run();
-        Bootstrap.Database
-            .prepare(`CREATE TABLE IF NOT EXISTS shapefiles (id TEXT PRIMARY KEY, location TEXT, geometry TEXT)`)
-            .run();
-        const isNeedingShapefiles = Bootstrap.Database
-            .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='shapefiles';`)
-            .get();
-        const isNeedingBroadcastify = Bootstrap.Database
-            .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';`)
-            .get();
-
-        if (!isNeedingShapefiles || !isNeedingBroadcastify) {
+        CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )` })
+        const isNeedingShapefiles = CreateQuery({ Query: `SELECT name FROM sqlite_master WHERE type='table' AND name='shapefiles';` }) as { name: string }[];
+        const isNeedingBroadcastify = CreateQuery({ Query: `SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';` }) as { name: string }[];
+        
+        if (isNeedingShapefiles.length === 0 || isNeedingBroadcastify.length === 0) {
+            CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS broadcastify ( state TEXT, county TEXT, feed TEXT, type TEXT, link TEXT)` })
+            CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS shapefiles ( id TEXT PRIMARY KEY, location TEXT, geometry TEXT )` })
             SetWarning({Message: `Required database tables are currently building, please ${Bootstrap.Colors.Red}DO NOT${Bootstrap.Colors.Reset} close your terminal. The building will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` })
-            await ImportBroadcastify();
-            await ImportShapefiles();
-            SetWarning({ Message: `Building has completed, you can now continue or close the terminal`})
+            if (isNeedingBroadcastify.length === 0) {
+                await ImportBroadcastify();
+            }
+            if (isNeedingShapefiles.length === 0) {
+                await ImportShapefiles();
+            }
+            SetWarning({ Message: `Database initialization complete. You may now close your terminal or continue using the application.` })
         }
+
+
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         SetWarning({ Message: `An error occurred while initializing the database: ${message}` })

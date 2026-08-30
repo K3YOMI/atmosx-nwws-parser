@@ -51,7 +51,7 @@ export const ParseAPI = async (Stanza: TypeStanzaCompiled): Promise<void> => {
                     feature?.properties?.areaDesc?.split(';')
                     ?.map((location: string) => location.match(/,\s*([A-Z]{2})\b/)?.[1])
                     .filter(Boolean) ?? []
-                )],
+                )] as string[],
                 description: feature?.properties?.description ?? null,
                 attributes: feature?.properties?.attributes ?? {},
                 geocode: {
