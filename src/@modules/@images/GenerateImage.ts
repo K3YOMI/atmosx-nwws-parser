@@ -29,7 +29,7 @@ import { GetParsedBoundary } from "@Image/GetParsedBoundary"
 import { GenerateEventPolygons } from "@Image/GenerateEventPolygons"
 import { GetGeometryBounds } from "@Image/GetGeometryBounds"
 import { geoCentroid, geoMercator, geoPath } from "d3-geo"
-import { mkdir} from "fs/promises"
+import { mkdir } from "fs/promises"
 import { join } from "path";
 import sharp from "sharp"
 
@@ -47,7 +47,7 @@ interface GenerateGraphicOptions {
     Height?: number
 }
 
-export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 150, MinZoom = 1.6, Width = 1920, Height = 1080 }: GenerateGraphicOptions): Promise<string> => {
+export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0.4, Width = 1920, Height = 1080 }: GenerateGraphicOptions): Promise<string> => {
     let polygons: GeoJSON.Polygon | GeoJSON.MultiPolygon | null
   
     const { Directory, Name } = File ?? {};
@@ -83,16 +83,15 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 150, Mi
     const iPath = geoPath().projection(iMode);
     const jFeatures: GeoJSON.Feature[] = [...gStatesLines, ...gCountyLines];
     const jCollection: GeoJSON.FeatureCollection = { type: `FeatureCollection`, features: jFeatures };
-
-    const gPolygons = await Promise.all(
+    const gPolygons = (await Promise.all(
         gEvents.map(async (event: TypeEvent) => {
             const zones = event.properties?.geocode?.ugc ?? [];
-            if (zones.length === 0) return null;
+            if (zones?.length === 0) return null;
             return {event, polygon: await GetUnionPolygon({ 
                 Polygons: polygons ? [polygons.coordinates] : [await GetEventGeometry({ Event: event }).coordinates],
             })};
         })
-    );
+    )).filter(Boolean);
 
     if (polygons) {
         const [centerLon, centerLat] = geoCentroid(NormalizeD3Polygon(polygons));
@@ -100,14 +99,13 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 150, Mi
         const [[x1, y1], [x2, y2]] = geoPath().projection(iMode).bounds(jCollection);
         const scaleX = Width / (x2 - x1);
         const scaleY = Height / (y2 - y1);
-        const scale = 3.5;
+        const scale = 1.5;
         iMode.scale(Math.min(scaleX, scaleY) * scale);
     } else { 
         iMode.fitExtent([[50, 50], [Width - 50, Height - 50]], jCollection);
     }
 
-    const ePathing = gPolygons.map(({ event, polygon: polys }, index) => {
-        // based on the event name length, give it a custom hex color for the fill, and a custom hex color for the border
+    const ePathing = gPolygons?.map(({ event, polygon: polys }, index) => {
         const thex = event?.properties?.event ? `#${event.properties.event.split(``).reduce((hash, char) => {
             return ((hash << 5) - hash + char.charCodeAt(0)) | 0 }, 0).toString(16).slice(-6).padStart(6, `0`)}` : `#ff0000`;
         return GenerateEventPolygons({ 
@@ -142,8 +140,6 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 150, Mi
             </g>
         </svg>
     `;
-
- 
 
     const dir = Directory ?? Bootstrap.Settings?.GlobalSettings?.ArchiveSettings?.ImageDirectory;
     const name = Name ?? Event?.properties?.event ?? `img`;

@@ -19,35 +19,32 @@
 
 export const GetPolygonFromProduct = (message: string): number[][] => {
     const coordinates: number[][] = [];
-    const match = message.match(
-        /LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i
-    );
+    const match = message.match(/LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i);
     if (!match) return coordinates;
     const text = match[1];
     const values = text.match(/\d{4,8}/g);
     if (!values) return coordinates;
-
     if (values.every(v => v.length === 8)) {
         for (const value of values) {
             const lat = parseInt(value.slice(0, 4), 10) / 100;
-            const lon = -parseInt(value.slice(4, 8), 10) / 100;
-            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+            const lon = -(100 + parseInt(value.slice(4, 8), 10) / 100);
+            if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 ) {
                 coordinates.push([lon, lat]);
             }
         }
     }
-
-    else {
+    else if (values.every(v => v.length === 4)) {
         for (let i = 0; i + 1 < values.length; i += 2) {
             const lat = parseInt(values[i], 10) / 100;
             const lon = -parseInt(values[i + 1], 10) / 100;
-            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+            if ( Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 ) {
                 coordinates.push([lon, lat]);
             }
         }
     }
-    if (coordinates.length > 2) {
+    if (coordinates.length > 2 && ( coordinates[0][0] !== coordinates[coordinates.length - 1][0] || coordinates[0][1] !== coordinates[coordinates.length - 1][1])) {
         coordinates.push([...coordinates[0]]);
     }
     return coordinates;
 };
+

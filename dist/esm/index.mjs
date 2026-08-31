@@ -18051,7 +18051,7 @@ var GetGeometryBounds = ({ Geometry, Padding }) => {
 import { mkdir } from "fs/promises";
 import { join as join3 } from "path";
 import sharp from "sharp";
-var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 150, MinZoom = 1.6, Width = 1920, Height = 1080 }) => {
+var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0.4, Width = 1920, Height = 1080 }) => {
   let polygons;
   const { Directory, Name } = File ?? {};
   const states = Event?.properties?.geocode?.ugc?.[0]?.match(/^([A-Z]{2})[CZ](\d{3})$/)[1]?.toUpperCase();
@@ -18086,27 +18086,27 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 150, MinZoom = 1
   const iPath = path_default().projection(iMode);
   const jFeatures = [...gStatesLines, ...gCountyLines];
   const jCollection = { type: `FeatureCollection`, features: jFeatures };
-  const gPolygons = await Promise.all(
+  const gPolygons = (await Promise.all(
     gEvents.map(async (event) => {
       const zones = event.properties?.geocode?.ugc ?? [];
-      if (zones.length === 0) return null;
+      if (zones?.length === 0) return null;
       return { event, polygon: await GetUnionPolygon({
         Polygons: polygons ? [polygons.coordinates] : [await GetEventGeometry({ Event: event }).coordinates]
       }) };
     })
-  );
+  )).filter(Boolean);
   if (polygons) {
     const [centerLon, centerLat] = centroid_default(NormalizeD3Polygon(polygons));
     iMode.center([centerLon, centerLat]).translate([Width / 2, Height / 2]).scale(MinZoom);
     const [[x12, y12], [x2, y2]] = path_default().projection(iMode).bounds(jCollection);
     const scaleX = Width / (x2 - x12);
     const scaleY = Height / (y2 - y12);
-    const scale = 3.5;
+    const scale = 1.5;
     iMode.scale(Math.min(scaleX, scaleY) * scale);
   } else {
     iMode.fitExtent([[50, 50], [Width - 50, Height - 50]], jCollection);
   }
-  const ePathing = gPolygons.map(({ event, polygon: polys }, index) => {
+  const ePathing = gPolygons?.map(({ event, polygon: polys }, index) => {
     const thex = event?.properties?.event ? `#${event.properties.event.split(``).reduce((hash, char) => {
       return (hash << 5) - hash + char.charCodeAt(0) | 0;
     }, 0).toString(16).slice(-6).padStart(6, `0`)}` : `#ff0000`;
@@ -18668,9 +18668,7 @@ var GetDescriptionFromProduct = ({ Message, Handle }) => {
 // src/@parsers/@text/GetPolygonFromProduct.ts
 var GetPolygonFromProduct = (message) => {
   const coordinates = [];
-  const match = message.match(
-    /LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i
-  );
+  const match = message.match(/LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i);
   if (!match) return coordinates;
   const text = match[1];
   const values = text.match(/\d{4,8}/g);
@@ -18678,21 +18676,21 @@ var GetPolygonFromProduct = (message) => {
   if (values.every((v2) => v2.length === 8)) {
     for (const value of values) {
       const lat = parseInt(value.slice(0, 4), 10) / 100;
-      const lon = -parseInt(value.slice(4, 8), 10) / 100;
-      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      const lon = -(100 + parseInt(value.slice(4, 8), 10) / 100);
+      if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
         coordinates.push([lon, lat]);
       }
     }
-  } else {
+  } else if (values.every((v2) => v2.length === 4)) {
     for (let i = 0; i + 1 < values.length; i += 2) {
       const lat = parseInt(values[i], 10) / 100;
       const lon = -parseInt(values[i + 1], 10) / 100;
-      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
         coordinates.push([lon, lat]);
       }
     }
   }
-  if (coordinates.length > 2) {
+  if (coordinates.length > 2 && (coordinates[0][0] !== coordinates[coordinates.length - 1][0] || coordinates[0][1] !== coordinates[coordinates.length - 1][1])) {
     coordinates.push([...coordinates[0]]);
   }
   return coordinates;
