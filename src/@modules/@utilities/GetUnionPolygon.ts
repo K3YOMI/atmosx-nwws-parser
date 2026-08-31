@@ -17,17 +17,20 @@
 
 */
 
-import { Bootstrap } from "@Bootstrap"
+import { union } from "polygon-clipping";
 
-interface SetCacheOptions {
-    Key: string
-    Value: string[]
+interface GetUnionPolygonOptions {
+    Polygons: number[][][][] | null;
 }
 
-export const SetCache = ({ Key, Value }: SetCacheOptions) => {
-	if (Bootstrap.Cache.UGC.size >= 5000) {
-        const firstKey = Bootstrap.Cache.UGC.keys().next().value;
-        Bootstrap.Cache.UGC.delete(firstKey);
+export const GetUnionPolygon = ({ Polygons }: GetUnionPolygonOptions): GeoJSON.MultiPolygon | null => {
+    if (!Polygons || Polygons.length === 0) {
+        return null;
     }
-    Bootstrap.Cache.UGC.set(Key, Value);
+    const unionFn = union as unknown as (...polygons: number[][][][]) => number[][][][];
+    const unioned = unionFn(...Polygons)
+    return {
+        type: `MultiPolygon`,
+        coordinates: unioned
+    }
 };

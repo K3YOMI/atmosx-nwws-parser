@@ -53,7 +53,7 @@ export const ImportShapefiles = async (): Promise<void> => {
                     filepath,
                 );
                 SetWarning({ Message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` })
-                const insert = `INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`;
+                const insert = `INSERT INTO shapefiles (id, location, source, geometry) VALUES (?, ?, ?, ?)`;
                 const transaction = Bootstrap.Database.transaction((entries: any[]) => {
                     for (const entry of entries) {
                         const { properties, geometry } = entry;
@@ -74,7 +74,7 @@ export const ImportShapefiles = async (): Promise<void> => {
                             final = properties.ID ?? properties.WFO
                             location = properties.NAME;
                         }
-                        CreateQuery({ Query: insert, Parameters: [final, location, JSON.stringify(geometry)] })
+                        CreateQuery({ Query: insert, Parameters: [final, location, `${shapefile.name}_${shapefile.id}`, JSON.stringify(geometry)] })
                     }
                 })
                 unlinkSync(`${filepath}.shp`)

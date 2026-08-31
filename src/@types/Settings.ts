@@ -23,6 +23,7 @@ type TypeTimezones = string | "CST" | "CDT" | "MDT" | "MST" | "EST" | "EDT" | "H
 
 export type TypeSettings = {
     Database: string
+    DebugDisableAllEvents: boolean
     EnableWireService: boolean
     EnableJournal: boolean
     EnableDebugging: boolean
@@ -56,6 +57,9 @@ export type TypeSettings = {
         BroadcastifyDatabase: string
         BroadcastifyTags: string[]
     },
+    BoundarySettings: {
+        BoundaryDatabase: string
+    },
     NotifyServer: {
         Enabled: boolean
         Server: string
@@ -76,7 +80,6 @@ export type TypeSettings = {
         DisableGeometryParsing: boolean
         UseShapefileCoordinates: boolean
         SPCWatchesOnly: boolean
-        ShapefileSkipPoints: number
         NodeTTL: number
         NodeMaxDistance: number
         EventFiltering: {
@@ -91,6 +94,7 @@ export type TypeSettings = {
         },
         ArchiveSettings: {
             TTL: number
+            ImageDirectory: string
             JSONDirectory: string
             TextDirectory: string
             EasDirectory: string

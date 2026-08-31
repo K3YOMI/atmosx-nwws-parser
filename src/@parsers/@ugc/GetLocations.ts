@@ -17,11 +17,11 @@
 
 */
 
-import { CreateQuery } from "@Database/CreateQuery";
-import { getCache } from "@ParsingUGC/GetCache"
-import { setCache } from "@ParsingUGC/SetCache"
+import { Bootstrap } from "@Bootstrap"
+import { GetCache } from "@ParsingUGC/GetCache"
+import { SetCache } from "@ParsingUGC/SetCache"
 
-export const getLocations = async (zones: string[]): Promise<string[]> => {
+export const GetLocations = async (zones: string[]): Promise<string[]> => {
     const uniqueZones = Array.from(new Set(zones));
 
     const results: string[] = [];
@@ -29,7 +29,7 @@ export const getLocations = async (zones: string[]): Promise<string[]> => {
 
     for (let i = 0; i < uniqueZones.length; i++) {
         const zone = uniqueZones[i];
-        const cached = getCache(zone);
+        const cached = GetCache(zone);
 
         if (cached) {
             for (let j = 0; j < cached.length; j++) {
@@ -41,10 +41,15 @@ export const getLocations = async (zones: string[]): Promise<string[]> => {
     }
 
     if (missing.length > 0) {
-        const rows = CreateQuery({ Query: `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => '?').join(',')})`, Parameters: missing }) as { id: string, location: string }[];
+        const rows = await Bootstrap.Database
+            .prepare(
+                `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => '?').join(',')})`
+            )
+            .all(...missing);
+
         for (let i = 0; i < rows.length; i++) {
             const r = rows[i] as any;
-            setCache({ Key: r.id, Value: [r.location] });
+            SetCache({ Key: r.id, Value: [r.location] });
             results.push(r.location);
         }
     }

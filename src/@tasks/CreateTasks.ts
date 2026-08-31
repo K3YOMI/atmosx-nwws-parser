@@ -29,6 +29,7 @@ import { TaskGenerateText } from "@Tasks/TaskGenerateText"
 import { TaskGenerateJSON } from "@Tasks/TaskGenerateJSON"
 import { TaskSendNTFY } from "@Tasks/TaskSendNTFY"
 import { TaskSendWebhook } from "@Tasks/TaskSendWebhook"
+import { GenerateGraphic } from "@Image/GenerateImage"
 import { QueueManager } from "@Utilities/QueueManager"
 
 const Webhooks = new QueueManager({ Concurrency: 1 });
@@ -39,7 +40,6 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
     const settings = Bootstrap.Settings as TypeSettings;
     const { ActionSettings, GlobalSettings, NotifyServer } = settings;
     const actions = ActionSettings as TypeActions[];
-    
     for (const event of events) {
         const { properties } = event;
         const isActioning = Array.isArray(actions) && actions.length > 0;
@@ -48,9 +48,10 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
         for (const action of actions) {
             const { Events, Webhook, NotificationServer, Uploads } = action;
             const isValidAction = GetMatched({ Strings: Events, String: properties.event });
+       
             if ((Events.length == 0 || isValidAction)) {
                 const a = performance.now();
-                const [eas, text, json] = await Promise.all([
+                const [eas, text, json, image] = await Promise.all([
                     Uploads?.EAS ? TaskGenerateAudio({
                         Filename: (`${properties.event}_${properties.metadata.tracking}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
                         Description: properties.description,
@@ -68,7 +69,16 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
                         Directory: GlobalSettings?.ArchiveSettings?.JSONDirectory,
                         Filename: (`${properties.event}_${properties.metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
                     }).then((result) => { return result; }) : Promise.resolve(null),
+
+                    Uploads?.IMAGE ? GenerateGraphic({
+                        Event: event,
+                        File: {
+                            Directory: GlobalSettings?.ArchiveSettings?.ImageDirectory,
+                            Name: (`${properties.event}_${properties.metadata.tracking}.png`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+                        }
+                    }).then((result) => { return result; }) : Promise.resolve(null)
                 ]);
+           
 
                 SetDebug({ Title: `Tasks/Generative`, Message: `${Math.round(performance.now() - a)}ms` })
 
@@ -95,6 +105,7 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
                             Ratelimit: Webhook?.Ratelimit
                         },
                         Attachments: {
+                            Image: image,
                             Text: text,
                             EAS: eas,
                             Json: json

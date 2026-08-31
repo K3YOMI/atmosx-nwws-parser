@@ -21,7 +21,7 @@ import { TypeAttributes } from "StaticTypes/Attributes"
 import { TypeStanzaCompiled } from "Types/StanzaCompiled"
 import { EnumMatches } from "@Enums/Matches"
 import { Bootstrap } from "@Bootstrap"
-import { ugcExtract } from "@ParsingUGC/UGCExtract"
+import { UGCExtract } from "@ParsingUGC/UGCExtract"
 import { GetEventProperties } from "@Building/GetEventProperties"
 import { GetEventHeader } from "@Building/GetEventHeader"
 import { GetEventTracking } from "@Building/GetEventTracking"
@@ -36,7 +36,7 @@ export const ParseUGC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
     for (const message of getMessages) {
         const tick = performance.now();
         const attributes = Stanza?.Attributes as TypeAttributes
-        const ugc = await ugcExtract(message)
+        const ugc = await UGCExtract(message)
 
         if (ugc != null ) {
             const props = GetEventProperties({ Message: message, Attributes: attributes, UGC: ugc })
@@ -54,7 +54,6 @@ export const ParseUGC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
                     event += ` (AWIPSID)`
                 }
                 isStatement = true;
-
             }
             
             Bootstrap.Cache.Parsed.push({

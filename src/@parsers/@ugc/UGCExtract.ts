@@ -21,13 +21,13 @@ import { TypeUGC } from "Types/UGC"
 import { GetHeader } from "@ParsingUGC/GetHeader"
 import { GetZones } from "@ParsingUGC/GetZones"
 import { GetExpiry } from "@ParsingUGC/GetExpiry"
-import { getLocations } from "@ParsingUGC/GetLocations"
+import { GetLocations } from "@ParsingUGC/GetLocations"
 
-export const ugcExtract = async (message: string): Promise<TypeUGC> => {
+export const UGCExtract = async (message: string): Promise<TypeUGC> => {
     const expires = GetExpiry(message)
     const head = GetHeader(message);
     const ugcs = GetZones(head);
-    const areas = await getLocations(ugcs)
+    const areas = await GetLocations(ugcs)
     if (!head || ugcs?.length == 0) return;
     return { 
         Zones: ugcs,

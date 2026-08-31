@@ -131,7 +131,7 @@ export const ValidateEvents = async (events: TypeEvent[]): Promise<void> => {
         const enhanced = properties.event = GetEventEnhancedName(event)
         const filtered = isFiltered(define)
         if (!filtered) {
-            event.geometry = !bools?.DisableGeometryParsing ? GetEventGeometry(event) : null;
+            event.geometry = !bools?.DisableGeometryParsing ? GetEventGeometry({ Event: event }) : null;
             properties.metadata.attachments = GetEventAttachments(event)
         }
         properties.metadata.hash = createHash("sha256").update(JSON.stringify(pre)).digest("hex")  

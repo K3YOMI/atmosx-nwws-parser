@@ -22,7 +22,7 @@ import { EnumEnhanced } from "@Enums/Enhanced"
 
 export const GetEventEnhancedName = (event: TypeEvent): string => {
     let name = event?.properties?.event;
-    const damage = event?.properties?.parameters?.damage_threat
+    const damage = event?.properties?.parameters?.damage_threat ?? event?.properties?.parameters?.flood_threat
     const tornado = event?.properties?.parameters?.tornado_threat;
     const pdswatch = event?.properties?.watch_parameters?.pds_watch;
     const description = event?.properties?.description?.toLowerCase()

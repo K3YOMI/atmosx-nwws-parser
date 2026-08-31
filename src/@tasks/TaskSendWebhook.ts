@@ -33,6 +33,7 @@ interface TaskSendWebhookOptions {
         Ratelimit: number;
     };
     Attachments: {
+        Image?: string;
         Text?: string;
         EAS?: string;
         Json?: string;
@@ -54,6 +55,7 @@ export const TaskSendWebhook = async function({ Event, Webhook, Attachments }: T
         description: GetEmebedText(Event),
         fields: [] as { name: string, value: string }[],
         color: 16711680,
+        thumbnail: Attachments?.Image ? { url: `attachment://${properties.event}_${properties.status}_${properties.metadata.tracking}.png` } : undefined,
         timestamp: new Date().toISOString(),
         footer: { text: Webhook.Title ?? `AtmosphericX` }
     };
@@ -73,6 +75,13 @@ export const TaskSendWebhook = async function({ Event, Webhook, Attachments }: T
             value: attachments.map(attachment => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + '...' : attachment.name}](${attachment.link})`).join('\n')
         });
     }
+
+    if (Attachments?.Image) {
+        // embed it into the embed field
+        const file = await readFile(Attachments.Image);
+        newForm.append("fUpload1", new Blob([Buffer.from(file)], {type: "image/png"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.png`)
+    }
+
     if (Attachments?.Text) {
         newForm.append("fUpload", new Blob([Buffer.from(Attachments.Text)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
     }

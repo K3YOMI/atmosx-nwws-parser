@@ -24,6 +24,7 @@ import { SetSettings } from "@Utilities/SetSettings"
 import { SetEventEmit } from "@Utilities/SetEventEmit"
 import { SetWarning } from "@Utilities/SetWarning"
 import { GenerateEASMessage } from "@EAS/GenerateEASMessage"
+import { GenerateGraphic } from "@Image/GenerateImage"
 import { SetNode } from "@Core/SetNode"
 import { GetEvents } from "@Core/GetEvents"
 import { GetNodes } from "@Core/GetNodes"
@@ -72,6 +73,7 @@ export class Manager {
                     }
                 })
             }
+            console.log(`Uncaught Exception: ${error instanceof Error ? error.stack ?? error.message : String(error)}`);
             SetWarning({Message: `Uncaught Exception: ${error instanceof Error ? error.stack ?? error.message : String(error)}`})
         })
     }
@@ -83,7 +85,8 @@ export {
     SetSettings, GetEventGeometry, ManualEvent,
     GetCleanedEvent, StopService, ClearEvents,
     StartService, SetNode, GetRandomEvent, GetVersion,
-    GetEvents, GetNodes, GenerateEASMessage, QueryStanza
+    GetEvents, GetNodes, GenerateEASMessage, GenerateGraphic, 
+    QueryStanza
 }
 
 

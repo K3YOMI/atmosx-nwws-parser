@@ -23,7 +23,7 @@ import { TypeUGC } from "Types/UGC"
 import { TypeVTEC } from "Types/VTEC"
 import { EnumExpressions } from "@Enums/Expressions"
 import { GetDescriptionFromProduct } from "@ParsingText/GetDescriptionFromProduct"
-import { getPolygonFromProduct } from "@ParsingText/GetPolygonFromProduct"
+import { GetPolygonFromProduct } from "@ParsingText/GetPolygonFromProduct"
 import { GetTextFromProduct } from "@ParsingText/GetTextFromProduct"
 import { GetEventOffice } from "@Building/GetEventOffice"
 import { GetEventTags } from "@Building/GetEventTags"
@@ -38,7 +38,7 @@ interface GetEventPropertiesOptions {
 
 export const GetEventProperties = ({ Message, Attributes, UGC, VTEC }: GetEventPropertiesOptions): TypeEventProperties => {
     const organization = Message.match(EnumExpressions.wmo)?.[0] ?? null
-    const polygons = getPolygonFromProduct(Message)
+    const polygons = GetPolygonFromProduct(Message)
     const properties = {
         locations: UGC?.Locations?.join(`; `) ?? null,
         locations_array: UGC?.Locations ?? [],

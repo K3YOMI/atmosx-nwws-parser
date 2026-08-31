@@ -24,7 +24,7 @@ import { TypeHVTEC } from "Types/HVTEC"
 import { Bootstrap } from "@Bootstrap"
 import { VTECExtract } from "@ParsingVTEC/VTECExtract"
 import { HVExtract } from "@ParsingHVTEC/HVExtract"
-import { ugcExtract } from "@ParsingUGC/UGCExtract"
+import { UGCExtract } from "@ParsingUGC/UGCExtract"
 import { GetEventProperties } from "@Building/GetEventProperties"
 import { GetEventHeader } from "@Building/GetEventHeader"
 import { GetEventTracking } from "@Building/GetEventTracking"
@@ -41,7 +41,7 @@ export const ParseVTEC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
         const attributes = Stanza?.Attributes as TypeAttributes
         const VTEC = VTECExtract(message) as TypeVTEC[];
         const hVTEC = HVExtract(message) as TypeHVTEC[];
-        const ugc = await ugcExtract(message)
+        const ugc = await UGCExtract(message)
         if (VTEC != null && ugc != null ) {
             for (const vtec of VTEC) {
                 const props = GetEventProperties({ Message: message, Attributes: attributes, UGC: ugc, VTEC: vtec })

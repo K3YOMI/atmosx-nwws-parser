@@ -17,9 +17,9 @@
 
 */
 
-import { Bootstrap } from "@Bootstrap"
 import { CreateQuery } from "@Database/CreateQuery"
-import { union } from "polygon-clipping"
+import { GetUnionPolygon } from "@Utilities/GetUnionPolygon"
+import { createHash } from "crypto";
 
 interface CoordinatesOptions {
     Zones: string[]
@@ -31,59 +31,35 @@ interface CoordinatesResponse {
     coordinates: any[]
 }
 
-export const getZonePolygon = ({ Zones, Union }: CoordinatesOptions): CoordinatesResponse | null => {
+export const GetZonePolygon = ({ Zones, Union }: CoordinatesOptions): CoordinatesResponse | null => {
     const list = [...new Set(Zones.map(z => z.trim()))].filter(z => z === 'XX000' ? false : true);
     if (list.length === 0) return null;
 
     const placeholders = list.map(() => "?").join(",");
-    const rows = CreateQuery({ 
-        Query: `SELECT geometry FROM shapefiles WHERE id IN (${placeholders})`, 
-        Parameters: list 
-    }) as { geometry: string }[];
+    const rows = CreateQuery({
+        Query: `SELECT geometry FROM shapefiles WHERE id IN (${placeholders})`,
+        Parameters: list
+    });
     const polygons: any[] = [];
+    const geometryHashes = new Set<string>();
     for (const row of rows) {
         if (!row?.geometry) continue;
+        const geometryHash = createHash("sha256").update(row.geometry).digest("hex");
+        if (geometryHashes.has(geometryHash)) continue;
+        geometryHashes.add(geometryHash);
         const geom = JSON.parse(row.geometry);
         if (geom?.type === "Polygon") {
             polygons.push(geom.coordinates);
         }
+        if (geom?.type === "MultiPolygon") {
+            for (const poly of geom.coordinates) {
+                polygons.push(poly);
+            }
+        }
     }
-
     if (polygons.length === 0) return null;
-
     if (Union) {
-        const unionFn = union as (...polys: any[]) => any;
-        const mergedCoords = unionFn(...polygons);
-        if (!mergedCoords || mergedCoords.length === 0) return null;
-        let maxArea = -1;
-        let bestPoly: any[] = [];
-        for (const poly of mergedCoords) {
-            const outerRing = poly[0];
-            let area = 0;
-            for (let i = 0; i < outerRing.length - 1; i++) {
-                const [x1, y1] = outerRing[i];
-                const [x2, y2] = outerRing[i + 1];
-                area += x1 * y2 - x2 * y1;
-            }
-            area = Math.abs(area / 2);
-            if (area > maxArea) {
-                maxArea = area;
-                bestPoly = poly;
-            }
-        }
-        if (!bestPoly || bestPoly.length === 0) return null;
-        const outerRing = bestPoly[0];
-        const skip = Math.max(1, parseInt(String(Bootstrap.Settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
-        let skipped = outerRing.filter((_: any, idx: number) => idx % skip === 0);
-        if (skipped.length < 4) {
-            skipped = outerRing.slice();
-        }
-        const first = skipped[0];
-        const last = skipped[skipped.length - 1];
-        if (!first || !last || first[0] !== last[0] || first[1] !== last[1]) {
-            skipped.push([first[0], first[1]]);
-        }
-        return {type: "Polygon", coordinates: [skipped]};
+        return GetUnionPolygon({ Polygons: polygons });
     } else {
         const multi: any[] = [];
         for (const polyCoords of polygons) {
@@ -92,22 +68,6 @@ export const getZonePolygon = ({ Zones, Union }: CoordinatesOptions): Coordinate
             }
         }
         if (multi.length === 0) return null;
-        const skip = Math.max(1, parseInt(String(Bootstrap.Settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
-        if (skip > 1) {
-            for (let p = 0; p < multi.length; p++) {
-                for (let r = 0; r < multi[p].length; r++) {
-                    const ring = multi[p][r];
-                    let reduced = ring.filter((_: any, i: number) => i % skip === 0);
-                    if (reduced.length < 4) reduced = ring.slice();
-                    const first = reduced[0];
-                    const last = reduced[reduced.length - 1];
-                    if ( first && last && (first[0] !== last[0] || first[1] !== last[1])) {
-                        reduced.push([first[0], first[1]]);
-                    }
-                    multi[p][r] = reduced;
-                }
-            }
-        }
         return {type: "MultiPolygon", coordinates: multi};
     }
 }

@@ -75,7 +75,7 @@ export const ParseAPI = async (Stanza: TypeStanzaCompiled): Promise<void> => {
                     direction: GetEventDirection(feature?.properties?.description) ?? null,
                     damage_threat: feature?.properties?.parameters?.thunderstormDamageThreat?.[0] ?? null,
                     tornado_threat: feature?.properties?.parameters?.tornadoDetection?.[0] ?? null,
-                    flood_threat: feature?.properties?.parameters?.floodDetection?.[0] ?? null,
+                    flood_threat: feature?.properties?.parameters?.flashFloodDamageThreat?.[0] ?? null,
                     wind_threat: feature?.properties?.parameters?.windThreat?.[0] ?? null,
                     hail_threat: feature?.properties?.parameters?.hailThreat?.[0] ?? null,
                 },

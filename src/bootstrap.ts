@@ -19,11 +19,12 @@
 
 import { TypeEvent } from "StaticTypes/Event"
 import { TypeHash } from "Types/Hash"
+import { TypeActions } from "Types/Actions"
 import { TypeNode } from "Types/Nodes"
 import { EventEmitter } from "node:events"
 import { client } from "@xmpp/client"
 import { Database } from "better-sqlite3"
-import path from "path"
+import { join } from "path"
 
 export const Bootstrap = {
     Version: `3.0.63`,
@@ -51,7 +52,8 @@ export const Bootstrap = {
         UGC: new Map<string, string[]>()
     },
     Settings: {
-        Database: path.join(process.cwd(), 'shapefiles.db'),
+        Database: join(process.cwd(), 'shapefiles.db'),
+        DebugDisableAllEvents: false,
         EnableWireService: false,
         EnableDebugging: false,
         EnableJournal: true,
@@ -86,6 +88,9 @@ export const Bootstrap = {
             BroadcastifyDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/broadcastify.json`,
             BroadcastifyTags: [`Ham`, `Air`, `Fire`, `Public Safety`, `Weather`, `EMS`, `Police`, `Rail`]
         },
+        BoundarySettings: {
+            BoundaryDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/counties-10m.json`
+        },
         NotifyServer: {
             Enabled: false,
             Server: `https://ntfy.sh`,
@@ -100,13 +105,12 @@ export const Bootstrap = {
                 Password: null as string
             }
         },
-        ActionSettings: [] as unknown[],
+        ActionSettings: [] as TypeActions[],
         GlobalSettings: {
             EventManagement: true,
             DisableGeometryParsing: false,
             UseShapefileCoordinates: true,
             SPCWatchesOnly: true,
-            ShapefileSkipPoints: 15,
             NodeTTL: 60,
             NodeMaxDistance: 120,
             EventFiltering: {
@@ -121,9 +125,10 @@ export const Bootstrap = {
             },
             ArchiveSettings: {
                 TTL: 60,
-                JSONDirectory: null as string,
-                TextDirectory: null as string,
-                EasDirectory: null as string,
+                ImageDirectory: `Archive/Images` as string,
+                JSONDirectory: `Archive/Products` as string,
+                TextDirectory: `Archive/Text` as string,
+                EasDirectory: `Archive/Audio` as string,
                 EasToneout: null as string
             }
         }

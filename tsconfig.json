@@ -19,6 +19,7 @@
 			"@ParsingText/*": ["./src/@parsers/@text/*"],
 			"@Database/*": ["./src/@modules/@database/*"],
 			"@EAS/*": ["./src/@modules/@eas/*"],
+			"@Image/*": ["./src/@modules/@images/*"],
 			"@Stanza/*": ["./src/@modules/@stanza/*"],
 			"@Utilities/*": ["./src/@modules/@utilities/*"],
 			"@XMPP/*": ["./src/@modules/@xmpp/*"],

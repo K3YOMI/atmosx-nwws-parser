@@ -17,38 +17,32 @@
 
 */
 
-import { TypeSettings } from "Types/Settings"
 import { TypeEvent } from "StaticTypes/Event"
 import { Bootstrap } from "@Bootstrap"
-import { GetZonePolygon } from "@ParsingUGC/GetZonePolygon"
 
-interface GetEventGeometryOptions {
-    Event: TypeEvent
-    Union?: boolean
+interface GetGeographicalEventsOptions {
+    Regions: string[] | null
+    Event?: TypeEvent
 }
 
-interface GetEventGeometryResponse { 
-    type: `Polygon` | `MultiPolygon`
-    coordinates: any[]
-}
-
-export const GetEventGeometry = ({ Event, Union }: GetEventGeometryOptions): GetEventGeometryResponse  => {
-    const { properties } = Event;
-    const settings = Bootstrap.Settings as TypeSettings
-    const generated = properties?.geocode?.polygon ?? null;
-    const ugc = properties?.geocode?.ugc ?? null;
-    let geo: GetEventGeometryResponse = {
-        type: `Polygon`,
-        coordinates: generated != null ? JSON.parse(Buffer.from(generated, 'base64').toString('utf-8')) : null
-    }
-    if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) { 
-        geo = GetZonePolygon({Zones: ugc, Union: Union ?? false});
-        if (geo == null) {
-            geo = {
-                type: `Polygon`,
-                coordinates: []
+export const GetGeographicalEvents = ({ Regions, Event }: GetGeographicalEventsOptions): TypeEvent[] => {
+    const events = Bootstrap.Cache.Events.features
+    if (Event) { return [Event] }
+    if (!Regions) { return events }
+    return events.filter(event => {
+        const ugcs = event.properties?.geocode?.ugc ?? []
+        return Regions.some(region => {
+            const normalized = region.trim().toUpperCase()
+            const ugcMatch = normalized.match(/^([A-Z]{2})[CZ](\d{3})$/)
+            if (ugcMatch) {
+                return ugcs.some(ugc => ugc.trim().toUpperCase() === normalized)
             }
-        }
-    }
-    return geo;
+            const stateMatch = normalized.match(/^[A-Z]{2}$/)
+            if (stateMatch) {
+                return ugcs.some(ugc => ugc.trim().toUpperCase().startsWith(`${normalized}Z`) || ugc.trim().toUpperCase().startsWith(`${normalized}C`))
+            }
+            return false
+        })
+    })
+
 }

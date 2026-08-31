@@ -422,9 +422,9 @@ var require_polygon_clipping_cjs = __commonJS({
       }
     };
     var rounder = new PtRounder();
-    var epsilon = 11102230246251565e-32;
+    var epsilon3 = 11102230246251565e-32;
     var splitter = 134217729;
-    var resulterrbound = (3 + 8 * epsilon) * epsilon;
+    var resulterrbound = (3 + 8 * epsilon3) * epsilon3;
     function sum(elen, e, flen, f2, h) {
       let Q, Qnew, hh, bvirt;
       let enow = e[0];
@@ -504,9 +504,9 @@ var require_polygon_clipping_cjs = __commonJS({
     function vec(n) {
       return new Float64Array(n);
     }
-    var ccwerrboundA = (3 + 16 * epsilon) * epsilon;
-    var ccwerrboundB = (2 + 12 * epsilon) * epsilon;
-    var ccwerrboundC = (9 + 64 * epsilon) * epsilon * epsilon;
+    var ccwerrboundA = (3 + 16 * epsilon3) * epsilon3;
+    var ccwerrboundB = (2 + 12 * epsilon3) * epsilon3;
+    var ccwerrboundC = (9 + 64 * epsilon3) * epsilon3 * epsilon3;
     var B = vec(4);
     var C1 = vec(8);
     var C2 = vec(12);
@@ -725,10 +725,10 @@ var require_polygon_clipping_cjs = __commonJS({
       };
       const d1 = crossProduct(ve, v1) / kross;
       const d2 = crossProduct(ve, v2) / kross;
-      const x1 = pt1.x + d2 * v1.x, x2 = pt2.x + d1 * v2.x;
-      const y1 = pt1.y + d2 * v1.y, y2 = pt2.y + d1 * v2.y;
-      const x3 = (x1 + x2) / 2;
-      const y = (y1 + y2) / 2;
+      const x12 = pt1.x + d2 * v1.x, x2 = pt2.x + d1 * v2.x;
+      const y12 = pt1.y + d2 * v1.y, y2 = pt2.y + d1 * v2.y;
+      const x3 = (x12 + x2) / 2;
+      const y = (y12 + y2) / 2;
       return {
         x: x3,
         y
@@ -951,16 +951,16 @@ var require_polygon_clipping_cjs = __commonJS({
         this.leftSE.otherSE = this.rightSE;
       }
       bbox() {
-        const y1 = this.leftSE.point.y;
+        const y12 = this.leftSE.point.y;
         const y2 = this.rightSE.point.y;
         return {
           ll: {
             x: this.leftSE.point.x,
-            y: y1 < y2 ? y1 : y2
+            y: y12 < y2 ? y12 : y2
           },
           ur: {
             x: this.rightSE.point.x,
-            y: y1 > y2 ? y1 : y2
+            y: y12 > y2 ? y12 : y2
           }
         };
       }
@@ -2122,9 +2122,9 @@ var require_createElement = __commonJS({
   "node_modules/.pnpm/ltx@3.1.2/node_modules/ltx/lib/createElement.js"(exports2, module2) {
     "use strict";
     var Element3 = require_Element();
-    function append(el, child) {
+    function append2(el, child) {
       if (Array.isArray(child)) {
-        for (const c of child) append(el, c);
+        for (const c of child) append2(el, c);
         return;
       }
       if (child === "" || child == null || child === true || child === false) {
@@ -2143,7 +2143,7 @@ var require_createElement = __commonJS({
       }
       const el = new Element3(name, attrs);
       for (const child of children) {
-        append(el, child);
+        append2(el, child);
       }
       return el;
     }
@@ -3039,7 +3039,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join3(s2) {
+      BufferList.prototype.join = function join5(s2) {
         if (this.length === 0) return "";
         var p2 = this.head;
         var ret = "" + p2.data;
@@ -5626,8 +5626,8 @@ var require_utils2 = __commonJS({
       var result = transform[inputType][outputType](input);
       return result;
     };
-    exports2.resolve = function(path2) {
-      var parts = path2.split("/");
+    exports2.resolve = function(path) {
+      var parts = path.split("/");
       var result = [];
       for (var index = 0; index < parts.length; index++) {
         var part = parts[index];
@@ -11480,18 +11480,18 @@ var require_object = __commonJS({
       var object = new ZipObject(name, zipObjectContent, o);
       this.files[name] = object;
     };
-    var parentFolder = function(path2) {
-      if (path2.slice(-1) === "/") {
-        path2 = path2.substring(0, path2.length - 1);
+    var parentFolder = function(path) {
+      if (path.slice(-1) === "/") {
+        path = path.substring(0, path.length - 1);
       }
-      var lastSlash = path2.lastIndexOf("/");
-      return lastSlash > 0 ? path2.substring(0, lastSlash) : "";
+      var lastSlash = path.lastIndexOf("/");
+      return lastSlash > 0 ? path.substring(0, lastSlash) : "";
     };
-    var forceTrailingSlash = function(path2) {
-      if (path2.slice(-1) !== "/") {
-        path2 += "/";
+    var forceTrailingSlash = function(path) {
+      if (path.slice(-1) !== "/") {
+        path += "/";
       }
-      return path2;
+      return path;
     };
     var folderAdd = function(name, createFolders) {
       createFolders = typeof createFolders !== "undefined" ? createFolders : defaults.createFolders;
@@ -14354,20 +14354,20 @@ var require_index_node = __commonJS({
       function end() {
         var resolve6 = that._resolve;
         that._readable = Promise.resolve(true);
-        that._resolve = that._reject = noop;
+        that._resolve = that._reject = noop2;
         resolve6(true);
       }
       function error(error2) {
         var reject = that._reject;
         that._readable = Promise.reject(error2);
-        that._resolve = that._reject = noop;
+        that._resolve = that._reject = noop2;
         reject(error2);
       }
     }
     StreamSource.prototype.read = require_read();
     StreamSource.prototype.slice = require_slice();
     StreamSource.prototype.cancel = require_cancel();
-    function noop() {
+    function noop2() {
     }
     function promise2(source) {
       return new Promise(function(resolve6, reject) {
@@ -14383,11 +14383,11 @@ var require_file_source = __commonJS({
   "node_modules/.pnpm/file-source@0.6.1/node_modules/file-source/index.js"(exports2, module2) {
     var fs = require("fs");
     var stream = require_index_node();
-    module2.exports = function(path2, options) {
+    module2.exports = function(path, options) {
       var highWaterMark = 65536;
       if (options && options.highWaterMark != null) highWaterMark = options.highWaterMark;
       return new Promise(function(resolve6, reject) {
-        var f2 = fs.createReadStream(path2, { highWaterMark });
+        var f2 = fs.createReadStream(path, { highWaterMark });
         f2.once("open", function() {
           resolve6(stream(f2));
         });
@@ -14512,7 +14512,7 @@ var require_shapefile_node = __commonJS({
     function _interopDefault(ex) {
       return ex && typeof ex === "object" && "default" in ex ? ex["default"] : ex;
     }
-    var path2 = _interopDefault(require_index_node2());
+    var path = _interopDefault(require_index_node2());
     var array = _interopDefault(require_array_source());
     var stream = _interopDefault(require_index_node());
     var slice = _interopDefault(require_slice_source());
@@ -14629,8 +14629,8 @@ var require_shapefile_node = __commonJS({
     function ringContains(ring, point) {
       var x2 = point[0], y = point[1], contains = -1;
       for (var i = 0, n = ring.length, j2 = n - 1; i < n; j2 = i++) {
-        var pi = ring[i], xi = pi[0], yi = pi[1], pj = ring[j2], xj = pj[0], yj = pj[1];
-        if (segmentContains(pi, pj, point)) {
+        var pi2 = ring[i], xi = pi2[0], yi = pi2[1], pj = ring[j2], xj = pj[0], yj = pj[1];
+        if (segmentContains(pi2, pj, point)) {
           return 0;
         }
         if (yi > y !== yj > y && x2 < (xj - xi) * (y - yi) / (yj - yi) + xi) {
@@ -14724,13 +14724,13 @@ var require_shapefile_node = __commonJS({
     var prototype$2 = Shp.prototype;
     prototype$2.read = shp_read;
     prototype$2.cancel = cancel;
-    function noop() {
+    function noop2() {
     }
     var shapefile_cancel = function() {
       return Promise.all([
         this._dbf && this._dbf.cancel(),
         this._shp.cancel()
-      ]).then(noop);
+      ]).then(noop2);
     };
     var shapefile_read = function() {
       var that = this;
@@ -14768,7 +14768,7 @@ var require_shapefile_node = __commonJS({
     function open(shp$$1, dbf$$1, options) {
       if (typeof dbf$$1 === "string") {
         if (!/\.dbf$/.test(dbf$$1)) dbf$$1 += ".dbf";
-        dbf$$1 = path2(dbf$$1, options);
+        dbf$$1 = path(dbf$$1, options);
       } else if (dbf$$1 instanceof ArrayBuffer || dbf$$1 instanceof Uint8Array) {
         dbf$$1 = array(dbf$$1);
       } else if (dbf$$1 != null) {
@@ -14776,9 +14776,9 @@ var require_shapefile_node = __commonJS({
       }
       if (typeof shp$$1 === "string") {
         if (!/\.shp$/.test(shp$$1)) shp$$1 += ".shp";
-        if (dbf$$1 === void 0) dbf$$1 = path2(shp$$1.substring(0, shp$$1.length - 4) + ".dbf", options).catch(function() {
+        if (dbf$$1 === void 0) dbf$$1 = path(shp$$1.substring(0, shp$$1.length - 4) + ".dbf", options).catch(function() {
         });
-        shp$$1 = path2(shp$$1, options);
+        shp$$1 = path(shp$$1, options);
       } else if (shp$$1 instanceof ArrayBuffer || shp$$1 instanceof Uint8Array) {
         shp$$1 = array(shp$$1);
       } else {
@@ -14793,7 +14793,7 @@ var require_shapefile_node = __commonJS({
     function openShp(source, options) {
       if (typeof source === "string") {
         if (!/\.shp$/.test(source)) source += ".shp";
-        source = path2(source, options);
+        source = path(source, options);
       } else if (source instanceof ArrayBuffer || source instanceof Uint8Array) {
         source = array(source);
       } else {
@@ -14807,7 +14807,7 @@ var require_shapefile_node = __commonJS({
       encoding = new TextDecoder(encoding);
       if (typeof source === "string") {
         if (!/\.dbf$/.test(source)) source += ".dbf";
-        source = path2(source, options);
+        source = path(source, options);
       } else if (source instanceof ArrayBuffer || source instanceof Uint8Array) {
         source = array(source);
       } else {
@@ -14834,11 +14834,471 @@ var require_shapefile_node = __commonJS({
   }
 });
 
+// node_modules/.pnpm/topojson-client@3.1.0/node_modules/topojson-client/dist/topojson-client.js
+var require_topojson_client = __commonJS({
+  "node_modules/.pnpm/topojson-client@3.1.0/node_modules/topojson-client/dist/topojson-client.js"(exports2, module2) {
+    (function(global2, factory) {
+      typeof exports2 === "object" && typeof module2 !== "undefined" ? factory(exports2) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global2 = global2 || self, factory(global2.topojson = global2.topojson || {}));
+    })(exports2, function(exports3) {
+      "use strict";
+      function identity(x2) {
+        return x2;
+      }
+      function transform(transform2) {
+        if (transform2 == null) return identity;
+        var x06, y06, kx = transform2.scale[0], ky = transform2.scale[1], dx = transform2.translate[0], dy = transform2.translate[1];
+        return function(input, i) {
+          if (!i) x06 = y06 = 0;
+          var j2 = 2, n = input.length, output = new Array(n);
+          output[0] = (x06 += input[0]) * kx + dx;
+          output[1] = (y06 += input[1]) * ky + dy;
+          while (j2 < n) output[j2] = input[j2], ++j2;
+          return output;
+        };
+      }
+      function bbox(topology) {
+        var t = transform(topology.transform), key, x06 = Infinity, y06 = x06, x12 = -x06, y12 = -x06;
+        function bboxPoint(p2) {
+          p2 = t(p2);
+          if (p2[0] < x06) x06 = p2[0];
+          if (p2[0] > x12) x12 = p2[0];
+          if (p2[1] < y06) y06 = p2[1];
+          if (p2[1] > y12) y12 = p2[1];
+        }
+        function bboxGeometry(o) {
+          switch (o.type) {
+            case "GeometryCollection":
+              o.geometries.forEach(bboxGeometry);
+              break;
+            case "Point":
+              bboxPoint(o.coordinates);
+              break;
+            case "MultiPoint":
+              o.coordinates.forEach(bboxPoint);
+              break;
+          }
+        }
+        topology.arcs.forEach(function(arc) {
+          var i = -1, n = arc.length, p2;
+          while (++i < n) {
+            p2 = t(arc[i], i);
+            if (p2[0] < x06) x06 = p2[0];
+            if (p2[0] > x12) x12 = p2[0];
+            if (p2[1] < y06) y06 = p2[1];
+            if (p2[1] > y12) y12 = p2[1];
+          }
+        });
+        for (key in topology.objects) {
+          bboxGeometry(topology.objects[key]);
+        }
+        return [x06, y06, x12, y12];
+      }
+      function reverse(array, n) {
+        var t, j2 = array.length, i = j2 - n;
+        while (i < --j2) t = array[i], array[i++] = array[j2], array[j2] = t;
+      }
+      function feature2(topology, o) {
+        if (typeof o === "string") o = topology.objects[o];
+        return o.type === "GeometryCollection" ? { type: "FeatureCollection", features: o.geometries.map(function(o2) {
+          return feature$1(topology, o2);
+        }) } : feature$1(topology, o);
+      }
+      function feature$1(topology, o) {
+        var id2 = o.id, bbox2 = o.bbox, properties = o.properties == null ? {} : o.properties, geometry = object(topology, o);
+        return id2 == null && bbox2 == null ? { type: "Feature", properties, geometry } : bbox2 == null ? { type: "Feature", id: id2, properties, geometry } : { type: "Feature", id: id2, bbox: bbox2, properties, geometry };
+      }
+      function object(topology, o) {
+        var transformPoint = transform(topology.transform), arcs = topology.arcs;
+        function arc(i, points) {
+          if (points.length) points.pop();
+          for (var a = arcs[i < 0 ? ~i : i], k2 = 0, n = a.length; k2 < n; ++k2) {
+            points.push(transformPoint(a[k2], k2));
+          }
+          if (i < 0) reverse(points, n);
+        }
+        function point(p2) {
+          return transformPoint(p2);
+        }
+        function line(arcs2) {
+          var points = [];
+          for (var i = 0, n = arcs2.length; i < n; ++i) arc(arcs2[i], points);
+          if (points.length < 2) points.push(points[0]);
+          return points;
+        }
+        function ring(arcs2) {
+          var points = line(arcs2);
+          while (points.length < 4) points.push(points[0]);
+          return points;
+        }
+        function polygon(arcs2) {
+          return arcs2.map(ring);
+        }
+        function geometry(o2) {
+          var type = o2.type, coordinates;
+          switch (type) {
+            case "GeometryCollection":
+              return { type, geometries: o2.geometries.map(geometry) };
+            case "Point":
+              coordinates = point(o2.coordinates);
+              break;
+            case "MultiPoint":
+              coordinates = o2.coordinates.map(point);
+              break;
+            case "LineString":
+              coordinates = line(o2.arcs);
+              break;
+            case "MultiLineString":
+              coordinates = o2.arcs.map(line);
+              break;
+            case "Polygon":
+              coordinates = polygon(o2.arcs);
+              break;
+            case "MultiPolygon":
+              coordinates = o2.arcs.map(polygon);
+              break;
+            default:
+              return null;
+          }
+          return { type, coordinates };
+        }
+        return geometry(o);
+      }
+      function stitch(topology, arcs) {
+        var stitchedArcs = {}, fragmentByStart = {}, fragmentByEnd = {}, fragments = [], emptyIndex = -1;
+        arcs.forEach(function(i, j2) {
+          var arc = topology.arcs[i < 0 ? ~i : i], t;
+          if (arc.length < 3 && !arc[1][0] && !arc[1][1]) {
+            t = arcs[++emptyIndex], arcs[emptyIndex] = i, arcs[j2] = t;
+          }
+        });
+        arcs.forEach(function(i) {
+          var e = ends(i), start = e[0], end = e[1], f2, g2;
+          if (f2 = fragmentByEnd[start]) {
+            delete fragmentByEnd[f2.end];
+            f2.push(i);
+            f2.end = end;
+            if (g2 = fragmentByStart[end]) {
+              delete fragmentByStart[g2.start];
+              var fg = g2 === f2 ? f2 : f2.concat(g2);
+              fragmentByStart[fg.start = f2.start] = fragmentByEnd[fg.end = g2.end] = fg;
+            } else {
+              fragmentByStart[f2.start] = fragmentByEnd[f2.end] = f2;
+            }
+          } else if (f2 = fragmentByStart[end]) {
+            delete fragmentByStart[f2.start];
+            f2.unshift(i);
+            f2.start = start;
+            if (g2 = fragmentByEnd[start]) {
+              delete fragmentByEnd[g2.end];
+              var gf = g2 === f2 ? f2 : g2.concat(f2);
+              fragmentByStart[gf.start = g2.start] = fragmentByEnd[gf.end = f2.end] = gf;
+            } else {
+              fragmentByStart[f2.start] = fragmentByEnd[f2.end] = f2;
+            }
+          } else {
+            f2 = [i];
+            fragmentByStart[f2.start = start] = fragmentByEnd[f2.end = end] = f2;
+          }
+        });
+        function ends(i) {
+          var arc = topology.arcs[i < 0 ? ~i : i], p0 = arc[0], p1;
+          if (topology.transform) p1 = [0, 0], arc.forEach(function(dp) {
+            p1[0] += dp[0], p1[1] += dp[1];
+          });
+          else p1 = arc[arc.length - 1];
+          return i < 0 ? [p1, p0] : [p0, p1];
+        }
+        function flush(fragmentByEnd2, fragmentByStart2) {
+          for (var k2 in fragmentByEnd2) {
+            var f2 = fragmentByEnd2[k2];
+            delete fragmentByStart2[f2.start];
+            delete f2.start;
+            delete f2.end;
+            f2.forEach(function(i) {
+              stitchedArcs[i < 0 ? ~i : i] = 1;
+            });
+            fragments.push(f2);
+          }
+        }
+        flush(fragmentByEnd, fragmentByStart);
+        flush(fragmentByStart, fragmentByEnd);
+        arcs.forEach(function(i) {
+          if (!stitchedArcs[i < 0 ? ~i : i]) fragments.push([i]);
+        });
+        return fragments;
+      }
+      function mesh(topology) {
+        return object(topology, meshArcs.apply(this, arguments));
+      }
+      function meshArcs(topology, object2, filter) {
+        var arcs, i, n;
+        if (arguments.length > 1) arcs = extractArcs(topology, object2, filter);
+        else for (i = 0, arcs = new Array(n = topology.arcs.length); i < n; ++i) arcs[i] = i;
+        return { type: "MultiLineString", arcs: stitch(topology, arcs) };
+      }
+      function extractArcs(topology, object2, filter) {
+        var arcs = [], geomsByArc = [], geom;
+        function extract0(i) {
+          var j2 = i < 0 ? ~i : i;
+          (geomsByArc[j2] || (geomsByArc[j2] = [])).push({ i, g: geom });
+        }
+        function extract1(arcs2) {
+          arcs2.forEach(extract0);
+        }
+        function extract2(arcs2) {
+          arcs2.forEach(extract1);
+        }
+        function extract3(arcs2) {
+          arcs2.forEach(extract2);
+        }
+        function geometry(o) {
+          switch (geom = o, o.type) {
+            case "GeometryCollection":
+              o.geometries.forEach(geometry);
+              break;
+            case "LineString":
+              extract1(o.arcs);
+              break;
+            case "MultiLineString":
+            case "Polygon":
+              extract2(o.arcs);
+              break;
+            case "MultiPolygon":
+              extract3(o.arcs);
+              break;
+          }
+        }
+        geometry(object2);
+        geomsByArc.forEach(filter == null ? function(geoms) {
+          arcs.push(geoms[0].i);
+        } : function(geoms) {
+          if (filter(geoms[0].g, geoms[geoms.length - 1].g)) arcs.push(geoms[0].i);
+        });
+        return arcs;
+      }
+      function planarRingArea(ring) {
+        var i = -1, n = ring.length, a, b2 = ring[n - 1], area = 0;
+        while (++i < n) a = b2, b2 = ring[i], area += a[0] * b2[1] - a[1] * b2[0];
+        return Math.abs(area);
+      }
+      function merge2(topology) {
+        return object(topology, mergeArcs.apply(this, arguments));
+      }
+      function mergeArcs(topology, objects) {
+        var polygonsByArc = {}, polygons = [], groups = [];
+        objects.forEach(geometry);
+        function geometry(o) {
+          switch (o.type) {
+            case "GeometryCollection":
+              o.geometries.forEach(geometry);
+              break;
+            case "Polygon":
+              extract(o.arcs);
+              break;
+            case "MultiPolygon":
+              o.arcs.forEach(extract);
+              break;
+          }
+        }
+        function extract(polygon) {
+          polygon.forEach(function(ring) {
+            ring.forEach(function(arc) {
+              (polygonsByArc[arc = arc < 0 ? ~arc : arc] || (polygonsByArc[arc] = [])).push(polygon);
+            });
+          });
+          polygons.push(polygon);
+        }
+        function area(ring) {
+          return planarRingArea(object(topology, { type: "Polygon", arcs: [ring] }).coordinates[0]);
+        }
+        polygons.forEach(function(polygon) {
+          if (!polygon._) {
+            var group = [], neighbors2 = [polygon];
+            polygon._ = 1;
+            groups.push(group);
+            while (polygon = neighbors2.pop()) {
+              group.push(polygon);
+              polygon.forEach(function(ring) {
+                ring.forEach(function(arc) {
+                  polygonsByArc[arc < 0 ? ~arc : arc].forEach(function(polygon2) {
+                    if (!polygon2._) {
+                      polygon2._ = 1;
+                      neighbors2.push(polygon2);
+                    }
+                  });
+                });
+              });
+            }
+          }
+        });
+        polygons.forEach(function(polygon) {
+          delete polygon._;
+        });
+        return {
+          type: "MultiPolygon",
+          arcs: groups.map(function(polygons2) {
+            var arcs = [], n;
+            polygons2.forEach(function(polygon) {
+              polygon.forEach(function(ring) {
+                ring.forEach(function(arc) {
+                  if (polygonsByArc[arc < 0 ? ~arc : arc].length < 2) {
+                    arcs.push(arc);
+                  }
+                });
+              });
+            });
+            arcs = stitch(topology, arcs);
+            if ((n = arcs.length) > 1) {
+              for (var i = 1, k2 = area(arcs[0]), ki, t; i < n; ++i) {
+                if ((ki = area(arcs[i])) > k2) {
+                  t = arcs[0], arcs[0] = arcs[i], arcs[i] = t, k2 = ki;
+                }
+              }
+            }
+            return arcs;
+          }).filter(function(arcs) {
+            return arcs.length > 0;
+          })
+        };
+      }
+      function bisect(a, x2) {
+        var lo = 0, hi = a.length;
+        while (lo < hi) {
+          var mid = lo + hi >>> 1;
+          if (a[mid] < x2) lo = mid + 1;
+          else hi = mid;
+        }
+        return lo;
+      }
+      function neighbors(objects) {
+        var indexesByArc = {}, neighbors2 = objects.map(function() {
+          return [];
+        });
+        function line(arcs, i2) {
+          arcs.forEach(function(a) {
+            if (a < 0) a = ~a;
+            var o = indexesByArc[a];
+            if (o) o.push(i2);
+            else indexesByArc[a] = [i2];
+          });
+        }
+        function polygon(arcs, i2) {
+          arcs.forEach(function(arc) {
+            line(arc, i2);
+          });
+        }
+        function geometry(o, i2) {
+          if (o.type === "GeometryCollection") o.geometries.forEach(function(o2) {
+            geometry(o2, i2);
+          });
+          else if (o.type in geometryType) geometryType[o.type](o.arcs, i2);
+        }
+        var geometryType = {
+          LineString: line,
+          MultiLineString: polygon,
+          Polygon: polygon,
+          MultiPolygon: function(arcs, i2) {
+            arcs.forEach(function(arc) {
+              polygon(arc, i2);
+            });
+          }
+        };
+        objects.forEach(geometry);
+        for (var i in indexesByArc) {
+          for (var indexes = indexesByArc[i], m2 = indexes.length, j2 = 0; j2 < m2; ++j2) {
+            for (var k2 = j2 + 1; k2 < m2; ++k2) {
+              var ij = indexes[j2], ik = indexes[k2], n;
+              if ((n = neighbors2[ij])[i = bisect(n, ik)] !== ik) n.splice(i, 0, ik);
+              if ((n = neighbors2[ik])[i = bisect(n, ij)] !== ij) n.splice(i, 0, ij);
+            }
+          }
+        }
+        return neighbors2;
+      }
+      function untransform(transform2) {
+        if (transform2 == null) return identity;
+        var x06, y06, kx = transform2.scale[0], ky = transform2.scale[1], dx = transform2.translate[0], dy = transform2.translate[1];
+        return function(input, i) {
+          if (!i) x06 = y06 = 0;
+          var j2 = 2, n = input.length, output = new Array(n), x12 = Math.round((input[0] - dx) / kx), y12 = Math.round((input[1] - dy) / ky);
+          output[0] = x12 - x06, x06 = x12;
+          output[1] = y12 - y06, y06 = y12;
+          while (j2 < n) output[j2] = input[j2], ++j2;
+          return output;
+        };
+      }
+      function quantize(topology, transform2) {
+        if (topology.transform) throw new Error("already quantized");
+        if (!transform2 || !transform2.scale) {
+          if (!((n = Math.floor(transform2)) >= 2)) throw new Error("n must be \u22652");
+          box = topology.bbox || bbox(topology);
+          var x06 = box[0], y06 = box[1], x12 = box[2], y12 = box[3], n;
+          transform2 = { scale: [x12 - x06 ? (x12 - x06) / (n - 1) : 1, y12 - y06 ? (y12 - y06) / (n - 1) : 1], translate: [x06, y06] };
+        } else {
+          box = topology.bbox;
+        }
+        var t = untransform(transform2), box, key, inputs = topology.objects, outputs = {};
+        function quantizePoint(point) {
+          return t(point);
+        }
+        function quantizeGeometry(input) {
+          var output;
+          switch (input.type) {
+            case "GeometryCollection":
+              output = { type: "GeometryCollection", geometries: input.geometries.map(quantizeGeometry) };
+              break;
+            case "Point":
+              output = { type: "Point", coordinates: quantizePoint(input.coordinates) };
+              break;
+            case "MultiPoint":
+              output = { type: "MultiPoint", coordinates: input.coordinates.map(quantizePoint) };
+              break;
+            default:
+              return input;
+          }
+          if (input.id != null) output.id = input.id;
+          if (input.bbox != null) output.bbox = input.bbox;
+          if (input.properties != null) output.properties = input.properties;
+          return output;
+        }
+        function quantizeArc(input) {
+          var i = 0, j2 = 1, n2 = input.length, p2, output = new Array(n2);
+          output[0] = t(input[0], 0);
+          while (++i < n2) if ((p2 = t(input[i], i))[0] || p2[1]) output[j2++] = p2;
+          if (j2 === 1) output[j2++] = [0, 0];
+          output.length = j2;
+          return output;
+        }
+        for (key in inputs) outputs[key] = quantizeGeometry(inputs[key]);
+        return {
+          type: "Topology",
+          bbox: box,
+          transform: transform2,
+          objects: outputs,
+          arcs: topology.arcs.map(quantizeArc)
+        };
+      }
+      exports3.bbox = bbox;
+      exports3.feature = feature2;
+      exports3.merge = merge2;
+      exports3.mergeArcs = mergeArcs;
+      exports3.mesh = mesh;
+      exports3.meshArcs = meshArcs;
+      exports3.neighbors = neighbors;
+      exports3.quantize = quantize;
+      exports3.transform = transform;
+      exports3.untransform = untransform;
+      Object.defineProperty(exports3, "__esModule", { value: true });
+    });
+  }
+});
+
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
   ClearEvents: () => ClearEvents,
   GenerateEASMessage: () => GenerateEASMessage,
+  GenerateGraphic: () => GenerateGraphic,
   GetCleanedEvent: () => GetCleanedEvent,
   GetEventGeometry: () => GetEventGeometry,
   GetEvents: () => GetEvents,
@@ -14858,7 +15318,7 @@ module.exports = __toCommonJS(index_exports);
 
 // src/bootstrap.ts
 var import_node_events = require("node:events");
-var import_path = __toESM(require("path"));
+var import_path = require("path");
 var Bootstrap = {
   Version: `3.0.63`,
   Ready: true,
@@ -14890,7 +15350,8 @@ var Bootstrap = {
     UGC: /* @__PURE__ */ new Map()
   },
   Settings: {
-    Database: import_path.default.join(process.cwd(), "shapefiles.db"),
+    Database: (0, import_path.join)(process.cwd(), "shapefiles.db"),
+    DebugDisableAllEvents: false,
     EnableWireService: false,
     EnableDebugging: false,
     EnableJournal: true,
@@ -14925,6 +15386,9 @@ var Bootstrap = {
       BroadcastifyDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/broadcastify.json`,
       BroadcastifyTags: [`Ham`, `Air`, `Fire`, `Public Safety`, `Weather`, `EMS`, `Police`, `Rail`]
     },
+    BoundarySettings: {
+      BoundaryDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/counties-10m.json`
+    },
     NotifyServer: {
       Enabled: false,
       Server: `https://ntfy.sh`,
@@ -14945,7 +15409,6 @@ var Bootstrap = {
       DisableGeometryParsing: false,
       UseShapefileCoordinates: true,
       SPCWatchesOnly: true,
-      ShapefileSkipPoints: 15,
       NodeTTL: 60,
       NodeMaxDistance: 120,
       EventFiltering: {
@@ -14960,9 +15423,10 @@ var Bootstrap = {
       },
       ArchiveSettings: {
         TTL: 60,
-        JSONDirectory: null,
-        TextDirectory: null,
-        EasDirectory: null,
+        ImageDirectory: `Archive/Images`,
+        JSONDirectory: `Archive/Products`,
+        TextDirectory: `Archive/Text`,
+        EasDirectory: `Archive/Audio`,
         EasToneout: null
       }
     }
@@ -14973,20 +15437,20 @@ var Bootstrap = {
 var SetWarning = ({ Title, Message, Tree }) => {
   const settings = Bootstrap.Settings;
   const title = Title ?? `[${Bootstrap.Colors.Yellow}@atmosx/event-product-parser${Bootstrap.Colors.Reset}]`;
-  const log = (message) => {
+  const log2 = (message) => {
     Bootstrap.Listener.emit(`log`, message);
     if (settings.EnableJournal) {
       console.log(message);
     }
   };
-  log(`${title} ${Message}`);
+  log2(`${title} ${Message}`);
   if (!Tree?.length) return;
   const cleanTitle = title.replace(/\x1b\[[0-9;]*m/g, ``);
   const padding = ` `.repeat(cleanTitle.length + 1);
   const entries = Tree.filter((entry) => entry !== void 0 && entry !== null);
   entries.forEach((entry, index) => {
     const prefix = index === entries.length - 1 ? `\u2514\u2500` : `\u251C\u2500`;
-    log(`${padding}${prefix} ${entry}`);
+    log2(`${padding}${prefix} ${entry}`);
   });
 };
 
@@ -15002,9 +15466,23 @@ var CreateQuery = function({ Query, Parameters }) {
   }
 };
 
-// src/@parsers/@ugc/GetZonePolygon.ts
+// src/@modules/@utilities/GetUnionPolygon.ts
 var import_polygon_clipping = __toESM(require_polygon_clipping_cjs());
-var getZonePolygon = ({ Zones, Union }) => {
+var GetUnionPolygon = ({ Polygons }) => {
+  if (!Polygons || Polygons.length === 0) {
+    return null;
+  }
+  const unionFn = import_polygon_clipping.union;
+  const unioned = unionFn(...Polygons);
+  return {
+    type: `MultiPolygon`,
+    coordinates: unioned
+  };
+};
+
+// src/@parsers/@ugc/GetZonePolygon.ts
+var import_crypto = require("crypto");
+var GetZonePolygon = ({ Zones, Union }) => {
   const list = [...new Set(Zones.map((z) => z.trim()))].filter((z) => z === "XX000" ? false : true);
   if (list.length === 0) return null;
   const placeholders = list.map(() => "?").join(",");
@@ -15013,47 +15491,25 @@ var getZonePolygon = ({ Zones, Union }) => {
     Parameters: list
   });
   const polygons = [];
+  const geometryHashes = /* @__PURE__ */ new Set();
   for (const row of rows) {
     if (!row?.geometry) continue;
+    const geometryHash = (0, import_crypto.createHash)("sha256").update(row.geometry).digest("hex");
+    if (geometryHashes.has(geometryHash)) continue;
+    geometryHashes.add(geometryHash);
     const geom = JSON.parse(row.geometry);
     if (geom?.type === "Polygon") {
       polygons.push(geom.coordinates);
     }
+    if (geom?.type === "MultiPolygon") {
+      for (const poly of geom.coordinates) {
+        polygons.push(poly);
+      }
+    }
   }
   if (polygons.length === 0) return null;
   if (Union) {
-    const unionFn = import_polygon_clipping.union;
-    const mergedCoords = unionFn(...polygons);
-    if (!mergedCoords || mergedCoords.length === 0) return null;
-    let maxArea = -1;
-    let bestPoly = [];
-    for (const poly of mergedCoords) {
-      const outerRing2 = poly[0];
-      let area = 0;
-      for (let i = 0; i < outerRing2.length - 1; i++) {
-        const [x1, y1] = outerRing2[i];
-        const [x2, y2] = outerRing2[i + 1];
-        area += x1 * y2 - x2 * y1;
-      }
-      area = Math.abs(area / 2);
-      if (area > maxArea) {
-        maxArea = area;
-        bestPoly = poly;
-      }
-    }
-    if (!bestPoly || bestPoly.length === 0) return null;
-    const outerRing = bestPoly[0];
-    const skip = Math.max(1, parseInt(String(Bootstrap.Settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
-    let skipped = outerRing.filter((_2, idx) => idx % skip === 0);
-    if (skipped.length < 4) {
-      skipped = outerRing.slice();
-    }
-    const first = skipped[0];
-    const last = skipped[skipped.length - 1];
-    if (!first || !last || first[0] !== last[0] || first[1] !== last[1]) {
-      skipped.push([first[0], first[1]]);
-    }
-    return { type: "Polygon", coordinates: [skipped] };
+    return GetUnionPolygon({ Polygons: polygons });
   } else {
     const multi = [];
     for (const polyCoords of polygons) {
@@ -15062,37 +15518,22 @@ var getZonePolygon = ({ Zones, Union }) => {
       }
     }
     if (multi.length === 0) return null;
-    const skip = Math.max(1, parseInt(String(Bootstrap.Settings.GlobalSettings.ShapefileSkipPoints), 10) ?? 1);
-    if (skip > 1) {
-      for (let p2 = 0; p2 < multi.length; p2++) {
-        for (let r = 0; r < multi[p2].length; r++) {
-          const ring = multi[p2][r];
-          let reduced = ring.filter((_2, i) => i % skip === 0);
-          if (reduced.length < 4) reduced = ring.slice();
-          const first = reduced[0];
-          const last = reduced[reduced.length - 1];
-          if (first && last && (first[0] !== last[0] || first[1] !== last[1])) {
-            reduced.push([first[0], first[1]]);
-          }
-          multi[p2][r] = reduced;
-        }
-      }
-    }
     return { type: "MultiPolygon", coordinates: multi };
   }
 };
 
 // src/@building/GetEventGeometry.ts
-var GetEventGeometry = (event) => {
+var GetEventGeometry = ({ Event, Union }) => {
+  const { properties } = Event;
   const settings = Bootstrap.Settings;
-  const generated = event?.properties?.geocode?.polygon ?? null;
-  const ugc = event?.properties?.geocode?.ugc ?? null;
+  const generated = properties?.geocode?.polygon ?? null;
+  const ugc = properties?.geocode?.ugc ?? null;
   let geo = {
     type: `Polygon`,
     coordinates: generated != null ? JSON.parse(Buffer.from(generated, "base64").toString("utf-8")) : null
   };
   if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) {
-    geo = getZonePolygon({ Zones: ugc, Union: false });
+    geo = GetZonePolygon({ Zones: ugc, Union: Union ?? false });
     if (geo == null) {
       geo = {
         type: `Polygon`,
@@ -15119,7 +15560,7 @@ var GetCleanedEvent = (event) => {
 // src/@modules/@utilities/SetSettings.ts
 var SetSettings = (imported) => {
   const settings = Bootstrap.Settings;
-  const merge = (target, source) => {
+  const merge2 = (target, source) => {
     for (const key in source) {
       if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
       const srcVal = source[key];
@@ -15128,13 +15569,13 @@ var SetSettings = (imported) => {
         if (!tgtVal || typeof tgtVal !== "object" || Array.isArray(tgtVal)) {
           target[key] = {};
         }
-        merge(target[key], srcVal);
+        merge2(target[key], srcVal);
       } else {
         target[key] = srcVal;
       }
     }
   };
-  merge(settings, imported);
+  merge2(settings, imported);
   return settings;
 };
 
@@ -15647,6 +16088,2086 @@ var GenerateEASMessage = async ({ Message, Header, Title }) => {
   }
   SetDebug({ Title: `GenerateEASMessage`, Message: `${Math.round(performance.now() - tick)}ms` });
   return outTTS;
+};
+
+// src/@enums/ImageBlacklist.ts
+var EnumImageBlacklist = [`AK`, `HI`, `PK`, `PM`, `PR`, `PH`];
+
+// src/@modules/@images/GetGeographicalEvents.ts
+var GetGeographicalEvents = ({ Regions, Event }) => {
+  const events = Bootstrap.Cache.Events.features;
+  if (Event) {
+    return [Event];
+  }
+  if (!Regions) {
+    return events;
+  }
+  return events.filter((event) => {
+    const ugcs = event.properties?.geocode?.ugc ?? [];
+    return Regions.some((region) => {
+      const normalized = region.trim().toUpperCase();
+      const ugcMatch = normalized.match(/^([A-Z]{2})[CZ](\d{3})$/);
+      if (ugcMatch) {
+        return ugcs.some((ugc) => ugc.trim().toUpperCase() === normalized);
+      }
+      const stateMatch = normalized.match(/^[A-Z]{2}$/);
+      if (stateMatch) {
+        return ugcs.some((ugc) => ugc.trim().toUpperCase().startsWith(`${normalized}Z`) || ugc.trim().toUpperCase().startsWith(`${normalized}C`));
+      }
+      return false;
+    });
+  });
+};
+
+// node_modules/.pnpm/d3-array@3.2.4/node_modules/d3-array/src/fsum.js
+var Adder = class {
+  constructor() {
+    this._partials = new Float64Array(32);
+    this._n = 0;
+  }
+  add(x2) {
+    const p2 = this._partials;
+    let i = 0;
+    for (let j2 = 0; j2 < this._n && j2 < 32; j2++) {
+      const y = p2[j2], hi = x2 + y, lo = Math.abs(x2) < Math.abs(y) ? x2 - (hi - y) : y - (hi - x2);
+      if (lo) p2[i++] = lo;
+      x2 = hi;
+    }
+    p2[i] = x2;
+    this._n = i + 1;
+    return this;
+  }
+  valueOf() {
+    const p2 = this._partials;
+    let n = this._n, x2, y, lo, hi = 0;
+    if (n > 0) {
+      hi = p2[--n];
+      while (n > 0) {
+        x2 = hi;
+        y = p2[--n];
+        hi = x2 + y;
+        lo = y - (hi - x2);
+        if (lo) break;
+      }
+      if (n > 0 && (lo < 0 && p2[n - 1] < 0 || lo > 0 && p2[n - 1] > 0)) {
+        y = lo * 2;
+        x2 = hi + y;
+        if (y == x2 - hi) hi = x2;
+      }
+    }
+    return hi;
+  }
+};
+
+// node_modules/.pnpm/d3-array@3.2.4/node_modules/d3-array/src/merge.js
+function* flatten(arrays) {
+  for (const array of arrays) {
+    yield* array;
+  }
+}
+function merge(arrays) {
+  return Array.from(flatten(arrays));
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/math.js
+var epsilon = 1e-6;
+var epsilon2 = 1e-12;
+var pi = Math.PI;
+var halfPi = pi / 2;
+var quarterPi = pi / 4;
+var tau = pi * 2;
+var degrees = 180 / pi;
+var radians = pi / 180;
+var abs = Math.abs;
+var atan = Math.atan;
+var atan2 = Math.atan2;
+var cos = Math.cos;
+var exp = Math.exp;
+var hypot = Math.hypot;
+var log = Math.log;
+var sin = Math.sin;
+var sign = Math.sign || function(x2) {
+  return x2 > 0 ? 1 : x2 < 0 ? -1 : 0;
+};
+var sqrt = Math.sqrt;
+var tan = Math.tan;
+function acos(x2) {
+  return x2 > 1 ? 0 : x2 < -1 ? pi : Math.acos(x2);
+}
+function asin(x2) {
+  return x2 > 1 ? halfPi : x2 < -1 ? -halfPi : Math.asin(x2);
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/noop.js
+function noop() {
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/stream.js
+function streamGeometry(geometry, stream) {
+  if (geometry && streamGeometryType.hasOwnProperty(geometry.type)) {
+    streamGeometryType[geometry.type](geometry, stream);
+  }
+}
+var streamObjectType = {
+  Feature: function(object, stream) {
+    streamGeometry(object.geometry, stream);
+  },
+  FeatureCollection: function(object, stream) {
+    var features = object.features, i = -1, n = features.length;
+    while (++i < n) streamGeometry(features[i].geometry, stream);
+  }
+};
+var streamGeometryType = {
+  Sphere: function(object, stream) {
+    stream.sphere();
+  },
+  Point: function(object, stream) {
+    object = object.coordinates;
+    stream.point(object[0], object[1], object[2]);
+  },
+  MultiPoint: function(object, stream) {
+    var coordinates = object.coordinates, i = -1, n = coordinates.length;
+    while (++i < n) object = coordinates[i], stream.point(object[0], object[1], object[2]);
+  },
+  LineString: function(object, stream) {
+    streamLine(object.coordinates, stream, 0);
+  },
+  MultiLineString: function(object, stream) {
+    var coordinates = object.coordinates, i = -1, n = coordinates.length;
+    while (++i < n) streamLine(coordinates[i], stream, 0);
+  },
+  Polygon: function(object, stream) {
+    streamPolygon(object.coordinates, stream);
+  },
+  MultiPolygon: function(object, stream) {
+    var coordinates = object.coordinates, i = -1, n = coordinates.length;
+    while (++i < n) streamPolygon(coordinates[i], stream);
+  },
+  GeometryCollection: function(object, stream) {
+    var geometries = object.geometries, i = -1, n = geometries.length;
+    while (++i < n) streamGeometry(geometries[i], stream);
+  }
+};
+function streamLine(coordinates, stream, closed) {
+  var i = -1, n = coordinates.length - closed, coordinate;
+  stream.lineStart();
+  while (++i < n) coordinate = coordinates[i], stream.point(coordinate[0], coordinate[1], coordinate[2]);
+  stream.lineEnd();
+}
+function streamPolygon(coordinates, stream) {
+  var i = -1, n = coordinates.length;
+  stream.polygonStart();
+  while (++i < n) streamLine(coordinates[i], stream, 1);
+  stream.polygonEnd();
+}
+function stream_default(object, stream) {
+  if (object && streamObjectType.hasOwnProperty(object.type)) {
+    streamObjectType[object.type](object, stream);
+  } else {
+    streamGeometry(object, stream);
+  }
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/area.js
+var areaRingSum = new Adder();
+var areaSum = new Adder();
+var lambda00;
+var phi00;
+var lambda0;
+var cosPhi0;
+var sinPhi0;
+var areaStream = {
+  point: noop,
+  lineStart: noop,
+  lineEnd: noop,
+  polygonStart: function() {
+    areaRingSum = new Adder();
+    areaStream.lineStart = areaRingStart;
+    areaStream.lineEnd = areaRingEnd;
+  },
+  polygonEnd: function() {
+    var areaRing = +areaRingSum;
+    areaSum.add(areaRing < 0 ? tau + areaRing : areaRing);
+    this.lineStart = this.lineEnd = this.point = noop;
+  },
+  sphere: function() {
+    areaSum.add(tau);
+  }
+};
+function areaRingStart() {
+  areaStream.point = areaPointFirst;
+}
+function areaRingEnd() {
+  areaPoint(lambda00, phi00);
+}
+function areaPointFirst(lambda, phi) {
+  areaStream.point = areaPoint;
+  lambda00 = lambda, phi00 = phi;
+  lambda *= radians, phi *= radians;
+  lambda0 = lambda, cosPhi0 = cos(phi = phi / 2 + quarterPi), sinPhi0 = sin(phi);
+}
+function areaPoint(lambda, phi) {
+  lambda *= radians, phi *= radians;
+  phi = phi / 2 + quarterPi;
+  var dLambda = lambda - lambda0, sdLambda = dLambda >= 0 ? 1 : -1, adLambda = sdLambda * dLambda, cosPhi = cos(phi), sinPhi = sin(phi), k2 = sinPhi0 * sinPhi, u = cosPhi0 * cosPhi + k2 * cos(adLambda), v2 = k2 * sdLambda * sin(adLambda);
+  areaRingSum.add(atan2(v2, u));
+  lambda0 = lambda, cosPhi0 = cosPhi, sinPhi0 = sinPhi;
+}
+function area_default(object) {
+  areaSum = new Adder();
+  stream_default(object, areaStream);
+  return areaSum * 2;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/cartesian.js
+function spherical(cartesian2) {
+  return [atan2(cartesian2[1], cartesian2[0]), asin(cartesian2[2])];
+}
+function cartesian(spherical2) {
+  var lambda = spherical2[0], phi = spherical2[1], cosPhi = cos(phi);
+  return [cosPhi * cos(lambda), cosPhi * sin(lambda), sin(phi)];
+}
+function cartesianDot(a, b2) {
+  return a[0] * b2[0] + a[1] * b2[1] + a[2] * b2[2];
+}
+function cartesianCross(a, b2) {
+  return [a[1] * b2[2] - a[2] * b2[1], a[2] * b2[0] - a[0] * b2[2], a[0] * b2[1] - a[1] * b2[0]];
+}
+function cartesianAddInPlace(a, b2) {
+  a[0] += b2[0], a[1] += b2[1], a[2] += b2[2];
+}
+function cartesianScale(vector, k2) {
+  return [vector[0] * k2, vector[1] * k2, vector[2] * k2];
+}
+function cartesianNormalizeInPlace(d) {
+  var l = sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+  d[0] /= l, d[1] /= l, d[2] /= l;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/centroid.js
+var W0;
+var W1;
+var X0;
+var Y0;
+var Z0;
+var X1;
+var Y1;
+var Z1;
+var X2;
+var Y2;
+var Z2;
+var lambda002;
+var phi002;
+var x0;
+var y0;
+var z0;
+var centroidStream = {
+  sphere: noop,
+  point: centroidPoint,
+  lineStart: centroidLineStart,
+  lineEnd: centroidLineEnd,
+  polygonStart: function() {
+    centroidStream.lineStart = centroidRingStart;
+    centroidStream.lineEnd = centroidRingEnd;
+  },
+  polygonEnd: function() {
+    centroidStream.lineStart = centroidLineStart;
+    centroidStream.lineEnd = centroidLineEnd;
+  }
+};
+function centroidPoint(lambda, phi) {
+  lambda *= radians, phi *= radians;
+  var cosPhi = cos(phi);
+  centroidPointCartesian(cosPhi * cos(lambda), cosPhi * sin(lambda), sin(phi));
+}
+function centroidPointCartesian(x2, y, z) {
+  ++W0;
+  X0 += (x2 - X0) / W0;
+  Y0 += (y - Y0) / W0;
+  Z0 += (z - Z0) / W0;
+}
+function centroidLineStart() {
+  centroidStream.point = centroidLinePointFirst;
+}
+function centroidLinePointFirst(lambda, phi) {
+  lambda *= radians, phi *= radians;
+  var cosPhi = cos(phi);
+  x0 = cosPhi * cos(lambda);
+  y0 = cosPhi * sin(lambda);
+  z0 = sin(phi);
+  centroidStream.point = centroidLinePoint;
+  centroidPointCartesian(x0, y0, z0);
+}
+function centroidLinePoint(lambda, phi) {
+  lambda *= radians, phi *= radians;
+  var cosPhi = cos(phi), x2 = cosPhi * cos(lambda), y = cosPhi * sin(lambda), z = sin(phi), w2 = atan2(sqrt((w2 = y0 * z - z0 * y) * w2 + (w2 = z0 * x2 - x0 * z) * w2 + (w2 = x0 * y - y0 * x2) * w2), x0 * x2 + y0 * y + z0 * z);
+  W1 += w2;
+  X1 += w2 * (x0 + (x0 = x2));
+  Y1 += w2 * (y0 + (y0 = y));
+  Z1 += w2 * (z0 + (z0 = z));
+  centroidPointCartesian(x0, y0, z0);
+}
+function centroidLineEnd() {
+  centroidStream.point = centroidPoint;
+}
+function centroidRingStart() {
+  centroidStream.point = centroidRingPointFirst;
+}
+function centroidRingEnd() {
+  centroidRingPoint(lambda002, phi002);
+  centroidStream.point = centroidPoint;
+}
+function centroidRingPointFirst(lambda, phi) {
+  lambda002 = lambda, phi002 = phi;
+  lambda *= radians, phi *= radians;
+  centroidStream.point = centroidRingPoint;
+  var cosPhi = cos(phi);
+  x0 = cosPhi * cos(lambda);
+  y0 = cosPhi * sin(lambda);
+  z0 = sin(phi);
+  centroidPointCartesian(x0, y0, z0);
+}
+function centroidRingPoint(lambda, phi) {
+  lambda *= radians, phi *= radians;
+  var cosPhi = cos(phi), x2 = cosPhi * cos(lambda), y = cosPhi * sin(lambda), z = sin(phi), cx = y0 * z - z0 * y, cy = z0 * x2 - x0 * z, cz = x0 * y - y0 * x2, m2 = hypot(cx, cy, cz), w2 = asin(m2), v2 = m2 && -w2 / m2;
+  X2.add(v2 * cx);
+  Y2.add(v2 * cy);
+  Z2.add(v2 * cz);
+  W1 += w2;
+  X1 += w2 * (x0 + (x0 = x2));
+  Y1 += w2 * (y0 + (y0 = y));
+  Z1 += w2 * (z0 + (z0 = z));
+  centroidPointCartesian(x0, y0, z0);
+}
+function centroid_default(object) {
+  W0 = W1 = X0 = Y0 = Z0 = X1 = Y1 = Z1 = 0;
+  X2 = new Adder();
+  Y2 = new Adder();
+  Z2 = new Adder();
+  stream_default(object, centroidStream);
+  var x2 = +X2, y = +Y2, z = +Z2, m2 = hypot(x2, y, z);
+  if (m2 < epsilon2) {
+    x2 = X1, y = Y1, z = Z1;
+    if (W1 < epsilon) x2 = X0, y = Y0, z = Z0;
+    m2 = hypot(x2, y, z);
+    if (m2 < epsilon2) return [NaN, NaN];
+  }
+  return [atan2(y, x2) * degrees, asin(z / m2) * degrees];
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/compose.js
+function compose_default(a, b2) {
+  function compose2(x2, y) {
+    return x2 = a(x2, y), b2(x2[0], x2[1]);
+  }
+  if (a.invert && b2.invert) compose2.invert = function(x2, y) {
+    return x2 = b2.invert(x2, y), x2 && a.invert(x2[0], x2[1]);
+  };
+  return compose2;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/rotation.js
+function rotationIdentity(lambda, phi) {
+  if (abs(lambda) > pi) lambda -= Math.round(lambda / tau) * tau;
+  return [lambda, phi];
+}
+rotationIdentity.invert = rotationIdentity;
+function rotateRadians(deltaLambda, deltaPhi, deltaGamma) {
+  return (deltaLambda %= tau) ? deltaPhi || deltaGamma ? compose_default(rotationLambda(deltaLambda), rotationPhiGamma(deltaPhi, deltaGamma)) : rotationLambda(deltaLambda) : deltaPhi || deltaGamma ? rotationPhiGamma(deltaPhi, deltaGamma) : rotationIdentity;
+}
+function forwardRotationLambda(deltaLambda) {
+  return function(lambda, phi) {
+    lambda += deltaLambda;
+    if (abs(lambda) > pi) lambda -= Math.round(lambda / tau) * tau;
+    return [lambda, phi];
+  };
+}
+function rotationLambda(deltaLambda) {
+  var rotation = forwardRotationLambda(deltaLambda);
+  rotation.invert = forwardRotationLambda(-deltaLambda);
+  return rotation;
+}
+function rotationPhiGamma(deltaPhi, deltaGamma) {
+  var cosDeltaPhi = cos(deltaPhi), sinDeltaPhi = sin(deltaPhi), cosDeltaGamma = cos(deltaGamma), sinDeltaGamma = sin(deltaGamma);
+  function rotation(lambda, phi) {
+    var cosPhi = cos(phi), x2 = cos(lambda) * cosPhi, y = sin(lambda) * cosPhi, z = sin(phi), k2 = z * cosDeltaPhi + x2 * sinDeltaPhi;
+    return [
+      atan2(y * cosDeltaGamma - k2 * sinDeltaGamma, x2 * cosDeltaPhi - z * sinDeltaPhi),
+      asin(k2 * cosDeltaGamma + y * sinDeltaGamma)
+    ];
+  }
+  rotation.invert = function(lambda, phi) {
+    var cosPhi = cos(phi), x2 = cos(lambda) * cosPhi, y = sin(lambda) * cosPhi, z = sin(phi), k2 = z * cosDeltaGamma - y * sinDeltaGamma;
+    return [
+      atan2(y * cosDeltaGamma + z * sinDeltaGamma, x2 * cosDeltaPhi + k2 * sinDeltaPhi),
+      asin(k2 * cosDeltaPhi - x2 * sinDeltaPhi)
+    ];
+  };
+  return rotation;
+}
+function rotation_default(rotate) {
+  rotate = rotateRadians(rotate[0] * radians, rotate[1] * radians, rotate.length > 2 ? rotate[2] * radians : 0);
+  function forward(coordinates) {
+    coordinates = rotate(coordinates[0] * radians, coordinates[1] * radians);
+    return coordinates[0] *= degrees, coordinates[1] *= degrees, coordinates;
+  }
+  forward.invert = function(coordinates) {
+    coordinates = rotate.invert(coordinates[0] * radians, coordinates[1] * radians);
+    return coordinates[0] *= degrees, coordinates[1] *= degrees, coordinates;
+  };
+  return forward;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/circle.js
+function circleStream(stream, radius, delta, direction, t0, t1) {
+  if (!delta) return;
+  var cosRadius = cos(radius), sinRadius = sin(radius), step = direction * delta;
+  if (t0 == null) {
+    t0 = radius + direction * tau;
+    t1 = radius - step / 2;
+  } else {
+    t0 = circleRadius(cosRadius, t0);
+    t1 = circleRadius(cosRadius, t1);
+    if (direction > 0 ? t0 < t1 : t0 > t1) t0 += direction * tau;
+  }
+  for (var point, t = t0; direction > 0 ? t > t1 : t < t1; t -= step) {
+    point = spherical([cosRadius, -sinRadius * cos(t), -sinRadius * sin(t)]);
+    stream.point(point[0], point[1]);
+  }
+}
+function circleRadius(cosRadius, point) {
+  point = cartesian(point), point[0] -= cosRadius;
+  cartesianNormalizeInPlace(point);
+  var radius = acos(-point[1]);
+  return ((-point[2] < 0 ? -radius : radius) + tau - epsilon) % tau;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/clip/buffer.js
+function buffer_default() {
+  var lines = [], line;
+  return {
+    point: function(x2, y, m2) {
+      line.push([x2, y, m2]);
+    },
+    lineStart: function() {
+      lines.push(line = []);
+    },
+    lineEnd: noop,
+    rejoin: function() {
+      if (lines.length > 1) lines.push(lines.pop().concat(lines.shift()));
+    },
+    result: function() {
+      var result = lines;
+      lines = [];
+      line = null;
+      return result;
+    }
+  };
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/pointEqual.js
+function pointEqual_default(a, b2) {
+  return abs(a[0] - b2[0]) < epsilon && abs(a[1] - b2[1]) < epsilon;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/clip/rejoin.js
+function Intersection(point, points, other, entry) {
+  this.x = point;
+  this.z = points;
+  this.o = other;
+  this.e = entry;
+  this.v = false;
+  this.n = this.p = null;
+}
+function rejoin_default(segments, compareIntersection2, startInside, interpolate, stream) {
+  var subject = [], clip = [], i, n;
+  segments.forEach(function(segment) {
+    if ((n2 = segment.length - 1) <= 0) return;
+    var n2, p0 = segment[0], p1 = segment[n2], x2;
+    if (pointEqual_default(p0, p1)) {
+      if (!p0[2] && !p1[2]) {
+        stream.lineStart();
+        for (i = 0; i < n2; ++i) stream.point((p0 = segment[i])[0], p0[1]);
+        stream.lineEnd();
+        return;
+      }
+      p1[0] += 2 * epsilon;
+    }
+    subject.push(x2 = new Intersection(p0, segment, null, true));
+    clip.push(x2.o = new Intersection(p0, null, x2, false));
+    subject.push(x2 = new Intersection(p1, segment, null, false));
+    clip.push(x2.o = new Intersection(p1, null, x2, true));
+  });
+  if (!subject.length) return;
+  clip.sort(compareIntersection2);
+  link(subject);
+  link(clip);
+  for (i = 0, n = clip.length; i < n; ++i) {
+    clip[i].e = startInside = !startInside;
+  }
+  var start = subject[0], points, point;
+  while (1) {
+    var current = start, isSubject = true;
+    while (current.v) if ((current = current.n) === start) return;
+    points = current.z;
+    stream.lineStart();
+    do {
+      current.v = current.o.v = true;
+      if (current.e) {
+        if (isSubject) {
+          for (i = 0, n = points.length; i < n; ++i) stream.point((point = points[i])[0], point[1]);
+        } else {
+          interpolate(current.x, current.n.x, 1, stream);
+        }
+        current = current.n;
+      } else {
+        if (isSubject) {
+          points = current.p.z;
+          for (i = points.length - 1; i >= 0; --i) stream.point((point = points[i])[0], point[1]);
+        } else {
+          interpolate(current.x, current.p.x, -1, stream);
+        }
+        current = current.p;
+      }
+      current = current.o;
+      points = current.z;
+      isSubject = !isSubject;
+    } while (!current.v);
+    stream.lineEnd();
+  }
+}
+function link(array) {
+  if (!(n = array.length)) return;
+  var n, i = 0, a = array[0], b2;
+  while (++i < n) {
+    a.n = b2 = array[i];
+    b2.p = a;
+    a = b2;
+  }
+  a.n = b2 = array[0];
+  b2.p = a;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/polygonContains.js
+function longitude(point) {
+  return abs(point[0]) <= pi ? point[0] : sign(point[0]) * ((abs(point[0]) + pi) % tau - pi);
+}
+function polygonContains_default(polygon, point) {
+  var lambda = longitude(point), phi = point[1], sinPhi = sin(phi), normal = [sin(lambda), -cos(lambda), 0], angle = 0, winding = 0;
+  var sum = new Adder();
+  if (sinPhi === 1) phi = halfPi + epsilon;
+  else if (sinPhi === -1) phi = -halfPi - epsilon;
+  for (var i = 0, n = polygon.length; i < n; ++i) {
+    if (!(m2 = (ring = polygon[i]).length)) continue;
+    var ring, m2, point0 = ring[m2 - 1], lambda02 = longitude(point0), phi0 = point0[1] / 2 + quarterPi, sinPhi02 = sin(phi0), cosPhi02 = cos(phi0);
+    for (var j2 = 0; j2 < m2; ++j2, lambda02 = lambda1, sinPhi02 = sinPhi1, cosPhi02 = cosPhi1, point0 = point1) {
+      var point1 = ring[j2], lambda1 = longitude(point1), phi1 = point1[1] / 2 + quarterPi, sinPhi1 = sin(phi1), cosPhi1 = cos(phi1), delta = lambda1 - lambda02, sign2 = delta >= 0 ? 1 : -1, absDelta = sign2 * delta, antimeridian = absDelta > pi, k2 = sinPhi02 * sinPhi1;
+      sum.add(atan2(k2 * sign2 * sin(absDelta), cosPhi02 * cosPhi1 + k2 * cos(absDelta)));
+      angle += antimeridian ? delta + sign2 * tau : delta;
+      if (antimeridian ^ lambda02 >= lambda ^ lambda1 >= lambda) {
+        var arc = cartesianCross(cartesian(point0), cartesian(point1));
+        cartesianNormalizeInPlace(arc);
+        var intersection = cartesianCross(normal, arc);
+        cartesianNormalizeInPlace(intersection);
+        var phiArc = (antimeridian ^ delta >= 0 ? -1 : 1) * asin(intersection[2]);
+        if (phi > phiArc || phi === phiArc && (arc[0] || arc[1])) {
+          winding += antimeridian ^ delta >= 0 ? 1 : -1;
+        }
+      }
+    }
+  }
+  return (angle < -epsilon || angle < epsilon && sum < -epsilon2) ^ winding & 1;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/clip/index.js
+function clip_default(pointVisible, clipLine, interpolate, start) {
+  return function(sink) {
+    var line = clipLine(sink), ringBuffer = buffer_default(), ringSink = clipLine(ringBuffer), polygonStarted = false, polygon, segments, ring;
+    var clip = {
+      point,
+      lineStart,
+      lineEnd,
+      polygonStart: function() {
+        clip.point = pointRing;
+        clip.lineStart = ringStart;
+        clip.lineEnd = ringEnd;
+        segments = [];
+        polygon = [];
+      },
+      polygonEnd: function() {
+        clip.point = point;
+        clip.lineStart = lineStart;
+        clip.lineEnd = lineEnd;
+        segments = merge(segments);
+        var startInside = polygonContains_default(polygon, start);
+        if (segments.length) {
+          if (!polygonStarted) sink.polygonStart(), polygonStarted = true;
+          rejoin_default(segments, compareIntersection, startInside, interpolate, sink);
+        } else if (startInside) {
+          if (!polygonStarted) sink.polygonStart(), polygonStarted = true;
+          sink.lineStart();
+          interpolate(null, null, 1, sink);
+          sink.lineEnd();
+        }
+        if (polygonStarted) sink.polygonEnd(), polygonStarted = false;
+        segments = polygon = null;
+      },
+      sphere: function() {
+        sink.polygonStart();
+        sink.lineStart();
+        interpolate(null, null, 1, sink);
+        sink.lineEnd();
+        sink.polygonEnd();
+      }
+    };
+    function point(lambda, phi) {
+      if (pointVisible(lambda, phi)) sink.point(lambda, phi);
+    }
+    function pointLine(lambda, phi) {
+      line.point(lambda, phi);
+    }
+    function lineStart() {
+      clip.point = pointLine;
+      line.lineStart();
+    }
+    function lineEnd() {
+      clip.point = point;
+      line.lineEnd();
+    }
+    function pointRing(lambda, phi) {
+      ring.push([lambda, phi]);
+      ringSink.point(lambda, phi);
+    }
+    function ringStart() {
+      ringSink.lineStart();
+      ring = [];
+    }
+    function ringEnd() {
+      pointRing(ring[0][0], ring[0][1]);
+      ringSink.lineEnd();
+      var clean = ringSink.clean(), ringSegments = ringBuffer.result(), i, n = ringSegments.length, m2, segment, point2;
+      ring.pop();
+      polygon.push(ring);
+      ring = null;
+      if (!n) return;
+      if (clean & 1) {
+        segment = ringSegments[0];
+        if ((m2 = segment.length - 1) > 0) {
+          if (!polygonStarted) sink.polygonStart(), polygonStarted = true;
+          sink.lineStart();
+          for (i = 0; i < m2; ++i) sink.point((point2 = segment[i])[0], point2[1]);
+          sink.lineEnd();
+        }
+        return;
+      }
+      if (n > 1 && clean & 2) ringSegments.push(ringSegments.pop().concat(ringSegments.shift()));
+      segments.push(ringSegments.filter(validSegment));
+    }
+    return clip;
+  };
+}
+function validSegment(segment) {
+  return segment.length > 1;
+}
+function compareIntersection(a, b2) {
+  return ((a = a.x)[0] < 0 ? a[1] - halfPi - epsilon : halfPi - a[1]) - ((b2 = b2.x)[0] < 0 ? b2[1] - halfPi - epsilon : halfPi - b2[1]);
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/clip/antimeridian.js
+var antimeridian_default = clip_default(
+  function() {
+    return true;
+  },
+  clipAntimeridianLine,
+  clipAntimeridianInterpolate,
+  [-pi, -halfPi]
+);
+function clipAntimeridianLine(stream) {
+  var lambda02 = NaN, phi0 = NaN, sign0 = NaN, clean;
+  return {
+    lineStart: function() {
+      stream.lineStart();
+      clean = 1;
+    },
+    point: function(lambda1, phi1) {
+      var sign1 = lambda1 > 0 ? pi : -pi, delta = abs(lambda1 - lambda02);
+      if (abs(delta - pi) < epsilon) {
+        stream.point(lambda02, phi0 = (phi0 + phi1) / 2 > 0 ? halfPi : -halfPi);
+        stream.point(sign0, phi0);
+        stream.lineEnd();
+        stream.lineStart();
+        stream.point(sign1, phi0);
+        stream.point(lambda1, phi0);
+        clean = 0;
+      } else if (sign0 !== sign1 && delta >= pi) {
+        if (abs(lambda02 - sign0) < epsilon) lambda02 -= sign0 * epsilon;
+        if (abs(lambda1 - sign1) < epsilon) lambda1 -= sign1 * epsilon;
+        phi0 = clipAntimeridianIntersect(lambda02, phi0, lambda1, phi1);
+        stream.point(sign0, phi0);
+        stream.lineEnd();
+        stream.lineStart();
+        stream.point(sign1, phi0);
+        clean = 0;
+      }
+      stream.point(lambda02 = lambda1, phi0 = phi1);
+      sign0 = sign1;
+    },
+    lineEnd: function() {
+      stream.lineEnd();
+      lambda02 = phi0 = NaN;
+    },
+    clean: function() {
+      return 2 - clean;
+    }
+  };
+}
+function clipAntimeridianIntersect(lambda02, phi0, lambda1, phi1) {
+  var cosPhi02, cosPhi1, sinLambda0Lambda1 = sin(lambda02 - lambda1);
+  return abs(sinLambda0Lambda1) > epsilon ? atan((sin(phi0) * (cosPhi1 = cos(phi1)) * sin(lambda1) - sin(phi1) * (cosPhi02 = cos(phi0)) * sin(lambda02)) / (cosPhi02 * cosPhi1 * sinLambda0Lambda1)) : (phi0 + phi1) / 2;
+}
+function clipAntimeridianInterpolate(from, to, direction, stream) {
+  var phi;
+  if (from == null) {
+    phi = direction * halfPi;
+    stream.point(-pi, phi);
+    stream.point(0, phi);
+    stream.point(pi, phi);
+    stream.point(pi, 0);
+    stream.point(pi, -phi);
+    stream.point(0, -phi);
+    stream.point(-pi, -phi);
+    stream.point(-pi, 0);
+    stream.point(-pi, phi);
+  } else if (abs(from[0] - to[0]) > epsilon) {
+    var lambda = from[0] < to[0] ? pi : -pi;
+    phi = direction * lambda / 2;
+    stream.point(-lambda, phi);
+    stream.point(0, phi);
+    stream.point(lambda, phi);
+  } else {
+    stream.point(to[0], to[1]);
+  }
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/clip/circle.js
+function circle_default(radius) {
+  var cr = cos(radius), delta = 2 * radians, smallRadius = cr > 0, notHemisphere = abs(cr) > epsilon;
+  function interpolate(from, to, direction, stream) {
+    circleStream(stream, radius, delta, direction, from, to);
+  }
+  function visible(lambda, phi) {
+    return cos(lambda) * cos(phi) > cr;
+  }
+  function clipLine(stream) {
+    var point0, c0, v0, v00, clean;
+    return {
+      lineStart: function() {
+        v00 = v0 = false;
+        clean = 1;
+      },
+      point: function(lambda, phi) {
+        var point1 = [lambda, phi], point2, v2 = visible(lambda, phi), c = smallRadius ? v2 ? 0 : code(lambda, phi) : v2 ? code(lambda + (lambda < 0 ? pi : -pi), phi) : 0;
+        if (!point0 && (v00 = v0 = v2)) stream.lineStart();
+        if (v2 !== v0) {
+          point2 = intersect(point0, point1);
+          if (!point2 || pointEqual_default(point0, point2) || pointEqual_default(point1, point2))
+            point1[2] = 1;
+        }
+        if (v2 !== v0) {
+          clean = 0;
+          if (v2) {
+            stream.lineStart();
+            point2 = intersect(point1, point0);
+            stream.point(point2[0], point2[1]);
+          } else {
+            point2 = intersect(point0, point1);
+            stream.point(point2[0], point2[1], 2);
+            stream.lineEnd();
+          }
+          point0 = point2;
+        } else if (notHemisphere && point0 && smallRadius ^ v2) {
+          var t;
+          if (!(c & c0) && (t = intersect(point1, point0, true))) {
+            clean = 0;
+            if (smallRadius) {
+              stream.lineStart();
+              stream.point(t[0][0], t[0][1]);
+              stream.point(t[1][0], t[1][1]);
+              stream.lineEnd();
+            } else {
+              stream.point(t[1][0], t[1][1]);
+              stream.lineEnd();
+              stream.lineStart();
+              stream.point(t[0][0], t[0][1], 3);
+            }
+          }
+        }
+        if (v2 && (!point0 || !pointEqual_default(point0, point1))) {
+          stream.point(point1[0], point1[1]);
+        }
+        point0 = point1, v0 = v2, c0 = c;
+      },
+      lineEnd: function() {
+        if (v0) stream.lineEnd();
+        point0 = null;
+      },
+      // Rejoin first and last segments if there were intersections and the first
+      // and last points were visible.
+      clean: function() {
+        return clean | (v00 && v0) << 1;
+      }
+    };
+  }
+  function intersect(a, b2, two) {
+    var pa = cartesian(a), pb = cartesian(b2);
+    var n1 = [1, 0, 0], n2 = cartesianCross(pa, pb), n2n2 = cartesianDot(n2, n2), n1n2 = n2[0], determinant = n2n2 - n1n2 * n1n2;
+    if (!determinant) return !two && a;
+    var c1 = cr * n2n2 / determinant, c2 = -cr * n1n2 / determinant, n1xn2 = cartesianCross(n1, n2), A2 = cartesianScale(n1, c1), B = cartesianScale(n2, c2);
+    cartesianAddInPlace(A2, B);
+    var u = n1xn2, w2 = cartesianDot(A2, u), uu = cartesianDot(u, u), t2 = w2 * w2 - uu * (cartesianDot(A2, A2) - 1);
+    if (t2 < 0) return;
+    var t = sqrt(t2), q = cartesianScale(u, (-w2 - t) / uu);
+    cartesianAddInPlace(q, A2);
+    q = spherical(q);
+    if (!two) return q;
+    var lambda02 = a[0], lambda1 = b2[0], phi0 = a[1], phi1 = b2[1], z;
+    if (lambda1 < lambda02) z = lambda02, lambda02 = lambda1, lambda1 = z;
+    var delta2 = lambda1 - lambda02, polar = abs(delta2 - pi) < epsilon, meridian = polar || delta2 < epsilon;
+    if (!polar && phi1 < phi0) z = phi0, phi0 = phi1, phi1 = z;
+    if (meridian ? polar ? phi0 + phi1 > 0 ^ q[1] < (abs(q[0] - lambda02) < epsilon ? phi0 : phi1) : phi0 <= q[1] && q[1] <= phi1 : delta2 > pi ^ (lambda02 <= q[0] && q[0] <= lambda1)) {
+      var q1 = cartesianScale(u, (-w2 + t) / uu);
+      cartesianAddInPlace(q1, A2);
+      return [q, spherical(q1)];
+    }
+  }
+  function code(lambda, phi) {
+    var r = smallRadius ? radius : pi - radius, code2 = 0;
+    if (lambda < -r) code2 |= 1;
+    else if (lambda > r) code2 |= 2;
+    if (phi < -r) code2 |= 4;
+    else if (phi > r) code2 |= 8;
+    return code2;
+  }
+  return clip_default(visible, clipLine, interpolate, smallRadius ? [0, -radius] : [-pi, radius - pi]);
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/clip/line.js
+function line_default(a, b2, x06, y06, x12, y12) {
+  var ax = a[0], ay = a[1], bx = b2[0], by = b2[1], t0 = 0, t1 = 1, dx = bx - ax, dy = by - ay, r;
+  r = x06 - ax;
+  if (!dx && r > 0) return;
+  r /= dx;
+  if (dx < 0) {
+    if (r < t0) return;
+    if (r < t1) t1 = r;
+  } else if (dx > 0) {
+    if (r > t1) return;
+    if (r > t0) t0 = r;
+  }
+  r = x12 - ax;
+  if (!dx && r < 0) return;
+  r /= dx;
+  if (dx < 0) {
+    if (r > t1) return;
+    if (r > t0) t0 = r;
+  } else if (dx > 0) {
+    if (r < t0) return;
+    if (r < t1) t1 = r;
+  }
+  r = y06 - ay;
+  if (!dy && r > 0) return;
+  r /= dy;
+  if (dy < 0) {
+    if (r < t0) return;
+    if (r < t1) t1 = r;
+  } else if (dy > 0) {
+    if (r > t1) return;
+    if (r > t0) t0 = r;
+  }
+  r = y12 - ay;
+  if (!dy && r < 0) return;
+  r /= dy;
+  if (dy < 0) {
+    if (r > t1) return;
+    if (r > t0) t0 = r;
+  } else if (dy > 0) {
+    if (r < t0) return;
+    if (r < t1) t1 = r;
+  }
+  if (t0 > 0) a[0] = ax + t0 * dx, a[1] = ay + t0 * dy;
+  if (t1 < 1) b2[0] = ax + t1 * dx, b2[1] = ay + t1 * dy;
+  return true;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/clip/rectangle.js
+var clipMax = 1e9;
+var clipMin = -clipMax;
+function clipRectangle(x06, y06, x12, y12) {
+  function visible(x2, y) {
+    return x06 <= x2 && x2 <= x12 && y06 <= y && y <= y12;
+  }
+  function interpolate(from, to, direction, stream) {
+    var a = 0, a1 = 0;
+    if (from == null || (a = corner(from, direction)) !== (a1 = corner(to, direction)) || comparePoint(from, to) < 0 ^ direction > 0) {
+      do
+        stream.point(a === 0 || a === 3 ? x06 : x12, a > 1 ? y12 : y06);
+      while ((a = (a + direction + 4) % 4) !== a1);
+    } else {
+      stream.point(to[0], to[1]);
+    }
+  }
+  function corner(p2, direction) {
+    return abs(p2[0] - x06) < epsilon ? direction > 0 ? 0 : 3 : abs(p2[0] - x12) < epsilon ? direction > 0 ? 2 : 1 : abs(p2[1] - y06) < epsilon ? direction > 0 ? 1 : 0 : direction > 0 ? 3 : 2;
+  }
+  function compareIntersection2(a, b2) {
+    return comparePoint(a.x, b2.x);
+  }
+  function comparePoint(a, b2) {
+    var ca = corner(a, 1), cb = corner(b2, 1);
+    return ca !== cb ? ca - cb : ca === 0 ? b2[1] - a[1] : ca === 1 ? a[0] - b2[0] : ca === 2 ? a[1] - b2[1] : b2[0] - a[0];
+  }
+  return function(stream) {
+    var activeStream = stream, bufferStream = buffer_default(), segments, polygon, ring, x__, y__, v__, x_, y_, v_, first, clean;
+    var clipStream = {
+      point,
+      lineStart,
+      lineEnd,
+      polygonStart,
+      polygonEnd
+    };
+    function point(x2, y) {
+      if (visible(x2, y)) activeStream.point(x2, y);
+    }
+    function polygonInside() {
+      var winding = 0;
+      for (var i = 0, n = polygon.length; i < n; ++i) {
+        for (var ring2 = polygon[i], j2 = 1, m2 = ring2.length, point2 = ring2[0], a0, a1, b0 = point2[0], b1 = point2[1]; j2 < m2; ++j2) {
+          a0 = b0, a1 = b1, point2 = ring2[j2], b0 = point2[0], b1 = point2[1];
+          if (a1 <= y12) {
+            if (b1 > y12 && (b0 - a0) * (y12 - a1) > (b1 - a1) * (x06 - a0)) ++winding;
+          } else {
+            if (b1 <= y12 && (b0 - a0) * (y12 - a1) < (b1 - a1) * (x06 - a0)) --winding;
+          }
+        }
+      }
+      return winding;
+    }
+    function polygonStart() {
+      activeStream = bufferStream, segments = [], polygon = [], clean = true;
+    }
+    function polygonEnd() {
+      var startInside = polygonInside(), cleanInside = clean && startInside, visible2 = (segments = merge(segments)).length;
+      if (cleanInside || visible2) {
+        stream.polygonStart();
+        if (cleanInside) {
+          stream.lineStart();
+          interpolate(null, null, 1, stream);
+          stream.lineEnd();
+        }
+        if (visible2) {
+          rejoin_default(segments, compareIntersection2, startInside, interpolate, stream);
+        }
+        stream.polygonEnd();
+      }
+      activeStream = stream, segments = polygon = ring = null;
+    }
+    function lineStart() {
+      clipStream.point = linePoint;
+      if (polygon) polygon.push(ring = []);
+      first = true;
+      v_ = false;
+      x_ = y_ = NaN;
+    }
+    function lineEnd() {
+      if (segments) {
+        linePoint(x__, y__);
+        if (v__ && v_) bufferStream.rejoin();
+        segments.push(bufferStream.result());
+      }
+      clipStream.point = point;
+      if (v_) activeStream.lineEnd();
+    }
+    function linePoint(x2, y) {
+      var v2 = visible(x2, y);
+      if (polygon) ring.push([x2, y]);
+      if (first) {
+        x__ = x2, y__ = y, v__ = v2;
+        first = false;
+        if (v2) {
+          activeStream.lineStart();
+          activeStream.point(x2, y);
+        }
+      } else {
+        if (v2 && v_) activeStream.point(x2, y);
+        else {
+          var a = [x_ = Math.max(clipMin, Math.min(clipMax, x_)), y_ = Math.max(clipMin, Math.min(clipMax, y_))], b2 = [x2 = Math.max(clipMin, Math.min(clipMax, x2)), y = Math.max(clipMin, Math.min(clipMax, y))];
+          if (line_default(a, b2, x06, y06, x12, y12)) {
+            if (!v_) {
+              activeStream.lineStart();
+              activeStream.point(a[0], a[1]);
+            }
+            activeStream.point(b2[0], b2[1]);
+            if (!v2) activeStream.lineEnd();
+            clean = false;
+          } else if (v2) {
+            activeStream.lineStart();
+            activeStream.point(x2, y);
+            clean = false;
+          }
+        }
+      }
+      x_ = x2, y_ = y, v_ = v2;
+    }
+    return clipStream;
+  };
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/identity.js
+var identity_default = (x2) => x2;
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/path/area.js
+var areaSum2 = new Adder();
+var areaRingSum2 = new Adder();
+var x00;
+var y00;
+var x02;
+var y02;
+var areaStream2 = {
+  point: noop,
+  lineStart: noop,
+  lineEnd: noop,
+  polygonStart: function() {
+    areaStream2.lineStart = areaRingStart2;
+    areaStream2.lineEnd = areaRingEnd2;
+  },
+  polygonEnd: function() {
+    areaStream2.lineStart = areaStream2.lineEnd = areaStream2.point = noop;
+    areaSum2.add(abs(areaRingSum2));
+    areaRingSum2 = new Adder();
+  },
+  result: function() {
+    var area = areaSum2 / 2;
+    areaSum2 = new Adder();
+    return area;
+  }
+};
+function areaRingStart2() {
+  areaStream2.point = areaPointFirst2;
+}
+function areaPointFirst2(x2, y) {
+  areaStream2.point = areaPoint2;
+  x00 = x02 = x2, y00 = y02 = y;
+}
+function areaPoint2(x2, y) {
+  areaRingSum2.add(y02 * x2 - x02 * y);
+  x02 = x2, y02 = y;
+}
+function areaRingEnd2() {
+  areaPoint2(x00, y00);
+}
+var area_default2 = areaStream2;
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/path/bounds.js
+var x03 = Infinity;
+var y03 = x03;
+var x1 = -x03;
+var y1 = x1;
+var boundsStream = {
+  point: boundsPoint,
+  lineStart: noop,
+  lineEnd: noop,
+  polygonStart: noop,
+  polygonEnd: noop,
+  result: function() {
+    var bounds = [[x03, y03], [x1, y1]];
+    x1 = y1 = -(y03 = x03 = Infinity);
+    return bounds;
+  }
+};
+function boundsPoint(x2, y) {
+  if (x2 < x03) x03 = x2;
+  if (x2 > x1) x1 = x2;
+  if (y < y03) y03 = y;
+  if (y > y1) y1 = y;
+}
+var bounds_default = boundsStream;
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/path/centroid.js
+var X02 = 0;
+var Y02 = 0;
+var Z02 = 0;
+var X12 = 0;
+var Y12 = 0;
+var Z12 = 0;
+var X22 = 0;
+var Y22 = 0;
+var Z22 = 0;
+var x002;
+var y002;
+var x04;
+var y04;
+var centroidStream2 = {
+  point: centroidPoint2,
+  lineStart: centroidLineStart2,
+  lineEnd: centroidLineEnd2,
+  polygonStart: function() {
+    centroidStream2.lineStart = centroidRingStart2;
+    centroidStream2.lineEnd = centroidRingEnd2;
+  },
+  polygonEnd: function() {
+    centroidStream2.point = centroidPoint2;
+    centroidStream2.lineStart = centroidLineStart2;
+    centroidStream2.lineEnd = centroidLineEnd2;
+  },
+  result: function() {
+    var centroid = Z22 ? [X22 / Z22, Y22 / Z22] : Z12 ? [X12 / Z12, Y12 / Z12] : Z02 ? [X02 / Z02, Y02 / Z02] : [NaN, NaN];
+    X02 = Y02 = Z02 = X12 = Y12 = Z12 = X22 = Y22 = Z22 = 0;
+    return centroid;
+  }
+};
+function centroidPoint2(x2, y) {
+  X02 += x2;
+  Y02 += y;
+  ++Z02;
+}
+function centroidLineStart2() {
+  centroidStream2.point = centroidPointFirstLine;
+}
+function centroidPointFirstLine(x2, y) {
+  centroidStream2.point = centroidPointLine;
+  centroidPoint2(x04 = x2, y04 = y);
+}
+function centroidPointLine(x2, y) {
+  var dx = x2 - x04, dy = y - y04, z = sqrt(dx * dx + dy * dy);
+  X12 += z * (x04 + x2) / 2;
+  Y12 += z * (y04 + y) / 2;
+  Z12 += z;
+  centroidPoint2(x04 = x2, y04 = y);
+}
+function centroidLineEnd2() {
+  centroidStream2.point = centroidPoint2;
+}
+function centroidRingStart2() {
+  centroidStream2.point = centroidPointFirstRing;
+}
+function centroidRingEnd2() {
+  centroidPointRing(x002, y002);
+}
+function centroidPointFirstRing(x2, y) {
+  centroidStream2.point = centroidPointRing;
+  centroidPoint2(x002 = x04 = x2, y002 = y04 = y);
+}
+function centroidPointRing(x2, y) {
+  var dx = x2 - x04, dy = y - y04, z = sqrt(dx * dx + dy * dy);
+  X12 += z * (x04 + x2) / 2;
+  Y12 += z * (y04 + y) / 2;
+  Z12 += z;
+  z = y04 * x2 - x04 * y;
+  X22 += z * (x04 + x2);
+  Y22 += z * (y04 + y);
+  Z22 += z * 3;
+  centroidPoint2(x04 = x2, y04 = y);
+}
+var centroid_default2 = centroidStream2;
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/path/context.js
+function PathContext(context) {
+  this._context = context;
+}
+PathContext.prototype = {
+  _radius: 4.5,
+  pointRadius: function(_2) {
+    return this._radius = _2, this;
+  },
+  polygonStart: function() {
+    this._line = 0;
+  },
+  polygonEnd: function() {
+    this._line = NaN;
+  },
+  lineStart: function() {
+    this._point = 0;
+  },
+  lineEnd: function() {
+    if (this._line === 0) this._context.closePath();
+    this._point = NaN;
+  },
+  point: function(x2, y) {
+    switch (this._point) {
+      case 0: {
+        this._context.moveTo(x2, y);
+        this._point = 1;
+        break;
+      }
+      case 1: {
+        this._context.lineTo(x2, y);
+        break;
+      }
+      default: {
+        this._context.moveTo(x2 + this._radius, y);
+        this._context.arc(x2, y, this._radius, 0, tau);
+        break;
+      }
+    }
+  },
+  result: noop
+};
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/path/measure.js
+var lengthSum = new Adder();
+var lengthRing;
+var x003;
+var y003;
+var x05;
+var y05;
+var lengthStream = {
+  point: noop,
+  lineStart: function() {
+    lengthStream.point = lengthPointFirst;
+  },
+  lineEnd: function() {
+    if (lengthRing) lengthPoint(x003, y003);
+    lengthStream.point = noop;
+  },
+  polygonStart: function() {
+    lengthRing = true;
+  },
+  polygonEnd: function() {
+    lengthRing = null;
+  },
+  result: function() {
+    var length = +lengthSum;
+    lengthSum = new Adder();
+    return length;
+  }
+};
+function lengthPointFirst(x2, y) {
+  lengthStream.point = lengthPoint;
+  x003 = x05 = x2, y003 = y05 = y;
+}
+function lengthPoint(x2, y) {
+  x05 -= x2, y05 -= y;
+  lengthSum.add(sqrt(x05 * x05 + y05 * y05));
+  x05 = x2, y05 = y;
+}
+var measure_default = lengthStream;
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/path/string.js
+var cacheDigits;
+var cacheAppend;
+var cacheRadius;
+var cacheCircle;
+var PathString = class {
+  constructor(digits) {
+    this._append = digits == null ? append : appendRound(digits);
+    this._radius = 4.5;
+    this._ = "";
+  }
+  pointRadius(_2) {
+    this._radius = +_2;
+    return this;
+  }
+  polygonStart() {
+    this._line = 0;
+  }
+  polygonEnd() {
+    this._line = NaN;
+  }
+  lineStart() {
+    this._point = 0;
+  }
+  lineEnd() {
+    if (this._line === 0) this._ += "Z";
+    this._point = NaN;
+  }
+  point(x2, y) {
+    switch (this._point) {
+      case 0: {
+        this._append`M${x2},${y}`;
+        this._point = 1;
+        break;
+      }
+      case 1: {
+        this._append`L${x2},${y}`;
+        break;
+      }
+      default: {
+        this._append`M${x2},${y}`;
+        if (this._radius !== cacheRadius || this._append !== cacheAppend) {
+          const r = this._radius;
+          const s2 = this._;
+          this._ = "";
+          this._append`m0,${r}a${r},${r} 0 1,1 0,${-2 * r}a${r},${r} 0 1,1 0,${2 * r}z`;
+          cacheRadius = r;
+          cacheAppend = this._append;
+          cacheCircle = this._;
+          this._ = s2;
+        }
+        this._ += cacheCircle;
+        break;
+      }
+    }
+  }
+  result() {
+    const result = this._;
+    this._ = "";
+    return result.length ? result : null;
+  }
+};
+function append(strings) {
+  let i = 1;
+  this._ += strings[0];
+  for (const j2 = strings.length; i < j2; ++i) {
+    this._ += arguments[i] + strings[i];
+  }
+}
+function appendRound(digits) {
+  const d = Math.floor(digits);
+  if (!(d >= 0)) throw new RangeError(`invalid digits: ${digits}`);
+  if (d > 15) return append;
+  if (d !== cacheDigits) {
+    const k2 = 10 ** d;
+    cacheDigits = d;
+    cacheAppend = function append2(strings) {
+      let i = 1;
+      this._ += strings[0];
+      for (const j2 = strings.length; i < j2; ++i) {
+        this._ += Math.round(arguments[i] * k2) / k2 + strings[i];
+      }
+    };
+  }
+  return cacheAppend;
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/path/index.js
+function path_default(projection2, context) {
+  let digits = 3, pointRadius = 4.5, projectionStream, contextStream;
+  function path(object) {
+    if (object) {
+      if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments));
+      stream_default(object, projectionStream(contextStream));
+    }
+    return contextStream.result();
+  }
+  path.area = function(object) {
+    stream_default(object, projectionStream(area_default2));
+    return area_default2.result();
+  };
+  path.measure = function(object) {
+    stream_default(object, projectionStream(measure_default));
+    return measure_default.result();
+  };
+  path.bounds = function(object) {
+    stream_default(object, projectionStream(bounds_default));
+    return bounds_default.result();
+  };
+  path.centroid = function(object) {
+    stream_default(object, projectionStream(centroid_default2));
+    return centroid_default2.result();
+  };
+  path.projection = function(_2) {
+    if (!arguments.length) return projection2;
+    projectionStream = _2 == null ? (projection2 = null, identity_default) : (projection2 = _2).stream;
+    return path;
+  };
+  path.context = function(_2) {
+    if (!arguments.length) return context;
+    contextStream = _2 == null ? (context = null, new PathString(digits)) : new PathContext(context = _2);
+    if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
+    return path;
+  };
+  path.pointRadius = function(_2) {
+    if (!arguments.length) return pointRadius;
+    pointRadius = typeof _2 === "function" ? _2 : (contextStream.pointRadius(+_2), +_2);
+    return path;
+  };
+  path.digits = function(_2) {
+    if (!arguments.length) return digits;
+    if (_2 == null) digits = null;
+    else {
+      const d = Math.floor(_2);
+      if (!(d >= 0)) throw new RangeError(`invalid digits: ${_2}`);
+      digits = d;
+    }
+    if (context === null) contextStream = new PathString(digits);
+    return path;
+  };
+  return path.projection(projection2).digits(digits).context(context);
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/transform.js
+function transformer(methods) {
+  return function(stream) {
+    var s2 = new TransformStream();
+    for (var key in methods) s2[key] = methods[key];
+    s2.stream = stream;
+    return s2;
+  };
+}
+function TransformStream() {
+}
+TransformStream.prototype = {
+  constructor: TransformStream,
+  point: function(x2, y) {
+    this.stream.point(x2, y);
+  },
+  sphere: function() {
+    this.stream.sphere();
+  },
+  lineStart: function() {
+    this.stream.lineStart();
+  },
+  lineEnd: function() {
+    this.stream.lineEnd();
+  },
+  polygonStart: function() {
+    this.stream.polygonStart();
+  },
+  polygonEnd: function() {
+    this.stream.polygonEnd();
+  }
+};
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/projection/fit.js
+function fit(projection2, fitBounds, object) {
+  var clip = projection2.clipExtent && projection2.clipExtent();
+  projection2.scale(150).translate([0, 0]);
+  if (clip != null) projection2.clipExtent(null);
+  stream_default(object, projection2.stream(bounds_default));
+  fitBounds(bounds_default.result());
+  if (clip != null) projection2.clipExtent(clip);
+  return projection2;
+}
+function fitExtent(projection2, extent, object) {
+  return fit(projection2, function(b2) {
+    var w2 = extent[1][0] - extent[0][0], h = extent[1][1] - extent[0][1], k2 = Math.min(w2 / (b2[1][0] - b2[0][0]), h / (b2[1][1] - b2[0][1])), x2 = +extent[0][0] + (w2 - k2 * (b2[1][0] + b2[0][0])) / 2, y = +extent[0][1] + (h - k2 * (b2[1][1] + b2[0][1])) / 2;
+    projection2.scale(150 * k2).translate([x2, y]);
+  }, object);
+}
+function fitSize(projection2, size, object) {
+  return fitExtent(projection2, [[0, 0], size], object);
+}
+function fitWidth(projection2, width, object) {
+  return fit(projection2, function(b2) {
+    var w2 = +width, k2 = w2 / (b2[1][0] - b2[0][0]), x2 = (w2 - k2 * (b2[1][0] + b2[0][0])) / 2, y = -k2 * b2[0][1];
+    projection2.scale(150 * k2).translate([x2, y]);
+  }, object);
+}
+function fitHeight(projection2, height, object) {
+  return fit(projection2, function(b2) {
+    var h = +height, k2 = h / (b2[1][1] - b2[0][1]), x2 = -k2 * b2[0][0], y = (h - k2 * (b2[1][1] + b2[0][1])) / 2;
+    projection2.scale(150 * k2).translate([x2, y]);
+  }, object);
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/projection/resample.js
+var maxDepth = 16;
+var cosMinDistance = cos(30 * radians);
+function resample_default(project, delta2) {
+  return +delta2 ? resample(project, delta2) : resampleNone(project);
+}
+function resampleNone(project) {
+  return transformer({
+    point: function(x2, y) {
+      x2 = project(x2, y);
+      this.stream.point(x2[0], x2[1]);
+    }
+  });
+}
+function resample(project, delta2) {
+  function resampleLineTo(x06, y06, lambda02, a0, b0, c0, x12, y12, lambda1, a1, b1, c1, depth, stream) {
+    var dx = x12 - x06, dy = y12 - y06, d2 = dx * dx + dy * dy;
+    if (d2 > 4 * delta2 && depth--) {
+      var a = a0 + a1, b2 = b0 + b1, c = c0 + c1, m2 = sqrt(a * a + b2 * b2 + c * c), phi2 = asin(c /= m2), lambda2 = abs(abs(c) - 1) < epsilon || abs(lambda02 - lambda1) < epsilon ? (lambda02 + lambda1) / 2 : atan2(b2, a), p2 = project(lambda2, phi2), x2 = p2[0], y2 = p2[1], dx2 = x2 - x06, dy2 = y2 - y06, dz = dy * dx2 - dx * dy2;
+      if (dz * dz / d2 > delta2 || abs((dx * dx2 + dy * dy2) / d2 - 0.5) > 0.3 || a0 * a1 + b0 * b1 + c0 * c1 < cosMinDistance) {
+        resampleLineTo(x06, y06, lambda02, a0, b0, c0, x2, y2, lambda2, a /= m2, b2 /= m2, c, depth, stream);
+        stream.point(x2, y2);
+        resampleLineTo(x2, y2, lambda2, a, b2, c, x12, y12, lambda1, a1, b1, c1, depth, stream);
+      }
+    }
+  }
+  return function(stream) {
+    var lambda003, x004, y004, a00, b00, c00, lambda02, x06, y06, a0, b0, c0;
+    var resampleStream = {
+      point,
+      lineStart,
+      lineEnd,
+      polygonStart: function() {
+        stream.polygonStart();
+        resampleStream.lineStart = ringStart;
+      },
+      polygonEnd: function() {
+        stream.polygonEnd();
+        resampleStream.lineStart = lineStart;
+      }
+    };
+    function point(x2, y) {
+      x2 = project(x2, y);
+      stream.point(x2[0], x2[1]);
+    }
+    function lineStart() {
+      x06 = NaN;
+      resampleStream.point = linePoint;
+      stream.lineStart();
+    }
+    function linePoint(lambda, phi) {
+      var c = cartesian([lambda, phi]), p2 = project(lambda, phi);
+      resampleLineTo(x06, y06, lambda02, a0, b0, c0, x06 = p2[0], y06 = p2[1], lambda02 = lambda, a0 = c[0], b0 = c[1], c0 = c[2], maxDepth, stream);
+      stream.point(x06, y06);
+    }
+    function lineEnd() {
+      resampleStream.point = point;
+      stream.lineEnd();
+    }
+    function ringStart() {
+      lineStart();
+      resampleStream.point = ringPoint;
+      resampleStream.lineEnd = ringEnd;
+    }
+    function ringPoint(lambda, phi) {
+      linePoint(lambda003 = lambda, phi), x004 = x06, y004 = y06, a00 = a0, b00 = b0, c00 = c0;
+      resampleStream.point = linePoint;
+    }
+    function ringEnd() {
+      resampleLineTo(x06, y06, lambda02, a0, b0, c0, x004, y004, lambda003, a00, b00, c00, maxDepth, stream);
+      resampleStream.lineEnd = lineEnd;
+      lineEnd();
+    }
+    return resampleStream;
+  };
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/projection/index.js
+var transformRadians = transformer({
+  point: function(x2, y) {
+    this.stream.point(x2 * radians, y * radians);
+  }
+});
+function transformRotate(rotate) {
+  return transformer({
+    point: function(x2, y) {
+      var r = rotate(x2, y);
+      return this.stream.point(r[0], r[1]);
+    }
+  });
+}
+function scaleTranslate(k2, dx, dy, sx, sy) {
+  function transform(x2, y) {
+    x2 *= sx;
+    y *= sy;
+    return [dx + k2 * x2, dy - k2 * y];
+  }
+  transform.invert = function(x2, y) {
+    return [(x2 - dx) / k2 * sx, (dy - y) / k2 * sy];
+  };
+  return transform;
+}
+function scaleTranslateRotate(k2, dx, dy, sx, sy, alpha) {
+  if (!alpha) return scaleTranslate(k2, dx, dy, sx, sy);
+  var cosAlpha = cos(alpha), sinAlpha = sin(alpha), a = cosAlpha * k2, b2 = sinAlpha * k2, ai = cosAlpha / k2, bi = sinAlpha / k2, ci = (sinAlpha * dy - cosAlpha * dx) / k2, fi = (sinAlpha * dx + cosAlpha * dy) / k2;
+  function transform(x2, y) {
+    x2 *= sx;
+    y *= sy;
+    return [a * x2 - b2 * y + dx, dy - b2 * x2 - a * y];
+  }
+  transform.invert = function(x2, y) {
+    return [sx * (ai * x2 - bi * y + ci), sy * (fi - bi * x2 - ai * y)];
+  };
+  return transform;
+}
+function projection(project) {
+  return projectionMutator(function() {
+    return project;
+  })();
+}
+function projectionMutator(projectAt) {
+  var project, k2 = 150, x2 = 480, y = 250, lambda = 0, phi = 0, deltaLambda = 0, deltaPhi = 0, deltaGamma = 0, rotate, alpha = 0, sx = 1, sy = 1, theta = null, preclip = antimeridian_default, x06 = null, y06, x12, y12, postclip = identity_default, delta2 = 0.5, projectResample, projectTransform, projectRotateTransform, cache, cacheStream;
+  function projection2(point) {
+    return projectRotateTransform(point[0] * radians, point[1] * radians);
+  }
+  function invert(point) {
+    point = projectRotateTransform.invert(point[0], point[1]);
+    return point && [point[0] * degrees, point[1] * degrees];
+  }
+  projection2.stream = function(stream) {
+    return cache && cacheStream === stream ? cache : cache = transformRadians(transformRotate(rotate)(preclip(projectResample(postclip(cacheStream = stream)))));
+  };
+  projection2.preclip = function(_2) {
+    return arguments.length ? (preclip = _2, theta = void 0, reset()) : preclip;
+  };
+  projection2.postclip = function(_2) {
+    return arguments.length ? (postclip = _2, x06 = y06 = x12 = y12 = null, reset()) : postclip;
+  };
+  projection2.clipAngle = function(_2) {
+    return arguments.length ? (preclip = +_2 ? circle_default(theta = _2 * radians) : (theta = null, antimeridian_default), reset()) : theta * degrees;
+  };
+  projection2.clipExtent = function(_2) {
+    return arguments.length ? (postclip = _2 == null ? (x06 = y06 = x12 = y12 = null, identity_default) : clipRectangle(x06 = +_2[0][0], y06 = +_2[0][1], x12 = +_2[1][0], y12 = +_2[1][1]), reset()) : x06 == null ? null : [[x06, y06], [x12, y12]];
+  };
+  projection2.scale = function(_2) {
+    return arguments.length ? (k2 = +_2, recenter()) : k2;
+  };
+  projection2.translate = function(_2) {
+    return arguments.length ? (x2 = +_2[0], y = +_2[1], recenter()) : [x2, y];
+  };
+  projection2.center = function(_2) {
+    return arguments.length ? (lambda = _2[0] % 360 * radians, phi = _2[1] % 360 * radians, recenter()) : [lambda * degrees, phi * degrees];
+  };
+  projection2.rotate = function(_2) {
+    return arguments.length ? (deltaLambda = _2[0] % 360 * radians, deltaPhi = _2[1] % 360 * radians, deltaGamma = _2.length > 2 ? _2[2] % 360 * radians : 0, recenter()) : [deltaLambda * degrees, deltaPhi * degrees, deltaGamma * degrees];
+  };
+  projection2.angle = function(_2) {
+    return arguments.length ? (alpha = _2 % 360 * radians, recenter()) : alpha * degrees;
+  };
+  projection2.reflectX = function(_2) {
+    return arguments.length ? (sx = _2 ? -1 : 1, recenter()) : sx < 0;
+  };
+  projection2.reflectY = function(_2) {
+    return arguments.length ? (sy = _2 ? -1 : 1, recenter()) : sy < 0;
+  };
+  projection2.precision = function(_2) {
+    return arguments.length ? (projectResample = resample_default(projectTransform, delta2 = _2 * _2), reset()) : sqrt(delta2);
+  };
+  projection2.fitExtent = function(extent, object) {
+    return fitExtent(projection2, extent, object);
+  };
+  projection2.fitSize = function(size, object) {
+    return fitSize(projection2, size, object);
+  };
+  projection2.fitWidth = function(width, object) {
+    return fitWidth(projection2, width, object);
+  };
+  projection2.fitHeight = function(height, object) {
+    return fitHeight(projection2, height, object);
+  };
+  function recenter() {
+    var center = scaleTranslateRotate(k2, 0, 0, sx, sy, alpha).apply(null, project(lambda, phi)), transform = scaleTranslateRotate(k2, x2 - center[0], y - center[1], sx, sy, alpha);
+    rotate = rotateRadians(deltaLambda, deltaPhi, deltaGamma);
+    projectTransform = compose_default(project, transform);
+    projectRotateTransform = compose_default(rotate, projectTransform);
+    projectResample = resample_default(projectTransform, delta2);
+    return reset();
+  }
+  function reset() {
+    cache = cacheStream = null;
+    return projection2;
+  }
+  return function() {
+    project = projectAt.apply(this, arguments);
+    projection2.invert = project.invert && invert;
+    return recenter();
+  };
+}
+
+// node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/projection/mercator.js
+function mercatorRaw(lambda, phi) {
+  return [lambda, log(tan((halfPi + phi) / 2))];
+}
+mercatorRaw.invert = function(x2, y) {
+  return [x2, 2 * atan(exp(y)) - halfPi];
+};
+function mercator_default() {
+  return mercatorProjection(mercatorRaw).scale(961 / tau);
+}
+function mercatorProjection(project) {
+  var m2 = projection(project), center = m2.center, scale = m2.scale, translate = m2.translate, clipExtent = m2.clipExtent, x06 = null, y06, x12, y12;
+  m2.scale = function(_2) {
+    return arguments.length ? (scale(_2), reclip()) : scale();
+  };
+  m2.translate = function(_2) {
+    return arguments.length ? (translate(_2), reclip()) : translate();
+  };
+  m2.center = function(_2) {
+    return arguments.length ? (center(_2), reclip()) : center();
+  };
+  m2.clipExtent = function(_2) {
+    return arguments.length ? (_2 == null ? x06 = y06 = x12 = y12 = null : (x06 = +_2[0][0], y06 = +_2[0][1], x12 = +_2[1][0], y12 = +_2[1][1]), reclip()) : x06 == null ? null : [[x06, y06], [x12, y12]];
+  };
+  function reclip() {
+    var k2 = pi * scale(), t = m2(rotation_default(m2.rotate()).invert([0, 0]));
+    return clipExtent(x06 == null ? [[t[0] - k2, t[1] - k2], [t[0] + k2, t[1] + k2]] : project === mercatorRaw ? [[Math.max(t[0] - k2, x06), y06], [Math.min(t[0] + k2, x12), y12]] : [[x06, Math.max(t[1] - k2, y06)], [x12, Math.min(t[1] + k2, y12)]]);
+  }
+  return reclip();
+}
+
+// src/@modules/@images/NormalizePolygon.ts
+var NormalizeD3Polygon = (geometry) => {
+  const area = area_default(geometry);
+  if (area > 2 * Math.PI) {
+    if (geometry.type === `Polygon`) {
+      return {
+        type: `Polygon`,
+        coordinates: geometry.coordinates.map((ring) => ring.slice().reverse())
+      };
+    }
+    return {
+      type: `MultiPolygon`,
+      coordinates: geometry.coordinates.map((polygon) => polygon.map((ring) => ring.slice().reverse()))
+    };
+  }
+  return geometry;
+};
+var NormalizePolygon = (geometry) => {
+  if (geometry.type !== `Polygon` && geometry.type !== `MultiPolygon`) {
+    return geometry;
+  }
+  const reverseRing = (ring) => {
+    const reversed = ring.slice().reverse();
+    return reversed;
+  };
+  if (geometry.type === `Polygon`) {
+    return {
+      type: `Polygon`,
+      coordinates: geometry.coordinates.map((ring, index) => index === 0 ? reverseRing(ring) : ring.slice().reverse())
+    };
+  }
+  return {
+    type: `MultiPolygon`,
+    coordinates: geometry.coordinates.map((polygon) => polygon.map((ring, index) => index === 0 ? reverseRing(ring) : ring.slice().reverse()))
+  };
+};
+
+// src/@enums/States.ts
+var EnumStates = {
+  "AL": "Alabama",
+  "AK": "Alaska",
+  "AZ": "Arizona",
+  "AR": "Arkansas",
+  "CA": "California",
+  "CO": "Colorado",
+  "CT": "Connecticut",
+  "DE": "Delaware",
+  "FL": "Florida",
+  "GA": "Georgia",
+  "HI": "Hawaii",
+  "ID": "Idaho",
+  "IL": "Illinois",
+  "IN": "Indiana",
+  "IA": "Iowa",
+  "KS": "Kansas",
+  "KY": "Kentucky",
+  "LA": "Louisiana",
+  "ME": "Maine",
+  "MD": "Maryland",
+  "MA": "Massachusetts",
+  "MI": "Michigan",
+  "MN": "Minnesota",
+  "MS": "Mississippi",
+  "MO": "Missouri",
+  "MT": "Montana",
+  "NE": "Nebraska",
+  "NV": "Nevada",
+  "NH": "New Hampshire",
+  "NJ": "New Jersey",
+  "NM": "New Mexico",
+  "NY": "New York",
+  "NC": "North Carolina",
+  "ND": "North Dakota",
+  "OH": "Ohio",
+  "OK": "Oklahoma",
+  "OR": "Oregon",
+  "PA": "Pennsylvania",
+  "RI": "Rhode Island",
+  "SC": "South Carolina",
+  "SD": "South Dakota",
+  "TN": "Tennessee",
+  "TX": "Texas",
+  "UT": "Utah",
+  "VT": "Vermont",
+  "VA": "Virginia",
+  "WA": "Washington",
+  "WV": "West Virginia",
+  "WI": "Wisconsin",
+  "WY": "Wyoming",
+  "DC": "District of Columbia"
+};
+var EnumStateFIPS = {
+  "01": "AL",
+  "02": "AK",
+  "04": "AZ",
+  "05": "AR",
+  "06": "CA",
+  "08": "CO",
+  "09": "CT",
+  "10": "DE",
+  "11": "DC",
+  "12": "FL",
+  "13": "GA",
+  "15": "HI",
+  "16": "ID",
+  "17": "IL",
+  "18": "IN",
+  "19": "IA",
+  "20": "KS",
+  "21": "KY",
+  "22": "LA",
+  "23": "ME",
+  "24": "MD",
+  "25": "MA",
+  "26": "MI",
+  "27": "MN",
+  "28": "MS",
+  "29": "MO",
+  "30": "MT",
+  "31": "NE",
+  "32": "NV",
+  "33": "NH",
+  "34": "NJ",
+  "35": "NM",
+  "36": "NY",
+  "37": "NC",
+  "38": "ND",
+  "39": "OH",
+  "40": "OK",
+  "41": "OR",
+  "42": "PA",
+  "44": "RI",
+  "45": "SC",
+  "46": "SD",
+  "47": "TN",
+  "48": "TX",
+  "49": "UT",
+  "50": "VT",
+  "51": "VA",
+  "53": "WA",
+  "54": "WV",
+  "55": "WI",
+  "56": "WY"
+};
+
+// src/@modules/@images/GetGeographicalBoundaries.ts
+var GetGeographicalBoundaries = ({ Regions }) => {
+  const states = [];
+  const counties = [];
+  if (!Regions) {
+    const stateBoundaries = CreateQuery({
+      Query: `SELECT * FROM boundaries WHERE type = 'state' AND state NOT IN ('AK', 'HI')`
+    });
+    const countyBoundaries = CreateQuery({
+      Query: `SELECT * FROM boundaries WHERE type = 'county' AND state NOT IN ('AK', 'HI')`
+    });
+    states.push(...stateBoundaries);
+    counties.push(...countyBoundaries);
+    return { states, counties };
+  }
+  for (const region of Regions) {
+    const match = region.match(/^([A-Z]{2})[CZ](\d{3})$/i) ?? null;
+    if (!match) {
+      const children = CreateQuery({
+        Query: `SELECT * FROM boundaries WHERE type = 'county' AND state = ?`,
+        Parameters: [region]
+      });
+      const parent = CreateQuery({
+        Query: `SELECT * FROM boundaries WHERE type = 'state' AND state = ?`,
+        Parameters: [region]
+      });
+      for (const child of children) {
+        counties.push(child);
+      }
+      states.push(...parent);
+    } else {
+      const [, state, county] = match;
+      const fips = Object.entries(EnumStateFIPS).find(([, value]) => value === state)?.[0];
+      const child = CreateQuery({
+        Query: `SELECT * FROM boundaries WHERE type = 'county' AND id = ?`,
+        Parameters: [fips + county]
+      });
+      counties.push(...child);
+    }
+  }
+  return { states, counties };
+};
+
+// src/@modules/@images/GetParsedBoundary.ts
+var GetParsedBoundary = (rows) => {
+  const features = [];
+  for (const row of rows) {
+    try {
+      const geometry = JSON.parse(row.geometry);
+      if (!geometry || typeof geometry !== `object` || geometry.type !== `Polygon` && geometry.type !== `MultiPolygon`) {
+        continue;
+      }
+      features.push({
+        type: `Feature`,
+        properties: {
+          state: row.state,
+          name: row.name,
+          ...row.type === `county` ? { id: row.id } : {}
+        },
+        geometry
+      });
+    } catch {
+      continue;
+    }
+  }
+  return features;
+};
+
+// src/@modules/@images/GenerateEventPolygons.ts
+var GenerateEventPolygons = ({ Polygons, IPath, Settings, Map: Map2 }) => {
+  if (!Polygons) return;
+  const feature2 = {
+    type: `Feature`,
+    properties: {},
+    geometry: !Map2 ? NormalizePolygon(Polygons) : Polygons
+  };
+  const d = IPath(feature2);
+  if (!d) return ``;
+  return `<path
+        d="${d}"
+        fill="${Settings.FillColor}"
+        fill-opacity="${Settings.FillOpacity}"
+        fill-rule="evenodd"
+        stroke="${Settings.BorderColor}"
+        stroke-width="${Settings.BorderWidth}"
+        stroke-linejoin="round"
+        stroke-linecap="round"
+    />`;
+};
+
+// src/@modules/@images/GetGeometryBounds.ts
+var GetGeometryBounds = ({ Geometry, Padding }) => {
+  let minLon = Infinity;
+  let minLat = Infinity;
+  let maxLon = -Infinity;
+  let maxLat = -Infinity;
+  const ProcessCoordinate = (coordinate) => {
+    const [lon, lat] = coordinate;
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+      return;
+    }
+    minLon = Math.min(minLon, lon);
+    minLat = Math.min(minLat, lat);
+    maxLon = Math.max(maxLon, lon);
+    maxLat = Math.max(maxLat, lat);
+  };
+  const ProcessRing = (ring) => {
+    for (const coordinate of ring) {
+      ProcessCoordinate(coordinate);
+    }
+  };
+  if (Geometry.type === `Polygon`) {
+    for (const ring of Geometry.coordinates) {
+      ProcessRing(ring);
+    }
+  } else if (Geometry.type === `MultiPolygon`) {
+    for (const polygon of Geometry.coordinates) {
+      for (const ring of polygon) {
+        ProcessRing(ring);
+      }
+    }
+  }
+  const centerLat = (minLat + maxLat) / 2;
+  const latPadding = Padding / 69;
+  const lonPadding = Padding / (69 * Math.cos(centerLat * Math.PI / 180));
+  const searchMinLon = minLon - lonPadding;
+  const searchMaxLon = maxLon + lonPadding;
+  const searchMinLat = minLat - latPadding;
+  const searchMaxLat = maxLat + latPadding;
+  return {
+    Search: { minLon: searchMinLon, minLat: searchMinLat, maxLon: searchMaxLon, maxLat: searchMaxLat },
+    Bounds: { minLon, minLat, maxLon, maxLat }
+  };
+};
+
+// src/@modules/@images/GenerateImage.ts
+var import_promises = require("fs/promises");
+var import_path4 = require("path");
+var import_sharp = __toESM(require("sharp"));
+var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 150, MinZoom = 1.6, Width = 1920, Height = 1080 }) => {
+  let polygons;
+  const { Directory, Name } = File ?? {};
+  const states = Event?.properties?.geocode?.ugc?.[0]?.match(/^([A-Z]{2})[CZ](\d{3})$/)[1]?.toUpperCase();
+  if (Event && !states) {
+    return;
+  }
+  if (EnumImageBlacklist.includes(states ?? ``)) {
+    return;
+  }
+  let gBoundaries = GetGeographicalBoundaries({ Regions: Regions ? Regions : null });
+  let gEvents = GetGeographicalEvents({ Regions: Regions ? Regions : null, Event });
+  let gStatesLines = GetParsedBoundary(gBoundaries.states);
+  let gCountyLines = GetParsedBoundary(gBoundaries.counties);
+  if (gStatesLines.length === 0 && gCountyLines.length === 0) {
+    return null;
+  }
+  if (Event) {
+    polygons = await GetEventGeometry({ Event });
+    if (polygons) {
+      const eBounds = GetGeometryBounds({ Geometry: polygons, Padding: MaxMiles });
+      gCountyLines = gCountyLines.filter((county) => {
+        const cBounds = GetGeometryBounds({ Geometry: county.geometry, Padding: MaxMiles });
+        return cBounds.Bounds.minLon <= eBounds.Search.maxLon && cBounds.Bounds.maxLon >= eBounds.Search.minLon && cBounds.Bounds.minLat <= eBounds.Search.maxLat && cBounds.Bounds.maxLat >= eBounds.Search.minLat;
+      });
+      gStatesLines = gStatesLines.filter((state) => {
+        const sBounds = GetGeometryBounds({ Geometry: state.geometry, Padding: MaxMiles });
+        return sBounds.Bounds.minLon <= eBounds.Search.maxLon && sBounds.Bounds.maxLon >= eBounds.Search.minLon && sBounds.Bounds.minLat <= eBounds.Search.maxLat && sBounds.Bounds.maxLat >= eBounds.Search.minLat;
+      });
+    }
+  }
+  const iMode = mercator_default();
+  const iPath = path_default().projection(iMode);
+  const jFeatures = [...gStatesLines, ...gCountyLines];
+  const jCollection = { type: `FeatureCollection`, features: jFeatures };
+  const gPolygons = await Promise.all(
+    gEvents.map(async (event) => {
+      const zones = event.properties?.geocode?.ugc ?? [];
+      if (zones.length === 0) return null;
+      return { event, polygon: await GetUnionPolygon({
+        Polygons: polygons ? [polygons.coordinates] : [await GetEventGeometry({ Event: event }).coordinates]
+      }) };
+    })
+  );
+  if (polygons) {
+    const [centerLon, centerLat] = centroid_default(NormalizeD3Polygon(polygons));
+    iMode.center([centerLon, centerLat]).translate([Width / 2, Height / 2]).scale(MinZoom);
+    const [[x12, y12], [x2, y2]] = path_default().projection(iMode).bounds(jCollection);
+    const scaleX = Width / (x2 - x12);
+    const scaleY = Height / (y2 - y12);
+    const scale = 3.5;
+    iMode.scale(Math.min(scaleX, scaleY) * scale);
+  } else {
+    iMode.fitExtent([[50, 50], [Width - 50, Height - 50]], jCollection);
+  }
+  const ePathing = gPolygons.map(({ event, polygon: polys }, index) => {
+    const thex = event?.properties?.event ? `#${event.properties.event.split(``).reduce((hash, char) => {
+      return (hash << 5) - hash + char.charCodeAt(0) | 0;
+    }, 0).toString(16).slice(-6).padStart(6, `0`)}` : `#ff0000`;
+    return GenerateEventPolygons({
+      Polygons: polys,
+      IPath: iPath,
+      Map: false,
+      Settings: { BorderColor: `${thex}`, BorderWidth: 2, FillColor: `${thex}`, FillOpacity: 0.3 }
+    });
+  }).filter(Boolean).join(``);
+  const cPathing = gCountyLines.map((polygon) => GenerateEventPolygons({
+    Polygons: polygon.geometry,
+    IPath: iPath,
+    Map: true,
+    Settings: { BorderColor: `darkgray`, BorderWidth: 0.5, FillColor: `black`, FillOpacity: 1 }
+  })).filter(Boolean).join(``);
+  const sPathing = gStatesLines.map((polygon) => GenerateEventPolygons({
+    Polygons: polygon.geometry,
+    IPath: iPath,
+    Map: false,
+    Settings: { BorderColor: `white`, BorderWidth: 1, FillColor: `#ffffff`, FillOpacity: 0 }
+  })).filter(Boolean).join(``);
+  const SVG = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${Width}" height="${Height}" viewBox="0 0 ${Width} ${Height}">
+            <rect width="${Width}" height="${Height}" fill="black"/> 
+            <g fill-rule="evenodd" clip-rule="evenodd"> 
+            ${cPathing}
+            ${sPathing}
+            ${ePathing}  
+            </g>
+        </svg>
+    `;
+  const dir = Directory ?? Bootstrap.Settings?.GlobalSettings?.ArchiveSettings?.ImageDirectory;
+  const name = Name ?? Event?.properties?.event ?? `img`;
+  const dist = states ? (0, import_path4.join)(dir, states) : dir;
+  await (0, import_promises.mkdir)(dist, { recursive: true });
+  await (0, import_sharp.default)(Buffer.from(SVG)).png().toFile((0, import_path4.join)(dist, `${name}${name.includes(`.png`) ? `` : `.png`}`));
+  return dist + `/${name}${name.includes(`.png`) ? `` : `.png`}`;
 };
 
 // src/@core/SetNode.ts
@@ -16168,7 +18689,7 @@ var GetDescriptionFromProduct = ({ Message, Handle }) => {
 };
 
 // src/@parsers/@text/GetPolygonFromProduct.ts
-var getPolygonFromProduct = (message) => {
+var GetPolygonFromProduct = (message) => {
   const coordinates = [];
   const match = message.match(
     /LAT\.\.\.LON\s+([\s\S]*?)(?=\n[A-Z]{2,}(?:\.\.\.|:)|\$\$|&&|$)/i
@@ -16633,7 +19154,7 @@ var GetEventDirection = (message) => {
 // src/@building/GetEventProperties.ts
 var GetEventProperties = ({ Message, Attributes, UGC, VTEC }) => {
   const organization = Message.match(EnumExpressions.wmo)?.[0] ?? null;
-  const polygons = getPolygonFromProduct(Message);
+  const polygons = GetPolygonFromProduct(Message);
   const properties = {
     locations: UGC?.Locations?.join(`; `) ?? null,
     locations_array: UGC?.Locations ?? [],
@@ -16846,12 +19367,12 @@ var GetExpiry = (message) => {
 };
 
 // src/@parsers/@ugc/GetCache.ts
-var getCache = (key) => {
+var GetCache = (key) => {
   return Bootstrap.Cache.UGC.get(key);
 };
 
 // src/@parsers/@ugc/SetCache.ts
-var setCache = ({ Key, Value }) => {
+var SetCache = ({ Key, Value }) => {
   if (Bootstrap.Cache.UGC.size >= 5e3) {
     const firstKey = Bootstrap.Cache.UGC.keys().next().value;
     Bootstrap.Cache.UGC.delete(firstKey);
@@ -16860,13 +19381,13 @@ var setCache = ({ Key, Value }) => {
 };
 
 // src/@parsers/@ugc/GetLocations.ts
-var getLocations = async (zones) => {
+var GetLocations = async (zones) => {
   const uniqueZones = Array.from(new Set(zones));
   const results = [];
   const missing = [];
   for (let i = 0; i < uniqueZones.length; i++) {
     const zone = uniqueZones[i];
-    const cached = getCache(zone);
+    const cached = GetCache(zone);
     if (cached) {
       for (let j2 = 0; j2 < cached.length; j2++) {
         results.push(cached[j2]);
@@ -16876,10 +19397,12 @@ var getLocations = async (zones) => {
     }
   }
   if (missing.length > 0) {
-    const rows = CreateQuery({ Query: `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => "?").join(",")})`, Parameters: missing });
+    const rows = await Bootstrap.Database.prepare(
+      `SELECT id, location FROM shapefiles WHERE id IN (${missing.map(() => "?").join(",")})`
+    ).all(...missing);
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
-      setCache({ Key: r.id, Value: [r.location] });
+      SetCache({ Key: r.id, Value: [r.location] });
       results.push(r.location);
     }
   }
@@ -16887,11 +19410,11 @@ var getLocations = async (zones) => {
 };
 
 // src/@parsers/@ugc/UGCExtract.ts
-var ugcExtract = async (message) => {
+var UGCExtract = async (message) => {
   const expires = GetExpiry(message);
   const head = GetHeader(message);
   const ugcs = GetZones(head);
-  const areas = await getLocations(ugcs);
+  const areas = await GetLocations(ugcs);
   if (!head || ugcs?.length == 0) return;
   return {
     Zones: ugcs,
@@ -16907,7 +19430,7 @@ var ParseUGC = async (Stanza) => {
   for (const message of getMessages) {
     const tick = performance.now();
     const attributes = Stanza?.Attributes;
-    const ugc = await ugcExtract(message);
+    const ugc = await UGCExtract(message);
     if (ugc != null) {
       const props = GetEventProperties({ Message: message, Attributes: attributes, UGC: ugc });
       const issued = new Date(attributes.issue);
@@ -17153,7 +19676,7 @@ var ParseVTEC = async (Stanza) => {
     const attributes = Stanza?.Attributes;
     const VTEC = VTECExtract(message);
     const hVTEC = HVExtract(message);
-    const ugc = await ugcExtract(message);
+    const ugc = await UGCExtract(message);
     if (VTEC != null && ugc != null) {
       for (const vtec of VTEC) {
         const props = GetEventProperties({ Message: message, Attributes: attributes, UGC: ugc, VTEC: vtec });
@@ -17200,9 +19723,9 @@ var ParseVTEC = async (Stanza) => {
 // src/@events/ParseAPI.ts
 var ParseAPI = async (Stanza) => {
   const messages = Object.values(JSON.parse(Stanza.Message).features);
-  for (const feature of messages) {
+  for (const feature2 of messages) {
     const tick = performance.now();
-    const VTEC = VTECExtract(feature?.properties?.parameters?.VTEC?.[0]) ?? null;
+    const VTEC = VTECExtract(feature2?.properties?.parameters?.VTEC?.[0]) ?? null;
     Bootstrap.Cache.Parsed.push({
       type: `Feature`,
       geometry: {
@@ -17210,78 +19733,78 @@ var ParseAPI = async (Stanza) => {
         coordinates: []
       },
       properties: {
-        event: feature?.properties?.event ?? null,
-        parent: feature?.properties?.event ?? null,
-        status: feature?.properties?.messageType ?? null,
-        issued: feature?.properties?.sent ? new Date(feature?.properties?.sent).toISOString() : null,
-        expires: feature?.properties?.expires ? new Date(feature?.properties?.expires).toISOString() : null,
-        locations: feature?.properties?.areaDesc ?? null,
-        locations_array: feature?.properties?.areaDesc ? feature?.properties?.areaDesc.split("; ") : [],
+        event: feature2?.properties?.event ?? null,
+        parent: feature2?.properties?.event ?? null,
+        status: feature2?.properties?.messageType ?? null,
+        issued: feature2?.properties?.sent ? new Date(feature2?.properties?.sent).toISOString() : null,
+        expires: feature2?.properties?.expires ? new Date(feature2?.properties?.expires).toISOString() : null,
+        locations: feature2?.properties?.areaDesc ?? null,
+        locations_array: feature2?.properties?.areaDesc ? feature2?.properties?.areaDesc.split("; ") : [],
         location_states: [...new Set(
-          feature?.properties?.areaDesc?.split(";")?.map((location) => location.match(/,\s*([A-Z]{2})\b/)?.[1]).filter(Boolean) ?? []
+          feature2?.properties?.areaDesc?.split(";")?.map((location) => location.match(/,\s*([A-Z]{2})\b/)?.[1]).filter(Boolean) ?? []
         )],
-        description: feature?.properties?.description ?? null,
-        attributes: feature?.properties?.attributes ?? {},
+        description: feature2?.properties?.description ?? null,
+        attributes: feature2?.properties?.attributes ?? {},
         geocode: {
           office: {
             office: VTEC ? VTEC?.[0]?.Tracking.split(`.`)[0] : null,
             name: EnumICAO[VTEC ? VTEC?.[0]?.Tracking.split(`.`)[0] : null] ?? null
           },
-          organization: feature?.properties?.parameters?.WMOidentifier?.[0],
-          ugc: feature?.properties?.geocode?.UGC ?? [],
-          polygon: feature?.geometry?.coordinates.length > 0 ? Buffer.from(JSON.stringify([feature?.geometry?.coordinates[0]])).toString("base64") : null,
-          polygon_generated: feature?.geometry?.coordinates.length > 0 ? true : false
+          organization: feature2?.properties?.parameters?.WMOidentifier?.[0],
+          ugc: feature2?.properties?.geocode?.UGC ?? [],
+          polygon: feature2?.geometry?.coordinates.length > 0 ? Buffer.from(JSON.stringify([feature2?.geometry?.coordinates[0]])).toString("base64") : null,
+          polygon_generated: feature2?.geometry?.coordinates.length > 0 ? true : false
         },
         parameters: {
-          tags: GetEventTags(feature?.properties?.description),
-          instructions: feature?.properties?.instruction ?? null,
-          source: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`SOURCE...`], Removal: [`.`] }) ?? null,
-          hazards: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`HAZARD...`], Removal: [`.`] }) ?? null,
-          impacts: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`IMPACT...`], Removal: [`.`] }) ?? null,
-          estimated_hail_size: feature?.properties?.parameters?.maxHailSize?.[0] ?? null,
-          estimated_wind_gusts: feature?.properties?.parameters?.maxWindGust?.[0] ?? null,
-          direction: GetEventDirection(feature?.properties?.description) ?? null,
-          damage_threat: feature?.properties?.parameters?.thunderstormDamageThreat?.[0] ?? null,
-          tornado_threat: feature?.properties?.parameters?.tornadoDetection?.[0] ?? null,
-          flood_threat: feature?.properties?.parameters?.floodDetection?.[0] ?? null,
-          wind_threat: feature?.properties?.parameters?.windThreat?.[0] ?? null,
-          hail_threat: feature?.properties?.parameters?.hailThreat?.[0] ?? null
+          tags: GetEventTags(feature2?.properties?.description),
+          instructions: feature2?.properties?.instruction ?? null,
+          source: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`SOURCE...`], Removal: [`.`] }) ?? null,
+          hazards: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`HAZARD...`], Removal: [`.`] }) ?? null,
+          impacts: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`IMPACT...`], Removal: [`.`] }) ?? null,
+          estimated_hail_size: feature2?.properties?.parameters?.maxHailSize?.[0] ?? null,
+          estimated_wind_gusts: feature2?.properties?.parameters?.maxWindGust?.[0] ?? null,
+          direction: GetEventDirection(feature2?.properties?.description) ?? null,
+          damage_threat: feature2?.properties?.parameters?.thunderstormDamageThreat?.[0] ?? null,
+          tornado_threat: feature2?.properties?.parameters?.tornadoDetection?.[0] ?? null,
+          flood_threat: feature2?.properties?.parameters?.flashFloodDamageThreat?.[0] ?? null,
+          wind_threat: feature2?.properties?.parameters?.windThreat?.[0] ?? null,
+          hail_threat: feature2?.properties?.parameters?.hailThreat?.[0] ?? null
         },
         discussion_parameters: {
-          discussion_number: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`Mesoscale Discussion `], Removal: [`Mesoscale Discussion`, `Number`, `...`] })?.toString()?.padStart(4, "0") ?? null,
-          discussion_concerning: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`Concerning...`] }) ?? null,
-          discussion_max_tornado: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
-          discussion_max_hail: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
-          discussion_max_wind: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
-          discussion_watch_issuance: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`Probability of Watch Issuance...`], Removal: [`percent`] }) ?? null
+          discussion_number: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`Mesoscale Discussion `], Removal: [`Mesoscale Discussion`, `Number`, `...`] })?.toString()?.padStart(4, "0") ?? null,
+          discussion_concerning: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`Concerning...`] }) ?? null,
+          discussion_max_tornado: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`MOST PROBABLE PEAK TORNADO INTENSITY...`] }) ?? null,
+          discussion_max_hail: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`MOST PROBABLE PEAK HAIL SIZE...`] }) ?? null,
+          discussion_max_wind: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`MOST PROBABLE PEAK WIND GUST...`] }) ?? null,
+          discussion_watch_issuance: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`Probability of Watch Issuance...`], Removal: [`percent`] }) ?? null
         },
         watch_parameters: {
-          watch_number: VTEC?.[0]?.Watch && (GetTextFromProduct({ Message: feature?.properties?.description, Find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], Removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, "")?.trim()?.toString()?.padStart(4, "0") ?? VTEC?.[0]?.Tracking?.slice(-4)?.toString()?.padStart(4, "0") ?? null),
-          watch_type: feature?.properties?.description.includes(`TORNADO WATCH`) ? `Tornado` : feature?.properties?.description.includes(`SEVERE`) ? `Severe` : null,
-          additional_tornadoes_probability: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`PROB OF 2 OR MORE TORNADOES`], Removal: [`%`, `<`, `:`] }) ?? null,
-          strong_tornadoes_probability: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], Removal: [`%`, `<`, `:`] }) ?? null,
-          severe_wind_probability: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
-          severe_hail_probability: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
-          hail_2in_probability: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], Removal: [`%`, `<`, `:`] }) ?? null,
-          combined_hail_wind_probability: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
-          max_hail_in: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`MAX HAIL /INCHES/`], Removal: [`%`, `<`, `:`] }) ?? null,
-          max_wind_surface: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`MAX WIND GUSTS SURFACE /KNOTS/`], Removal: [`%`, `<`, `:`] }) ?? null,
-          max_tops_x100feet: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`MAX TOPS /X 100 FEET/`], Removal: [`%`, `<`, `:`] }) ?? null,
-          pds_watch: GetTextFromProduct({ Message: feature?.properties?.description, Find: [`PARTICULARLY DANGEROUS SITUATION`], Removal: [`%`, `<`, `:`] }) === `YES`
+          watch_number: VTEC?.[0]?.Watch && (GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`ITIES FOR`, `UPDATE FOR`, `Watch Number `], Removal: [`%`, `<`, `:`] })?.replace(/(WT|WS|)/g, "")?.trim()?.toString()?.padStart(4, "0") ?? VTEC?.[0]?.Tracking?.slice(-4)?.toString()?.padStart(4, "0") ?? null),
+          watch_type: feature2?.properties?.description.includes(`TORNADO WATCH`) ? `Tornado` : feature2?.properties?.description.includes(`SEVERE`) ? `Severe` : null,
+          additional_tornadoes_probability: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`PROB OF 2 OR MORE TORNADOES`], Removal: [`%`, `<`, `:`] }) ?? null,
+          strong_tornadoes_probability: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`PROB OF 1 OR MORE STRONG /EF2-EF5/ TORNADOES`], Removal: [`%`, `<`, `:`] }) ?? null,
+          severe_wind_probability: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`PROB OF 10 OR MORE SEVERE WIND EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
+          severe_hail_probability: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`PROB OF 10 OR MORE SEVERE HAIL EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
+          hail_2in_probability: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`PROB OF 1 OR MORE HAIL EVENTS >= 2 INCHES`], Removal: [`%`, `<`, `:`] }) ?? null,
+          combined_hail_wind_probability: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`PROB OF 6 OR MORE COMBINED SEVERE HAIL/WIND EVENTS`], Removal: [`%`, `<`, `:`] }) ?? null,
+          max_hail_in: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`MAX HAIL /INCHES/`], Removal: [`%`, `<`, `:`] }) ?? null,
+          max_wind_surface: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`MAX WIND GUSTS SURFACE /KNOTS/`], Removal: [`%`, `<`, `:`] }) ?? null,
+          max_tops_x100feet: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`MAX TOPS /X 100 FEET/`], Removal: [`%`, `<`, `:`] }) ?? null,
+          pds_watch: GetTextFromProduct({ Message: feature2?.properties?.description, Find: [`PARTICULARLY DANGEROUS SITUATION`], Removal: [`%`, `<`, `:`] }) === `YES`
         },
         metadata: {
           ms: performance.now() - tick,
           source: `events.api`,
-          tracking: GetEventTracking({ Type: `API`, WMO: { Identifier: feature?.properties?.parameters?.WMOidentifier?.[0], ID: feature?.id }, VTEC: VTEC?.[0] }),
-          header: `ZCZC-ATMOSX-${feature?.properties?.parameters?.WMOidentifier}`,
+          tracking: GetEventTracking({ Type: `API`, WMO: { Identifier: feature2?.properties?.parameters?.WMOidentifier?.[0], ID: feature2?.id }, VTEC: VTEC?.[0] }),
+          header: `ZCZC-ATMOSX-${feature2?.properties?.parameters?.WMOidentifier}`,
           vtec: VTEC?.[0],
           hvtec: null,
-          raw: feature?.properties?.description,
+          raw: feature2?.properties?.description,
           history: [
             {
-              description: feature?.properties?.description,
-              issued: feature?.properties?.sent ? new Date(feature?.properties?.sent).toISOString() : null,
-              status: feature?.properties?.messageType ?? null
+              description: feature2?.properties?.description,
+              issued: feature2?.properties?.sent ? new Date(feature2?.properties?.sent).toISOString() : null,
+              status: feature2?.properties?.messageType ?? null
             }
           ]
         }
@@ -17339,7 +19862,7 @@ var EnumEnhanced = {
 // src/@building/GetEventEnhancedName.ts
 var GetEventEnhancedName = (event) => {
   let name = event?.properties?.event;
-  const damage = event?.properties?.parameters?.damage_threat;
+  const damage = event?.properties?.parameters?.damage_threat ?? event?.properties?.parameters?.flood_threat;
   const tornado = event?.properties?.parameters?.tornado_threat;
   const pdswatch = event?.properties?.watch_parameters?.pds_watch;
   const description = event?.properties?.description?.toLowerCase();
@@ -17529,21 +20052,21 @@ var TaskGenerateAudio = async function({ Filename, Description, Header }) {
 };
 
 // src/@tasks/TaskGenerateText.ts
-var import_promises = require("fs/promises");
+var import_promises2 = require("fs/promises");
 var TaskGenerateText = async function({ String: String2, Directory, Filename }) {
   if (Directory) {
-    await (0, import_promises.mkdir)(Directory, { recursive: true });
-    await (0, import_promises.appendFile)(Directory + "/" + Filename, `${String2}${"\n".repeat(5)}`);
+    await (0, import_promises2.mkdir)(Directory, { recursive: true });
+    await (0, import_promises2.appendFile)(Directory + "/" + Filename, `${String2}${"\n".repeat(5)}`);
   }
   return String2;
 };
 
 // src/@tasks/TaskGenerateJSON.ts
-var import_promises2 = require("fs/promises");
+var import_promises3 = require("fs/promises");
 var TaskGenerateJSON = async function({ String: String2, Directory, Filename }) {
   if (Directory) {
-    await (0, import_promises2.mkdir)(Directory, { recursive: true });
-    await (0, import_promises2.writeFile)(Directory + "/" + Filename, `${String2}${"\n".repeat(5)}`);
+    await (0, import_promises3.mkdir)(Directory, { recursive: true });
+    await (0, import_promises3.writeFile)(Directory + "/" + Filename, `${String2}${"\n".repeat(5)}`);
   }
   return String2;
 };
@@ -17682,7 +20205,7 @@ var GetEmebedText = (event) => {
 };
 
 // src/@tasks/TaskSendWebhook.ts
-var import_promises3 = require("fs/promises");
+var import_promises4 = require("fs/promises");
 var TaskSendWebhook = async function({ Event, Webhook, Attachments }) {
   const { properties } = Event;
   const isRatelimited = SetTimeoutAction({
@@ -17700,6 +20223,7 @@ var TaskSendWebhook = async function({ Event, Webhook, Attachments }) {
     description: GetEmebedText(Event),
     fields: [],
     color: 16711680,
+    thumbnail: Attachments?.Image ? { url: `attachment://${properties.event}_${properties.status}_${properties.metadata.tracking}.png` } : void 0,
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
     footer: { text: Webhook.Title ?? `AtmosphericX` }
   };
@@ -17717,6 +20241,10 @@ var TaskSendWebhook = async function({ Event, Webhook, Attachments }) {
       value: attachments.map((attachment) => `- [${attachment.name.length > 45 ? attachment.name.substring(0, 45) + "..." : attachment.name}](${attachment.link})`).join("\n")
     });
   }
+  if (Attachments?.Image) {
+    const file = await (0, import_promises4.readFile)(Attachments.Image);
+    newForm.append("fUpload1", new Blob([Buffer.from(file)], { type: "image/png" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.png`);
+  }
   if (Attachments?.Text) {
     newForm.append("fUpload", new Blob([Buffer.from(Attachments.Text)], { type: "application/text" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`);
   }
@@ -17724,7 +20252,7 @@ var TaskSendWebhook = async function({ Event, Webhook, Attachments }) {
     newForm.append("fUpload2", new Blob([Buffer.from(Attachments.Json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
   }
   if (Attachments?.EAS) {
-    const file = await (0, import_promises3.readFile)(Attachments.EAS);
+    const file = await (0, import_promises4.readFile)(Attachments.EAS);
     newForm.append("fUpload3", new Blob([Buffer.from(file)], { type: "application/wav" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.wav`);
   }
   newForm.append("payload_json", JSON.stringify({
@@ -17804,7 +20332,7 @@ var CreateTasks = async (events) => {
       const isValidAction = GetMatched({ Strings: Events, String: properties.event });
       if (Events.length == 0 || isValidAction) {
         const a = performance.now();
-        const [eas, text, json] = await Promise.all([
+        const [eas, text, json, image] = await Promise.all([
           Uploads?.EAS ? TaskGenerateAudio({
             Filename: `${properties.event}_${properties.metadata.tracking}`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
             Description: properties.description,
@@ -17823,6 +20351,15 @@ var CreateTasks = async (events) => {
             String: JSON.stringify(GetCleanedEvent(event), null, 2),
             Directory: GlobalSettings?.ArchiveSettings?.JSONDirectory,
             Filename: `${properties.event}_${properties.metadata.tracking}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+          }).then((result) => {
+            return result;
+          }) : Promise.resolve(null),
+          Uploads?.IMAGE ? GenerateGraphic({
+            Event: event,
+            File: {
+              Directory: GlobalSettings?.ArchiveSettings?.ImageDirectory,
+              Name: `${properties.event}_${properties.metadata.tracking}.png`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
+            }
           }).then((result) => {
             return result;
           }) : Promise.resolve(null)
@@ -17851,6 +20388,7 @@ var CreateTasks = async (events) => {
               Ratelimit: Webhook?.Ratelimit
             },
             Attachments: {
+              Image: image,
               Text: text,
               EAS: eas,
               Json: json
@@ -17977,18 +20515,19 @@ var GetEventNodes = async (event) => {
     return { nodes: [], filtered: false, updated: Date.now() };
   }
   const metadata = { nodes: [], proximity: false, filtered: false };
-  const geometry = await GetEventGeometry(event);
+  const geometry = await GetEventGeometry({ Event: event });
+  ;
   if (!geometry || !geometry.coordinates) {
     return { nodes: [], filtered: false, updated: Date.now() };
   }
   for (const node of nodes) {
-    const [longitude, latitude] = node?.geometry?.coordinates ?? [];
-    const getPoint = GetShapeNearestPoint({ Coordinates: geometry.coordinates, Point: [longitude, latitude] });
+    const [longitude2, latitude] = node?.geometry?.coordinates ?? [];
+    const getPoint = GetShapeNearestPoint({ Coordinates: geometry.coordinates, Point: [longitude2, latitude] });
     const miles = getPoint.Distance ?? null;
     const kilometers = miles != null ? Number((miles * 1.609344).toFixed(3)) : null;
     const info = {
       id: node.properties?.identifier,
-      coordinates: [longitude, latitude],
+      coordinates: [longitude2, latitude],
       nearest: getPoint.Point,
       miles,
       kilometers,
@@ -18055,7 +20594,7 @@ var MakeEvents = async (events) => {
     const isHashed = isEntry?.Hashes?.includes(getHash) ?? false;
     const isNodeFiltering = settings.GlobalSettings.EventFiltering.NodeLocationFiltering;
     const getNodes = Bootstrap.Cache.Nodes.features;
-    const getFeature = features.find((feature) => feature.properties.metadata.tracking === getTracking);
+    const getFeature = features.find((feature2) => feature2.properties.metadata.tracking === getTracking);
     if (isHashed || event.properties.status_metadata.is_expired) return;
     SetHash({ Event: event, Entry: isEntry });
     await UpdateNode(event);
@@ -18158,61 +20697,6 @@ var RemoveEvent = async ({ Event, IsTimeBasedExpiration }) => {
   });
 };
 
-// src/@enums/States.ts
-var EnumStates = {
-  "AL": "Alabama",
-  "AK": "Alaska",
-  "AZ": "Arizona",
-  "AR": "Arkansas",
-  "CA": "California",
-  "CO": "Colorado",
-  "CT": "Connecticut",
-  "DE": "Delaware",
-  "FL": "Florida",
-  "GA": "Georgia",
-  "HI": "Hawaii",
-  "ID": "Idaho",
-  "IL": "Illinois",
-  "IN": "Indiana",
-  "IA": "Iowa",
-  "KS": "Kansas",
-  "KY": "Kentucky",
-  "LA": "Louisiana",
-  "ME": "Maine",
-  "MD": "Maryland",
-  "MA": "Massachusetts",
-  "MI": "Michigan",
-  "MN": "Minnesota",
-  "MS": "Mississippi",
-  "MO": "Missouri",
-  "MT": "Montana",
-  "NE": "Nebraska",
-  "NV": "Nevada",
-  "NH": "New Hampshire",
-  "NJ": "New Jersey",
-  "NM": "New Mexico",
-  "NY": "New York",
-  "NC": "North Carolina",
-  "ND": "North Dakota",
-  "OH": "Ohio",
-  "OK": "Oklahoma",
-  "OR": "Oregon",
-  "PA": "Pennsylvania",
-  "RI": "Rhode Island",
-  "SC": "South Carolina",
-  "SD": "South Dakota",
-  "TN": "Tennessee",
-  "TX": "Texas",
-  "UT": "Utah",
-  "VT": "Vermont",
-  "VA": "Virginia",
-  "WA": "Washington",
-  "WV": "West Virginia",
-  "WI": "Wisconsin",
-  "WY": "Wyoming",
-  "DC": "District of Columbia"
-};
-
 // src/@modules/@utilities/GetLatestIssuance.ts
 var GetLatestIssuance = () => {
   const now = /* @__PURE__ */ new Date();
@@ -18277,7 +20761,7 @@ var GetEventAttachments = (event) => {
 };
 
 // src/@manager/ValidateEvents.ts
-var import_crypto = require("crypto");
+var import_crypto2 = require("crypto");
 var ValidateEvents = async (events) => {
   const tick = performance.now();
   if (events.length === 0) return;
@@ -18375,10 +20859,10 @@ var ValidateEvents = async (events) => {
     const enhanced = properties.event = GetEventEnhancedName(event);
     const filtered = isFiltered(define2);
     if (!filtered) {
-      event.geometry = !bools?.DisableGeometryParsing ? GetEventGeometry(event) : null;
+      event.geometry = !bools?.DisableGeometryParsing ? GetEventGeometry({ Event: event }) : null;
       properties.metadata.attachments = GetEventAttachments(event);
     }
-    properties.metadata.hash = (0, import_crypto.createHash)("sha256").update(JSON.stringify(pre)).digest("hex");
+    properties.metadata.hash = (0, import_crypto2.createHash)("sha256").update(JSON.stringify(pre)).digest("hex");
     SetEventEmit({ Event: `onProductType${enhanced.replace(/\s+/g, "")}`, Metadata: define2 });
     return !filtered;
   });
@@ -18436,7 +20920,7 @@ var ManualEvent = async ({ Message, Awipsid }) => {
     CapAreaDescription: isCapAreaDescription,
     Ignored: false,
     NWWS: true,
-    getType
+    Type: getType
   };
   await CreateEvent(result);
 };
@@ -18527,7 +21011,7 @@ var ReconnectXMPP = async (interval) => {
 
 // src/@modules/@utilities/SetCronSchedule.ts
 var import_fs3 = require("fs");
-var import_path3 = require("path");
+var import_path5 = require("path");
 var SetCronSchedule = async () => {
   const settings = Bootstrap.Settings;
   const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
@@ -18536,7 +21020,7 @@ var SetCronSchedule = async () => {
     if ((0, import_fs3.existsSync)(dir)) {
       const entries = (0, import_fs3.readdirSync)(dir, { withFileTypes: true });
       for (const entry of entries) {
-        const fullPath = (0, import_path3.join)(dir, entry.name);
+        const fullPath = (0, import_path5.join)(dir, entry.name);
         if (entry.isDirectory()) {
           walk(fullPath);
           continue;
@@ -18555,6 +21039,7 @@ var SetCronSchedule = async () => {
   walk(settings.GlobalSettings.ArchiveSettings.TextDirectory);
   walk(settings.GlobalSettings.ArchiveSettings.EasDirectory);
   walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory);
+  walk(settings.GlobalSettings.ArchiveSettings.ImageDirectory);
   if (settings.EnableWireService) {
     if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
       void ReconnectXMPP(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);
@@ -19824,9 +22309,9 @@ function streamFeatures({ middleware: middleware2 }) {
       const { stanza } = ctx;
       if (!stanza.is("features", "http://etherx.jabber.org/streams"))
         return next();
-      const feature = stanza.getChild(name, xmlns);
-      if (!feature) return next();
-      return handler(ctx, next, feature);
+      const feature2 = stanza.getChild(name, xmlns);
+      if (!feature2) return next();
+      return handler(ctx, next, feature2);
     });
   }
   return {
@@ -20212,11 +22697,11 @@ function compare(a, b2) {
 function resolve2(domain) {
   return fetch(`https://${domain}/.well-known/host-meta`).then((res) => res.text()).then((res) => {
     return parse2(res).getChildren("Link").filter(
-      (link) => [
+      (link2) => [
         "urn:xmpp:alt-connections:websocket",
         "urn:xmpp:alt-connections:httppoll",
         "urn:xmpp:alt-connections:xbosh"
-      ].includes(link.attrs.rel)
+      ].includes(link2.attrs.rel)
     ).map(({ attrs }) => ({
       rel: attrs.rel,
       href: attrs.href,
@@ -20491,8 +22976,8 @@ async function authenticate2({
           entity._jid(aid);
         }
         for (const child of element.getChildElements()) {
-          const feature = features.get(child.getNS());
-          feature?.[1]?.(child);
+          const feature2 = features.get(child.getNS());
+          feature2?.[1]?.(child);
         }
         return done();
       }
@@ -20555,9 +23040,9 @@ async function getStreamFeatures({ element, features }) {
   if (!inline) return promises;
   for (const element2 of inline.getChildElements()) {
     const xmlns = element2.getNS();
-    const feature = features.get(xmlns);
-    if (!feature) continue;
-    promises.push(feature[0](element2));
+    const feature2 = features.get(xmlns);
+    if (!feature2) continue;
+    promises.push(feature2[0](element2));
   }
   return Promise.all(promises);
 }
@@ -20883,8 +23368,8 @@ function bind2({ sasl2: sasl22, entity }, tag) {
       if (!element.is("bound")) return;
       entity._ready(false);
       for (const child of element.getChildElements()) {
-        const feature = features.get(child.getNS());
-        feature?.[1]?.(child);
+        const feature2 = features.get(child.getNS());
+        feature2?.[1]?.(child);
       }
     }
   );
@@ -20900,9 +23385,9 @@ function getSessionFeatures({ element, features }) {
   if (!inline) return promises;
   for (const element2 of inline.getChildElements()) {
     const xmlns = element2.attrs.var;
-    const feature = features.get(xmlns);
-    if (!feature) continue;
-    promises.push(feature[0](element2));
+    const feature2 = features.get(xmlns);
+    if (!feature2) continue;
+    promises.push(feature2[0](element2));
   }
   return Promise.all(promises);
 }
@@ -21421,7 +23906,7 @@ var SetSleep = async ({ Timeout }) => {
 
 // src/@modules/@database/ImportShapefiles.ts
 var import_fs4 = require("fs");
-var import_path4 = require("path");
+var import_path6 = require("path");
 var import_jszip = __toESM(require_lib3());
 var import_shapefile = __toESM(require_shapefile_node());
 var ImportShapefiles = async () => {
@@ -21433,24 +23918,24 @@ var ImportShapefiles = async () => {
         const response2 = await fetch(shapefile.link);
         const arrayBuff = await response2.arrayBuffer();
         const content = await (0, import_jszip.loadAsync)(arrayBuff);
-        const directory = (0, import_path4.resolve)(__dirname, `shapefiles`);
+        const directory = (0, import_path6.resolve)(__dirname, `shapefiles`);
         if (!(0, import_fs4.existsSync)(directory)) {
           (0, import_fs4.mkdirSync)(directory, { recursive: true });
         }
         for (const file of Object.keys(content.files)) {
           if (file.endsWith(".shp") || file.endsWith(".dbf")) {
             const data = await content.files[file].async(`nodebuffer`);
-            const output = (0, import_path4.resolve)(directory, `${shapefile?.name ?? ``}_${shapefile?.id ?? ``}${(0, import_path4.extname)(file)}`);
+            const output = (0, import_path6.resolve)(directory, `${shapefile?.name ?? ``}_${shapefile?.id ?? ``}${(0, import_path6.extname)(file)}`);
             (0, import_fs4.writeFileSync)(output, data);
           }
         }
-        const filepath = (0, import_path4.resolve)(__dirname, "shapefiles", shapefile.name + "_" + shapefile.id);
+        const filepath = (0, import_path6.resolve)(__dirname, "shapefiles", shapefile.name + "_" + shapefile.id);
         const { features } = await (0, import_shapefile.read)(
           filepath,
           filepath
         );
         SetWarning({ Message: `Importing ${features.length} features from ${shapefile.name}_${shapefile.id} for Shapefiles` });
-        const insert = `INSERT OR REPLACE INTO shapefiles (id, location, geometry) VALUES (?, ?, ?)`;
+        const insert = `INSERT INTO shapefiles (id, location, source, geometry) VALUES (?, ?, ?, ?)`;
         const transaction = Bootstrap.Database.transaction((entries) => {
           for (const entry of entries) {
             const { properties, geometry } = entry;
@@ -21468,14 +23953,14 @@ var ImportShapefiles = async () => {
               final2 = properties.ID ?? properties.WFO;
               location = properties.NAME;
             }
-            CreateQuery({ Query: insert, Parameters: [final2, location, JSON.stringify(geometry)] });
+            CreateQuery({ Query: insert, Parameters: [final2, location, `${shapefile.name}_${shapefile.id}`, JSON.stringify(geometry)] });
           }
         });
         (0, import_fs4.unlinkSync)(`${filepath}.shp`);
         (0, import_fs4.unlinkSync)(`${filepath}.dbf`);
         transaction(features);
       }
-      (0, import_fs4.rm)((0, import_path4.resolve)(__dirname, "shapefiles"), { recursive: true, force: true }, () => {
+      (0, import_fs4.rm)((0, import_path6.resolve)(__dirname, "shapefiles"), { recursive: true, force: true }, () => {
       });
     }
   } catch (error) {
@@ -21522,6 +24007,119 @@ var ImportBroadcastify = async () => {
   }
 };
 
+// src/@modules/@database/ImportBoundaries.ts
+var import_topojson_client = __toESM(require_topojson_client());
+var ImportBoundaries = async () => {
+  try {
+    const existing = CreateQuery({ Query: `SELECT type, COUNT(*) AS count FROM boundaries GROUP BY type` });
+    const existingStates = existing.find((row) => row.type === `state`)?.count ?? 0;
+    const existingCounties = existing.find((row) => row.type === `county`)?.count ?? 0;
+    if (existingStates > 0 || existingCounties > 0) {
+      SetWarning({ Message: `Boundary database already contains ${existingStates} states and ${existingCounties} counties, skipping import` });
+      return;
+    }
+    const boundaries = await CreateHttp({
+      URL: Bootstrap.Settings.BoundarySettings.BoundaryDatabase,
+      Timeout: 5e3
+    });
+    if (boundaries.error || !boundaries.message) {
+      SetWarning({ Message: `Failed to download boundary database` });
+      return;
+    }
+    let database;
+    try {
+      database = JSON.parse(boundaries.message);
+    } catch {
+      SetWarning({ Message: `Failed to parse boundary database` });
+      return;
+    }
+    if (database?.type !== `Topology` || !database?.objects?.states || !database?.objects?.counties) {
+      SetWarning({ Message: `Boundary database is missing states or counties` });
+      return;
+    }
+    let states;
+    let counties;
+    try {
+      states = (0, import_topojson_client.feature)(database, database.objects.states);
+      counties = (0, import_topojson_client.feature)(database, database.objects.counties);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      SetWarning({ Message: `Failed to convert boundary database: ${message}` });
+      return;
+    }
+    if (!Array.isArray(states?.features) || !Array.isArray(counties?.features)) {
+      SetWarning({ Message: `Boundary database contains invalid state or county data` });
+      return;
+    }
+    const insert = `INSERT OR REPLACE INTO boundaries (id, type, state, name, geometry) VALUES (?, ?, ?, ?, ?)`;
+    const stateRows = [];
+    const countyRows = [];
+    let skippedStates = 0;
+    let skippedCounties = 0;
+    for (const state of states.features) {
+      if (!state?.geometry || state.id === void 0 || state.id === null) {
+        skippedStates++;
+        continue;
+      }
+      const fips = String(state.id).padStart(2, `0`);
+      const abbreviation = EnumStateFIPS[fips];
+      if (!abbreviation) {
+        skippedStates++;
+        continue;
+      }
+      stateRows.push({
+        id: fips,
+        type: `state`,
+        state: abbreviation,
+        name: state.properties?.name ?? abbreviation,
+        geometry: JSON.stringify(state.geometry)
+      });
+    }
+    for (const county of counties.features) {
+      if (!county?.geometry || county.id === void 0 || county.id === null) {
+        skippedCounties++;
+        continue;
+      }
+      const fips = String(county.id).padStart(5, `0`);
+      const stateFIPS = fips.slice(0, 2);
+      const abbreviation = EnumStateFIPS[stateFIPS];
+      if (!abbreviation) {
+        skippedCounties++;
+        continue;
+      }
+      countyRows.push({
+        id: fips,
+        type: `county`,
+        state: abbreviation,
+        name: county.properties?.name ?? fips,
+        geometry: JSON.stringify(county.geometry)
+      });
+    }
+    SetWarning({ Message: `Importing ${stateRows.length} states and ${countyRows.length} counties` });
+    const transaction = Bootstrap.Database.transaction((rows) => {
+      for (const row of rows) {
+        CreateQuery({
+          Query: insert,
+          Parameters: [row.id, row.type, row.state, row.name, row.geometry]
+        });
+      }
+    });
+    transaction(stateRows);
+    transaction(countyRows);
+    const imported = CreateQuery({ Query: `SELECT type, COUNT(*) AS count FROM boundaries GROUP BY type` });
+    const importedStates = imported.find((row) => row.type === `state`)?.count ?? 0;
+    const importedCounties = imported.find((row) => row.type === `county`)?.count ?? 0;
+    if (importedStates !== stateRows.length || importedCounties !== countyRows.length) {
+      SetWarning({ Message: `Boundary import verification failed: ${importedStates} states and ${importedCounties} counties` });
+      return;
+    }
+    SetWarning({ Message: `Imported ${importedStates} states and ${importedCounties} counties` });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    SetWarning({ Message: `An error occurred while importing boundaries: ${message}` });
+  }
+};
+
 // src/@modules/@database/InitializeDatabase.ts
 var import_fs5 = require("fs");
 var import_better_sqlite3 = __toESM(require("better-sqlite3"));
@@ -21536,12 +24134,18 @@ var InitializeDatabase = async () => {
     CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS stanzas ( id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, issued TEXT, stanza TEXT )` });
     const isNeedingShapefiles = CreateQuery({ Query: `SELECT name FROM sqlite_master WHERE type='table' AND name='shapefiles';` });
     const isNeedingBroadcastify = CreateQuery({ Query: `SELECT name FROM sqlite_master WHERE type='table' AND name='broadcastify';` });
-    if (isNeedingShapefiles.length === 0 || isNeedingBroadcastify.length === 0) {
+    const isNeedingBoundaries = CreateQuery({ Query: `SELECT name FROM sqlite_master WHERE type='table' AND name='boundaries';` });
+    if (isNeedingShapefiles.length === 0 || isNeedingBroadcastify.length === 0 || isNeedingBoundaries.length === 0) {
       CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS broadcastify ( state TEXT, county TEXT, feed TEXT, type TEXT, link TEXT)` });
-      CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS shapefiles ( id TEXT PRIMARY KEY, location TEXT, geometry TEXT )` });
+      CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS shapefiles ( id, location TEXT, source TEXT, geometry TEXT )` });
+      CreateQuery({ Query: `CREATE INDEX IF NOT EXISTS idx_shapefiles_id ON shapefiles (id)` });
+      CreateQuery({ Query: `CREATE TABLE IF NOT EXISTS boundaries (id TEXT PRIMARY KEY, type TEXT NOT NULL, state TEXT, name TEXT, geometry TEXT NOT NULL );` });
       SetWarning({ Message: `Required database tables are currently building, please ${Bootstrap.Colors.Red}DO NOT${Bootstrap.Colors.Reset} close your terminal. The building will not finish and will remain incomplete. If you do mess up, you will need to delete ${settings.Database} and restart the application.` });
       if (isNeedingBroadcastify.length === 0) {
         await ImportBroadcastify();
+      }
+      if (isNeedingBoundaries.length === 0) {
+        await ImportBoundaries();
       }
       if (isNeedingShapefiles.length === 0) {
         await ImportShapefiles();
@@ -22263,6 +24867,9 @@ var StartService = async (configurations) => {
   const settings = SetSettings(configurations);
   Bootstrap.Ready = true;
   await InitializeDatabase();
+  if (settings.DebugDisableAllEvents) {
+    return SetWarning({ Message: `DebugDisableAllEvents is enabled, no events will be processed!` });
+  }
   if (settings.EnableWireService) {
     (async () => {
       await GetCachedEvents();
@@ -22342,6 +24949,7 @@ var Manager = class {
           }
         });
       }
+      console.log(`Uncaught Exception: ${error instanceof Error ? error.stack ?? error.message : String(error)}`);
       SetWarning({ Message: `Uncaught Exception: ${error instanceof Error ? error.stack ?? error.message : String(error)}` });
     });
   }
@@ -22351,6 +24959,7 @@ var index_default = Manager;
 0 && (module.exports = {
   ClearEvents,
   GenerateEASMessage,
+  GenerateGraphic,
   GetCleanedEvent,
   GetEventGeometry,
   GetEvents,

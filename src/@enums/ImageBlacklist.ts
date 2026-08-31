@@ -17,17 +17,4 @@
 
 */
 
-import { Bootstrap } from "@Bootstrap"
-
-interface SetCacheOptions {
-    Key: string
-    Value: string[]
-}
-
-export const SetCache = ({ Key, Value }: SetCacheOptions) => {
-	if (Bootstrap.Cache.UGC.size >= 5000) {
-        const firstKey = Bootstrap.Cache.UGC.keys().next().value;
-        Bootstrap.Cache.UGC.delete(firstKey);
-    }
-    Bootstrap.Cache.UGC.set(Key, Value);
-};
+export const EnumImageBlacklist: string[] = [`AK`, `HI`, `PK`, `PM`, `PR`, `PH`]

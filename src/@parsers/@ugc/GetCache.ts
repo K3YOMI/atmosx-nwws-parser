@@ -19,6 +19,6 @@
 
 import { Bootstrap } from "@Bootstrap"
 
-export const getCache = (key: string) => {
+export const GetCache = (key: string) => {
     return Bootstrap.Cache.UGC.get(key);
 };

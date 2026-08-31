@@ -49,7 +49,7 @@ export const ManualEvent = async ({ Message, Awipsid }: CreateEventOptions): Pro
         CapAreaDescription: isCapAreaDescription, 
         Ignored: false, 
         NWWS: true, 
-        getType 
+        Type: getType, 
     }
     await CreateEvent(result);
 }

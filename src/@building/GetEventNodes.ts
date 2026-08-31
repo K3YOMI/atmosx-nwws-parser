@@ -41,7 +41,7 @@ export const GetEventNodes = async (event: TypeEvent): Promise<GetEventNodesResp
         return { nodes: [], filtered: false, updated: Date.now() };
     }
     const metadata = { nodes: [] as GetEventNodesResponse['nodes'], proximity: false, filtered: false };
-    const geometry = await GetEventGeometry(event);
+    const geometry = await GetEventGeometry({ Event: event });;
     if (!geometry || !geometry.coordinates) {
         return { nodes: [], filtered: false, updated: Date.now() }
     }
