@@ -33,8 +33,6 @@
 	},
 	"homepage": "https://github.com/AtmosphericX/event-product-parser#readme",
 	"dependencies": {
-		"@turf/bbox": "^7.3.5",
-		"@turf/turf": "^7.3.5",
 		"@xmpp/client": "0.14.0",
 		"better-sqlite3": "12.9.0",
 		"croner": "10.0.1",
