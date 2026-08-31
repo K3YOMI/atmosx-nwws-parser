@@ -29,7 +29,7 @@ import { TaskGenerateText } from "@Tasks/TaskGenerateText"
 import { TaskGenerateJSON } from "@Tasks/TaskGenerateJSON"
 import { TaskSendNTFY } from "@Tasks/TaskSendNTFY"
 import { TaskSendWebhook } from "@Tasks/TaskSendWebhook"
-import { GenerateGraphic } from "@Image/GenerateImage"
+import { GenerateGraphic } from "@Image/GenerateGraphic"
 import { QueueManager } from "@Utilities/QueueManager"
 
 const Webhooks = new QueueManager({ Concurrency: 1 });

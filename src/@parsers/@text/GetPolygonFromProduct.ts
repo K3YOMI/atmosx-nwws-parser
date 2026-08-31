@@ -41,6 +41,25 @@ export const GetPolygonFromProduct = (message: string): number[][] => {
                 coordinates.push([lon, lat]);
             }
         }
+    } else {
+        for (let i = 0; i + 1 < values.length; i += 2) {
+            const latStr = values[i];
+            const lonStr = values[i + 1];
+
+            if (latStr.length === 4 && (lonStr.length === 4 || lonStr.length === 5)) {
+                const lat = parseInt(latStr, 10) / 100;
+                let lon = parseInt(lonStr, 10) / 100;
+                if (lonStr.length === 5) {
+                } else {
+                    lon = 100 + lon; // rare case
+                }
+                lon = -lon;
+                if (Number.isFinite(lat) && Number.isFinite(lon) &&
+                    lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                    coordinates.push([lon, lat]);
+                }
+            }
+        }
     }
     if (coordinates.length > 2 && ( coordinates[0][0] !== coordinates[coordinates.length - 1][0] || coordinates[0][1] !== coordinates[coordinates.length - 1][1])) {
         coordinates.push([...coordinates[0]]);

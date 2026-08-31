@@ -15532,6 +15532,7 @@ var GetEventGeometry = ({ Event, Union }) => {
     type: `Polygon`,
     coordinates: generated != null ? JSON.parse(Buffer.from(generated, "base64").toString("utf-8")) : null
   };
+  console.log(generated);
   if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) {
     geo = GetZonePolygon({ Zones: ugc, Union: Union ?? false });
     if (geo == null) {
@@ -16091,7 +16092,7 @@ var GenerateEASMessage = async ({ Message, Header, Title }) => {
 };
 
 // src/@enums/ImageBlacklist.ts
-var EnumImageBlacklist = [`AK`, `HI`, `PK`, `PM`, `PR`, `PH`];
+var EnumImageBlacklist = [`AK`, `HI`, `PK`, `PM`, `PR`, `PH`, `AM`];
 
 // src/@modules/@images/GetGeographicalEvents.ts
 var GetGeographicalEvents = ({ Regions, Event }) => {
@@ -18070,7 +18071,7 @@ var GetGeometryBounds = ({ Geometry, Padding }) => {
   };
 };
 
-// src/@modules/@images/GenerateImage.ts
+// src/@modules/@images/GenerateGraphic.ts
 var import_promises = require("fs/promises");
 var import_path4 = require("path");
 var import_sharp = __toESM(require("sharp"));
@@ -18710,6 +18711,23 @@ var GetPolygonFromProduct = (message) => {
       const lon = -parseInt(values[i + 1], 10) / 100;
       if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
         coordinates.push([lon, lat]);
+      }
+    }
+  } else {
+    for (let i = 0; i + 1 < values.length; i += 2) {
+      const latStr = values[i];
+      const lonStr = values[i + 1];
+      if (latStr.length === 4 && (lonStr.length === 4 || lonStr.length === 5)) {
+        const lat = parseInt(latStr, 10) / 100;
+        let lon = parseInt(lonStr, 10) / 100;
+        if (lonStr.length === 5) {
+        } else {
+          lon = 100 + lon;
+        }
+        lon = -lon;
+        if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+          coordinates.push([lon, lat]);
+        }
       }
     }
   }

@@ -41,6 +41,7 @@ export const GetEventGeometry = ({ Event, Union }: GetEventGeometryOptions): Get
         type: `Polygon`,
         coordinates: generated != null ? JSON.parse(Buffer.from(generated, 'base64').toString('utf-8')) : null
     }
+    console.log(generated)
     if (settings.GlobalSettings.UseShapefileCoordinates && generated == null && ugc != null) { 
         geo = GetZonePolygon({Zones: ugc, Union: Union ?? false});
         if (geo == null) {

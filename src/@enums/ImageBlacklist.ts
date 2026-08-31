@@ -17,4 +17,4 @@
 
 */
 
-export const EnumImageBlacklist: string[] = [`AK`, `HI`, `PK`, `PM`, `PR`, `PH`]
+export const EnumImageBlacklist: string[] = [`AK`, `HI`, `PK`, `PM`, `PR`, `PH`, `AM`]
