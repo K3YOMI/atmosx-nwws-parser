@@ -21016,13 +21016,13 @@ var SetCronSchedule = async () => {
   const settings = Bootstrap.Settings;
   const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
   const TTLCUT = Date.now() - TTL * 1e3;
-  const walk = (dir) => {
+  const walk = (dir, deleteFolder) => {
     if ((0, import_fs3.existsSync)(dir)) {
       const entries = (0, import_fs3.readdirSync)(dir, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = (0, import_path5.join)(dir, entry.name);
         if (entry.isDirectory()) {
-          walk(fullPath);
+          walk(fullPath, deleteFolder);
           continue;
         }
         const stats = (0, import_fs3.statSync)(fullPath);
@@ -21033,13 +21033,16 @@ var SetCronSchedule = async () => {
             console.error(`Failed to delete ${fullPath}:`, err);
           }
         }
+        if (deleteFolder && (0, import_fs3.readdirSync)(dir).length === 0) {
+          (0, import_fs3.rmdirSync)(dir);
+        }
       }
     }
   };
   walk(settings.GlobalSettings.ArchiveSettings.TextDirectory);
   walk(settings.GlobalSettings.ArchiveSettings.EasDirectory);
   walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory);
-  walk(settings.GlobalSettings.ArchiveSettings.ImageDirectory);
+  walk(settings.GlobalSettings.ArchiveSettings.ImageDirectory, true);
   if (settings.EnableWireService) {
     if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
       void ReconnectXMPP(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);

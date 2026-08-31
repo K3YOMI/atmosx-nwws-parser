@@ -20987,19 +20987,19 @@ var ReconnectXMPP = async (interval) => {
 };
 
 // src/@modules/@utilities/SetCronSchedule.ts
-import { readdirSync, unlinkSync as unlinkSync2, statSync, existsSync as existsSync2 } from "fs";
+import { readdirSync, unlinkSync as unlinkSync2, statSync, rmdirSync, existsSync as existsSync2 } from "fs";
 import { join as join4 } from "path";
 var SetCronSchedule = async () => {
   const settings = Bootstrap.Settings;
   const TTL = settings.GlobalSettings.ArchiveSettings.TTL;
   const TTLCUT = Date.now() - TTL * 1e3;
-  const walk = (dir) => {
+  const walk = (dir, deleteFolder) => {
     if (existsSync2(dir)) {
       const entries = readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = join4(dir, entry.name);
         if (entry.isDirectory()) {
-          walk(fullPath);
+          walk(fullPath, deleteFolder);
           continue;
         }
         const stats = statSync(fullPath);
@@ -21010,13 +21010,16 @@ var SetCronSchedule = async () => {
             console.error(`Failed to delete ${fullPath}:`, err);
           }
         }
+        if (deleteFolder && readdirSync(dir).length === 0) {
+          rmdirSync(dir);
+        }
       }
     }
   };
   walk(settings.GlobalSettings.ArchiveSettings.TextDirectory);
   walk(settings.GlobalSettings.ArchiveSettings.EasDirectory);
   walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory);
-  walk(settings.GlobalSettings.ArchiveSettings.ImageDirectory);
+  walk(settings.GlobalSettings.ArchiveSettings.ImageDirectory, true);
   if (settings.EnableWireService) {
     if (settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.Enabled) {
       void ReconnectXMPP(settings.NOAAWeatherWireServiceSettings.ReconnectionSettings.ReconnectionInterval);

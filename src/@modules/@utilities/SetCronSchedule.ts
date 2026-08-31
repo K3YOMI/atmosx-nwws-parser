@@ -24,7 +24,7 @@ import { Bootstrap } from "@Bootstrap"
 import { CreateHttp } from "@Utilities/CreateHttp"
 import { SetEventEmit } from "@Utilities/SetEventEmit"
 import { CreateEvent } from "@Building/CreateEvent"
-import { readdirSync, unlinkSync, statSync, existsSync } from "fs"
+import { readdirSync, unlinkSync, statSync, rmdirSync, existsSync } from "fs"
 import { join } from "path"
 
 export const SetCronSchedule = async (): Promise<void> => {
@@ -33,12 +33,12 @@ export const SetCronSchedule = async (): Promise<void> => {
     const TTL = settings.GlobalSettings.ArchiveSettings.TTL
     const TTLCUT = Date.now() - TTL * 1000;
 
-    const walk = (dir: string): void => {
+    const walk = (dir: string, deleteFolder?: boolean): void => {
         if (existsSync(dir)) {
             const entries = readdirSync(dir, { withFileTypes: true });
             for (const entry of entries) {
                 const fullPath = join(dir, entry.name);
-                if (entry.isDirectory()) { walk(fullPath); continue; }
+                if (entry.isDirectory()) { walk(fullPath, deleteFolder); continue; }
                 const stats = statSync(fullPath);
                 if (stats.mtime.getTime() < TTLCUT) {
                     try {
@@ -47,13 +47,16 @@ export const SetCronSchedule = async (): Promise<void> => {
                         console.error(`Failed to delete ${fullPath}:`, err);
                     }
                 }
+                if (deleteFolder && readdirSync(dir).length === 0) {
+                    rmdirSync(dir);
+                }
             }
         }
     };
     walk(settings.GlobalSettings.ArchiveSettings.TextDirectory)
     walk(settings.GlobalSettings.ArchiveSettings.EasDirectory)
     walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory)
-    walk(settings.GlobalSettings.ArchiveSettings.ImageDirectory)
+    walk(settings.GlobalSettings.ArchiveSettings.ImageDirectory, true)
 
 
 
