@@ -11,9 +11,9 @@
     Created with ♥ by the AtmosphericX Team (KiyoWx, StarflightWx, & CJ Ziegler)
     Discord: https://atmosphericx-discord.scriptkitty.cafe
     Ko-Fi: https://ko-fi.com/k3yomi
-    Documentation: http://localhost/documentation | https://atmosphericx.scriptkitty.cafe/documentation
+    Documentation: https://atmosphericx.scriptkitty.cafe/documentation
 
-    Internal Package: @atmosx/event-product-parser
+    Independent Package: @atmosx/event-product-parser
 
 */
 
