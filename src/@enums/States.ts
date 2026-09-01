@@ -68,7 +68,9 @@ export const EnumStates: Record<string, string> = {
     "WV": "West Virginia",
     "WI": "Wisconsin",
     "WY": "Wyoming",
-    "DC": "District of Columbia"
+    "DC": "District of Columbia",
+    "LM": "Lake Michigan",
+    "GM": "Gulf of Mexico",
 };
 
 export const EnumStateFIPS: Record<string, string> = {

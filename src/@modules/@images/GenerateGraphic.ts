@@ -17,7 +17,7 @@
 
 */
 
-import { EnumImageBlacklist } from "@Enums/ImageBlacklist"
+import { EnumStates } from "@Enums/States"
 import { TypeEvent } from "StaticTypes/Event"
 import { Bootstrap } from "@Bootstrap"
 import { GetEventGeometry } from "@Building/GetEventGeometry"
@@ -49,13 +49,13 @@ interface GenerateGraphicOptions {
 
 export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0.4, Width = 1000, Height = 500 }: GenerateGraphicOptions): Promise<string> => {
     let polygons: GeoJSON.Polygon | GeoJSON.MultiPolygon | null
-  
+    
+    const ignored = [`HI`, `AK`];
     const { Directory, Name } = File ?? {};
     const S = Event?.properties?.geocode?.ugc?.map(ugc => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
 
-    if (Event && !S) { return; } // If Event and not States, return as there are no ways to generate a graphic for this event
-    
-    if (S?.some(state => EnumImageBlacklist.includes(state))) { return; } // If Event and States is in the ignored regions, return as there are bugs with those shapefiles.
+    if (Event && !S) { return null; }
+    if (S?.every(state => !EnumStates[state] || ignored.includes(state))) { return null; }
 
     let gBoundaries = GetGeographicalBoundaries({ Regions: Regions ? Regions : null });
     let gEvents = GetGeographicalEvents({ Regions: Regions ? Regions : null, Event: Event });
@@ -88,7 +88,7 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, Mi
         gEvents.map(async (event: TypeEvent) => {
             const zones = event.properties?.geocode?.ugc ?? [];
             const S1 = event?.properties?.geocode?.ugc?.map(ugc => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
-            if (S1?.some(state => EnumImageBlacklist.includes(state))) { return null; }
+            if (S1?.every(state => !EnumStates[state] || ignored.includes(state))) { return null; }
             if (zones?.length === 0) return null;
             return {event, polygon: await GetUnionPolygon({ 
                 Polygons: polygons ? [polygons.coordinates] : [await GetEventGeometry({ Event: event }).coordinates],

@@ -16090,8 +16090,115 @@ var GenerateEASMessage = async ({ Message, Header, Title }) => {
   return outTTS;
 };
 
-// src/@enums/ImageBlacklist.ts
-var EnumImageBlacklist = [`AK`, `HI`, `PK`, `PM`, `PR`, `PH`, `AM`];
+// src/@enums/States.ts
+var EnumStates = {
+  "AL": "Alabama",
+  "AK": "Alaska",
+  "AZ": "Arizona",
+  "AR": "Arkansas",
+  "CA": "California",
+  "CO": "Colorado",
+  "CT": "Connecticut",
+  "DE": "Delaware",
+  "FL": "Florida",
+  "GA": "Georgia",
+  "HI": "Hawaii",
+  "ID": "Idaho",
+  "IL": "Illinois",
+  "IN": "Indiana",
+  "IA": "Iowa",
+  "KS": "Kansas",
+  "KY": "Kentucky",
+  "LA": "Louisiana",
+  "ME": "Maine",
+  "MD": "Maryland",
+  "MA": "Massachusetts",
+  "MI": "Michigan",
+  "MN": "Minnesota",
+  "MS": "Mississippi",
+  "MO": "Missouri",
+  "MT": "Montana",
+  "NE": "Nebraska",
+  "NV": "Nevada",
+  "NH": "New Hampshire",
+  "NJ": "New Jersey",
+  "NM": "New Mexico",
+  "NY": "New York",
+  "NC": "North Carolina",
+  "ND": "North Dakota",
+  "OH": "Ohio",
+  "OK": "Oklahoma",
+  "OR": "Oregon",
+  "PA": "Pennsylvania",
+  "RI": "Rhode Island",
+  "SC": "South Carolina",
+  "SD": "South Dakota",
+  "TN": "Tennessee",
+  "TX": "Texas",
+  "UT": "Utah",
+  "VT": "Vermont",
+  "VA": "Virginia",
+  "WA": "Washington",
+  "WV": "West Virginia",
+  "WI": "Wisconsin",
+  "WY": "Wyoming",
+  "DC": "District of Columbia",
+  "LM": "Lake Michigan",
+  "GM": "Gulf of Mexico"
+};
+var EnumStateFIPS = {
+  "01": "AL",
+  "02": "AK",
+  "04": "AZ",
+  "05": "AR",
+  "06": "CA",
+  "08": "CO",
+  "09": "CT",
+  "10": "DE",
+  "11": "DC",
+  "12": "FL",
+  "13": "GA",
+  "15": "HI",
+  "16": "ID",
+  "17": "IL",
+  "18": "IN",
+  "19": "IA",
+  "20": "KS",
+  "21": "KY",
+  "22": "LA",
+  "23": "ME",
+  "24": "MD",
+  "25": "MA",
+  "26": "MI",
+  "27": "MN",
+  "28": "MS",
+  "29": "MO",
+  "30": "MT",
+  "31": "NE",
+  "32": "NV",
+  "33": "NH",
+  "34": "NJ",
+  "35": "NM",
+  "36": "NY",
+  "37": "NC",
+  "38": "ND",
+  "39": "OH",
+  "40": "OK",
+  "41": "OR",
+  "42": "PA",
+  "44": "RI",
+  "45": "SC",
+  "46": "SD",
+  "47": "TN",
+  "48": "TX",
+  "49": "UT",
+  "50": "VT",
+  "51": "VA",
+  "53": "WA",
+  "54": "WV",
+  "55": "WI",
+  "56": "WY"
+};
 
 // src/@modules/@images/GetGeographicalEvents.ts
 var GetGeographicalEvents = ({ Regions, Event }) => {
@@ -17827,114 +17934,6 @@ var NormalizePolygon = (geometry) => {
   };
 };
 
-// src/@enums/States.ts
-var EnumStates = {
-  "AL": "Alabama",
-  "AK": "Alaska",
-  "AZ": "Arizona",
-  "AR": "Arkansas",
-  "CA": "California",
-  "CO": "Colorado",
-  "CT": "Connecticut",
-  "DE": "Delaware",
-  "FL": "Florida",
-  "GA": "Georgia",
-  "HI": "Hawaii",
-  "ID": "Idaho",
-  "IL": "Illinois",
-  "IN": "Indiana",
-  "IA": "Iowa",
-  "KS": "Kansas",
-  "KY": "Kentucky",
-  "LA": "Louisiana",
-  "ME": "Maine",
-  "MD": "Maryland",
-  "MA": "Massachusetts",
-  "MI": "Michigan",
-  "MN": "Minnesota",
-  "MS": "Mississippi",
-  "MO": "Missouri",
-  "MT": "Montana",
-  "NE": "Nebraska",
-  "NV": "Nevada",
-  "NH": "New Hampshire",
-  "NJ": "New Jersey",
-  "NM": "New Mexico",
-  "NY": "New York",
-  "NC": "North Carolina",
-  "ND": "North Dakota",
-  "OH": "Ohio",
-  "OK": "Oklahoma",
-  "OR": "Oregon",
-  "PA": "Pennsylvania",
-  "RI": "Rhode Island",
-  "SC": "South Carolina",
-  "SD": "South Dakota",
-  "TN": "Tennessee",
-  "TX": "Texas",
-  "UT": "Utah",
-  "VT": "Vermont",
-  "VA": "Virginia",
-  "WA": "Washington",
-  "WV": "West Virginia",
-  "WI": "Wisconsin",
-  "WY": "Wyoming",
-  "DC": "District of Columbia"
-};
-var EnumStateFIPS = {
-  "01": "AL",
-  "02": "AK",
-  "04": "AZ",
-  "05": "AR",
-  "06": "CA",
-  "08": "CO",
-  "09": "CT",
-  "10": "DE",
-  "11": "DC",
-  "12": "FL",
-  "13": "GA",
-  "15": "HI",
-  "16": "ID",
-  "17": "IL",
-  "18": "IN",
-  "19": "IA",
-  "20": "KS",
-  "21": "KY",
-  "22": "LA",
-  "23": "ME",
-  "24": "MD",
-  "25": "MA",
-  "26": "MI",
-  "27": "MN",
-  "28": "MS",
-  "29": "MO",
-  "30": "MT",
-  "31": "NE",
-  "32": "NV",
-  "33": "NH",
-  "34": "NJ",
-  "35": "NM",
-  "36": "NY",
-  "37": "NC",
-  "38": "ND",
-  "39": "OH",
-  "40": "OK",
-  "41": "OR",
-  "42": "PA",
-  "44": "RI",
-  "45": "SC",
-  "46": "SD",
-  "47": "TN",
-  "48": "TX",
-  "49": "UT",
-  "50": "VT",
-  "51": "VA",
-  "53": "WA",
-  "54": "WV",
-  "55": "WI",
-  "56": "WY"
-};
-
 // src/@modules/@images/GetGeographicalBoundaries.ts
 var GetGeographicalBoundaries = ({ Regions }) => {
   const states = [];
@@ -18076,13 +18075,14 @@ var import_path4 = require("path");
 var import_sharp = __toESM(require("sharp"));
 var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0.4, Width = 1e3, Height = 500 }) => {
   let polygons;
+  const ignored = [`HI`, `AK`];
   const { Directory, Name } = File ?? {};
   const S = Event?.properties?.geocode?.ugc?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
   if (Event && !S) {
-    return;
+    return null;
   }
-  if (S?.some((state) => EnumImageBlacklist.includes(state))) {
-    return;
+  if (S?.every((state) => !EnumStates[state] || ignored.includes(state))) {
+    return null;
   }
   let gBoundaries = GetGeographicalBoundaries({ Regions: Regions ? Regions : null });
   let gEvents = GetGeographicalEvents({ Regions: Regions ? Regions : null, Event });
@@ -18116,7 +18116,7 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0
     gEvents.map(async (event) => {
       const zones = event.properties?.geocode?.ugc ?? [];
       const S1 = event?.properties?.geocode?.ugc?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
-      if (S1?.some((state) => EnumImageBlacklist.includes(state))) {
+      if (S1?.every((state) => !EnumStates[state] || ignored.includes(state))) {
         return null;
       }
       if (zones?.length === 0) return null;
