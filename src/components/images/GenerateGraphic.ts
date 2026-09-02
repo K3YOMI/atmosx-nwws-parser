@@ -52,7 +52,8 @@ interface GenerateGraphicOptions {
     Height?: number
 }
 
-export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 2000, Height = 1200 }: GenerateGraphicOptions): Promise<string> => {
+// 720
+export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 1200, Height = 675 }: GenerateGraphicOptions): Promise<string> => {
     let polygons: GeoJSON.Polygon | GeoJSON.MultiPolygon | null
     let iconUrl: string | null = null;
 

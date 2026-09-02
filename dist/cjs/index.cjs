@@ -18126,7 +18126,7 @@ var GetGeometryBounds = ({ Geometry, Padding }) => {
 var import_promises = require("fs/promises");
 var import_path4 = require("path");
 var import_sharp = __toESM(require("sharp"));
-var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 2e3, Height = 1200 }) => {
+var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 1200, Height = 675 }) => {
   let polygons;
   let iconUrl = null;
   const ignored = [`HI`, `AK`];
