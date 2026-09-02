@@ -35,7 +35,7 @@ export const GetPolygonFromProduct = (message: string): number[][] => {
         for (const value of values) {
             const lat = parseInt(value.slice(0, 4), 10) / 100;
             let lon = parseInt(value.slice(4, 8), 10) / 100;
-            if (lon < 10) lon += 100;
+            if (lon < 20) lon += 100;
             points.push({ lat, lon });
         }
     } else if (values.every(v => v.length === 4)) {
@@ -67,6 +67,6 @@ export const GetPolygonFromProduct = (message: string): number[][] => {
     if (coordinates.length > 2 && (coordinates[0][0] !== coordinates[coordinates.length - 1][0] ||  coordinates[0][1] !== coordinates[coordinates.length - 1][1])) {
         coordinates.push([...coordinates[0]]);
     }
-
+    
     return coordinates;
 };

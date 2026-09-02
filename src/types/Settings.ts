@@ -68,6 +68,7 @@ export type TypeSettings = {
             TEXT?: string
             JSON?: string
             EAS?: string
+            IMAGE?: string
         }
         Credentials?: {
             Username: string | void

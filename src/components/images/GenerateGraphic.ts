@@ -18,10 +18,8 @@
 */
 
 import { EnumStates } from "@Enums/States"
-import { EnumThemes } from "@Enums/Themes"
 import { TypeEvent } from "StaticTypes/Event"
 import { Bootstrap } from "@Bootstrap"
-import { GetMatched } from "@Utilities/GetMatched"
 import { GetStringText } from "@ParsingText/GetStringText"
 import { GetEventGeometry } from "@Building/GetEventGeometry"
 import { GetGeographicalEvents } from "@ImageModules/GetGeographicalEvents"
@@ -53,7 +51,7 @@ interface GenerateGraphicOptions {
 }
 
 // 720
-export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 1200, Height = 675 }: GenerateGraphicOptions): Promise<string> => {
+export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.6, Width = 1200, Height = 675 }: GenerateGraphicOptions): Promise<string> => {
     let polygons: GeoJSON.Polygon | GeoJSON.MultiPolygon | null
     let iconUrl: string | null = null;
 

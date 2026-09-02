@@ -15373,7 +15373,8 @@ var Bootstrap = {
       MediaStorage: {
         EAS: null,
         TEXT: null,
-        JSON: null
+        JSON: null,
+        IMAGE: null
       },
       Credentials: {
         Username: null,
@@ -18103,7 +18104,7 @@ var GetGeometryBounds = ({ Geometry, Padding }) => {
 import { mkdir, readFile } from "fs/promises";
 import { join as join3 } from "path";
 import sharp from "sharp";
-var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 1200, Height = 675 }) => {
+var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.6, Width = 1200, Height = 675 }) => {
   let polygons;
   let iconUrl = null;
   const ignored = [`HI`, `AK`];
@@ -18780,7 +18781,7 @@ var GetPolygonFromProduct = (message) => {
     for (const value of values) {
       const lat = parseInt(value.slice(0, 4), 10) / 100;
       let lon = parseInt(value.slice(4, 8), 10) / 100;
-      if (lon < 10) lon += 100;
+      if (lon < 20) lon += 100;
       points.push({ lat, lon });
     }
   } else if (values.every((v2) => v2.length === 4)) {
@@ -20234,7 +20235,11 @@ var TaskSendNTFY = async function({ Event, Toggles, Priority, Body, Topic }) {
     Username: configurations.Credentials.Username,
     Password: configurations.Credentials.Password
   } : void 0;
-  const image = properties.metadata.attachments?.find((a) => a.name === "Image: Graphic");
+  const A2 = properties?.geocode?.ugc?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
+  const B = A2?.filter((state, index) => A2.indexOf(state) === index).join(`-`);
+  const image = properties?.metadata?.attachments?.find((a) => a.name === "Image: Graphic") ?? (Toggles?.Image && configurations?.MediaStorage?.IMAGE ? {
+    link: `${configurations?.MediaStorage?.IMAGE}/${B}/${properties?.event}_${properties?.metadata?.tracking}.png`
+  } : void 0);
   const buttons = [
     ...Toggles?.EAS && configurations?.MediaStorage?.EAS ? [{
       "action": "view",
@@ -20484,7 +20489,8 @@ var CreateTasks = async (events) => {
             Toggles: {
               EAS: Uploads?.EAS,
               Json: Uploads?.JSON,
-              Text: Uploads?.TEXT
+              Text: Uploads?.TEXT,
+              Image: Uploads?.IMAGE
             },
             Priority: NotificationServer?.Priority ?? 5,
             Body: GetStringText(event),

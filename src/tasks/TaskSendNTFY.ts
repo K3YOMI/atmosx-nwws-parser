@@ -23,15 +23,16 @@ import { CreateHttp } from "@Utilities/CreateHttp";
 import { SetDebug } from "@Utilities/SetDebug";
 
 interface TaskSendNTFYOptions {
-    Event: TypeEvent;
+    Event: TypeEvent
     Toggles?: {
-        EAS?: boolean;
-        Json?: boolean;
-        Text?: boolean;
+        EAS?: boolean
+        Json?: boolean
+        Text?: boolean
+        Image?: boolean
     },
-    Priority: string | number;
-    Body: string;
-    Topic: string;
+    Priority: string | number
+    Body: string
+    Topic: string
 }
 
 export const TaskSendNTFY = async function({ Event, Toggles, Priority, Body, Topic }: TaskSendNTFYOptions): Promise<void> { 
@@ -42,8 +43,13 @@ export const TaskSendNTFY = async function({ Event, Toggles, Priority, Body, Top
         Username: configurations.Credentials.Username, 
         Password: configurations.Credentials.Password 
     } : undefined;
-    const image = properties.metadata.attachments?.find(a => a.name === "Image: Graphic");
 
+    const A = properties?.geocode?.ugc?.map(ugc => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
+    const B = A?.filter((state, index) => A.indexOf(state) === index).join(`-`)
+    const image = properties?.metadata?.attachments?.find(a => a.name === "Image: Graphic") 
+        ?? (Toggles?.Image && configurations?.MediaStorage?.IMAGE 
+            ? { link: `${configurations?.MediaStorage?.IMAGE}/${B}/${properties?.event}_${properties?.metadata?.tracking}.png` 
+        } : undefined);
     const buttons = [
         ...(Toggles?.EAS && configurations?.MediaStorage?.EAS ? [{
             "action": "view",

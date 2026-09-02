@@ -99,6 +99,7 @@ export const Bootstrap = {
                 EAS: null as string,
                 TEXT: null as string,
                 JSON: null as string,
+                IMAGE: null as string
             },
             Credentials: {
                 Username: null as string,

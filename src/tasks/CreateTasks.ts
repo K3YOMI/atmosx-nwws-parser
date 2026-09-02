@@ -89,7 +89,8 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
                         Toggles: {
                             EAS: Uploads?.EAS,
                             Json: Uploads?.JSON,
-                            Text: Uploads?.TEXT
+                            Text: Uploads?.TEXT,
+                            Image: Uploads?.IMAGE
                         },
                         Priority: NotificationServer?.Priority ?? 5,
                         Body: GetStringText(event),
