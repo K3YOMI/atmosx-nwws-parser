@@ -122,11 +122,12 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, Mi
     }
 
     pathing.events = events?.map(({ event, polygon: polys }) => {
+        const color = event?.properties?.theme ?? theme ?? `rgb(56, 72, 88)`;
         return GetSVGPath({ 
             Polygons: polys, 
             IPath: iPath, 
             Map: false,
-            Settings: { BorderColor: `${theme}`, BorderWidth: 2, FillColor: `${theme}`, FillOpacity: 0.1 } 
+            Settings: { BorderColor: `${color}`, BorderWidth: 2, FillColor: `${color}`, FillOpacity: 0.1 } 
         });
     }).filter(Boolean).join(``);
 

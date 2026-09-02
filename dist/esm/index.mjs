@@ -18181,11 +18181,12 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0
     iMode.fitExtent([[60, 60], [Width - 60, Height - 60]], jCollection);
   }
   pathing.events = events?.map(({ event: event2, polygon: polys }) => {
+    const color = event2?.properties?.theme ?? theme ?? `rgb(56, 72, 88)`;
     return GetSVGPath({
       Polygons: polys,
       IPath: iPath,
       Map: false,
-      Settings: { BorderColor: `${theme}`, BorderWidth: 2, FillColor: `${theme}`, FillOpacity: 0.1 }
+      Settings: { BorderColor: `${color}`, BorderWidth: 2, FillColor: `${color}`, FillOpacity: 0.1 }
     });
   }).filter(Boolean).join(``);
   pathing.counties = renders?.counties?.map((polygon) => GetSVGPath({
