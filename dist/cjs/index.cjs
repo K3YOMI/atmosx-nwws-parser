@@ -15886,6 +15886,10 @@ var GetTTS = async ({ Text, OutputPath }) => {
           `$speak.Dispose();`
         ].join(" ");
         (0, import_child_process.execSync)(`powershell -Command "${command}"`, { stdio: "inherit" });
+        try {
+          (0, import_fs.unlinkSync)(txtPath);
+        } catch {
+        }
       } catch (error) {
         console.error("Error occurred while generating TTS:", error);
       }
@@ -15991,10 +15995,9 @@ var import_path2 = require("path");
 var import_fs2 = require("fs");
 var import_child_process2 = require("child_process");
 var import_os2 = require("os");
-var GenerateEASMessage = async ({ Message, Header, Title }) => {
+var GenerateEASMessage = async ({ Message, Directory, Header, Title }) => {
   const tick = performance.now();
   const settings = Bootstrap.Settings;
-  const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
   const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
   let title = (Title ?? `${Math.random().toString(36).substring(2, 15)}-${Header.replace(/[^a-zA-Z0-9]/g, "")}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
   if (!Message || !Header) {
@@ -16007,18 +16010,18 @@ var GenerateEASMessage = async ({ Message, Header, Title }) => {
   let buffTTS;
   let buffRadio;
   let buffFull = [];
-  if (!directory) {
+  if (!Directory) {
     SetWarning({
       Title: `EAS`,
       Message: `EAS directory is not set in the settings. Please set it to generate EAS tones.`
     });
     return null;
   }
-  if (!(0, import_fs2.existsSync)(directory)) {
-    (0, import_fs2.mkdirSync)(directory, { recursive: true });
+  if (!(0, import_fs2.existsSync)(Directory)) {
+    (0, import_fs2.mkdirSync)(Directory, { recursive: true });
   }
-  const tmpTTS = (0, import_path2.join)(directory, `/${title}-tts.wav`);
-  const outTTS = (0, import_path2.join)(directory, `/${title}.wav`);
+  const tmpTTS = (0, import_path2.join)(Directory, `/${title}-tts.wav`);
+  const outTTS = (0, import_path2.join)(Directory, `/${title}.wav`);
   const vPlatform = (0, import_os2.platform)();
   if (vPlatform === "darwin") {
     SetWarning({
@@ -16045,7 +16048,7 @@ var GenerateEASMessage = async ({ Message, Header, Title }) => {
     let tWav = GetWavPCM16(tBuffer);
     if (tWav == null) {
       try {
-        const converted = (0, import_path2.join)(directory, `/${title}-tts-fixed.wav`);
+        const converted = (0, import_path2.join)(Directory, `/${title}-tts-fixed.wav`);
         (0, import_child_process2.execSync)(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: "ignore" });
         if ((0, import_fs2.existsSync)(converted)) {
           tBuffer = (0, import_fs2.readFileSync)(converted);
@@ -16144,9 +16147,16 @@ var EnumStates = {
   "WV": "West Virginia",
   "WI": "Wisconsin",
   "WY": "Wyoming",
-  "DC": "District of Columbia",
+  "DC": "District of Columbia"
+};
+var EnumZones = {
   "LM": "Lake Michigan",
-  "GM": "Gulf of Mexico"
+  "GM": "Gulf of Mexico",
+  "LH": "Lake Huron",
+  "LE": "Lake Erie",
+  "LS": "Lake Superior",
+  "LO": "Lake Ontario",
+  "AM": "Atlantic Ocean"
 };
 var EnumStateFIPS = {
   "01": "AL",
@@ -18127,43 +18137,43 @@ var GetGeometryBounds = ({ Geometry, Padding }) => {
 var import_promises = require("fs/promises");
 var import_path4 = require("path");
 var import_sharp = __toESM(require("sharp"));
-var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.6, Width = 1200, Height = 675 }) => {
+var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 1200, Height = 675 }) => {
   let polygons;
-  let iconUrl = null;
-  const ignored = [`HI`, `AK`];
-  const { Directory, Name } = File ?? {};
-  const S = Event?.properties?.geocode?.ugc?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
-  if (Event && !S) {
-    return null;
-  }
-  if (S?.every((state) => !EnumStates[state] || ignored.includes(state))) {
-    return null;
-  }
+  let icon;
+  let renders = {
+    states: null,
+    counties: null
+  };
+  let pathing = {
+    events: null,
+    counties: null,
+    states: null
+  };
+  const A2 = [EnumStates, EnumZones].reduce((acc, obj) => ({ ...acc, ...obj }), {});
+  const B = [`HI`, `AK`];
+  const { coordinates } = Event?.geometry ?? {};
+  const { properties } = Event ?? {};
+  const { region_abreviations, region_abreviations_string, theme, event } = properties ?? {};
+  const inConus = Event ? region_abreviations?.every((state) => A2[state] && !B.includes(state)) : true;
   const R2 = (Regions ?? null)?.length ? [...new Set(Regions ?? null)] : null;
-  let gEvents = GetGeographicalEvents({ Regions: R2, Event });
-  let { gStatesLines, gCountyLines } = (() => {
-    const gBoundaries = GetGeographicalBoundaries({ Regions: R2 });
-    return {
-      gStatesLines: GetParsedBoundary(gBoundaries.states),
-      gCountyLines: GetParsedBoundary(gBoundaries.counties)
-    };
-  })();
-  if (gStatesLines.length === 0 && gCountyLines.length === 0) {
-    return null;
+  const E2 = GetGeographicalEvents({ Regions: R2, Event });
+  if (inConus || !Event) {
+    const boundaries = GetGeographicalBoundaries({ Regions: R2 });
+    renders.states = GetParsedBoundary(boundaries.states);
+    renders.counties = GetParsedBoundary(boundaries.counties);
   }
   if (Event) {
-    const isConfigured = Bootstrap.Settings.GlobalSettings.DisableGeometryParsing;
-    polygons = isConfigured ? await GetEventGeometry({ Event }) : Event.geometry;
+    polygons = coordinates.length > 0 ? Event.geometry : await GetEventGeometry({ Event });
     if (polygons.coordinates.length == 0) {
       return null;
     }
-    if (polygons) {
+    if (inConus) {
       const eBounds = GetGeometryBounds({ Geometry: polygons, Padding: MaxMiles });
-      gCountyLines = gCountyLines.filter((county) => {
+      renders.counties = renders.counties.filter((county) => {
         const cBounds = GetGeometryBounds({ Geometry: county.geometry, Padding: MaxMiles });
         return cBounds.Bounds.minLon <= eBounds.Search.maxLon && cBounds.Bounds.maxLon >= eBounds.Search.minLon && cBounds.Bounds.minLat <= eBounds.Search.maxLat && cBounds.Bounds.maxLat >= eBounds.Search.minLat;
       });
-      gStatesLines = gStatesLines.filter((state) => {
+      renders.states = renders.states.filter((state) => {
         const sBounds = GetGeometryBounds({ Geometry: state.geometry, Padding: MaxMiles });
         return sBounds.Bounds.minLon <= eBounds.Search.maxLon && sBounds.Bounds.maxLon >= eBounds.Search.minLon && sBounds.Bounds.minLat <= eBounds.Search.maxLat && sBounds.Bounds.maxLat >= eBounds.Search.minLat;
       });
@@ -18171,55 +18181,50 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0
   }
   const iMode = mercator_default();
   const iPath = path_default().projection(iMode);
-  const jFeatures = [...gStatesLines, ...gCountyLines];
+  const jFeatures = [...renders?.states ?? [], ...renders?.counties ?? []];
   const jCollection = { type: `FeatureCollection`, features: jFeatures };
-  const gPolygons = (await Promise.all(
-    gEvents.map(async (event) => {
-      const zones = event.properties?.geocode?.ugc ?? [];
-      const S1 = event?.properties?.geocode?.ugc?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
-      if (S1?.every((state) => !EnumStates[state] || ignored.includes(state))) {
-        return null;
-      }
+  const events = (await Promise.all(
+    E2.map(async (event2) => {
+      const zones = event2.properties?.geocode?.ugc ?? [];
       if (zones?.length === 0) return null;
-      return { event, polygon: await GetUnionPolygon({
-        Polygons: polygons ? [polygons.coordinates] : [await GetEventGeometry({ Event: event }).coordinates]
+      return { event: event2, polygon: await GetUnionPolygon({
+        Polygons: polygons ? [polygons.coordinates] : [await GetEventGeometry({ Event: event2 }).coordinates]
       }) };
     })
   )).filter(Boolean);
   if (polygons) {
     const [centerLon, centerLat] = centroid_default(NormalizeD3Polygon(polygons));
-    iMode.center([centerLon, centerLat]).translate([Width / 2, Height / 2]).scale(MinZoom);
-    const [[x12, y12], [x2, y2]] = path_default().projection(iMode).bounds(jCollection);
+    iMode.center([centerLon, centerLat]).translate([Width / 2, Height / 2]).scale(renders?.counties?.length > 0 ? 0.4 : 1);
+    const [[x12, y12], [x2, y2]] = path_default().projection(iMode).bounds(jCollection.features.length > 0 ? jCollection : { type: `FeatureCollection`, features: [{ type: `Feature`, geometry: polygons, properties: {} }] });
     const scaleX = Width / (x2 - x12);
     const scaleY = Height / (y2 - y12);
     const scale2 = 1.5;
     iMode.scale(Math.min(scaleX, scaleY) * scale2);
   } else {
-    iMode.fitExtent([[30, 30], [Width - 30, Height - 30]], jCollection);
+    iMode.fitExtent([[60, 60], [Width - 60, Height - 60]], jCollection);
   }
-  const ePathing = gPolygons?.map(({ event, polygon: polys }) => {
+  pathing.events = events?.map(({ event: event2, polygon: polys }) => {
     return GetSVGPath({
       Polygons: polys,
       IPath: iPath,
       Map: false,
-      Settings: { BorderColor: `${event?.properties?.theme}`, BorderWidth: 2, FillColor: `${event?.properties?.theme}`, FillOpacity: 0.1 }
+      Settings: { BorderColor: `${theme}`, BorderWidth: 2, FillColor: `${theme}`, FillOpacity: 0.1 }
     });
   }).filter(Boolean).join(``);
-  const cPathing = gCountyLines.map((polygon) => GetSVGPath({
+  pathing.counties = renders?.counties?.map((polygon) => GetSVGPath({
     Polygons: polygon.geometry,
     IPath: iPath,
     Map: true,
     Settings: { BorderColor: `darkgray`, BorderWidth: 0.5, FillColor: `black`, FillOpacity: 1 }
   })).filter(Boolean).join(``);
-  const sPathing = gStatesLines.map((polygon) => GetSVGPath({
+  pathing.states = renders?.states?.map((polygon) => GetSVGPath({
     Polygons: polygon.geometry,
     IPath: iPath,
     Map: false,
     Settings: { BorderColor: `white`, BorderWidth: 1, FillColor: `#ffffff`, FillOpacity: 0 }
   })).filter(Boolean).join(``);
-  const isEvent = Boolean(Event);
-  const title = isEvent ? Event.properties?.event ?? `Event` : R2?.length > 0 ? `Region: ${R2.map((state) => EnumStates[state] ?? state).join(`, `)}` : `Contiguous United States`;
-  const subtitleLines = isEvent ? GetStringText(Event).split(`
+  const title = Event ? event ?? `Event` : R2?.length > 0 ? `Region: ${R2.map((state) => EnumStates[state] ?? state).join(`, `)}` : `Contiguous United States`;
+  const subtitleLines = Event ? GetStringText(Event).split(`
 `).filter((line) => line.trim().length > 0).slice(0, 10) : [`Last Updated: ${(/* @__PURE__ */ new Date()).toLocaleString()}`];
   const scale = Math.max(0.75, Math.min(1.5, Width / 1e3));
   const titleSize = Math.round(17 * scale);
@@ -18233,7 +18238,7 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0
   const hasIcon = Boolean(Bootstrap?.Settings?.GlobalSettings?.ArchiveSettings?.Logo);
   if (hasIcon) {
     const buffer = await (0, import_promises.readFile)(Bootstrap.Settings.GlobalSettings.ArchiveSettings.Logo);
-    iconUrl = `data:image/png;base64,${Buffer.from(buffer).toString(`base64`)}`;
+    icon = `data:image/png;base64,${Buffer.from(buffer).toString(`base64`)}`;
   }
   const boxWidth = Math.min(Math.round(Width * 0.4), Width - Math.round(28 * scale));
   const textStartX = paddingX + accentWidth + Math.round(6 * scale);
@@ -18250,23 +18255,25 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0
   const SVG = CreateSVG({
     Width,
     Height,
-    MapFeatures: [cPathing, sPathing, ePathing],
+    MapFeatures: !inConus ? [pathing.events] : [pathing.counties, pathing.states, pathing.events],
     Features: [
       `<rect x="${Math.round(9 * scale)}" y="${Math.round(10 * scale)}" width="${boxWidth}" height="${boxHeight}"  fill="rgba(0, 0, 0, 0.57)" />`,
       `<rect x="${Math.round(6 * scale)}" y="${Math.round(7 * scale)}" width="${boxWidth}" height="${boxHeight}" fill="rgba(16, 18, 24, 0.36)" stroke="rgba(255,255,255,0.12)" stroke-width="${Math.max(1, scale)}" />`,
-      `<rect x="${Math.round(6 * scale)}" y="${Math.round(7 * scale)}" width="${accentWidth}" height="${boxHeight}" fill="${Event?.properties?.theme ?? `rgb(56, 72, 88)`}" />`,
-      hasIcon && iconUrl ? `<image href="${iconUrl}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid meet" opacity="0.95" />` : ``,
+      `<rect x="${Math.round(6 * scale)}" y="${Math.round(7 * scale)}" width="${accentWidth}" height="${boxHeight}" fill="${theme ?? `rgb(56, 72, 88)`}" />`,
+      hasIcon && icon ? `<image href="${icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid meet" opacity="0.95" />` : ``,
       `<text x="${textStartX}" y="${titleY}" text-anchor="start" font-family="Arial, sans-serif" font-size="${titleSize}" font-weight="700" fill="white">${title.length > maxTitleChars ? title.slice(0, maxTitleChars - 3) + `...` : title}</text>`,
       ...subtitleLines.map(
         (line, i) => `<text x="${textStartX}" y="${firstLineY + i * lineHeight}" text-anchor="start" font-family="Arial, sans-serif" font-size="${lineSize}" fill="rgba(255,255,255,0.82)">${line.length > maxLineChars ? line.slice(0, maxLineChars - 3) + `...` : line}</text>`
       )
     ]
   });
+  const { Directory, Name } = File ?? {};
   const dir = Directory ?? Bootstrap.Settings?.GlobalSettings?.ArchiveSettings?.ImageDirectory;
-  const name = Name ?? Event?.properties?.event ?? `img`;
-  const dist = S ? (0, import_path4.join)(dir, S.filter((state, index) => S.indexOf(state) === index).map((state) => state).join(`-`)) : dir;
+  const name = Name ?? event ?? `img`;
+  const dist = region_abreviations_string ? (0, import_path4.join)(dir, region_abreviations_string) : dir;
   await (0, import_promises.mkdir)(dist, { recursive: true });
   await (0, import_sharp.default)(Buffer.from(SVG)).png().toFile((0, import_path4.join)(dist, `${name}${name.includes(`.png`) ? `` : `.png`}`));
+  await (0, import_sharp.default)(Buffer.from(SVG)).webp().toFile(`example.png`);
   return dist + `/${name}${name.includes(`.png`) ? `` : `.png`}`;
 };
 
@@ -19276,9 +19283,12 @@ var GetEventProperties = ({ Message, Attributes, UGC, VTEC }) => {
   const properties = {
     locations: UGC?.Locations?.join(`; `) ?? null,
     locations_array: UGC?.Locations ?? [],
-    location_states: [...new Set(
-      UGC?.Locations?.map((location) => location.match(/,\s*([A-Z]{2})\b/)?.[1]).filter(Boolean) ?? []
+    region_abreviations: [...new Set(
+      UGC?.Zones?.map((location) => location.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? []
     )],
+    region_abreviations_string: [...new Set(
+      UGC?.Zones?.map((location) => location.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? []
+    )].join(`-`),
     description: GetDescriptionFromProduct({ Message, Handle: VTEC?.Raw ?? null }),
     attributes: Attributes,
     geocode: {
@@ -19929,9 +19939,12 @@ var ParseAPI = async (Stanza) => {
         expires: feature2?.properties?.expires ? new Date(feature2?.properties?.expires).toISOString() : null,
         locations: feature2?.properties?.areaDesc ?? null,
         locations_array: feature2?.properties?.areaDesc ? feature2?.properties?.areaDesc.split("; ") : [],
-        location_states: [...new Set(
-          feature2?.properties?.areaDesc?.split(";")?.map((location) => location.match(/,\s*([A-Z]{2})\b/)?.[1]).filter(Boolean) ?? []
+        region_abreviations: [...new Set(
+          feature2?.properties?.geocode?.UGC?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? []
         )],
+        region_abreviations_string: [...new Set(
+          feature2?.properties?.geocode?.UGC?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? []
+        )].join(`-`),
         description: feature2?.properties?.description ?? null,
         attributes: feature2?.properties?.attributes ?? {},
         theme: GetEventTheme(feature2?.properties?.event),
@@ -20179,11 +20192,12 @@ var EnumGlobalFilter = [
 ];
 
 // src/tasks/TaskGenerateAudio.ts
-var TaskGenerateAudio = async function({ Filename, Description, Header }) {
+var TaskGenerateAudio = async function({ Filename, Directory, Description, Header }) {
   return await GenerateEASMessage({
     Title: Filename,
     Message: Description,
-    Header
+    Header,
+    Directory
   });
 };
 
@@ -20258,21 +20272,19 @@ var TaskSendNTFY = async function({ Event, Toggles, Priority, Body, Topic }) {
     Username: configurations.Credentials.Username,
     Password: configurations.Credentials.Password
   } : void 0;
-  const A2 = properties?.geocode?.ugc?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
-  const B = A2?.filter((state, index) => A2.indexOf(state) === index).join(`-`);
   const image = properties?.metadata?.attachments?.find((a) => a.name === "Image: Graphic") ?? (Toggles?.Image && configurations?.MediaStorage?.IMAGE ? {
-    link: `${configurations?.MediaStorage?.IMAGE}/${B}/${properties?.event}_${properties?.metadata?.tracking}.png`
+    link: `${configurations?.MediaStorage?.IMAGE}/${properties.region_abreviations_string}//${properties?.event}_${properties?.metadata?.tracking}.png`
   } : void 0);
   const buttons = [
     ...Toggles?.EAS && configurations?.MediaStorage?.EAS ? [{
       "action": "view",
       "label": "Listen",
-      "url": `${configurations.MediaStorage.EAS}/${properties.event}_${properties.metadata.tracking}.wav`
+      "url": `${configurations.MediaStorage.EAS}/${properties.region_abreviations_string}/${properties.event}_${properties.metadata.tracking}.wav`
     }] : [],
     ...Toggles?.Text && configurations?.MediaStorage?.TEXT ? [{
       "action": "view",
       "label": "View Text",
-      "url": `${configurations.MediaStorage.TEXT}/${properties.event}_${properties.metadata.tracking}.txt`
+      "url": `${configurations.MediaStorage.TEXT}/${properties.region_abreviations_string}/${properties.event}_${properties.metadata.tracking}.txt`
     }] : [],
     ...image ? [{
       "action": "view",
@@ -20473,28 +20485,29 @@ var CreateTasks = async (events) => {
       if (Events.length == 0 || isValidAction) {
         const a = performance.now();
         const [eas, text, json, image] = await Promise.all([
-          Uploads?.EAS ? TaskGenerateAudio({
+          Uploads?.EAS && GlobalSettings?.ArchiveSettings?.EasDirectory ? TaskGenerateAudio({
+            Directory: GlobalSettings?.ArchiveSettings?.EasDirectory + `/${properties?.region_abreviations_string ?? `MISC`}`,
             Filename: `${properties.event}_${properties.metadata.tracking}`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
             Description: properties.description,
             Header: properties.metadata.header
           }).then((result) => {
             return result;
           }) : Promise.resolve(null),
-          Uploads?.TEXT ? TaskGenerateText({
+          Uploads?.TEXT && GlobalSettings?.ArchiveSettings?.TextDirectory ? TaskGenerateText({
             String: properties.metadata.raw,
-            Directory: GlobalSettings?.ArchiveSettings?.TextDirectory,
+            Directory: GlobalSettings?.ArchiveSettings?.TextDirectory + `/${properties?.region_abreviations_string ?? `MISC`}`,
             Filename: `${properties.event}_${properties.metadata.tracking}.txt`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
           }).then((result) => {
             return result;
           }) : Promise.resolve(null),
-          Uploads?.JSON ? TaskGenerateJSON({
+          Uploads?.JSON && GlobalSettings?.ArchiveSettings?.JSONDirectory ? TaskGenerateJSON({
             String: JSON.stringify(GetCleanedEvent(event), null, 2),
-            Directory: GlobalSettings?.ArchiveSettings?.JSONDirectory,
+            Directory: GlobalSettings?.ArchiveSettings?.JSONDirectory + `/${properties.region_abreviations_string ?? `MISC`}`,
             Filename: `${properties.event}_${properties.metadata.tracking}.json`.replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
           }).then((result) => {
             return result;
           }) : Promise.resolve(null),
-          Uploads?.IMAGE ? GenerateGraphic({
+          Uploads?.IMAGE && GlobalSettings?.ArchiveSettings?.ImageDirectory ? GenerateGraphic({
             Event: event,
             File: {
               Directory: GlobalSettings?.ArchiveSettings?.ImageDirectory,

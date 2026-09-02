@@ -48,11 +48,14 @@ export const ParseAPI = async (Stanza: TypeStanzaCompiled): Promise<void> => {
                 expires: feature?.properties?.expires ? new Date(feature?.properties?.expires).toISOString() : null,
                 locations: feature?.properties?.areaDesc ?? null,
                 locations_array: feature?.properties?.areaDesc ? feature?.properties?.areaDesc.split('; ') : [],
-                location_states: [...new Set(
-                    feature?.properties?.areaDesc?.split(';')
-                    ?.map((location: string) => location.match(/,\s*([A-Z]{2})\b/)?.[1])
+                region_abreviations: [...new Set(
+                    feature?.properties?.geocode?.UGC?.map((ugc: string) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1])
                     .filter(Boolean) ?? []
                 )] as string[],
+                region_abreviations_string: [...new Set(
+                    feature?.properties?.geocode?.UGC?.map((ugc: string) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1])
+                    .filter(Boolean) ?? []
+                )].join(`-`) as string,
                 description: feature?.properties?.description ?? null,
                 attributes: feature?.properties?.attributes ?? {},
                 theme: GetEventTheme(feature?.properties?.event),

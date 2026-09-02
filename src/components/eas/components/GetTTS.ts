@@ -19,8 +19,9 @@
 */
 
 import { platform } from "os"
-import { writeFileSync } from "fs"
+import { writeFileSync, unlinkSync} from "fs"
 import { execSync } from "child_process"
+
 
 interface GetTTSOptions {
     Text: string
@@ -43,6 +44,7 @@ export const GetTTS = async ({ Text, OutputPath }: GetTTSOptions): Promise<void>
                     `$speak.Dispose();`
                 ].join(" ");
                 execSync(`powershell -Command "${command}"`, { stdio: 'inherit' })
+                try{ unlinkSync(txtPath) } catch {}
             } catch(error) {
                 console.error('Error occurred while generating TTS:', error);
             }

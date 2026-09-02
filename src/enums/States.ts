@@ -69,9 +69,17 @@ export const EnumStates: Record<string, string> = {
     "WI": "Wisconsin",
     "WY": "Wyoming",
     "DC": "District of Columbia",
+};
+
+export const EnumZones: Record<string, string> = {
     "LM": "Lake Michigan",
     "GM": "Gulf of Mexico",
-};
+    "LH": "Lake Huron",
+    "LE": "Lake Erie",
+    "LS": "Lake Superior",
+    "LO": "Lake Ontario",
+    "AM": "Atlantic Ocean",
+}
 
 export const EnumStateFIPS: Record<string, string> = {
     "01": "AL",

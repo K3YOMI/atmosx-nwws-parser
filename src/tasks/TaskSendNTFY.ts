@@ -44,22 +44,20 @@ export const TaskSendNTFY = async function({ Event, Toggles, Priority, Body, Top
         Password: configurations.Credentials.Password 
     } : undefined;
 
-    const A = properties?.geocode?.ugc?.map(ugc => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
-    const B = A?.filter((state, index) => A.indexOf(state) === index).join(`-`)
     const image = properties?.metadata?.attachments?.find(a => a.name === "Image: Graphic") 
         ?? (Toggles?.Image && configurations?.MediaStorage?.IMAGE 
-            ? { link: `${configurations?.MediaStorage?.IMAGE}/${B}/${properties?.event}_${properties?.metadata?.tracking}.png` 
+            ? { link: `${configurations?.MediaStorage?.IMAGE}/${properties.region_abreviations_string}//${properties?.event}_${properties?.metadata?.tracking}.png` 
         } : undefined);
     const buttons = [
         ...(Toggles?.EAS && configurations?.MediaStorage?.EAS ? [{
             "action": "view",
             "label": "Listen",
-            "url": `${configurations.MediaStorage.EAS}/${properties.event}_${properties.metadata.tracking}.wav`,
+            "url": `${configurations.MediaStorage.EAS}/${properties.region_abreviations_string}/${properties.event}_${properties.metadata.tracking}.wav`,
         }] : []),
         ...(Toggles?.Text && configurations?.MediaStorage?.TEXT ? [{
             "action": "view",
             "label": "View Text",
-            "url": `${configurations.MediaStorage.TEXT}/${properties.event}_${properties.metadata.tracking}.txt`,
+            "url": `${configurations.MediaStorage.TEXT}/${properties.region_abreviations_string}/${properties.event}_${properties.metadata.tracking}.txt`,
         }] : []),
         ...(image ? [{
             "action": "view",

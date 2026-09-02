@@ -39,13 +39,13 @@ import { platform } from "os"
 interface GenerateEASMessageOptions { 
     Message: string
     Header: string
+    Directory?: string
     Title: string
 }
 
-export const GenerateEASMessage = async ({ Message, Header, Title }: GenerateEASMessageOptions): Promise<string> => {
+export const GenerateEASMessage = async ({ Message, Directory, Header, Title }: GenerateEASMessageOptions): Promise<string> => {
     const tick = performance.now()
     const settings = Bootstrap.Settings as TypeSettings;
-    const directory = settings.GlobalSettings.ArchiveSettings.EasDirectory;
     const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
     let title = (Title ?? `${Math.random().toString(36).substring(2, 15)}-${Header.replace(/[^a-zA-Z0-9]/g, '')}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
     if (!Message || !Header) {
@@ -59,7 +59,7 @@ export const GenerateEASMessage = async ({ Message, Header, Title }: GenerateEAS
     let buffRadio: any;
     let buffFull: any[] = [];
 
-    if (!directory) {
+    if (!Directory) {
         SetWarning({
             Title: `EAS`,
             Message: `EAS directory is not set in the settings. Please set it to generate EAS tones.`
@@ -67,11 +67,11 @@ export const GenerateEASMessage = async ({ Message, Header, Title }: GenerateEAS
         return null;
     }
     
-    if (!existsSync(directory)) {
-        mkdirSync(directory, { recursive: true });
+    if (!existsSync(Directory)) {
+        mkdirSync(Directory, { recursive: true });
     }
-    const tmpTTS = join(directory, `/${title}-tts.wav`)
-    const outTTS = join(directory, `/${title}.wav`)
+    const tmpTTS = join(Directory, `/${title}-tts.wav`)
+    const outTTS = join(Directory, `/${title}.wav`)
     const vPlatform = platform();
 
     if (vPlatform === 'darwin') {
@@ -103,7 +103,7 @@ export const GenerateEASMessage = async ({ Message, Header, Title }: GenerateEAS
 
         if (tWav == null) {
             try {
-                const converted = join(directory, `/${title}-tts-fixed.wav`)
+                const converted = join(Directory, `/${title}-tts-fixed.wav`)
                 execSync(`ffmpeg -y -i "${prefix}" -ar 8000 -ac 1 -sample_fmt s16 "${converted}"`, { stdio: 'ignore' })
                 if (existsSync(converted)) {
                     tBuffer = readFileSync(converted)

@@ -23,7 +23,8 @@ import { TypeAttributes } from "StaticTypes/Attributes"
 export type TypeEventProperties = {
     locations: string
     locations_array: string[]
-    location_states: string[]
+    region_abreviations: string[]
+    region_abreviations_string: string
     description: string
     attributes?: TypeAttributes
     geocode: {

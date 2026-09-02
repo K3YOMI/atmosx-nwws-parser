@@ -52,25 +52,26 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
             if ((Events.length == 0 || isValidAction)) {
                 const a = performance.now();
                 const [eas, text, json, image] = await Promise.all([
-                    Uploads?.EAS ? TaskGenerateAudio({
+                    Uploads?.EAS && GlobalSettings?.ArchiveSettings?.EasDirectory ? TaskGenerateAudio({
+                        Directory: GlobalSettings?.ArchiveSettings?.EasDirectory + `/${properties?.region_abreviations_string ?? `MISC`}`,
                         Filename: (`${properties.event}_${properties.metadata.tracking}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
                         Description: properties.description,
                         Header: properties.metadata.header
                     }).then((result) => { return result; }) : Promise.resolve(null),
 
-                    Uploads?.TEXT ? TaskGenerateText({
+                    Uploads?.TEXT && GlobalSettings?.ArchiveSettings?.TextDirectory ? TaskGenerateText({
                         String: properties.metadata.raw,
-                        Directory: GlobalSettings?.ArchiveSettings?.TextDirectory,
+                        Directory: GlobalSettings?.ArchiveSettings?.TextDirectory + `/${properties?.region_abreviations_string ?? `MISC`}`,
                         Filename: (`${properties.event}_${properties.metadata.tracking}.txt`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
                     }).then((result) => { return result; }) : Promise.resolve(null),
 
-                    Uploads?.JSON ? TaskGenerateJSON({
+                    Uploads?.JSON && GlobalSettings?.ArchiveSettings?.JSONDirectory ? TaskGenerateJSON({
                         String: JSON.stringify(GetCleanedEvent(event), null, 2),
-                        Directory: GlobalSettings?.ArchiveSettings?.JSONDirectory,
+                        Directory: GlobalSettings?.ArchiveSettings?.JSONDirectory + `/${properties.region_abreviations_string ?? `MISC`}`,
                         Filename: (`${properties.event}_${properties.metadata.tracking}.json`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim()
                     }).then((result) => { return result; }) : Promise.resolve(null),
 
-                    Uploads?.IMAGE ? GenerateGraphic({
+                    Uploads?.IMAGE && GlobalSettings?.ArchiveSettings?.ImageDirectory ? GenerateGraphic({
                         Event: event,
                         File: {
                             Directory: GlobalSettings?.ArchiveSettings?.ImageDirectory,
