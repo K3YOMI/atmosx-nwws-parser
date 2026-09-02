@@ -33,6 +33,7 @@ export type TypeEvent = {
         status: string
         issued: string
         expires: string
+        theme: string
         status_metadata?: {
             is_issued?: boolean
             is_updated?: boolean

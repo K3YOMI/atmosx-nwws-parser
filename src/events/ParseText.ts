@@ -24,6 +24,7 @@ import { Bootstrap } from "@Bootstrap"
 import { GetEventProperties } from "@Building/GetEventProperties"
 import { GetEventHeader } from "@Building/GetEventHeader"
 import { GetEventTracking } from "@Building/GetEventTracking"
+import { GetEventTheme } from "@Building/GetEventTheme"
 import { SetDebug } from "@Utilities/SetDebug"
 
 export const ParseText = async (Stanza: TypeStanzaCompiled): Promise<void> => {
@@ -64,6 +65,7 @@ export const ParseText = async (Stanza: TypeStanzaCompiled): Promise<void> => {
                 status: isStatement ? `Statement` : `Issued`,
                 issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
                 expires: isStatement ? new Date(issued.getTime() + 120 * 1000).toISOString() : (!isNaN(expires.getTime())) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                theme: GetEventTheme(event),
                 ...props,
                 metadata: {
                     ms: performance.now() - tick,

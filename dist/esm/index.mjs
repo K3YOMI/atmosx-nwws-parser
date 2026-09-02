@@ -15327,6 +15327,7 @@ var Bootstrap = {
     UGC: /* @__PURE__ */ new Map()
   },
   Settings: {
+    Timezone: "UTC",
     Database: join(process.cwd(), "shapefiles.db"),
     DebugDisableAllEvents: false,
     EnableWireService: false,
@@ -15369,7 +15370,6 @@ var Bootstrap = {
     NotifyServer: {
       Enabled: false,
       Server: `https://ntfy.sh`,
-      Timezone: "UTC",
       MediaStorage: {
         EAS: null,
         TEXT: null,
@@ -15404,6 +15404,7 @@ var Bootstrap = {
         JSONDirectory: `Archive/Products`,
         TextDirectory: `Archive/Text`,
         EasDirectory: `Archive/Audio`,
+        Logo: null,
         EasToneout: null
       }
     }
@@ -16175,6 +16176,43 @@ var EnumStateFIPS = {
   "54": "WV",
   "55": "WI",
   "56": "WY"
+};
+
+// src/parsers/text/GetStringText.ts
+var GetStringText = (event) => {
+  const timezone = Bootstrap.Settings.Timezone ?? `UTC`;
+  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
+  const isStatement = event.properties.status_metadata.is_statement;
+  const isExpired = event.properties.status_metadata.is_expired;
+  return [
+    line(`Locations:`, event?.properties?.locations?.slice(0, 100)),
+    line(`Issued:`, `${new Date(event.properties.issued).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isExpired),
+    line(`Expires:`, `${new Date(event.properties.expires).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isStatement),
+    line(`Damage Threat:`, event?.properties?.parameters?.damage_threat, !isExpired),
+    line(`Flood Threat:`, event?.properties?.parameters?.flood_threat, !isExpired),
+    line(`Tornado Threat:`, event?.properties?.parameters?.tornado_threat, !isExpired),
+    line(`Wind Gusts:`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
+    line(`Hail Size:`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
+    line(`Direction:`, event?.properties?.parameters?.direction, !isExpired && event?.properties?.parameters?.direction != null),
+    line(`Discussion:`, event?.properties?.discussion_parameters?.discussion_number, !isExpired),
+    line(`Concern:`, event?.properties?.discussion_parameters?.discussion_concerning, !isExpired),
+    line(`SPC Max Tornado Threat:`, event?.properties?.discussion_parameters?.discussion_max_tornado, !isExpired),
+    line(`SPC Max Hail Threat:`, event?.properties?.discussion_parameters?.discussion_max_hail, !isExpired),
+    line(`SPC Max Wind Threat:`, event?.properties?.discussion_parameters?.discussion_max_wind, !isExpired),
+    line(`SPC Watch Issuance Probability:`, event?.properties?.discussion_parameters?.discussion_watch_issuance ? `${event?.properties?.discussion_parameters?.discussion_watch_issuance}%` : null, !isExpired),
+    line(`Watch Number:`, event?.properties?.watch_parameters?.watch_number, !isExpired),
+    line(`Strong Tornadoes Probability:`, event?.properties?.watch_parameters?.strong_tornadoes_probability ? `${event?.properties?.watch_parameters?.strong_tornadoes_probability}%` : null, !isExpired),
+    line(`Additional Tornadoes Probability:`, event?.properties?.watch_parameters?.additional_tornadoes_probability ? `${event?.properties?.watch_parameters?.additional_tornadoes_probability}%` : null, !isExpired),
+    line(`Combined Hail/Wind Probability:`, event?.properties?.watch_parameters?.combined_hail_wind_probability ? `${event?.properties?.watch_parameters?.combined_hail_wind_probability}%` : null, !isExpired),
+    line(`Severe Hail Probability:`, event?.properties?.watch_parameters?.severe_hail_probability ? `${event?.properties?.watch_parameters?.severe_hail_probability}%` : null, !isExpired),
+    line(`Hail >2in Probability:`, event?.properties?.watch_parameters?.hail_2in_probability ? `${event?.properties?.watch_parameters?.hail_2in_probability}%` : null, !isExpired),
+    line(`Max Hail Inches:`, event?.properties?.watch_parameters?.max_hail_in, !isExpired),
+    line(`Severe Wind Probability:`, event?.properties?.watch_parameters?.severe_wind_probability ? `${event?.properties?.watch_parameters?.severe_wind_probability}%` : null, !isExpired),
+    line(`Max Surface Wind:`, event?.properties?.watch_parameters?.max_wind_surface, !isExpired),
+    line(`Max Tops (x100 feet):`, event?.properties?.watch_parameters?.max_tops_x100feet, !isExpired),
+    line(`Sender:`, event?.properties?.geocode?.office?.name ? `${event?.properties?.geocode?.office?.name} (${event?.properties?.geocode?.office?.office})` : event?.properties?.geocode?.office?.office),
+    line(`Tracking:`, event?.properties?.metadata?.tracking)
+  ].filter(Boolean).join("\n");
 };
 
 // src/components/images/modules/GetGeographicalEvents.ts
@@ -18062,11 +18100,12 @@ var GetGeometryBounds = ({ Geometry, Padding }) => {
 };
 
 // src/components/images/GenerateGraphic.ts
-import { mkdir } from "fs/promises";
+import { mkdir, readFile } from "fs/promises";
 import { join as join3 } from "path";
 import sharp from "sharp";
-var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0.8, Width = 700, Height = 500 }) => {
+var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 2e3, Height = 1200 }) => {
   let polygons;
+  let iconUrl = null;
   const ignored = [`HI`, `AK`];
   const { Directory, Name } = File ?? {};
   const S = Event?.properties?.geocode?.ugc?.map((ugc) => ugc.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? null;
@@ -18076,7 +18115,7 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0
   if (S?.every((state) => !EnumStates[state] || ignored.includes(state))) {
     return null;
   }
-  const R2 = (Regions ?? S)?.length ? [...new Set(Regions ?? S)] : null;
+  const R2 = (Regions ?? null)?.length ? [...new Set(Regions ?? null)] : null;
   let gEvents = GetGeographicalEvents({ Regions: R2, Event });
   let { gStatesLines, gCountyLines } = (() => {
     const gBoundaries = GetGeographicalBoundaries({ Regions: R2 });
@@ -18129,20 +18168,17 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0
     const [[x12, y12], [x2, y2]] = path_default().projection(iMode).bounds(jCollection);
     const scaleX = Width / (x2 - x12);
     const scaleY = Height / (y2 - y12);
-    const scale = 1.5;
-    iMode.scale(Math.min(scaleX, scaleY) * scale);
+    const scale2 = 1.5;
+    iMode.scale(Math.min(scaleX, scaleY) * scale2);
   } else {
-    iMode.fitExtent([[50, 50], [Width - 50, Height - 50]], jCollection);
+    iMode.fitExtent([[30, 30], [Width - 30, Height - 30]], jCollection);
   }
   const ePathing = gPolygons?.map(({ event, polygon: polys }) => {
-    const thex = event?.properties?.event ? `#${event.properties.event.split(``).reduce((hash, char) => {
-      return (hash << 5) - hash + char.charCodeAt(0) | 0;
-    }, 0).toString(16).slice(-6).padStart(6, `0`)}` : `#ff0000`;
     return GetSVGPath({
       Polygons: polys,
       IPath: iPath,
       Map: false,
-      Settings: { BorderColor: `${thex}`, BorderWidth: 2, FillColor: `${thex}`, FillOpacity: 0.3 }
+      Settings: { BorderColor: `${event?.properties?.theme}`, BorderWidth: 2, FillColor: `${event?.properties?.theme}`, FillOpacity: 0.1 }
     });
   }).filter(Boolean).join(``);
   const cPathing = gCountyLines.map((polygon) => GetSVGPath({
@@ -18157,14 +18193,50 @@ var GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, MinZoom = 0
     Map: false,
     Settings: { BorderColor: `white`, BorderWidth: 1, FillColor: `#ffffff`, FillOpacity: 0 }
   })).filter(Boolean).join(``);
+  const isEvent = Boolean(Event);
+  const title = isEvent ? Event.properties?.event ?? `Event` : R2?.length > 0 ? `Region: ${R2.map((state) => EnumStates[state] ?? state).join(`, `)}` : `Contiguous United States`;
+  const subtitleLines = isEvent ? GetStringText(Event).split(`
+`).filter((line) => line.trim().length > 0).slice(0, 10) : [`Last Updated: ${(/* @__PURE__ */ new Date()).toLocaleString()}`];
+  const scale = Math.max(0.75, Math.min(1.5, Width / 1e3));
+  const titleSize = Math.round(17 * scale);
+  const lineSize = Math.round(13 * scale);
+  const lineHeight = Math.round(15 * scale);
+  const paddingX = Math.round(16 * scale);
+  const paddingTop = Math.round(16 * scale);
+  const paddingBottom = Math.round(16 * scale);
+  const accentWidth = Math.max(4, Math.round(5 * scale));
+  const iconSize = Math.round(Math.min(122, Math.max(48, Width * 0.07)) * scale);
+  const hasIcon = Boolean(Bootstrap?.Settings?.GlobalSettings?.ArchiveSettings?.Logo);
+  if (hasIcon) {
+    const buffer = await readFile(Bootstrap.Settings.GlobalSettings.ArchiveSettings.Logo);
+    iconUrl = `data:image/png;base64,${Buffer.from(buffer).toString(`base64`)}`;
+  }
+  const boxWidth = Math.min(Math.round(Width * 0.4), Width - Math.round(28 * scale));
+  const textStartX = paddingX + accentWidth + Math.round(6 * scale);
+  const textEndPadding = hasIcon ? iconSize + Math.round(20 * scale) : Math.round(16 * scale);
+  const availableTextWidth = boxWidth - textStartX - textEndPadding;
+  const maxTitleChars = Math.max(20, Math.floor(availableTextWidth / (titleSize * 0.52)));
+  const maxLineChars = Math.max(24, Math.floor(availableTextWidth / (lineSize * 0.52)));
+  const titleY = paddingTop + titleSize;
+  const firstLineY = titleY + Math.round(22 * scale);
+  const contentHeight = firstLineY + subtitleLines.length * lineHeight + paddingBottom;
+  const boxHeight = Math.max(contentHeight, hasIcon ? paddingTop + iconSize + paddingBottom : contentHeight);
+  const iconX = boxWidth - iconSize - Math.round(5 * scale);
+  const iconY = paddingTop;
   const SVG = CreateSVG({
     Width,
     Height,
     MapFeatures: [cPathing, sPathing, ePathing],
-    Features: Event ? [
-      Event ? `<text x="${Width / 2}" y="${Height - 50}" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="white">${Event.properties?.event ?? `Event`}</text>` : ``,
-      Event ? `<text x="${Width / 2}" y="${Height - 20}" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="white">${Event.properties?.status}</text>` : ``
-    ] : []
+    Features: [
+      `<rect x="${Math.round(9 * scale)}" y="${Math.round(10 * scale)}" width="${boxWidth}" height="${boxHeight}"  fill="rgba(0, 0, 0, 0.57)" />`,
+      `<rect x="${Math.round(6 * scale)}" y="${Math.round(7 * scale)}" width="${boxWidth}" height="${boxHeight}" fill="rgba(16, 18, 24, 0.36)" stroke="rgba(255,255,255,0.12)" stroke-width="${Math.max(1, scale)}" />`,
+      `<rect x="${Math.round(6 * scale)}" y="${Math.round(7 * scale)}" width="${accentWidth}" height="${boxHeight}" fill="${Event?.properties?.theme ?? `rgb(56, 72, 88)`}" />`,
+      hasIcon && iconUrl ? `<image href="${iconUrl}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid meet" opacity="0.95" />` : ``,
+      `<text x="${textStartX}" y="${titleY}" text-anchor="start" font-family="Arial, sans-serif" font-size="${titleSize}" font-weight="700" fill="white">${title.length > maxTitleChars ? title.slice(0, maxTitleChars - 3) + `...` : title}</text>`,
+      ...subtitleLines.map(
+        (line, i) => `<text x="${textStartX}" y="${firstLineY + i * lineHeight}" text-anchor="start" font-family="Arial, sans-serif" font-size="${lineSize}" fill="rgba(255,255,255,0.82)">${line.length > maxLineChars ? line.slice(0, maxLineChars - 3) + `...` : line}</text>`
+      )
+    ]
   });
   const dir = Directory ?? Bootstrap.Settings?.GlobalSettings?.ArchiveSettings?.ImageDirectory;
   const name = Name ?? Event?.properties?.event ?? `img`;
@@ -19273,6 +19345,74 @@ var GetEventTracking = ({ Type, Stanza, Attributes, Properties, WMO, VTEC }) => 
   }
 };
 
+// src/enums/Themes.ts
+var EnumThemes = [
+  { Event: `Tornado Emergency`, RGB: `rgb(166, 0, 255)` },
+  { Event: `Flash Flood Emergency`, RGB: `rgb(21, 216, 37)` },
+  { Event: `*PDS Tornado Warning*`, RGB: `rgb(208, 0, 255)` },
+  { Event: `*Tornado Warning*`, RGB: `rgb(255, 0, 0)` },
+  { Event: `Confirmed Tornado Warning`, RGB: `rgb(220, 20, 20)` },
+  { Event: `Radar Indicated Tornado Warning`, RGB: `rgb(200, 30, 30)` },
+  { Event: `Tornado Warning`, RGB: `rgb(180, 40, 40)` },
+  { Event: `*EDS Severe Thunderstorm Warning*`, RGB: `rgb(255, 51, 0)` },
+  { Event: `*Destructive Severe Thunderstorm Warning*`, RGB: `rgb(255, 51, 0)` },
+  { Event: `Destructive Severe Thunderstorm Warning (TPROB)`, RGB: `rgb(240, 60, 0)` },
+  { Event: `EDS Severe Thunderstorm Warning (TPROB)`, RGB: `rgb(240, 60, 0)` },
+  { Event: `Considerable Severe Thunderstorm Warning (TPROB)`, RGB: `rgb(230, 100, 0)` },
+  { Event: `*Severe Thunderstorm Warning*`, RGB: `rgb(197, 159, 32)` },
+  { Event: `Severe Thunderstorm Warning (TPROB)`, RGB: `rgb(210, 140, 20)` },
+  { Event: `Considerable Severe Thunderstorm Warning`, RGB: `rgb(204, 160, 0)` },
+  { Event: `Severe Thunderstorm Warning`, RGB: `rgb(204, 132, 0)` },
+  { Event: `Flash Flood Warning`, RGB: `rgb(97, 204, 30)` },
+  { Event: `Flood Warning`, RGB: `rgb(0, 204, 0)` },
+  { Event: `Hurricane Warning`, RGB: `rgb(16, 125, 176)` },
+  { Event: `Tsunami Warning`, RGB: `rgb(93, 27, 158)` },
+  { Event: `Tsunami Watch`, RGB: `rgb(72, 16, 128)` },
+  { Event: `Tsunami Advisory`, RGB: `rgb(80, 48, 160)` },
+  { Event: `Tropical Storm Warning`, RGB: `rgb(101, 194, 238)` },
+  { Event: `Hurricane Watch`, RGB: `rgb(204, 84, 144)` },
+  { Event: `*PDS Blizzard Warning*`, RGB: `rgb(5, 115, 151)` },
+  { Event: `Blizzard Warning`, RGB: `rgb(0, 152, 204)` },
+  { Event: `Snow Squall Warning`, RGB: `rgb(56, 104, 144)` },
+  { Event: `*PDS Ice Storm Warning*`, RGB: `rgb(86, 67, 196)` },
+  { Event: `Ice Storm Warning`, RGB: `rgb(58, 49, 111)` },
+  { Event: `Lake Effect Snow Warning`, RGB: `rgb(0, 111, 111)` },
+  { Event: `Winter Storm Warning`, RGB: `rgb(24, 115, 204)` },
+  { Event: `Extreme Cold Warning`, RGB: `rgb(47, 47, 137)` },
+  { Event: `Tornadic Special Marine Warning`, RGB: `rgb(3, 134, 134)` },
+  { Event: `Special Marine Warning`, RGB: `rgb(0, 204, 204)` },
+  { Event: `Special Weather Statement`, RGB: `rgb(70, 130, 180)` },
+  { Event: `Mesoscale Discussion`, RGB: `rgb(255, 0, 0)` },
+  { Event: `*PDS Tornado Watch*`, RGB: `rgb(255, 0, 0)` },
+  { Event: `*Tornado Watch*`, RGB: `rgb(151, 23, 23)` },
+  { Event: `*PDS Severe Thunderstorm Watch*`, RGB: `rgb(255, 81, 0)` },
+  { Event: `*Severe Thunderstorm Watch*`, RGB: `rgb(255, 204, 0)` },
+  { Event: `*Heat Advisory*`, RGB: `rgb(255, 94, 0)` },
+  { Event: `*Excessive Heat Warning*`, RGB: `rgb(255, 0, 0)` },
+  { Event: `Default`, RGB: `rgb(86, 125, 165)` }
+];
+
+// src/components/utilities/GetMatched.ts
+var GetMatched = ({ Strings, String: String2 }) => {
+  const isMatched = Strings.some((pattern) => {
+    if (!pattern) return false;
+    const lowerP = pattern.toLowerCase();
+    const lowerS = String2.toLowerCase();
+    if (lowerP === "*" || lowerP === lowerS) return true;
+    if (lowerP.includes("*")) {
+      const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
+      return new RegExp(regex).test(lowerS);
+    }
+    return false;
+  });
+  return isMatched;
+};
+
+// src/building/GetEventTheme.ts
+var GetEventTheme = (Event) => {
+  return EnumThemes.find((theme) => GetMatched({ Strings: [theme.Event], String: Event }))?.RGB ?? EnumThemes.find((theme) => theme.Event === `Default`)?.RGB ?? `rgb(56, 72, 88)`;
+};
+
 // src/events/ParseText.ts
 var ParseText = async (Stanza) => {
   const getMessages = Stanza?.Message?.split(/(?=\$\$)/g)?.map((message) => message.trim())?.filter((message) => message && message !== "$$");
@@ -19306,6 +19446,7 @@ var ParseText = async (Stanza) => {
         status: isStatement ? `Statement` : `Issued`,
         issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
         expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString(),
+        theme: GetEventTheme(event),
         ...props,
         metadata: {
           ms: performance.now() - tick,
@@ -19480,6 +19621,7 @@ var ParseUGC = async (Stanza) => {
           status: isStatement ? `Statement` : `Issued`,
           issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
           expires: isStatement ? new Date(issued.getTime() + 120 * 1e3).toISOString() : !isNaN(expires.getTime()) ? expires.toISOString() : new Date(Date.now() + 60 * 60 * 1e3).toISOString(),
+          theme: GetEventTheme(event),
           ...props,
           metadata: {
             ms: performance.now() - tick,
@@ -19717,6 +19859,7 @@ var ParseVTEC = async (Stanza) => {
             status: vtec.Status,
             issued: !isNaN(issued.getTime()) ? issued.toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
             expires: !isNaN(expires.getTime()) ? expires.toISOString() : ugc.Expires ?? new Date(issued.getTime() + 60 * 60 * 1e3).toISOString(),
+            theme: GetEventTheme(vtec.Event),
             ...props,
             metadata: {
               ms: performance.now() - tick,
@@ -19767,6 +19910,7 @@ var ParseAPI = async (Stanza) => {
         )],
         description: feature2?.properties?.description ?? null,
         attributes: feature2?.properties?.attributes ?? {},
+        theme: GetEventTheme(feature2?.properties?.event),
         geocode: {
           office: {
             office: VTEC ? VTEC?.[0]?.Tracking.split(`.`)[0] : null,
@@ -20010,60 +20154,6 @@ var EnumGlobalFilter = [
   "storm prediction center day 3 outlook"
 ];
 
-// src/components/utilities/GetMatched.ts
-var GetMatched = ({ Strings, String: String2 }) => {
-  const isMatched = Strings.some((pattern) => {
-    if (!pattern) return false;
-    const lowerP = pattern.toLowerCase();
-    const lowerS = String2.toLowerCase();
-    if (lowerP === "*" || lowerP === lowerS) return true;
-    if (lowerP.includes("*")) {
-      const regex = "^" + lowerP.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
-      return new RegExp(regex).test(lowerS);
-    }
-    return false;
-  });
-  return isMatched;
-};
-
-// src/parsers/text/GetStringText.ts
-var GetStringText = (event) => {
-  const settings = Bootstrap.Settings;
-  const timezone = settings.NotifyServer.Timezone ?? `UTC`;
-  const line = (label, value, condition = true) => condition && value ? `${label} ${value}` : null;
-  const isStatement = event.properties.status_metadata.is_statement;
-  const isExpired = event.properties.status_metadata.is_expired;
-  return [
-    line(`Locations:`, event?.properties?.locations?.slice(0, 100)),
-    line(`Issued:`, `${new Date(event.properties.issued).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isExpired),
-    line(`Expires:`, `${new Date(event.properties.expires).toLocaleString([], { timeZone: timezone })} (${timezone.replace(`America/`, ``)})`, !isStatement),
-    line(`Damage Threat:`, event?.properties?.parameters?.damage_threat, !isExpired),
-    line(`Flood Threat:`, event?.properties?.parameters?.flood_threat, !isExpired),
-    line(`Tornado Threat:`, event?.properties?.parameters?.tornado_threat, !isExpired),
-    line(`Wind Gusts:`, `${event?.properties?.parameters?.estimated_wind_gusts} ${event?.properties?.parameters?.wind_threat ? ` (${event?.properties?.parameters?.wind_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_wind_gusts != null),
-    line(`Hail Size:`, `${event?.properties?.parameters?.estimated_hail_size} ${event?.properties?.parameters?.hail_threat ? ` (${event?.properties?.parameters?.hail_threat})` : ""}`, !isExpired && event?.properties?.parameters?.estimated_hail_size != null),
-    line(`Direction:`, event?.properties?.parameters?.direction, !isExpired && event?.properties?.parameters?.direction != null),
-    line(`Discussion:`, event?.properties?.discussion_parameters?.discussion_number, !isExpired),
-    line(`Concern:`, event?.properties?.discussion_parameters?.discussion_concerning, !isExpired),
-    line(`SPC Max Tornado Threat:`, event?.properties?.discussion_parameters?.discussion_max_tornado, !isExpired),
-    line(`SPC Max Hail Threat:`, event?.properties?.discussion_parameters?.discussion_max_hail, !isExpired),
-    line(`SPC Max Wind Threat:`, event?.properties?.discussion_parameters?.discussion_max_wind, !isExpired),
-    line(`SPC Watch Issuance Probability:`, event?.properties?.discussion_parameters?.discussion_watch_issuance ? `${event?.properties?.discussion_parameters?.discussion_watch_issuance}%` : null, !isExpired),
-    line(`Watch Number:`, event?.properties?.watch_parameters?.watch_number, !isExpired),
-    line(`Strong Tornadoes Probability:`, event?.properties?.watch_parameters?.strong_tornadoes_probability ? `${event?.properties?.watch_parameters?.strong_tornadoes_probability}%` : null, !isExpired),
-    line(`Additional Tornadoes Probability:`, event?.properties?.watch_parameters?.additional_tornadoes_probability ? `${event?.properties?.watch_parameters?.additional_tornadoes_probability}%` : null, !isExpired),
-    line(`Combined Hail/Wind Probability:`, event?.properties?.watch_parameters?.combined_hail_wind_probability ? `${event?.properties?.watch_parameters?.combined_hail_wind_probability}%` : null, !isExpired),
-    line(`Severe Hail Probability:`, event?.properties?.watch_parameters?.severe_hail_probability ? `${event?.properties?.watch_parameters?.severe_hail_probability}%` : null, !isExpired),
-    line(`Hail >2in Probability:`, event?.properties?.watch_parameters?.hail_2in_probability ? `${event?.properties?.watch_parameters?.hail_2in_probability}%` : null, !isExpired),
-    line(`Max Hail Inches:`, event?.properties?.watch_parameters?.max_hail_in, !isExpired),
-    line(`Severe Wind Probability:`, event?.properties?.watch_parameters?.severe_wind_probability ? `${event?.properties?.watch_parameters?.severe_wind_probability}%` : null, !isExpired),
-    line(`Max Surface Wind:`, event?.properties?.watch_parameters?.max_wind_surface, !isExpired),
-    line(`Max Tops (x100 feet):`, event?.properties?.watch_parameters?.max_tops_x100feet, !isExpired),
-    line(`Sender:`, event?.properties?.geocode?.office?.name ? `${event?.properties?.geocode?.office?.name} (${event?.properties?.geocode?.office?.office})` : event?.properties?.geocode?.office?.office),
-    line(`Tracking:`, event?.properties?.metadata?.tracking)
-  ].filter(Boolean).join("\n");
-};
-
 // src/tasks/TaskGenerateAudio.ts
 var TaskGenerateAudio = async function({ Filename, Description, Header }) {
   return await GenerateEASMessage({
@@ -20227,7 +20317,7 @@ var GetEmbededText = (event) => {
 };
 
 // src/tasks/TaskSendWebhook.ts
-import { readFile } from "fs/promises";
+import { readFile as readFile2 } from "fs/promises";
 var TaskSendWebhook = async function({ Event, Webhook, Attachments }) {
   const { properties } = Event;
   const isRatelimited = SetTimeoutAction({
@@ -20264,7 +20354,7 @@ var TaskSendWebhook = async function({ Event, Webhook, Attachments }) {
     });
   }
   if (Attachments?.Image) {
-    const file = await readFile(Attachments.Image);
+    const file = await readFile2(Attachments.Image);
     newForm.append("fUpload1", new Blob([Buffer.from(file)], { type: "image/png" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.png`);
   }
   if (Attachments?.Text) {
@@ -20274,7 +20364,7 @@ var TaskSendWebhook = async function({ Event, Webhook, Attachments }) {
     newForm.append("fUpload2", new Blob([Buffer.from(Attachments.Json)], { type: "application/json" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`);
   }
   if (Attachments?.EAS) {
-    const file = await readFile(Attachments.EAS);
+    const file = await readFile2(Attachments.EAS);
     newForm.append("fUpload3", new Blob([Buffer.from(file)], { type: "application/wav" }), `${properties.event}_${properties.status}_${properties.metadata.tracking}.wav`);
   }
   newForm.append("payload_json", JSON.stringify({

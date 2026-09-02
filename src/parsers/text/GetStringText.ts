@@ -22,8 +22,7 @@ import { TypeSettings } from "Types/Settings"
 import { Bootstrap } from "@Bootstrap"
 
 export const GetStringText = (event: TypeEvent): string => {
-    const settings = Bootstrap.Settings as TypeSettings;
-    const timezone = settings.NotifyServer.Timezone ?? `UTC`;
+    const timezone = Bootstrap.Settings.Timezone ?? `UTC`;
     const line = (label: string, value: unknown, condition = true) => condition && value ? `${label} ${value}` : null;
     const isStatement = event.properties.status_metadata.is_statement;
     const isExpired = event.properties.status_metadata.is_expired;

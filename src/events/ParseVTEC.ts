@@ -28,6 +28,7 @@ import { UGCExtract } from "@ParsingUGC/UGCExtract"
 import { GetEventProperties } from "@Building/GetEventProperties"
 import { GetEventHeader } from "@Building/GetEventHeader"
 import { GetEventTracking } from "@Building/GetEventTracking"
+import { GetEventTheme } from "@Building/GetEventTheme"
 import { SetDebug } from "@Utilities/SetDebug"
 
 export const ParseVTEC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
@@ -60,6 +61,7 @@ export const ParseVTEC = async (Stanza: TypeStanzaCompiled): Promise<void> => {
                         status: vtec.Status,
                         issued: (!isNaN(issued.getTime())) ? issued.toISOString() : new Date().toISOString(),
                         expires: (!isNaN(expires.getTime())) ? expires.toISOString() : ugc.Expires ??  new Date(issued.getTime() + 60 * 60 * 1000).toISOString(),
+                        theme: GetEventTheme(vtec.Event),
                         ...props,
                         metadata: {
                             ms: performance.now() - tick,

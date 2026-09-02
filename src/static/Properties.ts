@@ -19,6 +19,7 @@
 
 import { TypeAttributes } from "StaticTypes/Attributes"
     
+
 export type TypeEventProperties = {
     locations: string
     locations_array: string[]

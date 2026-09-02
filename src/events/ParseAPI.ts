@@ -24,6 +24,7 @@ import { Bootstrap } from "@Bootstrap"
 import { GetEventTracking } from "@Building/GetEventTracking"
 import { VTECExtract } from "@ParsingVTEC/VTECExtract"
 import { GetEventTags } from "@Building/GetEventTags"
+import { GetEventTheme } from "@Building/GetEventTheme"
 import { GetEventDirection } from "@Building/GetEventDirection"
 import { GetTextFromProduct } from "@ParsingText/GetTextFromProduct"
 import { SetDebug } from "@Utilities/SetDebug"
@@ -54,6 +55,7 @@ export const ParseAPI = async (Stanza: TypeStanzaCompiled): Promise<void> => {
                 )] as string[],
                 description: feature?.properties?.description ?? null,
                 attributes: feature?.properties?.attributes ?? {},
+                theme: GetEventTheme(feature?.properties?.event),
                 geocode: {
                     office: {
                         office: VTEC ? VTEC?.[0]?.Tracking.split(`.`)[0] : null,

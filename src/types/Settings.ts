@@ -22,6 +22,7 @@ import { TypeActions } from "Types/Actions"
 type TypeTimezones = string | "CST" | "CDT" | "MDT" | "MST" | "EST" | "EDT" | "HST" | "HDT" | "PDT" | "UTC"
 
 export type TypeSettings = {
+    Timezone?: TypeTimezones
     Database: string
     DebugDisableAllEvents: boolean
     EnableWireService: boolean
@@ -63,7 +64,6 @@ export type TypeSettings = {
     NotifyServer: {
         Enabled: boolean
         Server: string
-        Timezone?: TypeTimezones
         MediaStorage: {
             TEXT?: string
             JSON?: string
@@ -98,6 +98,7 @@ export type TypeSettings = {
             JSONDirectory: string
             TextDirectory: string
             EasDirectory: string
+            Logo: string
             EasToneout: string
         }
     }

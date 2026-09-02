@@ -52,6 +52,7 @@ export const Bootstrap = {
         UGC: new Map<string, string[]>()
     },
     Settings: {
+        Timezone: "UTC",
         Database: join(process.cwd(), 'shapefiles.db'),
         DebugDisableAllEvents: false,
         EnableWireService: false,
@@ -94,7 +95,6 @@ export const Bootstrap = {
         NotifyServer: {
             Enabled: false,
             Server: `https://ntfy.sh`,
-            Timezone: "UTC",
             MediaStorage: {
                 EAS: null as string,
                 TEXT: null as string,
@@ -129,6 +129,7 @@ export const Bootstrap = {
                 JSONDirectory: `Archive/Products` as string,
                 TextDirectory: `Archive/Text` as string,
                 EasDirectory: `Archive/Audio` as string,
+                Logo: null as string,
                 EasToneout: null as string
             }
         }
