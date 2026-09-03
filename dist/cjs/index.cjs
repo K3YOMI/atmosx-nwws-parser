@@ -18829,7 +18829,6 @@ var GetPolygonFromProduct = (message) => {
       if (lonStr.length < 4 || lonStr.length > 5) continue;
       const lat = parseInt(latStr, 10) / 100;
       let lon = parseInt(lonStr, 10) / 100;
-      if (lonStr.length === 4) lon += 100;
       points.push({ lat, lon });
     }
   }
