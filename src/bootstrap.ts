@@ -21,6 +21,7 @@ import { TypeEvent } from "StaticTypes/Event"
 import { TypeHash } from "Types/Hash"
 import { TypeActions } from "Types/Actions"
 import { TypeNode } from "Types/Nodes"
+import { EnumThemes } from "@Enums/Themes"
 import { EventEmitter } from "node:events"
 import { client } from "@xmpp/client"
 import { Database } from "better-sqlite3"
@@ -125,6 +126,7 @@ export const Bootstrap = {
                 NodeLocationFiltering: false,
                 IgnoreTestProducts: true,
             },
+            Themes: EnumThemes,
             ArchiveSettings: {
                 TTL: 60,
                 ImageDirectory: `Archive/Images` as string,

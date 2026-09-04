@@ -94,6 +94,7 @@ export type TypeSettings = {
             NodeLocationFiltering: boolean
             IgnoreTestProducts: boolean
         },
+        Themes: { Event: string, RGB: string }[]
         ArchiveSettings: {
             TTL: number
             ImageDirectory: string

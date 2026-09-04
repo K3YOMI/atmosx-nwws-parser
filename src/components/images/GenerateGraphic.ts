@@ -24,14 +24,13 @@ import { GetStringText } from "@ParsingText/GetStringText"
 import { GetEventGeometry } from "@Building/GetEventGeometry"
 import { GetGeographicalEvents } from "@ImageModules/GetGeographicalEvents"
 import { GetUnionPolygon } from "@Utilities/GetUnionPolygon"
-import { NormalizeD3Polygon } from "@ImageModules/NormalizePolygon"
 import { GetGeographicalBoundaries } from "@ImageModules/GetGeographicalBoundaries"
 import { GetGeographicalCities } from "@ImageModules/GetGeographicalCities"
 import { GetParsedBoundary } from "@ImageModules/GetParsedBoundary"
 import { GetSVGPath } from "@ImageModules/GetSVGPath"
 import { CreateSVG } from "@ImageModules/CreateSVG"
 import { GetGeometryBounds } from "@ImageModules/GetGeometryBounds"
-import { geoCentroid, geoMercator, geoPath } from "d3-geo"
+import { geoMercator, geoPath } from "d3-geo"
 import { mkdir, readFile } from "fs/promises"
 import { join } from "path";
 import sharp from "sharp"
@@ -69,7 +68,7 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, Wi
     const B = [`HI`, `AK`];
     const { coordinates } = Event?.geometry ?? {};
     const { properties } = Event ?? {};
-    const { regions, regions_string, theme, event } = properties ?? {};
+    const { regions, theme, event } = properties ?? {};
     const inConus = Event ? regions?.every(state => A[state] && !B.includes(state)) : true;
     const R = (Regions ?? null)?.length
         ? [...new Set(Regions ?? null)]

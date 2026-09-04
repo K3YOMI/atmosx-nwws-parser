@@ -17,10 +17,10 @@
 
 */
 
+import { Bootstrap } from "@Bootstrap";
 import { EnumThemes } from "@Enums/Themes"
 import { GetMatched } from "@Utilities/GetMatched";
-import { TypeEvent } from "StaticTypes/Event"
 
 export const GetEventTheme = (Event: string): string => {
-    return EnumThemes.find(theme => GetMatched({Strings: [theme.Event], String: Event}))?.RGB ?? EnumThemes.find(theme => theme.Event === `Default`)?.RGB ?? `rgb(56, 72, 88)`;
+    return Bootstrap.Settings.GlobalSettings.Themes.find(theme => GetMatched({Strings: [theme.Event], String: Event}))?.RGB ?? EnumThemes.find(theme => theme.Event === `Default`)?.RGB ?? `rgb(56, 72, 88)`;
 };

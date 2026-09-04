@@ -24,7 +24,7 @@ import { SetDebug } from "@Utilities/SetDebug"
 import { GetMatched } from "@Utilities/GetMatched"
 import { GetStringText } from "@ParsingText/GetStringText"
 import { GetCleanedEvent } from "@Building/GetCleanedEvent"
-import { TaskGenerateAudio } from "@Tasks/TaskGenerateAudio"
+import { GenerateAudioMessage } from "@Audio/GenerateAudioMessage"
 import { TaskGenerateText } from "@Tasks/TaskGenerateText"
 import { TaskGenerateJSON } from "@Tasks/TaskGenerateJSON"
 import { TaskSendNTFY } from "@Tasks/TaskSendNTFY"
@@ -52,10 +52,10 @@ export const CreateTasks = async (events: TypeEvent[]): Promise<void> => {
             if ((Events.length == 0 || isValidAction)) {
                 const a = performance.now();
                 const [audio, text, json, image] = await Promise.all([
-                    Uploads?.AUDIO && GlobalSettings?.ArchiveSettings?.AudioDirectory ? TaskGenerateAudio({
+                    Uploads?.AUDIO && GlobalSettings?.ArchiveSettings?.AudioDirectory ? GenerateAudioMessage({
                         Directory: GlobalSettings?.ArchiveSettings?.AudioDirectory + `/${properties?.regions_string ?? `MC`}`,
-                        Filename: (`${properties.event}_${properties.metadata.tracking}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
-                        Description: properties.description,
+                        Title: (`${properties.event}_${properties.metadata.tracking}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim(),
+                        Message: properties.description,
                         Header: properties.metadata.header
                     }).then((result) => { return result; }) : Promise.resolve(null),
 

@@ -18,6 +18,7 @@
 */
 
 import { TypeSettings } from "Types/Settings"
+import { Bootstrap } from "@Bootstrap"
 import { GetEventGeometry } from "@Building/GetEventGeometry"
 import { GetCleanedEvent } from "@Building/GetCleanedEvent"
 import { SetSettings } from "@Utilities/SetSettings"
@@ -32,10 +33,10 @@ import { ManualEvent } from "@Core/ManualEvent"
 import { GetRandomEvent } from "@Core/GetRandomEvent"
 import { QueryStanza } from "@Core/QueryStanza"
 import { ClearEvents } from "@Core/ClearEvents"
-import { CreateListener } from "@Core/CreateListener"
 import { StartService } from "@Core/StartService"
 import { StopService } from "@Core/StopService"
 import { GetVersion } from "@Core/GetVersion"
+
 
 export class Manager { 
     public constructor(settings: TypeSettings) { 
@@ -43,7 +44,8 @@ export class Manager {
     }
 
     public on(event: string, callback: () => void) {
-        CreateListener(event, callback)
+        Bootstrap.Listener.on(event, callback)
+        return () => { void Bootstrap.Listener.off(event, callback) };
     }
 
     private ErrorHandler() {
