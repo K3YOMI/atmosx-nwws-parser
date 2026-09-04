@@ -28,10 +28,11 @@
 # 5.4 - Broadcastify Feed Attachments
 ## 5.4.1 - Tag Filtering
 
-# 5.5 - Mock EAS Generator
+# 5.5 - Audio Generation
 ## 5.5.1 - Linux Prerequisites
 ## 5.5.2 - Limitations
 
 # 5.6 - Event Archiving
 ## 5.6.1 - Raw Text Product Archiving
 ## 5.6.2 - GeoJSON Archiving
+## 5.7 - Graphic Generation

@@ -27,4 +27,4 @@
 # 7.10 - Creating Manual WMO Events
 # 7.11 - Database Queries
 ## 7.11.1 - Stanza Query
-# 7.12 - Manual Mock EAS Generator
+# 7.12 - Manual Audio Generation

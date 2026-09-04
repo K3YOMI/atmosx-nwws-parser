@@ -84,16 +84,6 @@ LAT...LON 4587 6965 4585 6968 4588 6971 4587 6972
           4580 7042 4589 7026 4596 7026 4598 6968
 ```
 
-## 4.2.3 - Shapefile Skip Points
-
-The **ShapefileSkipPoints** configuration allows you to skip a specified number of points when building geometry for shapefiles. This can be useful for reducing the complexity of the resulting geometry or for performance reasons. This uses the [polygon-clipping](https://www.npmjs.com/package/polygon-clipping) library.
-
-```ts
-GlobalSettings: {
-	ShapefileSkipPoints: 2, // Skip every 2nd point
-},
-```
-
 # 4.3 – Tracking Node Settings
 
 Tracking nodes are GPS-based longitude/latitude filters used to monitor and manage geographic locations. They allow the system to match, filter, and process data based on specified coordinate positions.
@@ -206,4 +196,4 @@ Additionally, all events can be processed by setting **ListeningEvents** to an e
 ## 4.4.7 - Test Products
 # 4.5 - Archive Configurations
 ## 4.5.1 - TTL (Time-To-Live)
-## 4.5.2 - EAS Toneout
+## 4.5.2 - Audio Toneout
