@@ -15345,7 +15345,7 @@ var EnumThemes = [
 import { EventEmitter } from "node:events";
 import { join } from "path";
 var Bootstrap = {
-  Version: `3.0.63`,
+  Version: `3.0.7`,
   Ready: true,
   Ratelimits: {},
   Session: null,

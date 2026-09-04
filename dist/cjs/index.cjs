@@ -15368,7 +15368,7 @@ var EnumThemes = [
 var import_node_events = require("node:events");
 var import_path = require("path");
 var Bootstrap = {
-  Version: `3.0.63`,
+  Version: `3.0.7`,
   Ready: true,
   Ratelimits: {},
   Session: null,
