@@ -19,16 +19,16 @@
 
 import { TypeSettings } from "Types/Settings"
 import { Bootstrap } from "@Bootstrap"
-import { GetWavPCM16 } from "@EASComponents/GetWavPCM16"
-import { GetSampledPCM16 } from "@EASComponents/GetSampledPCM16"
-import { SetRadioEffect } from "@EASComponents/SetRadioEffect"
-import { SetSameHeader } from "@EASComponents/SetSameHeader"
-import { SetAttentionTone } from "@EASComponents/SetAttentionTone"
-import { GetMergedPCM16 } from "@EASComponents/GetMergedPCM16"
-import { SetNoise } from "@EASComponents/SetNoise"
-import { GetPCM16 } from "@EASComponents/GetPCM16"
-import { GetTTS } from "@EASComponents/GetTTS"
-import { GetCleanDescription } from "@EASComponents/GetCleanDescription"
+import { GetWavPCM16 } from "@AudioComponents/GetWavPCM16"
+import { GetSampledPCM16 } from "@AudioComponents/GetSampledPCM16"
+import { SetRadioEffect } from "@AudioComponents/SetRadioEffect"
+import { SetSameHeader } from "@AudioComponents/SetSameHeader"
+import { SetAttentionTone } from "@AudioComponents/SetAttentionTone"
+import { GetMergedPCM16 } from "@AudioComponents/GetMergedPCM16"
+import { SetNoise } from "@AudioComponents/SetNoise"
+import { GetPCM16 } from "@AudioComponents/GetPCM16"
+import { GetTTS } from "@AudioComponents/GetTTS"
+import { GetCleanDescription } from "@AudioComponents/GetCleanDescription"
 import { SetWarning } from "@Utilities/SetWarning"
 import { SetDebug } from "@Utilities/SetDebug"
 import { join } from "path"
@@ -36,22 +36,22 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "
 import { execSync } from "child_process"
 import { platform } from "os"
 
-interface GenerateEASMessageOptions { 
+interface GenerateAudioMessageOptions { 
     Message: string
     Header: string
     Directory?: string
     Title: string
 }
 
-export const GenerateEASMessage = async ({ Message, Directory, Header, Title }: GenerateEASMessageOptions): Promise<string> => {
+export const GenerateAudioMessage = async ({ Message, Directory, Header, Title }: GenerateAudioMessageOptions): Promise<string> => {
     const tick = performance.now()
     const settings = Bootstrap.Settings as TypeSettings;
-    const prefix = settings.GlobalSettings.ArchiveSettings.EasToneout;
+    const prefix = settings.GlobalSettings.ArchiveSettings.AudioToneout;
     let title = (Title ?? `${Math.random().toString(36).substring(2, 15)}-${Header.replace(/[^a-zA-Z0-9]/g, '')}`).replace(/[\\:*?"<>|]/g, "_").replace(/\s+/g, " ").trim();
     if (!Message || !Header) {
         SetWarning({
-            Title: `EAS`,
-            Message: `Message and header are required to generate an EAS tone.`
+            Title: `Audio`,
+            Message: `Message and header are required to generate an audio message.`
         })
         return null;
     }
@@ -61,8 +61,8 @@ export const GenerateEASMessage = async ({ Message, Directory, Header, Title }: 
 
     if (!Directory) {
         SetWarning({
-            Title: `EAS`,
-            Message: `EAS directory is not set in the settings. Please set it to generate EAS tones.`
+            Title: `Audio`,
+            Message: `Audio directory is not set in the settings. Please set it to generate audio messages.`
         });
         return null;
     }
@@ -76,8 +76,8 @@ export const GenerateEASMessage = async ({ Message, Directory, Header, Title }: 
 
     if (vPlatform === 'darwin') {
         SetWarning({
-            Title: `EAS`,
-            Message: `EAS tone generation is not supported on macOS.`
+            Title: `Audio`,
+            Message: `Audio tone generation is not supported on macOS.`
         });
         return null
     }

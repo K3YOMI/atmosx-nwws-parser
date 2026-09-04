@@ -90,13 +90,14 @@ export const Bootstrap = {
             BroadcastifyTags: [`Ham`, `Air`, `Fire`, `Public Safety`, `Weather`, `EMS`, `Police`, `Rail`]
         },
         BoundarySettings: {
-            BoundaryDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/counties-10m.json`
+            BoundaryDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/counties-10m.json`,
+            CityDatabase: `https://scriptkitty.cafe/ftp/@atmosphericx/assets/cities500.json`
         },
         NotifyServer: {
             Enabled: false,
             Server: `https://ntfy.sh`,
             MediaStorage: {
-                EAS: null as string,
+                AUDIO: null as string,
                 TEXT: null as string,
                 JSON: null as string,
                 IMAGE: null as string
@@ -129,9 +130,9 @@ export const Bootstrap = {
                 ImageDirectory: `Archive/Images` as string,
                 JSONDirectory: `Archive/Products` as string,
                 TextDirectory: `Archive/Text` as string,
-                EasDirectory: `Archive/Audio` as string,
+                AudioDirectory: `Archive/Audio` as string,
                 Logo: null as string,
-                EasToneout: null as string
+                AudioToneout: null as string
             }
         }
     },

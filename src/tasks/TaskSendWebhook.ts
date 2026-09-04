@@ -35,7 +35,7 @@ interface TaskSendWebhookOptions {
     Attachments: {
         Image?: string;
         Text?: string;
-        EAS?: string;
+        Audio?: string;
         Json?: string;
     }
 }
@@ -78,18 +78,18 @@ export const TaskSendWebhook = async function({ Event, Webhook, Attachments }: T
 
     if (Attachments?.Image) {
         const file = await readFile(Attachments.Image);
-        newForm.append("fUpload1", new Blob([Buffer.from(file)], {type: "image/png"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.png`)
+        newForm.append("attachmentImage", new Blob([Buffer.from(file)], {type: "image/png"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.png`)
     }
 
     if (Attachments?.Text) {
-        newForm.append("fUpload", new Blob([Buffer.from(Attachments.Text)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
+        newForm.append("attachmentText", new Blob([Buffer.from(Attachments.Text)], {type: "application/text"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.txt`)
     }
     if (Attachments?.Json) {
-        newForm.append("fUpload2", new Blob([Buffer.from(Attachments.Json)], {type: "application/json"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`)
+        newForm.append("attachmentJson", new Blob([Buffer.from(Attachments.Json)], {type: "application/json"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.json`)
     }
-    if (Attachments?.EAS) {
-        const file = await readFile(Attachments.EAS);
-        newForm.append("fUpload3", new Blob([Buffer.from(file)], {type: "application/wav"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.wav`)
+    if (Attachments?.Audio) {
+        const file = await readFile(Attachments.Audio);
+        newForm.append("attachmentAudio", new Blob([Buffer.from(file)], {type: "application/wav"}), `${properties.event}_${properties.status}_${properties.metadata.tracking}.wav`)
     }
 
     newForm.append("payload_json", JSON.stringify({ 

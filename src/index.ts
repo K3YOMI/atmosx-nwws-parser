@@ -23,7 +23,7 @@ import { GetCleanedEvent } from "@Building/GetCleanedEvent"
 import { SetSettings } from "@Utilities/SetSettings"
 import { SetEventEmit } from "@Utilities/SetEventEmit"
 import { SetWarning } from "@Utilities/SetWarning"
-import { GenerateEASMessage } from "@EAS/GenerateEASMessage"
+import { GenerateAudioMessage } from "@Audio/GenerateAudioMessage"
 import { GenerateGraphic } from "@Image/GenerateGraphic"
 import { SetNode } from "@Core/SetNode"
 import { GetEvents } from "@Core/GetEvents"
@@ -85,7 +85,7 @@ export {
     SetSettings, GetEventGeometry, ManualEvent,
     GetCleanedEvent, StopService, ClearEvents,
     StartService, SetNode, GetRandomEvent, GetVersion,
-    GetEvents, GetNodes, GenerateEASMessage, GenerateGraphic, 
+    GetEvents, GetNodes, GenerateAudioMessage, GenerateGraphic,
     QueryStanza
 }
 

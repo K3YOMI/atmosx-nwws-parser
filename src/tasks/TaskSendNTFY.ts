@@ -25,7 +25,7 @@ import { SetDebug } from "@Utilities/SetDebug";
 interface TaskSendNTFYOptions {
     Event: TypeEvent
     Toggles?: {
-        EAS?: boolean
+        Audio?: boolean
         Json?: boolean
         Text?: boolean
         Image?: boolean
@@ -46,18 +46,19 @@ export const TaskSendNTFY = async function({ Event, Toggles, Priority, Body, Top
 
     const image = properties?.metadata?.attachments?.find(a => a.name === "Image: Graphic") 
         ?? (Toggles?.Image && configurations?.MediaStorage?.IMAGE 
-            ? { link: `${configurations?.MediaStorage?.IMAGE}/${properties.region_abreviations_string}//${properties?.event}_${properties?.metadata?.tracking}.png` 
+            ? { link: `${configurations?.MediaStorage?.IMAGE}/${properties.regions_string}//${properties?.event}_${properties?.metadata?.tracking}.png` 
         } : undefined);
+        
     const buttons = [
-        ...(Toggles?.EAS && configurations?.MediaStorage?.EAS ? [{
+        ...(Toggles?.Audio && configurations?.MediaStorage?.AUDIO ? [{
             "action": "view",
             "label": "Listen",
-            "url": `${configurations.MediaStorage.EAS}/${properties.region_abreviations_string}/${properties.event}_${properties.metadata.tracking}.wav`,
+            "url": `${configurations.MediaStorage.AUDIO}/${properties.regions_string}/${properties.event}_${properties.metadata.tracking}.wav`,
         }] : []),
         ...(Toggles?.Text && configurations?.MediaStorage?.TEXT ? [{
             "action": "view",
             "label": "View Text",
-            "url": `${configurations.MediaStorage.TEXT}/${properties.region_abreviations_string}/${properties.event}_${properties.metadata.tracking}.txt`,
+            "url": `${configurations.MediaStorage.TEXT}/${properties.regions_string}/${properties.event}_${properties.metadata.tracking}.txt`,
         }] : []),
         ...(image ? [{
             "action": "view",
@@ -86,6 +87,7 @@ export const TaskSendNTFY = async function({ Event, Toggles, Priority, Body, Top
             SetDebug({ Title: `Tasks/NTFY`, Message: `Failed to send notification to topic "${topic}": ${response.message}` })
         }
     }
+
     const topics = [
         Topic,
         ...(properties.metadata.filtered_proximity ? [`${Topic}-LOCAL`] : []),

@@ -60,6 +60,7 @@ export type TypeSettings = {
     },
     BoundarySettings: {
         BoundaryDatabase: string
+        CityDatabase: string
     },
     NotifyServer: {
         Enabled: boolean
@@ -67,7 +68,7 @@ export type TypeSettings = {
         MediaStorage: {
             TEXT?: string
             JSON?: string
-            EAS?: string
+            AUDIO?: string
             IMAGE?: string
         }
         Credentials?: {
@@ -98,9 +99,9 @@ export type TypeSettings = {
             ImageDirectory: string
             JSONDirectory: string
             TextDirectory: string
-            EasDirectory: string
+            AudioDirectory: string
             Logo: string
-            EasToneout: string
+            AudioToneout: string
         }
     }
 }

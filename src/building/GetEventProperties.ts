@@ -42,16 +42,15 @@ export const GetEventProperties = ({ Message, Attributes, UGC, VTEC }: GetEventP
     const properties = {
         locations: UGC?.Locations?.join(`; `) ?? null,
         locations_array: UGC?.Locations ?? [],
-        region_abreviations: [...new Set(
+        regions: [...new Set(
             UGC?.Zones
             ?.map((location: string) => location.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1])
             .filter(Boolean) ?? []
         )],
-        region_abreviations_string: [...new Set(
-            UGC?.Zones
-            ?.map((location: string) => location.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1])
-            .filter(Boolean) ?? []
-        )].join(`-`),
+        regions_string: (() => {
+            const abbrs = [...new Set(UGC?.Zones?.map((l: string) => l.match(/^([A-Z]{2})[CZ](\d{3})$/)?.[1]).filter(Boolean) ?? [])];
+            return abbrs.length ? abbrs.join(`-`) : null;
+        })(),
         description: GetDescriptionFromProduct({ Message: Message, Handle: VTEC?.Raw ?? null }),
         attributes: Attributes,
         geocode: {

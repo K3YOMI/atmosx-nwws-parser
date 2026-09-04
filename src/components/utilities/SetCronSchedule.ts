@@ -54,7 +54,7 @@ export const SetCronSchedule = async (): Promise<void> => {
         }
     };
     walk(settings.GlobalSettings.ArchiveSettings.TextDirectory)
-    walk(settings.GlobalSettings.ArchiveSettings.EasDirectory)
+    walk(settings.GlobalSettings.ArchiveSettings.AudioDirectory)
     walk(settings.GlobalSettings.ArchiveSettings.JSONDirectory)
     walk(settings.GlobalSettings.ArchiveSettings.ImageDirectory, true)
 

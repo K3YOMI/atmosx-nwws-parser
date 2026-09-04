@@ -32,6 +32,6 @@ export type TypeActions = {
         Priority?: string | number
     }
     Uploads?: {
-        TEXT?: boolean, EAS?: boolean, JSON?: boolean, IMAGE?: boolean
+        TEXT?: boolean, AUDIO?: boolean, JSON?: boolean, IMAGE?: boolean
     }
 }

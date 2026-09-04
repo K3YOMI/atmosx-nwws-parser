@@ -53,5 +53,5 @@ export const GetLocations = async (zones: string[]): Promise<string[]> => {
             results.push(r.location);
         }
     }
-    return results;
+    return Array.from(new Set(results));
 };

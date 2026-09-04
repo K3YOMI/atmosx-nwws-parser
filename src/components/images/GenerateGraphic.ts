@@ -26,6 +26,7 @@ import { GetGeographicalEvents } from "@ImageModules/GetGeographicalEvents"
 import { GetUnionPolygon } from "@Utilities/GetUnionPolygon"
 import { NormalizeD3Polygon } from "@ImageModules/NormalizePolygon"
 import { GetGeographicalBoundaries } from "@ImageModules/GetGeographicalBoundaries"
+import { GetGeographicalCities } from "@ImageModules/GetGeographicalCities"
 import { GetParsedBoundary } from "@ImageModules/GetParsedBoundary"
 import { GetSVGPath } from "@ImageModules/GetSVGPath"
 import { CreateSVG } from "@ImageModules/CreateSVG"
@@ -44,20 +45,21 @@ interface GenerateGraphicOptions {
         Directory?: string
         Name?: string
     }
-    MinZoom?: number
     MaxMiles?: number
     Width?: number
     Height?: number
 }
 
-export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, MinZoom = 0.4, Width = 1200, Height = 675 }: GenerateGraphicOptions): Promise<string> => {
+export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, Width = 1200, Height = 675 }: GenerateGraphicOptions): Promise<string> => {
     let polygons: GeoJSON.Polygon | GeoJSON.MultiPolygon | null
     let icon: string | null;
     let renders: any = {
+        cities: null,
         states: null,
         counties: null,
     };
     let pathing: any = {
+        cities: null,
         events: null,
         counties: null,
         states: null, 
@@ -67,14 +69,24 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, Mi
     const B = [`HI`, `AK`];
     const { coordinates } = Event?.geometry ?? {};
     const { properties } = Event ?? {};
-    const { region_abreviations, region_abreviations_string, theme, event } = properties ?? {};
-    const inConus = Event ? region_abreviations?.every(state => A[state] && !B.includes(state)) : true;
+    const { regions, regions_string, theme, event } = properties ?? {};
+    const inConus = Event ? regions?.every(state => A[state] && !B.includes(state)) : true;
     const R = (Regions ?? null)?.length
         ? [...new Set(Regions ?? null)]
         : null;
     const E = GetGeographicalEvents({ Regions: R, Event: Event });
     if (inConus || !Event) {
         const boundaries = GetGeographicalBoundaries({ Regions: R });
+        const cities = GetGeographicalCities({ Regions: R });
+        renders.cities = cities.cities.filter(city => city.population >= 5e3).sort((a, b) => b.population - a.population).filter((city, index, cities) => {
+            return !cities.slice(0, index).some(other => {
+                const dist = Math.sqrt(
+                    Math.pow(city.lat - other.lat, 2) +
+                    Math.pow(city.lon - other.lon, 2)
+                );
+                return dist < (Event || Regions ? 0.4 : 3);
+            });
+        });
         renders.states = GetParsedBoundary(boundaries.states);
         renders.counties = GetParsedBoundary(boundaries.counties);
     }
@@ -84,13 +96,16 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, Mi
         if (polygons.coordinates.length == 0) { return null; }
         if (inConus) {
             const eBounds = GetGeometryBounds({ Geometry: polygons, Padding: MaxMiles });
-            renders.counties = renders.counties.filter((county: GeoJSON.Feature<GeoJSON.Polygon>) => {
+            renders.counties = renders?.counties?.filter((county: GeoJSON.Feature<GeoJSON.Polygon>) => {
                 const cBounds = GetGeometryBounds({ Geometry: county.geometry, Padding: MaxMiles });
                 return ( cBounds.Bounds.minLon <= eBounds.Search.maxLon && cBounds.Bounds.maxLon >= eBounds.Search.minLon && cBounds.Bounds.minLat <= eBounds.Search.maxLat && cBounds.Bounds.maxLat >= eBounds.Search.minLat );
             });
-            renders.states = renders.states.filter((state: GeoJSON.Feature<GeoJSON.Polygon>) => {
+            renders.states = renders?.states?.filter((state: GeoJSON.Feature<GeoJSON.Polygon>) => {
                 const sBounds = GetGeometryBounds({ Geometry: state.geometry, Padding: MaxMiles });
                 return ( sBounds.Bounds.minLon <= eBounds.Search.maxLon && sBounds.Bounds.maxLon >= eBounds.Search.minLon && sBounds.Bounds.minLat <= eBounds.Search.maxLat && sBounds.Bounds.maxLat >= eBounds.Search.minLat );
+            });
+            renders.cities = renders?.cities?.filter((city: { lat: number; lon: number }) => {
+                return ( city.lat >= eBounds.Search.minLat && city.lat <= eBounds.Search.maxLat && city.lon >= eBounds.Search.minLon && city.lon <= eBounds.Search.maxLon );
             });
         }
     }
@@ -110,14 +125,13 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, Mi
     )).filter(Boolean);
 
     if (polygons) {
-        const [centerLon, centerLat] = geoCentroid(NormalizeD3Polygon(polygons));
-        iMode.center([centerLon, centerLat]).translate([Width / 2, Height / 2]).scale(renders?.counties?.length > 0 ? 0.4 : 1.0);
-        const [[x1, y1], [x2, y2]] = geoPath().projection(iMode).bounds(jCollection.features.length > 0 ? jCollection : { type: `FeatureCollection`, features: [ { type: `Feature`, geometry: polygons, properties: {} } ] });
-        const scaleX = Width / (x2 - x1);
-        const scaleY = Height / (y2 - y1);
-        const scale = 1.5;
-        iMode.scale(Math.min(scaleX, scaleY) * scale);
-    } else { 
+        const geo = {
+            type: "FeatureCollection",
+            features: [{ type: "Feature", geometry: polygons, properties: {} }]
+        };
+        iMode.fitExtent([[150, 150], [Width - 150, Height - 150]], geo as any);
+        iMode.scale(iMode.scale());
+    } else {
         iMode.fitExtent([[60, 60], [Width - 60, Height - 60]], jCollection);
     }
 
@@ -145,13 +159,23 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, Mi
         Settings: { BorderColor: `white`, BorderWidth: 1, FillColor: `#ffffff`, FillOpacity: 0 } 
     })).filter(Boolean).join(``);
 
+    pathing.cities = renders?.cities?.map((city: { lat: number; lon: number; name: string; population: number }) => {
+        const point = iMode([city.lon, city.lat]);
+        const [x, y] = point;
+        const radius = 2 * Math.max(0.75, Math.min(1.5, Width / 1000));
+        return `
+            <circle cx="${x}" cy="${y}" r="${radius}" fill="#ffffff" />
+            <text x="${x}" y="${y + radius + 9}" fill="#ffffff" font-size="${Math.max(10, Math.min(10, Width / 140))}px" font-family="Arial, sans-serif" font-weight="500" text-anchor="middle" dominant-baseline="middle" stroke="#000000" stroke-width="2.5" stroke-opacity="0.7" paint-order="stroke" >${city.name}</text>
+        `;
+    }).join(``);
+
     const title = Event
         ? (event ?? `Event`)
         : (R?.length > 0 ? `Region: ${R.map(state => EnumStates[state] ?? state).join(`, `)}` : `Contiguous United States`);
     const subtitleLines = Event
         ? GetStringText(Event).split(`\n`).filter(line => line.trim().length > 0).slice(0, 10)
         : [`Last Updated: ${new Date().toLocaleString()}`];
-    const scale = Math.max(0.75, Math.min(1.5, Width / 1000));
+    const scale = Math.max(0.75, Math.min(1.0, Width / 1000));
     const titleSize = Math.round(17 * scale);
     const lineSize = Math.round(13 * scale);
     const lineHeight = Math.round(15 * scale);
@@ -184,7 +208,7 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, Mi
 
     const SVG = CreateSVG({
         Width, Height,
-        MapFeatures: !inConus ? [pathing.events] : [pathing.counties, pathing.states, pathing.events],
+        MapFeatures: !inConus ? [pathing.events] : [pathing.counties, pathing.states, pathing.events, pathing.cities],
         Features: [
             `<rect x="${Math.round(9 * scale)}" y="${Math.round(10 * scale)}" width="${boxWidth}" height="${boxHeight}"  fill="rgba(0, 0, 0, 0.57)" />`,
             `<rect x="${Math.round(6 * scale)}" y="${Math.round(7 * scale)}" width="${boxWidth}" height="${boxHeight}" fill="rgba(16, 18, 24, 0.36)" stroke="rgba(255,255,255,0.12)" stroke-width="${Math.max(1, scale)}" />`,
@@ -195,20 +219,17 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 125, Mi
             `<text x="${textStartX}" y="${titleY}" text-anchor="start" font-family="Arial, sans-serif" font-size="${titleSize}" font-weight="700" fill="white">${title.length > maxTitleChars ? title.slice(0, maxTitleChars - 3) + `...` : title}</text>`,
             ...subtitleLines.map((line, i) =>
                 `<text x="${textStartX}" y="${firstLineY + (i * lineHeight)}" text-anchor="start" font-family="Arial, sans-serif" font-size="${lineSize}" fill="rgba(255,255,255,0.82)">${line.length > maxLineChars ? line.slice(0, maxLineChars - 3) + `...` : line}</text>`
-            )
+            ),
+            `<text x="${textStartX}" y="${boxHeight - Math.round(5 * scale)}" text-anchor="start" font-family="Arial, sans-serif" font-size="${Math.max(8, Math.min(8, Width / 140))}px" fill="rgba(255,255,255,0.82)" >This graphic was created by AtmosphericX and is not an official NOAA graphic.</text>`
         ]
     });
 
     const { Directory, Name } = File ?? {};
     const dir = Directory ?? Bootstrap.Settings?.GlobalSettings?.ArchiveSettings?.ImageDirectory;
     const name = Name ?? event ?? `img`;
-    const dist = region_abreviations_string ? join(dir, region_abreviations_string) : dir;
-    await mkdir(dist, { recursive: true });
+    await mkdir(dir, { recursive: true });
     await sharp(Buffer.from(SVG))
         .png()
-        .toFile(join(dist, `${name}${name.includes(`.png`) ? `` : `.png`}`));
-    await sharp(Buffer.from(SVG))
-        .webp()
-        .toFile(`example.png`);
-    return dist + `/${name}${name.includes(`.png`) ? `` : `.png`}`; 
+        .toFile(join(dir, `${name}${name.includes(`.png`) ? `` : `.png`}`));
+    return dir + `/${name}${name.includes(`.png`) ? `` : `.png`}`; 
 }

@@ -18,20 +18,38 @@
     
 */
 
-import { GetPCMToFloat } from "@EASComponents/GetPCMToFloat"
-import { GetFloatPCM16 } from "@EASComponents/GetFloatPCM16"
+import { GetPCMToFloat } from "@AudioComponents/GetPCMToFloat"
+import { GetFloatPCM16 } from "@AudioComponents/GetFloatPCM16"
 
-interface SetNoiseOptions {
+interface SetRadioEffectOptions {
     Int16: Int16Array
-    NoiseLevel?: number
+    SampleRate: number
 }
 
-export const SetNoise = ({ Int16, NoiseLevel }: SetNoiseOptions): Int16Array => {
+export const SetRadioEffect = ({ Int16, SampleRate }: SetRadioEffectOptions): Int16Array => {
+    const hpCut = 3555;
+    const lpCut = 1600;
     const x = GetPCMToFloat(Int16);
-    for (let i = 0; i < x.length; i++) x[i] += (Math.random() * 2 - 1) * (NoiseLevel ?? 0.02);
-    let peak = 0;
-    for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
-    if (peak > 1) for (let i = 0; i < x.length; i++) x[i] *= 0.98 / peak;
+    const dt = 1 / SampleRate;
+    const rcHP = 1 / (2 * Math.PI * hpCut);
+    const aHP = rcHP / (rcHP + dt);
+    let yHP = 0, xPrev = 0;
+    for (let i = 0; i < x.length; i++) {
+        const xi = x[i];
+        yHP = aHP * (yHP + xi - xPrev);
+        xPrev = xi;
+        x[i] = yHP;
+    }
+    const rcLP = 1 / (2 * Math.PI * lpCut);
+    const aLP = dt / (rcLP + dt);
+    let yLP = 0;
+    for (let i = 0; i < x.length; i++) {
+        yLP = yLP + aLP * (x[i] - yLP);
+        x[i] = yLP;
+    }
+    const compGain = 2.0;
+    const norm = Math.tanh(compGain);
+    for (let i = 0; i < x.length; i++) x[i] = Math.tanh(x[i] * compGain) / norm;
     return GetFloatPCM16(x);
 }
 
