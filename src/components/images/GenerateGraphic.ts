@@ -30,11 +30,10 @@ import { GetParsedBoundary } from "@ImageModules/GetParsedBoundary"
 import { GetSVGPath } from "@ImageModules/GetSVGPath"
 import { CreateSVG } from "@ImageModules/CreateSVG"
 import { GetGeometryBounds } from "@ImageModules/GetGeometryBounds"
-import { geoMercator, geoPath } from "d3-geo"
+import { geoBounds, geoMercator, geoPath } from "d3-geo"
 import { mkdir, readFile } from "fs/promises"
 import { join } from "path";
 import sharp from "sharp"
-
 
 interface GenerateGraphicOptions { 
     Regions?: string[]
@@ -124,14 +123,23 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, Wi
     )).filter(Boolean);
 
     if (polygons) {
+        let geometry = polygons;
         const geo = {
             type: "FeatureCollection",
-            features: [{ type: "Feature", geometry: polygons, properties: {} }]
+            features: [{ type: "Feature", geometry, properties: {} }]
         };
+        const bounds = geoBounds(geo as any);
+        if (bounds[0][0] === -180 && bounds[0][1] === -90 && bounds[1][0] === 180 && bounds[1][1] === 90) {
+            if (geometry.type === "Polygon") {
+                geometry = { ...geometry, coordinates: geometry.coordinates.map((ring) => [...ring].reverse())};
+            } else if (geometry.type === "MultiPolygon") {
+                geometry = {...geometry, coordinates: geometry.coordinates.map((polygon) => polygon.map((ring) => [...ring].reverse()))};
+            }
+            geo.features[0].geometry = geometry;
+        }
         iMode.fitExtent([[150, 150], [Width - 150, Height - 150]], geo as any);
-        iMode.scale(iMode.scale());
     } else {
-        iMode.fitExtent([[60, 60], [Width - 60, Height - 60]], jCollection);
+        iMode.fitExtent( [[60, 60], [Width - 60, Height - 60]], jCollection);
     }
 
     pathing.events = events?.map(({ event, polygon: polys }) => {
@@ -217,7 +225,7 @@ export const GenerateGraphic = async ({ File, Regions, Event, MaxMiles = 350, Wi
                 : ``,
             `<text x="${textStartX}" y="${titleY}" text-anchor="start" font-family="Arial, sans-serif" font-size="${titleSize}" font-weight="700" fill="white">${title.length > maxTitleChars ? title.slice(0, maxTitleChars - 3) + `...` : title}</text>`,
             ...subtitleLines.map((line, i) =>
-                `<text x="${textStartX}" y="${firstLineY + (i * lineHeight)}" text-anchor="start" font-family="Arial, sans-serif" font-size="${lineSize}" fill="rgba(255,255,255,0.82)">${line.length > maxLineChars ? line.slice(0, maxLineChars - 3) + `...` : line}</text>`
+                `<text x="${textStartX}" y="${firstLineY + (i * lineHeight)}" text-anchor="start" font-family="Arial, sans-serif" font-size="${lineSize}" fill="rgba(255,255,255,0.82)">${line.length > maxLineChars ? line.slice(0, maxLineChars - 3) + `...` : line.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</text>`
             ),
             `<text x="${textStartX}" y="${boxHeight - Math.round(5 * scale)}" text-anchor="start" font-family="Arial, sans-serif" font-size="${Math.max(8, Math.min(8, Width / 140))}px" fill="rgba(255,255,255,0.82)" >This graphic was created by AtmosphericX and is not an official NOAA graphic.</text>`
         ]
